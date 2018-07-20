@@ -9,6 +9,7 @@ goto :end
 IF NOT EXIST __build MKDIR __build
 cd __build
 IF NOT EXIST mingw32 MKDIR mingw32
-cmake -f ../.. -G "MinGW32 Makefiles"
-mingw_make.exe
+cd mingw32
+cmake -f ../.. -G "MinGW Makefiles"
+mingw32-make.exe
 :end
