@@ -2,30 +2,10 @@ cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 
 project (lua) 
 
-SET(CWARNSCPP 
-	-Wextra
-	-Wshadow
-	-Wsign-compare
-	-Wundef
-	-Wwrite-strings
-	-Wredundant-decls
-	-Wdisabled-optimization
-	-Wdouble-promotion
- 	-Wstrict-aliasing=3
- 	-Wno-aggressive-loop-optimizations
- 	-Wlogical-op
-	-Werror
-)
+SET(CWARNSCPP "-Wextra -Wshadow	-Wsign-compare -Wundef -Wwrite-strings -Wredundant-decls -Wdisabled-optimization -Wdouble-promotion -Wstrict-aliasing=3 -Wno-aggressive-loop-optimizations -Wlogical-op -Werror")
 
 # The next warnings are neither valid nor needed for C++
-SET(CWARNSC
-	-Wdeclaration-after-statement
-	-Wmissing-prototypes
-	-Wnested-externs
-	-Wstrict-prototypes
-	-Wc++-compat
-	-Wold-style-definition
-)
+SET(CWARNSC "-Wdeclaration-after-statement -Wmissing-prototypes -Wnested-externs -Wstrict-prototypes -Wc++-compat -Wold-style-definition")
 
 if (MSVC)
     SET(MYCFLAGS "/DLUA_USE_WINDOWS")
@@ -63,9 +43,9 @@ else()
         SET(BUILD_ARCH "linux")
     endif()
 
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${EXTRA_CXX_FLAGS}")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 ${EXTRA_CXX_FLAGS} -ggdb")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O2 ${EXTRA_CXX_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${EXTRA_C_FLAGS}")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 ${EXTRA_C_FLAGS} -ggdb")
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 -${EXTRA_C_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common")
 endif()
 

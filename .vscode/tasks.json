@@ -4,14 +4,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build Win64",
-            "identifier": "build_binary_win64",
+            "label": "build Win64 Debug",
+            "identifier": "build_binary_win64_debug",
             "type": "shell",
             "command": "msbuild",
             "args": [
                 // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/t:build",
+                "/p:Configuration=Debug",
                 "${workspaceFolder}//__build//win64//TypeScriptLUA.sln"
             ],
             "group": {
@@ -24,24 +25,79 @@
             },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile",
-            "dependsOn": "build_source_win64"
+            "dependsOn": "build_source_win64_debug"
         },
         {
-            "label": "Build VS2017 Win64 source",
-            "identifier": "build_source_win64",
+            "label": "build Win64 Release",
+            "identifier": "build_binary_win64_release",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                "/t:build",
+                "/p:Configuration=Release",
+                "${workspaceFolder}//__build//win64//TypeScriptLUA.sln"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile",
+            "dependsOn": "build_source_win64_release"
+        },
+        {
+            "label": "Build VS2017 Win64 source - Debug",
+            "identifier": "build_source_win64_debug",
             "group": "build",
             "isBackground": true,
             "type": "shell",
-            "command": "${workspaceFolder}\\build.cmd win64",
+            "command": "${workspaceFolder}\\build.cmd",
+            "args": [
+                "win64",
+                "Debug"
+            ],
             "problemMatcher": []
         },
         {
-            "label": "Build MinGW32 source/binary",
-            "identifier": "build_source_mingw32",
+            "label": "Build VS2017 Win64 source - Release",
+            "identifier": "build_source_win64_release",
             "group": "build",
             "isBackground": true,
             "type": "shell",
-            "command": "${workspaceFolder}\\build.cmd mingw32",
+            "command": "${workspaceFolder}\\build.cmd",
+            "args": [
+                "win64",
+                "Release"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build MinGW32 source/binary - Debug",
+            "identifier": "build_source_mingw32_debug",
+            "group": "build",
+            "isBackground": true,
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.cmd",
+            "args": [
+                "mingw32",
+                "Debug"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build MinGW32 source/binary - Release", 
+            "identifier": "build_source_mingw32_release",
+            "group": "build",
+            "isBackground": true,
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.cmd",
+            "args": [
+                "mingw32",
+                "Release"
+            ],
             "problemMatcher": []
         }
     ]
