@@ -1,0 +1,39 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "identifier": "build_binary",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                "/t:build",
+                "${workspaceFolder}//__build//win64//TypeScriptLUA.sln"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile",
+            "dependsOn": "build_source"
+        },
+        {
+            "label": "Build VisualStudio 2017 Win64 source",
+            "identifier": "build_source",
+            "group": "build",
+            "isBackground": true,
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.cmd win64",
+            "problemMatcher": []
+        }
+    ]
+}
