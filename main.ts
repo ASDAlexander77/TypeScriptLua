@@ -1,7 +1,9 @@
 import * as ts from "typescript";
 import * as fs from "fs";
+import { Emitter } from './emitter';
 
 class Run 
+
 {
 	public run(): void
 	{
@@ -9,12 +11,15 @@ class Run
 
 		const sourceFile = ts.createSourceFile("test.ts", fs.readFileSync("test.ts").toString(), ts.ScriptTarget.ES2018, false);
 
-		const emitter = ts.createPrinter({
+		const printer = ts.createPrinter({
 			newLine: ts.NewLineKind.LineFeed,
 		});
 
-		const result = emitter.printNode(ts.EmitHint.SourceFile, sourceFile, sourceFile);
+		const result = printer.printNode(ts.EmitHint.SourceFile, sourceFile, sourceFile);
 		console.log(result);
+
+		const emitter = new Emitter();
+		emitter.processNode(sourceFile);
 	}
 }
 
