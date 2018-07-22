@@ -15,9 +15,59 @@ export class Emitter
         }
 
         // TODO: finish it
+        throw new Error("Method not implemented.");
     }
 
     private processFile(sourceFile: ts.SourceFile): void 
+    {
+        this.emitHeader();
+        // f->sizeupvalues (byte)
+        this.writer.writeByte(1);
+        this.emitFunction(sourceFile.statements);
+    }
+
+    private processBundle(bundle: ts.Bundle): void 
+    {
+        throw new Error("Method not implemented.");
+    }
+
+    private processUnparsedSource(unparsedSource: ts.UnparsedSource): void 
+    {
+        throw new Error("Method not implemented.");
+    }
+
+    private processStatement(node: ts.Statement): void
+    {
+        switch (node.kind) 
+        {
+            case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
+        }
+
+        // TODO: finish it
+        throw new Error("Method not implemented.");        
+    }
+
+    private processExpressionStatement(node: ts.ExpressionStatement): void 
+    {
+        this.processExpression(node.expression);
+    }
+
+    private processExpression(node: ts.Expression): void 
+    {
+        switch (node.kind) 
+        {
+            case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
+        }
+        
+        // TODO: finish it
+        throw new Error("Method not implemented.");        
+    }    
+
+    private processCallExpression(node: ts.CallExpression): void 
+    {
+    }
+
+    private emitHeader(): void
     {
         // writing header
         // LUA_SIGNATURE 
@@ -32,17 +82,35 @@ export class Emitter
         this.writer.writeArray([0x78,0x56,0x0,0x0,0x0,0x0,0x0,0x0]);
         // LUAC_NUM
         this.writer.writeArray([0x0,0x0,0x0,0x0,0x0,0x28,0x77,0x40]);
-
-        // TODO: write f->sizeupvalues(byte) + function
     }
 
-    private processBundle(bundle: ts.Bundle): void 
+    private emitFunction(node: ts.NodeArray<ts.Statement>): void 
     {
-        throw new Error("Method not implemented.");
+        this.emitFunctionHeader();
+        node.forEach(s => {
+            this.processStatement(s);
+        });
     }
 
-    private processUnparsedSource(unparsedSource: ts.UnparsedSource): void 
+    private emitFunctionHeader(): void 
     {
-        throw new Error("Method not implemented.");
-    }
+        // TODO: finish      
+        // write debug info, by default 0 (string)
+        this.writer.writeString(null); 
+
+        // f->linedefined = 0, (int)
+        this.writer.writeInt(0); 
+
+        // f->lastlinedefined = 0, (int)
+        this.writer.writeInt(0); 
+        
+        // f->numparams (byte)
+        this.writer.writeByte(0); 
+        
+        // f->is_vararg (byte)
+        this.writer.writeByte(0); 
+        
+        // f->maxstacksize
+        this.writer.writeByte(2); 
+    }    
 }
