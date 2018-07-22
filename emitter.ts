@@ -87,9 +87,7 @@ export class Emitter
     private emitFunction(node: ts.NodeArray<ts.Statement>): void 
     {
         this.emitFunctionHeader();
-        node.forEach(s => {
-            this.processStatement(s);
-        });
+        this.emitFunctionCode(node);
     }
 
     private emitFunctionHeader(): void 
@@ -108,9 +106,18 @@ export class Emitter
         this.writer.writeByte(0); 
         
         // f->is_vararg (byte)
-        this.writer.writeByte(0); 
+        this.writer.writeByte(1); 
         
         // f->maxstacksize
         this.writer.writeByte(2); 
+    }    
+
+    private emitFunctionCode(node: ts.NodeArray<ts.Statement>): void 
+    {
+        // f->sizecode
+        this.writer.writeInt(4);         
+        node.forEach(s => {
+            this.processStatement(s);
+        });
     }    
 }
