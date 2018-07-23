@@ -158,6 +158,9 @@ export class Emitter {
         this.emitFunctionHeader(functionContext);
         this.emitFunctionCode(functionContext);
         this.emitConstants(functionContext);
+        this.emitUpvalues(functionContext);
+        this.emitProtos(functionContext);
+        this.emitDebug(functionContext);
     }
 
     private emitFunctionHeader(functionContext: FunctionContext): void {
@@ -224,5 +227,40 @@ export class Emitter {
                 default: throw new Error("Method not implemeneted");
             }           
         });
+    }    
+
+    private emitUpvalues(functionContext: FunctionContext): void {
+        this.writer.writeInt(functionContext.upvalues.length);
+
+        functionContext.upvalues.forEach((upvalue, index: number) => {
+            // in stack
+            // TODO: finish it
+            this.writer.writeByte(index + 1);
+            // index
+            this.writer.writeByte(index);
+        });
+    }     
+
+    private emitProtos(functionContext: FunctionContext): void {
+        this.writer.writeInt(functionContext.protos.length);
+
+        functionContext.protos.forEach(p => {
+            // TODO: finish it
+            this.emitFunction(p);
+        });
+    }     
+    
+    private emitDebug(functionContext: FunctionContext): void {
+
+        if (functionContext.debug.length == 0)
+        {
+            this.writer.writeInt(0);
+            this.writer.writeInt(0);
+            this.writer.writeInt(0);
+        }
+        else
+        {
+            throw new Error("Method not implemeneted");
+        }
     }    
 }

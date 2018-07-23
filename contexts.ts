@@ -10,6 +10,8 @@ export class FunctionContext {
     public contants: Array<any> = [];
     public locals: Array<string> = [];
     public upvalues: Array<string> = [];
+    public protos: Array<FunctionContext> = [];
+    public debug: Array<any> = [];
 
     public findOrCreateUpvalue(name: string): number {
         // upvalues start with 0
