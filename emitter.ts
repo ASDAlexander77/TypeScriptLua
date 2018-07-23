@@ -204,6 +204,9 @@ export class Emitter {
         // this is global function
         localFunctionContext.is_vararg = true;
 
+        // add final "RETURN"
+        localFunctionContext.code.push([Ops.RETURN, 0, 1]);
+
         this.emitFunction(localFunctionContext);
     }
 
@@ -254,8 +257,8 @@ export class Emitter {
             this.processExpression(a);
         });
 
-        // call
-        this.functionContext.code.push([Ops.CALL, 0, 2, 1]);
+        // call, C = 1 means NO RETURN
+        this.functionContext.code.push([Ops.CALL, 0, node.arguments.length + 1, 1]);
     }
 
     private processIndentifier(node: ts.Identifier): void {
