@@ -20,6 +20,8 @@ class Run
 
 		const emitter = new Emitter();
 		emitter.processNode(sourceFile);
+		
+		fs.writeFileSync("test.luabc", emitter.writer.getBytes());
 	}
 }
 

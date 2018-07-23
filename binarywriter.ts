@@ -33,4 +33,9 @@ export class BinaryWriter {
             this.write(b);
         });
     }
+
+    public getBytes(): Uint8Array
+    {
+        return new Uint8Array(this.data);
+    }
 }

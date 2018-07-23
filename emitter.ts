@@ -146,6 +146,7 @@ class FunctionContext {
     public maxstacksize: number;
     public code: Array<Array<number>> = [];
     public contants: Array<string> = [];
+    public locals: Array<string> = [];
     public upvalues: Array<string> = [];
 
     public findOrCreateUpvalue(name: string): number {
@@ -154,6 +155,17 @@ class FunctionContext {
         if (index == -1) {
             this.upvalues.push(name);
             return this.upvalues.length - 1;
+        }
+
+        return index;
+    }
+
+    public findOrCreateLocal(name: string): number {
+        // locals start with 0
+        let index = this.locals.findIndex(e => e == name);
+        if (index == -1) {
+            this.locals.push(name);
+            return this.locals.length - 1;
         }
 
         return index;
@@ -218,7 +230,7 @@ class IdentifierResolver {
 }
 
 export class Emitter {
-    private writer: BinaryWriter = new BinaryWriter();
+    public writer: BinaryWriter = new BinaryWriter();
     private resolver: IdentifierResolver = new IdentifierResolver();
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
