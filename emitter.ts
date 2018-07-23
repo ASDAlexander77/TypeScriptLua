@@ -401,8 +401,30 @@ export class Emitter {
 
         functionContext.code.forEach(c => {
             // create 4 bytes value
-            let opCodeMode = OpCodes[c[0]];
-            
+            let encoded:number = c[0];
+            let opCodeMode:opmode = OpCodes[encoded];
+
+            switch (opCodeMode.mode)
+            {
+                case OpMode.iABC:
+                    encoded += c[1] << (8);
+                    encoded += c[2] << (9 + 8);
+                    encoded += c[3] << (9 + 9 + 8);
+                    break;
+                case OpMode.iABx:
+                    encoded += c[1] << (8);
+                    encoded += (c[2] - 1) << (9 + 8);
+                    break;
+                case OpMode.iAsBx:
+                    encoded += c[1] << (8);
+                    encoded += c[2] << (9 + 8);
+                    break;
+                case OpMode.iAx:
+                    encoded += c[1] << (8);
+                    break;
+            }
+
+            this.writer.writeInt(encoded);
         });
     }
 }
