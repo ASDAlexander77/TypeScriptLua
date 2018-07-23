@@ -1,11 +1,17 @@
 {
-  "name": "monitor",
+  "name": "typescript_lua",
   "version": "1.0.0",
   "description": "",
   "scripts": {
     "run": "node __out/main.js"
   },
   "private": true,
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "fs-extra": "^7.0.0",
+    "typescript": "^2.9.2"
+  },
+  "devDependencies": {
+    "tslint": "^5.11.0"
+  }
 }

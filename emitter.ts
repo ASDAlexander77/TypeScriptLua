@@ -1,9 +1,23 @@
 import * as ts from "typescript";
 import { BinaryWriter } from './binarywriter';
 
+class FunctionContext
+{
+    public debug_location: string;
+    public linedefined: number;
+    public lastlinedefined: number;
+    public numparams: number;
+    public is_vararg: boolean;
+    public maxstacksize: number;
+    public sizeupvalues: number;
+    public code: Array<Array<number>>;
+}
+
 export class Emitter
 {
     private writer: BinaryWriter = new BinaryWriter();
+    private functionContextStack: Array<FunctionContext> = [];
+    private functionContext: FunctionContext;
 
     public processNode(node: ts.Node): void
     {
@@ -18,12 +32,38 @@ export class Emitter
         throw new Error("Method not implemented.");
     }
 
+    private pushFunctionContext()
+    {
+        this.functionContextStack.push(this.functionContext);
+        this.functionContext = new FunctionContext();
+    }
+
+    private popFunctionContext(): FunctionContext
+    {
+        let localFunctionContext = this.functionContext;
+        this.functionContext = this.functionContextStack.pop();
+        return localFunctionContext;
+    }
+
+    private processFunction(statements: ts.NodeArray<ts.Statement>): FunctionContext {
+        this.pushFunctionContext();
+        statements.forEach(s => {
+            this.processStatement(s);
+        });
+
+        return this.popFunctionContext();
+    }
+
     private processFile(sourceFile: ts.SourceFile): void 
     {
         this.emitHeader();
-        // f->sizeupvalues (byte)
-        this.writer.writeByte(1);
-        this.emitFunction(sourceFile.statements);
+        
+        let localFunctionContext = this.processFunction(sourceFile.statements);
+
+        // this is global function
+        localFunctionContext.is_vararg = true;
+
+        this.emitFunction(localFunctionContext);
     }
 
     private processBundle(bundle: ts.Bundle): void 
@@ -84,40 +124,39 @@ export class Emitter
         this.writer.writeArray([0x0,0x0,0x0,0x0,0x0,0x28,0x77,0x40]);
     }
 
-    private emitFunction(node: ts.NodeArray<ts.Statement>): void 
+    private emitFunction(functionContext: FunctionContext): void 
     {
-        this.emitFunctionHeader();
-        this.emitFunctionCode(node);
+        this.emitFunctionHeader(functionContext);
+        this.emitFunctionCode(functionContext);
     }
 
-    private emitFunctionHeader(): void 
+    private emitFunctionHeader(functionContext: FunctionContext): void 
     {
-        // TODO: finish      
+        // f->sizeupvalues (byte)
+        this.writer.writeByte(functionContext.sizeupvalues);
+
         // write debug info, by default 0 (string)
-        this.writer.writeString(null); 
+        this.writer.writeString(functionContext.debug_location || null); 
 
         // f->linedefined = 0, (int)
-        this.writer.writeInt(0); 
+        this.writer.writeInt(functionContext.linedefined || 0); 
 
         // f->lastlinedefined = 0, (int)
-        this.writer.writeInt(0); 
+        this.writer.writeInt(functionContext.lastlinedefined || 0); 
         
         // f->numparams (byte)
-        this.writer.writeByte(0); 
+        this.writer.writeByte(functionContext.numparams || 0); 
         
         // f->is_vararg (byte)
-        this.writer.writeByte(1); 
+        this.writer.writeByte(functionContext.is_vararg ? 1 : 0); 
         
         // f->maxstacksize
-        this.writer.writeByte(2); 
+        this.writer.writeByte(functionContext.maxstacksize); 
     }    
 
-    private emitFunctionCode(node: ts.NodeArray<ts.Statement>): void 
+    private emitFunctionCode(functionContext: FunctionContext): void 
     {
         // f->sizecode
         this.writer.writeInt(4);         
-        node.forEach(s => {
-            this.processStatement(s);
-        });
     }    
 }

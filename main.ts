@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import { Emitter } from './emitter';
 
 class Run 
