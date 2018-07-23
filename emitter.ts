@@ -89,8 +89,7 @@ export class Emitter {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.functionContext.contants.push(node.text);
-        this.functionContext.code.push([Ops.LOADK, 1, this.functionContext.contants.length - 1]);
+        this.functionContext.code.push([Ops.LOADK, 1, -this.functionContext.findOrCreateConst(node.text)]);
     }
 
     private processCallExpression(node: ts.CallExpression): void {
@@ -188,29 +187,8 @@ export class Emitter {
 
         functionContext.code.forEach(c => {
             // create 4 bytes value
-            let encoded:number = c[0];
-            let opCodeMode:opmode = OpCodes[encoded];
-
-            switch (opCodeMode.mode)
-            {
-                case OpMode.iABC:
-                    encoded += c[1] << (8);
-                    encoded += c[2] << (9 + 8);
-                    encoded += c[3] << (9 + 9 + 8);
-                    break;
-                case OpMode.iABx:
-                    encoded += c[1] << (8);
-                    encoded += (c[2] - 1) << (9 + 8);
-                    break;
-                case OpMode.iAsBx:
-                    encoded += c[1] << (8);
-                    encoded += c[2] << (9 + 8);
-                    break;
-                case OpMode.iAx:
-                    encoded += c[1] << (8);
-                    break;
-            }
-
+            let opCodeMode:opmode = OpCodes[c[0]];
+            let encoded = opCodeMode.encode(c);
             this.writer.writeInt(encoded);
         });
     }

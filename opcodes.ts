@@ -80,6 +80,85 @@ export enum OpArgMask {
 }
 
 export class opmode {
+    public encode(c: Array<number>): number
+    {
+        let val = 0;
+        let encoded:number = c[0];
+        switch (this.mode)
+        {
+            case OpMode.iABC:
+                // B(9)    Bx   C(9)         A(8)      OP(6)
+                // A
+                encoded += c[1] << (6);
+
+                // C
+                val = c[3];
+                if (val < 0)
+                {
+                    val = -(val + 1);
+                    val |= 1 << 8;
+                }
+
+                encoded += val << (8 + 6);
+
+                // B
+                val = c[2];
+                if (val < 0)
+                {
+                    val = -(val + 1);
+                    val |= 1 << 8;
+                }
+
+                encoded += val << (9 + 8 + 6);
+
+                break;
+            case OpMode.iABx:
+                encoded += c[1] << (6);
+                val = c[2];
+                if (val < 0)
+                {
+                    val = -(val + 1);
+                }
+                else 
+                {
+                    throw new Error("Should be negative");
+                }
+
+                encoded += val << (8 + 6);
+
+                break;
+            case OpMode.iAsBx:
+                encoded += c[1] << (6);
+
+                val = c[2];
+                if (val < 0)
+                {
+                    val = -(val + 1);
+                    val |= 1 << 17;
+                }
+
+                encoded += val << (8 + 6);
+
+                break;
+            case OpMode.iAx:
+                val = c[1];
+                if (val < 0)
+                {
+                    val = -(val + 1);
+                }
+                else 
+                {
+                    throw new Error("Should be negative");
+                }
+
+                encoded += val << (6);
+
+                break;
+        }
+
+        return encoded;
+    }
+
     public constructor(public T: number, public A: number, public B: OpArgMask, public C: OpArgMask, public mode: OpMode) {
     }
 }

@@ -29,7 +29,7 @@ export class IdentifierResolver {
                     }
                 }
 
-                resolvedInfo.value = functionContext.findOrCreateConst(resolvedInfo.name);
+                resolvedInfo.value = -functionContext.findOrCreateConst(resolvedInfo.name);
                 return resolvedInfo;
             }
         }
@@ -39,7 +39,7 @@ export class IdentifierResolver {
             var resolvedInfo = new ResolvedInfo();
             resolvedInfo.kind = ResolvedKind.Upvalue;
             resolvedInfo.name = "_ENV";
-            resolvedInfo.value = functionContext.findOrCreateUpvalue(resolvedInfo.name);
+            resolvedInfo.value = -functionContext.findOrCreateUpvalue(resolvedInfo.name);
             return resolvedInfo;
         }
 
