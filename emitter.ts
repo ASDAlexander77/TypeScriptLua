@@ -67,6 +67,76 @@ enum Ops {
     EXTRAARG
 }
 
+/* basic instruction format */
+enum OpMode {
+    iABC,
+    iABx,
+    iAsBx,
+    iAx
+}
+
+enum OpArgMask {
+    OpArgN,  /* argument is not used */
+    OpArgU,  /* argument is used */
+    OpArgR,  /* argument is a register or a jump offset */
+    OpArgK   /* argument is a constant or register/constant */
+}
+
+class opmode {
+    public constructor(public T: number, public A: number, public B: OpArgMask, public C: OpArgMask, public mode: OpMode) {
+    }
+}
+
+const OpCodes: Array<opmode> = [
+    new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_MOVE */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgN, OpMode.iABx)		/* OP_LOADK */
+    , new opmode(0, 1, OpArgMask.OpArgN, OpArgMask.OpArgN, OpMode.iABx)		/* OP_LOADKX */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_LOADBOOL */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_LOADNIL */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_GETUPVAL */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgK, OpMode.iABC)		/* OP_GETTABUP */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgK, OpMode.iABC)		/* OP_GETTABLE */
+    , new opmode(0, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SETTABUP */
+    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_SETUPVAL */
+    , new opmode(0, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SETTABLE */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_NEWTABLE */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SELF */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_ADD */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SUB */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_MUL */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_MOD */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_POW */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_DIV */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_IDIV */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_BAND */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_BOR */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_BXOR */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SHL */
+    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SHR */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_UNM */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_BNOT */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_NOT */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_LEN */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgR, OpMode.iABC)		/* OP_CONCAT */
+    , new opmode(0, 0, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_JMP */
+    , new opmode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_EQ */
+    , new opmode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_LT */
+    , new opmode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_LE */
+    , new opmode(1, 0, OpArgMask.OpArgN, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TEST */
+    , new opmode(1, 1, OpArgMask.OpArgR, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TESTSET */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_CALL */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TAILCALL */
+    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_RETURN */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_FORLOOP */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_FORPREP */
+    , new opmode(0, 0, OpArgMask.OpArgN, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TFORCALL */
+    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_TFORLOOP */
+    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_SETLIST */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABx)		/* OP_CLOSURE */
+    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_VARARG */
+    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iAx)		/* OP_EXTRAARG */
+];
+
 class FunctionContext {
     public debug_location: string;
     public linedefined: number;
@@ -78,12 +148,10 @@ class FunctionContext {
     public contants: Array<string> = [];
     public upvalues: Array<string> = [];
 
-    public findOrCreateUpvalue(name: string): number
-    {
+    public findOrCreateUpvalue(name: string): number {
         // upvalues start with 0
         let index = this.upvalues.findIndex(e => e == name);
-        if (index == -1)
-        {
+        if (index == -1) {
             this.upvalues.push(name);
             return this.upvalues.length - 1;
         }
@@ -91,63 +159,53 @@ class FunctionContext {
         return index;
     }
 
-    public findOrCreateConst(name: string): number
-    {
+    public findOrCreateConst(name: string): number {
         // consts start with 1
         let index = this.contants.findIndex(e => e == name);
-        if (index == -1)
-        {
+        if (index == -1) {
             this.contants.push(name);
             return this.contants.length;
         }
 
         return index + 1;
-    }    
+    }
 }
 
-enum ResolvedKind
-{
+enum ResolvedKind {
     Upvalue,
     Const
 }
 
-class ResolvedInfo
-{
+class ResolvedInfo {
     public kind: ResolvedKind;
     public value: number;
     public name: string;
 }
 
 class IdentifierResolver {
-    public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo
-    {
-        if ((<any>identifier).resolved_owner)
-        {
-            let owner : any = (<any>identifier).resolved_owner;
-            if (owner.resolved_value && owner.resolved_value.kind == ResolvedKind.Upvalue)
-            {
+    public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
+        if ((<any>identifier).resolved_owner) {
+            let owner: any = (<any>identifier).resolved_owner;
+            if (owner.resolved_value && owner.resolved_value.kind == ResolvedKind.Upvalue) {
                 var resolvedInfo = new ResolvedInfo();
                 resolvedInfo.kind = ResolvedKind.Const;
                 resolvedInfo.name = identifier.text;
 
                 // resolve _ENV
                 // TODO: hack
-                if (owner.resolved_value.name == "_ENV")
-                {
-                    switch (resolvedInfo.name)
-                    {
+                if (owner.resolved_value.name == "_ENV") {
+                    switch (resolvedInfo.name) {
                         case "log": resolvedInfo.name = "print"; break;
                     }
                 }
 
                 resolvedInfo.value = functionContext.findOrCreateConst(resolvedInfo.name);
-                return resolvedInfo;              
+                return resolvedInfo;
             }
         }
 
         // TODO: hack
-        if (identifier.text == "console")
-        {
+        if (identifier.text == "console") {
             var resolvedInfo = new ResolvedInfo();
             resolvedInfo.kind = ResolvedKind.Upvalue;
             resolvedInfo.name = "_ENV";
@@ -263,18 +321,16 @@ export class Emitter {
 
     private processIndentifier(node: ts.Identifier): void {
         let identifierInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
-        if (identifierInfo.value != undefined)
-        {
+        if (identifierInfo.value != undefined) {
             (<any>node).resolved_value = identifierInfo;
             return;
         }
 
         // TODO: finish it
-        throw new Error("Method not implemented.");        
+        throw new Error("Method not implemented.");
     }
 
-    private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void 
-    {
+    private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
 
         (<any>node.name).resolved_owner = node.expression;
@@ -282,8 +338,7 @@ export class Emitter {
         this.processExpression(node.name);
 
         // if it simple expression of identifier
-        if ((<any>node.expression).resolved_value && (<any>node.name).resolved_value)
-        {
+        if ((<any>node.expression).resolved_value && (<any>node.name).resolved_value) {
             // then it is simple Table lookup
             let objectIdentifierInfo = <ResolvedInfo>(<any>node.expression).resolved_value;
             let methodIdentifierInfo = <ResolvedInfo>(<any>node.name).resolved_value;
@@ -294,7 +349,7 @@ export class Emitter {
         ////this.functionContext.code.push([Ops.GETTABLE, 0, 2, 1]);
 
         // TODO: finish it
-        throw new Error("Method not implemented.");        
+        throw new Error("Method not implemented.");
     }
 
     private emitHeader(): void {
@@ -343,5 +398,11 @@ export class Emitter {
 
     private emitFunctionCode(functionContext: FunctionContext): void {
         this.writer.writeInt(functionContext.code.length);
+
+        functionContext.code.forEach(c => {
+            // create 4 bytes value
+            let opCodeMode = OpCodes[c[0]];
+            
+        });
     }
 }
