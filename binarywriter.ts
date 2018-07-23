@@ -18,6 +18,15 @@ export class BinaryWriter {
         this.data.push((data & 0xff000000) >> 24);
     }    
 
+    public writeInteger(data: number): void {
+        // write 8 bytes
+        throw 'Not implemented';
+    }      
+
+    public writeNumber(data: number): void {
+        throw 'Not implemented';
+    }      
+
     public writeString(data: string): void {
         if (data == null)
         {
@@ -25,7 +34,21 @@ export class BinaryWriter {
             return;
         }
 
-        throw 'Not implemented';
+        if (data.length + 1 >= 255)
+        {
+            this.writeByte(255);
+            this.writeInteger(data.length + 1);
+        }
+        else
+        {
+            this.writeByte(data.length + 1);
+        }
+
+        let i;
+        for (i = 0; i < data.length; i++)
+        {
+            this.writeByte(data.charCodeAt(i));
+        }
     } 
 
     public writeArray(data: byte[]): void {

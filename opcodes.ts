@@ -80,12 +80,10 @@ export enum OpArgMask {
 }
 
 export class opmode {
-    public encode(c: Array<number>): number
-    {
+    public encode(c: Array<number>): number {
         let val = 0;
-        let encoded:number = c[0];
-        switch (this.mode)
-        {
+        let encoded: number = c[0];
+        switch (this.mode) {
             case OpMode.iABC:
                 // B(9)    Bx   C(9)         A(8)      OP(6)
                 // A
@@ -93,8 +91,7 @@ export class opmode {
 
                 // C
                 val = c[3];
-                if (val < 0)
-                {
+                if (val < 0) {
                     val = -(val + 1);
                     val |= 1 << 8;
                 }
@@ -103,8 +100,7 @@ export class opmode {
 
                 // B
                 val = c[2];
-                if (val < 0)
-                {
+                if (val < 0) {
                     val = -(val + 1);
                     val |= 1 << 8;
                 }
@@ -115,12 +111,10 @@ export class opmode {
             case OpMode.iABx:
                 encoded += c[1] << (6);
                 val = c[2];
-                if (val < 0)
-                {
+                if (val < 0) {
                     val = -(val + 1);
                 }
-                else 
-                {
+                else {
                     throw new Error("Should be negative");
                 }
 
@@ -131,8 +125,7 @@ export class opmode {
                 encoded += c[1] << (6);
 
                 val = c[2];
-                if (val < 0)
-                {
+                if (val < 0) {
                     val = -(val + 1);
                     val |= 1 << 17;
                 }
@@ -142,12 +135,10 @@ export class opmode {
                 break;
             case OpMode.iAx:
                 val = c[1];
-                if (val < 0)
-                {
+                if (val < 0) {
                     val = -(val + 1);
                 }
-                else 
-                {
+                else {
                     throw new Error("Should be negative");
                 }
 
@@ -212,3 +203,18 @@ export const OpCodes: Array<opmode> = [
     , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_VARARG */
     , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iAx)		/* OP_EXTRAARG */
 ];
+
+export enum LuaTypes {
+    LUA_TNIL = 0,
+    LUA_TBOOLEAN = 1,
+    LUA_TLIGHTUSERDATA = 2,
+    LUA_TNUMBER = 3,
+    LUA_TSTRING = 4,
+    LUA_TTABLE = 5,
+    LUA_TFUNCTION = 6,
+    LUA_TUSERDATA = 7,
+    LUA_TTHREAD = 8,
+
+    LUA_TNUMINT = 3 || (1 << 4),
+    LUA_TLNGSTR = 4 || (1 << 4),
+}

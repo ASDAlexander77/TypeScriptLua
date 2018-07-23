@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import { BinaryWriter } from './binarywriter';
 import { FunctionContext } from './contexts';
 import { IdentifierResolver, ResolvedInfo } from './resolvers';
-import { Ops, opmode, OpCodes, OpMode } from './opcodes';
+import { Ops, opmode, OpCodes, LuaTypes } from './opcodes';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
@@ -157,6 +157,7 @@ export class Emitter {
     private emitFunction(functionContext: FunctionContext): void {
         this.emitFunctionHeader(functionContext);
         this.emitFunctionCode(functionContext);
+        this.emitConstants(functionContext);
     }
 
     private emitFunctionHeader(functionContext: FunctionContext): void {
@@ -192,4 +193,36 @@ export class Emitter {
             this.writer.writeInt(encoded);
         });
     }
+
+    private emitConstants(functionContext: FunctionContext): void {
+        this.writer.writeInt(functionContext.contants.length);
+
+        functionContext.contants.forEach(c => {
+            // create 4 bytes value
+            switch (typeof c)
+            {
+                case "boolean": 
+                    this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
+                    this.writer.writeByte(c);
+                    break;
+                case "number": 
+                    this.writer.writeByte(LuaTypes.LUA_TNUMBER);
+                    this.writer.writeNumber(c);
+                    break;
+                case "string": 
+                    if ((<string>c).length > 255)
+                    {
+                        this.writer.writeByte(LuaTypes.LUA_TLNGSTR);
+                    }
+                    else
+                    {
+                        this.writer.writeByte(LuaTypes.LUA_TSTRING);
+                    }
+
+                    this.writer.writeString(c);
+                    break;
+                default: throw new Error("Method not implemeneted");
+            }           
+        });
+    }    
 }

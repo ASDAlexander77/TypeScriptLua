@@ -7,7 +7,7 @@ export class FunctionContext {
     public is_vararg: boolean;
     public maxstacksize: number;
     public code: Array<Array<number>> = [];
-    public contants: Array<string> = [];
+    public contants: Array<any> = [];
     public locals: Array<string> = [];
     public upvalues: Array<string> = [];
 
@@ -33,11 +33,11 @@ export class FunctionContext {
         return index;
     }
 
-    public findOrCreateConst(name: string): number {
+    public findOrCreateConst(value: any): number {
         // consts start with 1
-        let index = this.contants.findIndex(e => e == name);
+        let index = this.contants.findIndex(e => e == value);
         if (index == -1) {
-            this.contants.push(name);
+            this.contants.push(value);
             return this.contants.length;
         }
 
