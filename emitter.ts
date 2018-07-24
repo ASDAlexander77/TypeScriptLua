@@ -22,8 +22,10 @@ export class Emitter {
     }
 
     private pushFunctionContext() {
-        this.functionContextStack.push(this.functionContext);
+        let localFunctionContext = this.functionContext;
+        this.functionContextStack.push(localFunctionContext);
         this.functionContext = new FunctionContext();
+        this.functionContext.container = localFunctionContext;
     }
 
     private popFunctionContext(): FunctionContext {
@@ -67,6 +69,7 @@ export class Emitter {
 
     private processStatement(node: ts.Statement): void {
         switch (node.kind) {
+            case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
         }
