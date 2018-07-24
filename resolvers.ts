@@ -25,30 +25,47 @@ export class IdentifierResolver {
 		let resolved = (<any>this.typeChecker).resolveName(identifier.text, undefined, ((1 << 27) - 1)/*mask for all types*/);
         if (resolved)
         {
+            let kind:ts.SyntaxKind = <ts.SyntaxKind>resolved.valueDeclaration.kind;
+            switch (kind)
+            {
+                case ts.SyntaxKind.VariableDeclaration:
+                    let type = resolved.valueDeclaration.type;
+                    switch (type.typeName.text)
+                    {
+                        case "Console": 
+                        return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
+                    }
+                break;
+
+                case ts.SyntaxKind.FunctionDeclaration:
+                (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
+                return this.resolveMemberOfResolvedOwner(identifier, functionContext);
+            }
         }
         
         // TODO: hack
-        if (identifier.text == "console") {
-            var resolvedInfo = new ResolvedInfo();
-            resolvedInfo.kind = ResolvedKind.Upvalue;
-            resolvedInfo.name = "_ENV";
-            resolvedInfo.value = -functionContext.findOrCreateUpvalue(resolvedInfo.name);
-            return resolvedInfo;
-        }
-
         throw new Error("Coult not resolve: " + identifier.text);
     }
 
+    private returnResolvedEnv(functionContext: FunctionContext): ResolvedInfo
+    {
+        var resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Upvalue;
+        resolvedInfo.name = "_ENV";
+        resolvedInfo.value = -functionContext.findOrCreateUpvalue(resolvedInfo.name);
+        return resolvedInfo;        
+    }
+
     private resolveMemberOfResolvedOwner(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
-        let owner: any = (<any>identifier).resolved_owner;
-        if (owner.resolved_value && owner.resolved_value.kind == ResolvedKind.Upvalue) {
+        let resolved_owner: any = (<any>identifier).resolved_owner;
+        if (resolved_owner && resolved_owner.kind == ResolvedKind.Upvalue) {
             var resolvedInfo = new ResolvedInfo();
             resolvedInfo.kind = ResolvedKind.Const;
             resolvedInfo.name = identifier.text;
 
             // resolve _ENV
             // TODO: hack
-            if (owner.resolved_value.name == "_ENV") {
+            if (resolved_owner.name == "_ENV") {
                 switch (resolvedInfo.name) {
                     case "log": resolvedInfo.name = "print"; break;
                 }
@@ -57,5 +74,7 @@ export class IdentifierResolver {
             resolvedInfo.value = -functionContext.findOrCreateConst(resolvedInfo.name);
             return resolvedInfo;
         }
+
+        throw new Error("Method not implemented");
     }
 }

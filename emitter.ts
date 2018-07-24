@@ -132,9 +132,18 @@ export class Emitter {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        let identifierInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
-        if (identifierInfo.value != undefined) {
-            (<any>node).resolved_value = identifierInfo;
+        var resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
+        if (resolvedInfo != undefined) {
+            (<any>node).resolved_value = resolvedInfo;
+
+            // if it simple expression of identifier
+            if ((<any>node).resolved_owner && (<any>node).resolved_value) {
+                // then it is simple Table lookup
+                let objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
+                let methodIdentifierInfo = <ResolvedInfo>(<any>node).resolved_value;
+                this.functionContext.code.push([Ops.GETTABUP, 0, objectIdentifierInfo.value, methodIdentifierInfo.value]);
+            }
+
             return;
         }
 
@@ -145,23 +154,9 @@ export class Emitter {
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
 
-        (<any>node.name).resolved_owner = node.expression;
+        (<any>node.name).resolved_owner = (<any>node.expression).resolved_value;
 
         this.processExpression(node.name);
-
-        // if it simple expression of identifier
-        if ((<any>node.expression).resolved_value && (<any>node.name).resolved_value) {
-            // then it is simple Table lookup
-            let objectIdentifierInfo = <ResolvedInfo>(<any>node.expression).resolved_value;
-            let methodIdentifierInfo = <ResolvedInfo>(<any>node.name).resolved_value;
-            this.functionContext.code.push([Ops.GETTABUP, 0, objectIdentifierInfo.value, methodIdentifierInfo.value]);
-            return;
-        }
-
-        ////this.functionContext.code.push([Ops.GETTABLE, 0, 2, 1]);
-
-        // TODO: finish it
-        throw new Error("Method not implemented.");
     }
 
     private emitHeader(): void {

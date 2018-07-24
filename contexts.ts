@@ -26,6 +26,16 @@ export class FunctionContext {
         return index;
     }
 
+    public findUpvalue(name: string): number {
+        // upvalues start with 0
+        let index = this.upvalues.findIndex(e => e == name);
+        if (index == -1) {
+            throw new Error("Item can't be found");
+        }
+
+        return index;
+    }    
+
     public findOrCreateLocal(name: string): number {
         // locals start with 0
         let index = this.locals.findIndex(e => e == name);
