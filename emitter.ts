@@ -65,11 +65,26 @@ export class Emitter {
 
     private processStatement(node: ts.Statement): void {
         switch (node.kind) {
+            case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
         }
 
         // TODO: finish it
         throw new Error("Method not implemented.");
+    }
+
+    private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
+        let nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
+        let closureFunctionContext = this.processFunction(node.body.statements);
+        let protoIndex = -this.functionContext.createProto(closureFunctionContext);
+
+        // load closure into R(A), TODO: finish it
+        let register = 0;
+        this.functionContext.code.push([Ops.CLOSURE, register, protoIndex]);
+        
+        // store in Upvalue
+        let upvalueContainer = (!this.functionContext.container) ? -this.functionContext.findOrCreateUpvalue("_ENV") : null;
+        this.functionContext.code.push([Ops.SETTABUP, upvalueContainer, protoIndex, register]);
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -102,7 +117,9 @@ export class Emitter {
         });
 
         // call, C = 1 means NO RETURN
-        this.functionContext.code.push([Ops.CALL, 0, node.arguments.length + 1, 1]);
+        let register = 0;
+        let returnCount = 0;
+        this.functionContext.code.push([Ops.CALL, register, node.arguments.length + 1, returnCount + 1]);
     }
 
     private processIndentifier(node: ts.Identifier): void {

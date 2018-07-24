@@ -1,11 +1,13 @@
 
 export class FunctionContext {
+    // if undefined == "_ENV"
+    public container: FunctionContext;
     public debug_location: string;
     public linedefined: number;
     public lastlinedefined: number;
     public numparams: number;
     public is_vararg: boolean;
-    public maxstacksize: number;
+    public maxstacksize: number = 2; // register 0/1 at least
     public code: Array<Array<number>> = [];
     public contants: Array<any> = [];
     public locals: Array<string> = [];
@@ -45,4 +47,10 @@ export class FunctionContext {
 
         return index + 1;
     }
+
+    public createProto(value: FunctionContext): number {
+        // consts start with 1
+        this.protos.push(value);
+        return this.protos.length;
+    }    
 }
