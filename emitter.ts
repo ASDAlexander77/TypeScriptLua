@@ -38,6 +38,9 @@ export class Emitter {
             this.processStatement(s);
         });
 
+        // add final "RETURN"
+        this.functionContext.code.push([Ops.RETURN, 0, 1]);
+
         return this.popFunctionContext();
     }
 
@@ -49,9 +52,8 @@ export class Emitter {
         // this is global function
         localFunctionContext.is_vararg = true;
 
-        // add final "RETURN"
-        localFunctionContext.code.push([Ops.RETURN, 0, 1]);
-
+        // f->sizeupvalues (byte)
+        this.writer.writeByte(localFunctionContext.upvalues.length);
         this.emitFunction(localFunctionContext);
     }
 
@@ -181,9 +183,6 @@ export class Emitter {
     }
 
     private emitFunctionHeader(functionContext: FunctionContext): void {
-        // f->sizeupvalues (byte)
-        this.writer.writeByte(functionContext.upvalues.length);
-
         // write debug info, by default 0 (string)
         this.writer.writeString(functionContext.debug_location || null);
 
