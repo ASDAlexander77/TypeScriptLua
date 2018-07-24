@@ -6,9 +6,13 @@ import { Ops, opmode, OpCodes, LuaTypes } from './opcodes';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
-    private resolver: IdentifierResolver = new IdentifierResolver();
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
+    private resolver: IdentifierResolver;
+
+    public constructor(typeChecker: ts.TypeChecker) {
+        this.resolver = new IdentifierResolver(typeChecker);
+    }
 
     public processNode(node: ts.Node): void {
         switch (node.kind) {
