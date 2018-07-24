@@ -249,9 +249,8 @@ export class Emitter {
         this.writer.writeInt(functionContext.upvalues.length);
 
         functionContext.upvalues.forEach((upvalue, index: number) => {
-            // in stack
-            // TODO: finish it
-            this.writer.writeByte(index + 1);
+            // in stack (bool)
+            this.writer.writeByte((functionContext.container) ? 0 : 1);
             // index
             this.writer.writeByte(index);
         });
