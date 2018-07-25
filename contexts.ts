@@ -87,7 +87,7 @@ export class FunctionContext {
 
     public decreaseRegister(count: number): void
     {
-        return this.current_register -= count;
+        this.current_register -= count;
     }
 
     public getRegister(node: ts.Node): number
