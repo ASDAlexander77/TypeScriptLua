@@ -3,6 +3,7 @@ import { BinaryWriter } from './binarywriter';
 import { FunctionContext } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, opmode, OpCodes, LuaTypes } from './opcodes';
+import { Helpers } from './helpers';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
@@ -85,7 +86,7 @@ export class Emitter {
 
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
-            if ((node.flags & ts.NodeFlags.Let) == ts.NodeFlags.Let || (node.flags & ts.NodeFlags.Const) == ts.NodeFlags.Const)
+            if (Helpers.isConstOrLet(node))
             {
                 let nameLocalIndex = -this.functionContext.findOrCreateLocal((<ts.Identifier>d.name).text);
                 throw new Error("Method not implemented.");

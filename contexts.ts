@@ -2,6 +2,10 @@
 export class FunctionContext {
     // if undefined == "_ENV"
     public container: FunctionContext;
+    // to track current register(stack)
+    public current_register: number;
+
+    // function information
     public debug_location: string;
     public linedefined: number;
     public lastlinedefined: number;

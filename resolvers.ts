@@ -1,5 +1,6 @@
 import * as ts from "typescript";
 import { FunctionContext } from './contexts';
+import { Helpers } from './helpers';
 
 export enum ResolvedKind {
     Upvalue,
@@ -42,7 +43,7 @@ export class IdentifierResolver {
                     }
 
                     let flags = resolved.valueDeclaration.flags;
-                    if ((flags & ts.NodeFlags.Const) != ts.NodeFlags.Const && (flags & ts.NodeFlags.Let) != ts.NodeFlags.Let)
+                    if (!Helpers.isConstOrLet(identifier))
                     {
                         (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
                         return this.resolveMemberOfResolvedOwner(identifier, functionContext);                    }
