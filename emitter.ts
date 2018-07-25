@@ -206,7 +206,9 @@ export class Emitter {
         (<any>node.name).resolved_owner = (<any>node.expression).resolved_value;
 
         this.processExpression(node.name);
-        this.consumeExpression(node.name);        
+        this.consumeExpression(node.name);       
+        
+        (<any>node).resolved_value = (<any>node.name).resolved_value;
     }
 
     private emitHeader(): void {
