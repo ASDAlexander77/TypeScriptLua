@@ -1,6 +1,6 @@
 import { Run } from '../src/compiler';
 import { expect } from 'chai';
-import 'mocha';
+import { describe, it } from 'mocha';
 
 describe('Simple compile', () => {
 
