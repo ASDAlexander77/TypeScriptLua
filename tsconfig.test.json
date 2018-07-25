@@ -3,7 +3,7 @@
     "compilerOptions": {
       "noUnusedLocals": true,
       "noUnusedParameters": true,
-      "outDir": "./dist/out-tsc",
+      "outDir": "./__out/tests",
       "baseUrl": "./",
       "sourceMap": true,
       "declaration": false,
@@ -14,7 +14,7 @@
       "typeRoots": [
         "node_modules/@types"
       ],
-      "types": [],
+      "types": ["mocha"],
       "lib": [
         "es2017",
         "dom"
