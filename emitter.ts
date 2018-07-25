@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { BinaryWriter } from './binarywriter';
 import { FunctionContext } from './contexts';
-import { IdentifierResolver, ResolvedInfo } from './resolvers';
+import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, opmode, OpCodes, LuaTypes } from './opcodes';
 
 export class Emitter {
@@ -74,12 +74,38 @@ export class Emitter {
     private processStatement(node: ts.Statement): void {
         switch (node.kind) {
             case ts.SyntaxKind.EmptyStatement: return;
+            case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
         }
 
         // TODO: finish it
         throw new Error("Method not implemented.");
+    }
+
+    private processVariableStatement(node: ts.VariableStatement): void {
+        node.declarationList.declarations.forEach(d => {
+            if ((node.flags & ts.NodeFlags.Let) == ts.NodeFlags.Let || (node.flags & ts.NodeFlags.Const) == ts.NodeFlags.Const)
+            {
+                let nameLocalIndex = -this.functionContext.findOrCreateLocal((<ts.Identifier>d.name).text);
+                throw new Error("Method not implemented.");
+            }
+            else
+            {
+                let nameUpvalueIndex = -this.functionContext.findOrCreateUpvalue((<ts.Identifier>d.name).text);
+                if (d.initializer)
+                {
+                    this.processExpression(d.initializer);
+                    
+                    let index = this.consumeExpressionAsConstOrRegisterReturn(d.initializer);
+                    this.functionContext.code.push([
+                        Ops.SETTABUP, 
+                        -this.resolver.returnResolvedEnv(this.functionContext).value, 
+                        nameUpvalueIndex, 
+                        index]);                    
+                }
+            }
+        });
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
@@ -92,7 +118,7 @@ export class Emitter {
         this.functionContext.code.push([Ops.CLOSURE, register, protoIndex]);
         
         // store in Upvalue
-        let upvalueContainer = (!this.functionContext.container) ? -this.functionContext.findOrCreateUpvalue("_ENV") : null;
+        let upvalueContainer = (!this.functionContext.container) ? this.resolver.returnResolvedEnv(this.functionContext).value : null;
         this.functionContext.code.push([Ops.SETTABUP, upvalueContainer, protoIndex, register]);
     }
 
@@ -113,16 +139,21 @@ export class Emitter {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.functionContext.code.push([Ops.LOADK, 1, -this.functionContext.findOrCreateConst(node.text)]);
+        var resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Const;
+        resolvedInfo.value = -this.functionContext.findOrCreateConst(node.text);
+        (<any>node).resolved_value = resolvedInfo;     
     }
 
     private processCallExpression(node: ts.CallExpression): void {
         // method
         this.processExpression(node.expression);
-
+        this.consumeExpression(node.expression);
+        
         // arguments
         node.arguments.forEach(a => {
             this.processExpression(a);
+            this.consumeExpression(a);
         });
 
         // call, C = 1 means NO RETURN
@@ -130,6 +161,43 @@ export class Emitter {
         let returnCount = 0;
         this.functionContext.code.push([Ops.CALL, register, node.arguments.length + 1, returnCount + 1]);
     }
+
+    // method to load constants into registers when they are needed, for example for CALL code.
+    private consumeExpression(node: ts.Node): void
+    {
+        if (!(<any>node).resolved_value)
+        {
+            return;
+        }
+
+        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+        if (resolvedInfo.kind == ResolvedKind.Const)
+        {
+            // TODO: track correct register (1)
+            this.functionContext.code.push([Ops.LOADK, 1, resolvedInfo.value]);
+
+            var resolvedInfoNew = new ResolvedInfo();
+            resolvedInfoNew.kind = ResolvedKind.Register;
+            resolvedInfoNew.value = 1;
+            (<any>node).resolved_value = resolvedInfoNew;               
+        }
+    }
+
+    private consumeExpressionAsConstOrRegisterReturn(node: ts.Node): number
+    {
+        if (!(<any>node).resolved_value)
+        {
+            throw new Error("Resolved info can't be found");
+        }
+
+        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+        if (resolvedInfo.kind == ResolvedKind.Const || resolvedInfo.kind == ResolvedKind.Register)
+        {
+            return resolvedInfo.value;
+        }
+
+        throw new Error("Resolved info can't be found");
+    }    
 
     private processIndentifier(node: ts.Identifier): void {
         var resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
@@ -153,10 +221,12 @@ export class Emitter {
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
+        this.consumeExpression(node.expression);
 
         (<any>node.name).resolved_owner = (<any>node.expression).resolved_value;
 
         this.processExpression(node.name);
+        this.consumeExpression(node.name);        
     }
 
     private emitHeader(): void {

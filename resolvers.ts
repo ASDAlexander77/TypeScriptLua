@@ -3,7 +3,8 @@ import { FunctionContext } from './contexts';
 
 export enum ResolvedKind {
     Upvalue,
-    Const
+    Const,
+    Register
 }
 
 export class ResolvedInfo {
@@ -30,11 +31,27 @@ export class IdentifierResolver {
             {
                 case ts.SyntaxKind.VariableDeclaration:
                     let type = resolved.valueDeclaration.type;
-                    switch (type.typeName.text)
+                    // can be keyward to 'string'
+                    if (type.typeName)
                     {
-                        case "Console": 
-                            return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
+                        switch (type.typeName.text)
+                        {
+                            case "Console": 
+                                return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
+                        }
                     }
+
+                    let flags = resolved.valueDeclaration.flags;
+                    if ((flags & ts.NodeFlags.Const) != ts.NodeFlags.Const && (flags & ts.NodeFlags.Let) != ts.NodeFlags.Let)
+                    {
+                        return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
+                    }
+                    else
+                    {
+                        // TODO: finish returning info about local variable
+                        throw new Error ("Not Implemented");
+                    }
+
                     break;
 
                 case ts.SyntaxKind.FunctionDeclaration:
@@ -47,7 +64,7 @@ export class IdentifierResolver {
         throw new Error("Coult not resolve: " + identifier.text);
     }
 
-    private returnResolvedEnv(functionContext: FunctionContext): ResolvedInfo
+    public returnResolvedEnv(functionContext: FunctionContext): ResolvedInfo
     {
         var resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Upvalue;
