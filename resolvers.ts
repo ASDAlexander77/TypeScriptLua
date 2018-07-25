@@ -44,8 +44,8 @@ export class IdentifierResolver {
                     let flags = resolved.valueDeclaration.flags;
                     if ((flags & ts.NodeFlags.Const) != ts.NodeFlags.Const && (flags & ts.NodeFlags.Let) != ts.NodeFlags.Let)
                     {
-                        return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
-                    }
+                        (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
+                        return this.resolveMemberOfResolvedOwner(identifier, functionContext);                    }
                     else
                     {
                         // TODO: finish returning info about local variable
