@@ -98,12 +98,12 @@ export class Emitter {
                 {
                     this.processExpression(d.initializer);
                     
-                    let index = this.consumeExpressionAsConstOrRegisterReturn(d.initializer);
+                    let registerOrConst = this.getRegisterOrConst(d.initializer);
                     this.functionContext.code.push([
                         Ops.SETTABUP, 
                         -this.resolver.returnResolvedEnv(this.functionContext).value, 
                         nameConstIndex, 
-                        index]);                    
+                        registerOrConst]);                    
                 }
             }
         });
@@ -175,21 +175,36 @@ export class Emitter {
         if (resolvedInfo.kind == ResolvedKind.Const)
         {
             // TODO: track correct register (1)
-            this.functionContext.code.push([Ops.LOADK, 1, resolvedInfo.value]);
             this.markUsedRegister(node);
+            this.functionContext.code.push([Ops.LOADK, this.functionContext.current_register++, resolvedInfo.value]);
         }
     }
 
     private markUsedRegister(node: ts.Node): void
     {
-        var resolvedInfoNew = new ResolvedInfo();
-        resolvedInfoNew.kind = ResolvedKind.Register;
-        // TODO: track correct register (1)
-        resolvedInfoNew.value = 1;
-        (<any>node).resolved_value = resolvedInfoNew;               
+        var resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Register;
+        resolvedInfo.value = this.functionContext.current_register;
+        (<any>node).resolved_value = resolvedInfo;
     }
 
-    private consumeExpressionAsConstOrRegisterReturn(node: ts.Node): number
+    private getRegister(node: ts.Node): number
+    {
+        if (!(<any>node).resolved_value)
+        {
+            throw new Error("Resolved info can't be found");
+        }
+
+        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+        if (resolvedInfo.kind == ResolvedKind.Register)
+        {
+            return resolvedInfo.value;
+        }
+
+        throw new Error("Resolved info can't be found");            
+    }    
+
+    private getRegisterOrConst(node: ts.Node): number
     {
         if (!(<any>node).resolved_value)
         {
