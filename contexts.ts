@@ -5,7 +5,7 @@ export class FunctionContext {
     // if undefined == "_ENV"
     public container: FunctionContext;
     // to track current register(stack)
-    public current_register: number;
+    public current_register: number = 0;
 
     // function information
     public debug_location: string;
