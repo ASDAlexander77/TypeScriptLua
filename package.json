@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "run": "node __out/main.js"
+    "run": "node __out/main.js",
+    "test": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/**/*.spec.ts",
+    "lint": "tslint src/**/*.ts -t verbose",
+    "build": "tsc -p tsconfig.json",
+    "exec": "ts-node main.ts"    
   },
   "private": true,
   "dependencies": {
@@ -12,6 +16,11 @@
     "typescript": "^2.9.2"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.0",
     "tslint": "^5.11.0"
   }
 }

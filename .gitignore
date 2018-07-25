@@ -1,6 +1,7 @@
 /__build
 /__out
 /node_modules
+/typings
 package-lock.json
 *.out
 *.luabc
