@@ -1,5 +1,2 @@
-function x()
-{
-	console.log("Hello World!");
-}
-x();
+let x: string  = "Hello World!";
+console.log(x);

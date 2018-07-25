@@ -21,7 +21,7 @@ class Run {
 
 		const program = ts.createProgram(sources, {});
 		let emitResult = program.emit(undefined, (f) => {
-			console.log('Emitting...' + f);
+			console.log('Emitting: ' + f);
 		});
 
 		emitResult.diagnostics.forEach(d => {

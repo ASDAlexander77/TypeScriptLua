@@ -33,13 +33,13 @@ export class IdentifierResolver {
                     switch (type.typeName.text)
                     {
                         case "Console": 
-                        return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
+                            return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
                     }
-                break;
+                    break;
 
                 case ts.SyntaxKind.FunctionDeclaration:
-                (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
-                return this.resolveMemberOfResolvedOwner(identifier, functionContext);
+                    (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
+                    return this.resolveMemberOfResolvedOwner(identifier, functionContext);
             }
         }
         
