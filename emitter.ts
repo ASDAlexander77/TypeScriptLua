@@ -98,7 +98,7 @@ export class Emitter {
                 {
                     this.processExpression(d.initializer);
                     
-                    let registerOrConst = this.getRegisterOrConst(d.initializer);
+                    let registerOrConst = this.functionContext.getRegisterOrConst(d.initializer);
                     this.functionContext.code.push([
                         Ops.SETTABUP, 
                         -this.resolver.returnResolvedEnv(this.functionContext).value, 
@@ -115,7 +115,7 @@ export class Emitter {
         let protoIndex = -this.functionContext.createProto(closureFunctionContext);
 
         // load closure into R(A), TODO: finish it
-        let register = 0;
+        let register = this.functionContext.current_register++;
         this.functionContext.code.push([Ops.CLOSURE, register, protoIndex]);
         
         // store in Upvalue
@@ -157,10 +157,9 @@ export class Emitter {
             this.consumeExpression(a);
         });
 
-        // call, C = 1 means NO RETURN
-        let register = 0;
         let returnCount = 0;
-        this.functionContext.code.push([Ops.CALL, register, node.arguments.length + 1, returnCount + 1]);
+        this.functionContext.code.push([Ops.CALL, this.functionContext.getRegister(node.expression), node.arguments.length + 1, returnCount + 1]);
+        this.functionContext.decreaseRegister(returnCount);
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
@@ -175,50 +174,9 @@ export class Emitter {
         if (resolvedInfo.kind == ResolvedKind.Const)
         {
             // TODO: track correct register (1)
-            this.markUsedRegister(node);
-            this.functionContext.code.push([Ops.LOADK, this.functionContext.current_register++, resolvedInfo.value]);
+            this.functionContext.code.push([Ops.LOADK, this.functionContext.useRegister(node), resolvedInfo.value]);
         }
     }
-
-    private markUsedRegister(node: ts.Node): void
-    {
-        var resolvedInfo = new ResolvedInfo();
-        resolvedInfo.kind = ResolvedKind.Register;
-        resolvedInfo.value = this.functionContext.current_register;
-        (<any>node).resolved_value = resolvedInfo;
-    }
-
-    private getRegister(node: ts.Node): number
-    {
-        if (!(<any>node).resolved_value)
-        {
-            throw new Error("Resolved info can't be found");
-        }
-
-        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
-        if (resolvedInfo.kind == ResolvedKind.Register)
-        {
-            return resolvedInfo.value;
-        }
-
-        throw new Error("Resolved info can't be found");            
-    }    
-
-    private getRegisterOrConst(node: ts.Node): number
-    {
-        if (!(<any>node).resolved_value)
-        {
-            throw new Error("Resolved info can't be found");
-        }
-
-        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
-        if (resolvedInfo.kind == ResolvedKind.Const || resolvedInfo.kind == ResolvedKind.Register)
-        {
-            return resolvedInfo.value;
-        }
-
-        throw new Error("Resolved info can't be found");
-    }    
 
     private processIndentifier(node: ts.Identifier): void {
         var resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
@@ -231,10 +189,7 @@ export class Emitter {
                 let objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
                 let methodIdentifierInfo = <ResolvedInfo>(<any>node).resolved_value;
 
-                // TODO: finish Register logic
-                this.functionContext.code.push([Ops.GETTABUP, 0, objectIdentifierInfo.value, methodIdentifierInfo.value]);
-
-                this.markUsedRegister(node);                
+                this.functionContext.code.push([Ops.GETTABUP, this.functionContext.useRegister(node), objectIdentifierInfo.value, methodIdentifierInfo.value]);
             }
 
             return;

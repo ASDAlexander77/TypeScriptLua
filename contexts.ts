@@ -1,3 +1,5 @@
+import * as ts from "typescript";
+import { ResolvedInfo, ResolvedKind } from './resolvers';
 
 export class FunctionContext {
     // if undefined == "_ENV"
@@ -66,5 +68,57 @@ export class FunctionContext {
         // consts start with 1
         this.protos.push(value);
         return this.protos.length;
+    }    
+
+    public useRegister(node: ts.Node): number
+    {
+        var resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Register;
+        resolvedInfo.value = this.current_register;
+        (<any>node).resolved_value = resolvedInfo;        
+        let ret = this.current_register++;
+        if (ret > this.maxstacksize)
+        {
+            this.maxstacksize = ret;
+        }
+
+        return ret;
+    }
+
+    public decreaseRegister(count: number): void
+    {
+        return this.current_register -= count;
+    }
+
+    public getRegister(node: ts.Node): number
+    {
+        if (!(<any>node).resolved_value)
+        {
+            throw new Error("Resolved info can't be found");
+        }
+
+        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+        if (resolvedInfo.kind == ResolvedKind.Register)
+        {
+            return resolvedInfo.value;
+        }
+
+        throw new Error("Resolved info can't be found");            
+    }    
+
+    public getRegisterOrConst(node: ts.Node): number
+    {
+        if (!(<any>node).resolved_value)
+        {
+            throw new Error("Resolved info can't be found");
+        }
+
+        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+        if (resolvedInfo.kind == ResolvedKind.Const || resolvedInfo.kind == ResolvedKind.Register)
+        {
+            return resolvedInfo.value;
+        }
+
+        throw new Error("Resolved info can't be found");
     }    
 }
