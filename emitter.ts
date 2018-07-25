@@ -92,7 +92,7 @@ export class Emitter {
             }
             else
             {
-                let nameUpvalueIndex = -this.functionContext.findOrCreateUpvalue((<ts.Identifier>d.name).text);
+                let nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer)
                 {
                     this.processExpression(d.initializer);
@@ -101,7 +101,7 @@ export class Emitter {
                     this.functionContext.code.push([
                         Ops.SETTABUP, 
                         -this.resolver.returnResolvedEnv(this.functionContext).value, 
-                        nameUpvalueIndex, 
+                        nameConstIndex, 
                         index]);                    
                 }
             }
@@ -175,12 +175,17 @@ export class Emitter {
         {
             // TODO: track correct register (1)
             this.functionContext.code.push([Ops.LOADK, 1, resolvedInfo.value]);
-
-            var resolvedInfoNew = new ResolvedInfo();
-            resolvedInfoNew.kind = ResolvedKind.Register;
-            resolvedInfoNew.value = 1;
-            (<any>node).resolved_value = resolvedInfoNew;               
+            this.markUsedRegister(node);
         }
+    }
+
+    private markUsedRegister(node: ts.Node): void
+    {
+        var resolvedInfoNew = new ResolvedInfo();
+        resolvedInfoNew.kind = ResolvedKind.Register;
+        // TODO: track correct register (1)
+        resolvedInfoNew.value = 1;
+        (<any>node).resolved_value = resolvedInfoNew;               
     }
 
     private consumeExpressionAsConstOrRegisterReturn(node: ts.Node): number
@@ -209,7 +214,11 @@ export class Emitter {
                 // then it is simple Table lookup
                 let objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
                 let methodIdentifierInfo = <ResolvedInfo>(<any>node).resolved_value;
+
+                // TODO: finish Register logic
                 this.functionContext.code.push([Ops.GETTABUP, 0, objectIdentifierInfo.value, methodIdentifierInfo.value]);
+
+                this.markUsedRegister(node);                
             }
 
             return;
