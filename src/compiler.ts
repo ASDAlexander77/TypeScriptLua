@@ -48,5 +48,44 @@ export class Run {
 				fs.writeFileSync(output, emitter.writer.getBytes());
 			}
 		})
+    }
+
+    public test(sources:string[], output:string): void {
+
+        const program = ts.createProgram([], {});
+        sources.forEach((s: string, index:number) => {
+            const sourceFile = ts.createSourceFile("test" + index + ".ts", s, ts.ScriptTarget.ES2018, false);
+
+            let emitResult = program.emit(sourceFile, (f) => {
+                console.log('Emitting: ' + f);
+            });
+
+            emitResult.diagnostics.forEach(d => {
+                let output = "";
+                switch (d.category) {
+                    case 0: output = "Warning"; break;
+                    case 1: output = "Error"; break;
+                    case 2: output = "Suggestion"; break;
+                    case 3: output = "Message"; break;
+                }
+
+                console.log(output + ": " + d.messageText + " file: " + d.file + " line: " + d.start);
+            })
+        });
+
+		let sourceFiles = program.getSourceFiles();
+
+		console.log('Generating binaries...');
+
+		sourceFiles.forEach(s => {
+			if (sources.some(sf => s.fileName.endsWith(sf))) {
+				console.log('File: ' + s.fileName);
+
+				const emitter = new Emitter(program.getTypeChecker());
+				emitter.processNode(s);
+
+				fs.writeFileSync(output, emitter.writer.getBytes());
+			}
+		})
 	}
 }

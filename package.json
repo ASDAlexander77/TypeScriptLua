@@ -7,7 +7,7 @@
     "test": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/**/*.spec.ts",
     "lint": "tslint src/**/*.ts -t verbose",
     "build": "tsc -p tsconfig.json",
-    "exec": "ts-node main.ts"    
+    "exec": "ts-node src/main.ts"    
   },
   "private": true,
   "dependencies": {

@@ -1,3 +1,3 @@
 import { Run } from './compiler';
 
-new Run().run(["test.ts"], "test.luabc");
+new Run().test(["test.ts"], "test.luabc");
