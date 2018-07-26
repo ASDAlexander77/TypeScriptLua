@@ -9,7 +9,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/t:build",
                 "/p:Configuration=Debug",
@@ -20,10 +19,8 @@
                 "isDefault": true
             },
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile",
             "dependsOn": "build_source_win64_debug"
         },
@@ -33,7 +30,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/t:build",
                 "/p:Configuration=Release",
@@ -41,10 +37,8 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile",
             "dependsOn": "build_source_win64_release"
         },
@@ -88,7 +82,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Build MinGW32 source/binary - Release", 
+            "label": "Build MinGW32 source/binary - Release",
             "identifier": "build_source_mingw32_release",
             "group": "build",
             "isBackground": true,
@@ -99,6 +93,13 @@
                 "Release"
             ],
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "lint",
+            "problemMatcher": [
+                "$eslint-compact"
+            ]
         }
     ]
 }

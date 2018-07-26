@@ -27,14 +27,14 @@ export class Emitter {
     }
 
     private pushFunctionContext() {
-        let localFunctionContext = this.functionContext;
+        const localFunctionContext = this.functionContext;
         this.functionContextStack.push(localFunctionContext);
         this.functionContext = new FunctionContext();
         this.functionContext.container = localFunctionContext;
     }
 
     private popFunctionContext(): FunctionContext {
-        let localFunctionContext = this.functionContext;
+        const localFunctionContext = this.functionContext;
         this.functionContext = this.functionContextStack.pop();
         return localFunctionContext;
     }
@@ -54,7 +54,7 @@ export class Emitter {
     private processFile(sourceFile: ts.SourceFile): void {
         this.emitHeader();
 
-        let localFunctionContext = this.processFunction(sourceFile.statements);
+        const localFunctionContext = this.processFunction(sourceFile.statements);
 
         // this is global function
         localFunctionContext.is_vararg = true;
@@ -86,19 +86,15 @@ export class Emitter {
 
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
-            if (Helpers.isConstOrLet(node))
-            {
-                let nameLocalIndex = -this.functionContext.findOrCreateLocal((<ts.Identifier>d.name).text);
+            if (Helpers.isConstOrLet(node)) {
+                const nameLocalIndex = -this.functionContext.findOrCreateLocal((<ts.Identifier>d.name).text);
                 throw new Error('Method not implemented.');
-            }
-            else
-            {
-                let nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
-                if (d.initializer)
-                {
+            } else {
+                const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
+                if (d.initializer) {
                     this.processExpression(d.initializer);
 
-                    let registerOrConst = this.functionContext.getRegisterOrConst(d.initializer);
+                    const registerOrConst = this.functionContext.getRegisterOrConst(d.initializer);
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         -this.resolver.returnResolvedEnv(this.functionContext).value,
@@ -110,16 +106,16 @@ export class Emitter {
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
-        let nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
-        let closureFunctionContext = this.processFunction(node.body.statements);
-        let protoIndex = -this.functionContext.createProto(closureFunctionContext);
+        const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
+        const closureFunctionContext = this.processFunction(node.body.statements);
+        const protoIndex = -this.functionContext.createProto(closureFunctionContext);
 
         // load closure into R(A), TODO: finish it
-        let register = this.functionContext.current_register++;
+        const register = this.functionContext.current_register++;
         this.functionContext.code.push([Ops.CLOSURE, register, protoIndex]);
 
         // store in Upvalue
-        let upvalueContainer = (!this.functionContext.container) ? this.resolver.returnResolvedEnv(this.functionContext).value : null;
+        const upvalueContainer = (!this.functionContext.container) ? this.resolver.returnResolvedEnv(this.functionContext).value : null;
         this.functionContext.code.push([Ops.SETTABUP, upvalueContainer, protoIndex, register]);
     }
 
@@ -140,7 +136,7 @@ export class Emitter {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        var resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = -this.functionContext.findOrCreateConst(node.text);
         (<any>node).resolved_value = resolvedInfo;
@@ -157,39 +153,38 @@ export class Emitter {
             this.consumeExpression(a);
         });
 
-        let returnCount = 0;
-        this.functionContext.code.push([Ops.CALL, this.functionContext.getRegister(node.expression), node.arguments.length + 1, returnCount + 1]);
+        const returnCount = 0;
+        this.functionContext.code.push(
+            [Ops.CALL, this.functionContext.getRegister(node.expression), node.arguments.length + 1, returnCount + 1]);
         this.functionContext.decreaseRegister(returnCount);
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(node: ts.Node): void
-    {
-        if (!(<any>node).resolved_value)
-        {
+    private consumeExpression(node: ts.Node): void {
+        if (!(<any>node).resolved_value) {
             return;
         }
 
-        const resolvedInfo:ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
-        if (resolvedInfo.kind == ResolvedKind.Const)
-        {
+        const resolvedInfo: ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+        if (resolvedInfo.kind === ResolvedKind.Const) {
             // TODO: track correct register (1)
             this.functionContext.code.push([Ops.LOADK, this.functionContext.useRegister(node), resolvedInfo.value]);
         }
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        var resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
-        if (resolvedInfo != undefined) {
+        const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
+        if (resolvedInfo !== undefined) {
             (<any>node).resolved_value = resolvedInfo;
 
             // if it simple expression of identifier
             if ((<any>node).resolved_owner && (<any>node).resolved_value) {
                 // then it is simple Table lookup
-                let objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
-                let methodIdentifierInfo = <ResolvedInfo>(<any>node).resolved_value;
+                const objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
+                const methodIdentifierInfo = <ResolvedInfo>(<any>node).resolved_value;
 
-                this.functionContext.code.push([Ops.GETTABUP, this.functionContext.useRegister(node), objectIdentifierInfo.value, methodIdentifierInfo.value]);
+                this.functionContext.code.push(
+                    [Ops.GETTABUP, this.functionContext.useRegister(node), objectIdentifierInfo.value, methodIdentifierInfo.value]);
             }
 
             return;
@@ -261,8 +256,8 @@ export class Emitter {
 
         functionContext.code.forEach(c => {
             // create 4 bytes value
-            let opCodeMode:OpMode = OpCodes[c[0]];
-            let encoded = opCodeMode.encode(c);
+            const opCodeMode: OpMode = OpCodes[c[0]];
+            const encoded = opCodeMode.encode(c);
             this.writer.writeInt(encoded);
         });
     }
@@ -272,8 +267,7 @@ export class Emitter {
 
         functionContext.contants.forEach(c => {
             // create 4 bytes value
-            switch (typeof c)
-            {
+            switch (typeof c) {
                 case 'boolean':
                     this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
                     this.writer.writeByte(c);
@@ -283,12 +277,9 @@ export class Emitter {
                     this.writer.writeNumber(c);
                     break;
                 case 'string':
-                    if ((<string>c).length > 255)
-                    {
+                    if ((<string>c).length > 255) {
                         this.writer.writeByte(LuaTypes.LUA_TLNGSTR);
-                    }
-                    else
-                    {
+                    } else {
                         this.writer.writeByte(LuaTypes.LUA_TSTRING);
                     }
 
@@ -321,14 +312,11 @@ export class Emitter {
 
     private emitDebug(functionContext: FunctionContext): void {
 
-        if (functionContext.debug.length == 0)
-        {
+        if (functionContext.debug.length === 0) {
             this.writer.writeInt(0);
             this.writer.writeInt(0);
             this.writer.writeInt(0);
-        }
-        else
-        {
+        } else {
             throw new Error('Method not implemeneted');
         }
     }
