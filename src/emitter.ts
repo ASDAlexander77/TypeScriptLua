@@ -1,8 +1,8 @@
-import * as ts from "typescript";
+import * as ts from 'typescript';
 import { BinaryWriter } from './binarywriter';
 import { FunctionContext } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
-import { Ops, opmode, OpCodes, LuaTypes } from './opcodes';
+import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
 
 export class Emitter {
@@ -23,7 +23,7 @@ export class Emitter {
         }
 
         // TODO: finish it
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private pushFunctionContext() {
@@ -45,7 +45,7 @@ export class Emitter {
             this.processStatement(s);
         });
 
-        // add final "RETURN"
+        // add final 'RETURN'
         this.functionContext.code.push([Ops.RETURN, 0, 1]);
 
         return this.popFunctionContext();
@@ -65,11 +65,11 @@ export class Emitter {
     }
 
     private processBundle(bundle: ts.Bundle): void {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private processUnparsedSource(unparsedSource: ts.UnparsedSource): void {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private processStatement(node: ts.Statement): void {
@@ -81,7 +81,7 @@ export class Emitter {
         }
 
         // TODO: finish it
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
@@ -89,7 +89,7 @@ export class Emitter {
             if (Helpers.isConstOrLet(node))
             {
                 let nameLocalIndex = -this.functionContext.findOrCreateLocal((<ts.Identifier>d.name).text);
-                throw new Error("Method not implemented.");
+                throw new Error('Method not implemented.');
             }
             else
             {
@@ -97,13 +97,13 @@ export class Emitter {
                 if (d.initializer)
                 {
                     this.processExpression(d.initializer);
-                    
+
                     let registerOrConst = this.functionContext.getRegisterOrConst(d.initializer);
                     this.functionContext.code.push([
-                        Ops.SETTABUP, 
-                        -this.resolver.returnResolvedEnv(this.functionContext).value, 
-                        nameConstIndex, 
-                        registerOrConst]);                    
+                        Ops.SETTABUP,
+                        -this.resolver.returnResolvedEnv(this.functionContext).value,
+                        nameConstIndex,
+                        registerOrConst]);
                 }
             }
         });
@@ -117,7 +117,7 @@ export class Emitter {
         // load closure into R(A), TODO: finish it
         let register = this.functionContext.current_register++;
         this.functionContext.code.push([Ops.CLOSURE, register, protoIndex]);
-        
+
         // store in Upvalue
         let upvalueContainer = (!this.functionContext.container) ? this.resolver.returnResolvedEnv(this.functionContext).value : null;
         this.functionContext.code.push([Ops.SETTABUP, upvalueContainer, protoIndex, register]);
@@ -136,21 +136,21 @@ export class Emitter {
         }
 
         // TODO: finish it
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
         var resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = -this.functionContext.findOrCreateConst(node.text);
-        (<any>node).resolved_value = resolvedInfo;     
+        (<any>node).resolved_value = resolvedInfo;
     }
 
     private processCallExpression(node: ts.CallExpression): void {
         // method
         this.processExpression(node.expression);
         this.consumeExpression(node.expression);
-        
+
         // arguments
         node.arguments.forEach(a => {
             this.processExpression(a);
@@ -196,7 +196,7 @@ export class Emitter {
         }
 
         // TODO: finish it
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
@@ -206,14 +206,14 @@ export class Emitter {
         (<any>node.name).resolved_owner = (<any>node.expression).resolved_value;
 
         this.processExpression(node.name);
-        this.consumeExpression(node.name);       
-        
+        this.consumeExpression(node.name);
+
         (<any>node).resolved_value = (<any>node.name).resolved_value;
     }
 
     private emitHeader(): void {
         // writing header
-        // LUA_SIGNATURE 
+        // LUA_SIGNATURE
         this.writer.writeArray([0x1b, 0x4c, 0x75, 0x61]);
         // LUAC_VERSION, LUAC_FORMAT
         this.writer.writeArray([0x53, 0x00]);
@@ -261,7 +261,7 @@ export class Emitter {
 
         functionContext.code.forEach(c => {
             // create 4 bytes value
-            let opCodeMode:opmode = OpCodes[c[0]];
+            let opCodeMode:OpMode = OpCodes[c[0]];
             let encoded = opCodeMode.encode(c);
             this.writer.writeInt(encoded);
         });
@@ -274,15 +274,15 @@ export class Emitter {
             // create 4 bytes value
             switch (typeof c)
             {
-                case "boolean": 
+                case 'boolean':
                     this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
                     this.writer.writeByte(c);
                     break;
-                case "number": 
+                case 'number':
                     this.writer.writeByte(LuaTypes.LUA_TNUMBER);
                     this.writer.writeNumber(c);
                     break;
-                case "string": 
+                case 'string':
                     if ((<string>c).length > 255)
                     {
                         this.writer.writeByte(LuaTypes.LUA_TLNGSTR);
@@ -294,10 +294,10 @@ export class Emitter {
 
                     this.writer.writeString(c);
                     break;
-                default: throw new Error("Method not implemeneted");
-            }           
+                default: throw new Error('Method not implemeneted');
+            }
         });
-    }    
+    }
 
     private emitUpvalues(functionContext: FunctionContext): void {
         this.writer.writeInt(functionContext.upvalues.length);
@@ -308,7 +308,7 @@ export class Emitter {
             // index
             this.writer.writeByte(index);
         });
-    }     
+    }
 
     private emitProtos(functionContext: FunctionContext): void {
         this.writer.writeInt(functionContext.protos.length);
@@ -317,8 +317,8 @@ export class Emitter {
             // TODO: finish it
             this.emitFunction(p);
         });
-    }     
-    
+    }
+
     private emitDebug(functionContext: FunctionContext): void {
 
         if (functionContext.debug.length == 0)
@@ -329,7 +329,7 @@ export class Emitter {
         }
         else
         {
-            throw new Error("Method not implemeneted");
+            throw new Error('Method not implemeneted');
         }
-    }    
+    }
 }

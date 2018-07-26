@@ -65,7 +65,7 @@ export enum Ops {
 }
 
 /* basic instruction format */
-export enum OpMode {
+export enum OpCodeMode {
     iABC,
     iABx,
     iAsBx,
@@ -79,12 +79,12 @@ export enum OpArgMask {
     OpArgK   /* argument is a constant or register/constant */
 }
 
-export class opmode {
+export class OpMode {
     public encode(c: Array<number>): number {
         let val = 0;
         let encoded: number = c[0];
         switch (this.mode) {
-            case OpMode.iABC:
+            case OpCodeMode.iABC:
                 // B(9)    Bx   C(9)         A(8)      OP(6)
                 // A
                 encoded += c[1] << (6);
@@ -108,20 +108,19 @@ export class opmode {
                 encoded += val << (9 + 8 + 6);
 
                 break;
-            case OpMode.iABx:
+            case OpCodeMode.iABx:
                 encoded += c[1] << (6);
                 val = c[2];
                 if (val < 0) {
                     val = -(val + 1);
-                }
-                else {
-                    throw new Error("Should be negative");
+                } else {
+                    throw new Error('Should be negative');
                 }
 
                 encoded += val << (8 + 6);
 
                 break;
-            case OpMode.iAsBx:
+            case OpCodeMode.iAsBx:
                 encoded += c[1] << (6);
 
                 val = c[2];
@@ -133,13 +132,12 @@ export class opmode {
                 encoded += val << (8 + 6);
 
                 break;
-            case OpMode.iAx:
+            case OpCodeMode.iAx:
                 val = c[1];
                 if (val < 0) {
                     val = -(val + 1);
-                }
-                else {
-                    throw new Error("Should be negative");
+                } else {
+                    throw new Error('Should be negative');
                 }
 
                 encoded += val << (6);
@@ -150,58 +148,58 @@ export class opmode {
         return encoded;
     }
 
-    public constructor(public T: number, public A: number, public B: OpArgMask, public C: OpArgMask, public mode: OpMode) {
+    public constructor(public T: number, public A: number, public B: OpArgMask, public C: OpArgMask, public mode: OpCodeMode) {
     }
 }
 
-export const OpCodes: Array<opmode> = [
-    new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_MOVE */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgN, OpMode.iABx)		/* OP_LOADK */
-    , new opmode(0, 1, OpArgMask.OpArgN, OpArgMask.OpArgN, OpMode.iABx)		/* OP_LOADKX */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_LOADBOOL */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_LOADNIL */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_GETUPVAL */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgK, OpMode.iABC)		/* OP_GETTABUP */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgK, OpMode.iABC)		/* OP_GETTABLE */
-    , new opmode(0, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SETTABUP */
-    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_SETUPVAL */
-    , new opmode(0, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SETTABLE */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_NEWTABLE */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SELF */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_ADD */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SUB */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_MUL */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_MOD */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_POW */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_DIV */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_IDIV */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_BAND */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_BOR */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_BXOR */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SHL */
-    , new opmode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_SHR */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_UNM */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_BNOT */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_NOT */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iABC)		/* OP_LEN */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgR, OpMode.iABC)		/* OP_CONCAT */
-    , new opmode(0, 0, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_JMP */
-    , new opmode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_EQ */
-    , new opmode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_LT */
-    , new opmode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpMode.iABC)		/* OP_LE */
-    , new opmode(1, 0, OpArgMask.OpArgN, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TEST */
-    , new opmode(1, 1, OpArgMask.OpArgR, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TESTSET */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_CALL */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TAILCALL */
-    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_RETURN */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_FORLOOP */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_FORPREP */
-    , new opmode(0, 0, OpArgMask.OpArgN, OpArgMask.OpArgU, OpMode.iABC)		/* OP_TFORCALL */
-    , new opmode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpMode.iAsBx)	/* OP_TFORLOOP */
-    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iABC)		/* OP_SETLIST */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABx)		/* OP_CLOSURE */
-    , new opmode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpMode.iABC)		/* OP_VARARG */
-    , new opmode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpMode.iAx)		/* OP_EXTRAARG */
+export const OpCodes: Array<OpMode> = [
+    new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_MOVE */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgN, OpCodeMode.iABx)		/* OP_LOADK */
+    , new OpMode(0, 1, OpArgMask.OpArgN, OpArgMask.OpArgN, OpCodeMode.iABx)		/* OP_LOADKX */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_LOADBOOL */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_LOADNIL */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_GETUPVAL */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_GETTABUP */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_GETTABLE */
+    , new OpMode(0, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_SETTABUP */
+    , new OpMode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_SETUPVAL */
+    , new OpMode(0, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_SETTABLE */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_NEWTABLE */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_SELF */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_ADD */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_SUB */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_MUL */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_MOD */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_POW */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_DIV */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_IDIV */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_BAND */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_BOR */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_BXOR */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_SHL */
+    , new OpMode(0, 1, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_SHR */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_UNM */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_BNOT */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_NOT */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_LEN */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgR, OpCodeMode.iABC)		/* OP_CONCAT */
+    , new OpMode(0, 0, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iAsBx)	/* OP_JMP */
+    , new OpMode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_EQ */
+    , new OpMode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_LT */
+    , new OpMode(1, 0, OpArgMask.OpArgK, OpArgMask.OpArgK, OpCodeMode.iABC)		/* OP_LE */
+    , new OpMode(1, 0, OpArgMask.OpArgN, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_TEST */
+    , new OpMode(1, 1, OpArgMask.OpArgR, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_TESTSET */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_CALL */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_TAILCALL */
+    , new OpMode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_RETURN */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iAsBx)	/* OP_FORLOOP */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iAsBx)	/* OP_FORPREP */
+    , new OpMode(0, 0, OpArgMask.OpArgN, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_TFORCALL */
+    , new OpMode(0, 1, OpArgMask.OpArgR, OpArgMask.OpArgN, OpCodeMode.iAsBx)	/* OP_TFORLOOP */
+    , new OpMode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpCodeMode.iABC)		/* OP_SETLIST */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpCodeMode.iABx)		/* OP_CLOSURE */
+    , new OpMode(0, 1, OpArgMask.OpArgU, OpArgMask.OpArgN, OpCodeMode.iABC)		/* OP_VARARG */
+    , new OpMode(0, 0, OpArgMask.OpArgU, OpArgMask.OpArgU, OpCodeMode.iAx)		/* OP_EXTRAARG */
 ];
 
 export enum LuaTypes {
