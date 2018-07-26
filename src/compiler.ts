@@ -51,15 +51,15 @@ export class Run {
     }
 
     public test(sources: string[], output: string): void {
-        let tempSourceFiles = sources.map((s:string, index:number) => "test" + index + ".ts");
+        let tempSourceFiles = sources.map((s: string, index: number) => "test" + index + ".ts");
         let tempTestOutputFile = "testout.luabc";
 
         // clean up
-        tempSourceFiles.forEach(f => fs.unlinkSync(f));
-        fs.unlinkSync(tempTestOutputFile);
+        tempSourceFiles.forEach(f => { if (fs.existsSync(f)) fs.unlinkSync(f); });
+        if (fs.existsSync(tempTestOutputFile)) fs.unlinkSync(tempTestOutputFile);
 
         try {
-            sources.forEach((s:string, index:number) => {
+            sources.forEach((s: string, index: number) => {
                 fs.writeFileSync("test" + index + ".ts", s);
             });
 
@@ -74,7 +74,7 @@ export class Run {
             })
 
             let sourceFiles = program.getSourceFiles();
-            sourceFiles.forEach((s:ts.SourceFile, index:number) => {
+            sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 if (tempSourceFiles.some(sf => s.fileName.endsWith(sf))) {
                     const emitter = new Emitter(program.getTypeChecker());
                     emitter.processNode(s);
