@@ -11,8 +11,8 @@
   },
   "private": true,
   "dependencies": {
-    "fs": "^0.0.1-security",
     "fs-extra": "^7.0.0",
+    "cross-spawn": "^6.0.5",
     "typescript": "^2.9.2"
   },
   "devDependencies": {
