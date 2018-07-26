@@ -2,18 +2,14 @@ import { Run } from '../src/compiler';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
-describe('Simple file compile', () => {
+describe.skip('Simple Run command test', () => {
 
-    it('Hello World 1', async () => await new Run().run(["test.ts"], "test.luabc"));
+    it('Hello World!', async () => await new Run().run(["test.ts"], "test.luabc"));
 
 });
 
-describe('Simple source compile', () => {
+describe.skip('Simple Test command test', () => {
 
-    it('Hello World 1', async () => await new Run().test([
-"                                       \
-    var x:string = 'Hello World!';      \
-    console.log(x);                     \
-"], "test.luabc"));
-
+    it('Hello World!', () => expect("Hello World!", new Run().test(["console.log('Hello World!');"])))
+        
 });

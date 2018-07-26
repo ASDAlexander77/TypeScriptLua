@@ -1,5 +1,6 @@
 import * as ts from "typescript";
 import * as fs from "fs-extra";
+import { spawn } from 'cross-spawn';
 import { Emitter } from './emitter';
 
 export class Run {
@@ -50,7 +51,9 @@ export class Run {
         })
     }
 
-    public test(sources: string[], output: string): void {
+    public test(sources: string[]): string {
+        let actualOutput = "";
+
         let tempSourceFiles = sources.map((s: string, index: number) => "test" + index + ".ts");
         let tempTestOutputFile = "testout.luabc";
 
@@ -66,9 +69,9 @@ export class Run {
             const program = ts.createProgram(tempSourceFiles, {});
             let emitResult = program.emit(undefined, (f) => { });
 
-            emitResult.diagnostics.forEach(d => {
+            emitResult.diagnostics.forEach((d: ts.Diagnostic) => {
                 switch (d.category) {
-                    case 1: throw new Error(output + ": " + d.messageText + " file: " + d.file + " line: " + d.start);
+                    case 1: throw new Error("Error: " + d.messageText + " file: " + d.file + " line: " + d.start);
                     default: break;
                 }
             })
@@ -80,6 +83,10 @@ export class Run {
                     emitter.processNode(s);
 
                     fs.writeFileSync(tempTestOutputFile, emitter.writer.getBytes());
+
+                    // start program and test it to
+                    let result:any = spawn.sync('__build/win64/lua/Debug/lua.exe', [tempTestOutputFile]);
+                    actualOutput = (<Uint8Array>result.stdout).toString();
                 }
             })
         }
@@ -93,5 +100,7 @@ export class Run {
         // clean up
         tempSourceFiles.forEach(f => fs.unlinkSync(f));
         fs.unlinkSync(tempTestOutputFile);
+
+        return actualOutput;
     }
 }
