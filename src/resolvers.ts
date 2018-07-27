@@ -18,6 +18,7 @@ export class ResolvedInfo {
     public value: number;
     public name: string;
     public node: ts.Node;
+    public currentInfo: ResolvedInfo;
     public parentInfo: ResolvedInfo;
 }
 

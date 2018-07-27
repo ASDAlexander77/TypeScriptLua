@@ -228,8 +228,8 @@ export class Emitter {
         // if it simple expression of identifier
         if (resolvedInfo.kind === ResolvedKind.LoadMember) {
             // then it is simple Table lookup
-            const memberIdentifierInfo = resolvedInfo;
-            const objectIdentifierInfo = memberIdentifierInfo.parentInfo;
+            const memberIdentifierInfo = resolvedInfo.currentInfo;
+            const objectIdentifierInfo = resolvedInfo.parentInfo;
             const resultInfo = this.functionContext.useRegister();
 
             this.functionContext.code.push(
@@ -257,7 +257,7 @@ export class Emitter {
         // perform load
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.LoadMember;
-        resolvedInfo.value = this.functionContext.stack.pop();
+        resolvedInfo.currentInfo = this.functionContext.stack.pop();
         resolvedInfo.parentInfo = this.functionContext.stack.pop();
 
         this.functionContext.stack.push(resolvedInfo);
