@@ -193,14 +193,12 @@ export class Emitter {
         this.processExpression(node.expression);
 
         // arguments
-        const args: Array<any> = [];
         node.arguments.forEach(a => {
             this.processExpression(a);
-            args.push(a);
         });
 
         const resolvedArgs: Array<any> = [];
-        args.reverse().forEach(a => {
+        node.arguments.forEach(a => {
             // pop method arguments
             resolvedArgs.push(this.functionContext.stack.pop());
         });
