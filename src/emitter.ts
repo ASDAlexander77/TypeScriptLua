@@ -93,13 +93,15 @@ export class Emitter {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
                     this.processExpression(d.initializer);
+                    const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
 
-                    const registerOrConst = this.functionContext.getRegisterOrConst(d.initializer);
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         -this.resolver.returnResolvedEnv(this.functionContext).value,
                         nameConstIndex,
-                        registerOrConst]);
+                        resolvedInfo.value]);
+
+                    this.functionContext.popRegister(resolvedInfo);
                 }
             }
         });
@@ -214,12 +216,17 @@ export class Emitter {
         this.functionContext.code.push(
             [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount + 1]);
 
-        this.functionContext.setRegister(resultInfo);
+        this.functionContext.popRegister(resultInfo);     
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(resolvedInfo: ResolvedInfo): ResolvedInfo {
+    private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?:boolean): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
+            if (allowConst)
+            {
+                return resolvedInfo;
+            }
+
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.value]);
             return resultInfo;

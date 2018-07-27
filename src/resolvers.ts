@@ -75,7 +75,7 @@ export class IdentifierResolver {
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         if (this.Scope.any()) {
-            return this.resolveMemberOfResolvedOwner(identifier, functionContext);
+            return this.resolveMemberOfCurrentScope(identifier, functionContext);
         }
 
         const resolved = (<any>this.typeChecker).resolveName(identifier.text, undefined, ((1 << 27) - 1)/*mask for all types*/);
@@ -93,8 +93,7 @@ export class IdentifierResolver {
                     }
 
                     if (!Helpers.isConstOrLet(identifier)) {
-                        (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
-                        return this.resolveMemberOfResolvedOwner(identifier, functionContext);
+                        return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
                         // TODO: finish returning info about local variable
                         throw new Error('Not Implemented');
@@ -103,8 +102,7 @@ export class IdentifierResolver {
                     break;
 
                 case ts.SyntaxKind.FunctionDeclaration:
-                    (<any>identifier).resolved_owner = this.returnResolvedEnv(functionContext);
-                    return this.resolveMemberOfResolvedOwner(identifier, functionContext);
+                    return this.resolveMemberOfCurrentScope(identifier, functionContext);
             }
         }
 
@@ -120,7 +118,11 @@ export class IdentifierResolver {
         return resolvedInfo;
     }
 
-    private resolveMemberOfResolvedOwner(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
+    private resolveMemberOfCurrentScope(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
+        if (!this.Scope.any()) {
+            this.Scope.push(this.returnResolvedEnv(functionContext));
+        }
+
         const parentScope: any = this.Scope.peek();
         if (parentScope && parentScope.kind === ResolvedKind.Upvalue) {
             const resolvedInfo = new ResolvedInfo();

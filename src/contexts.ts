@@ -83,13 +83,10 @@ export class FunctionContext {
         return resolvedInfo;
     }
 
-    public setRegister(resolvedInfo: ResolvedInfo): void {
-        if (resolvedInfo.kind !== ResolvedKind.Register)
-        {
-            throw new Error('Must be register resolved value');
+    public popRegister(resolvedInfo: ResolvedInfo): void {
+        if (resolvedInfo.kind === ResolvedKind.Register) {
+            this.current_register = resolvedInfo.value;
         }
-
-        this.current_register = resolvedInfo.value;
     }
 
     public getRegisterOrConst(node: ts.Node): number {
