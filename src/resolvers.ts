@@ -20,6 +20,7 @@ export class ResolvedInfo {
     public node: ts.Node;
     public currentInfo: ResolvedInfo;
     public parentInfo: ResolvedInfo;
+    public root: boolean;
 }
 
 export class StackResolver {
@@ -110,17 +111,18 @@ export class IdentifierResolver {
         throw new Error('Could not resolve: ' + identifier.text);
     }
 
-    public returnResolvedEnv(functionContext: FunctionContext): ResolvedInfo {
+    public returnResolvedEnv(functionContext: FunctionContext, root?: boolean): ResolvedInfo {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.name = '_ENV';
         resolvedInfo.value = -functionContext.findOrCreateUpvalue(resolvedInfo.name);
+        resolvedInfo.root = root;
         return resolvedInfo;
     }
 
     private resolveMemberOfCurrentScope(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         if (!this.Scope.any()) {
-            this.Scope.push(this.returnResolvedEnv(functionContext));
+            this.Scope.push(this.returnResolvedEnv(functionContext, true));
         }
 
         const parentScope: any = this.Scope.peek();
@@ -138,8 +140,17 @@ export class IdentifierResolver {
             }
 
             resolvedInfo.value = -functionContext.findOrCreateConst(resolvedInfo.name);
-            return resolvedInfo;
-        }
+
+            if (!parentScope.root)
+            {
+                return resolvedInfo;
+            }
+
+            const finalResolvedInfo = new ResolvedInfo();
+            finalResolvedInfo.kind = ResolvedKind.LoadMember;
+            finalResolvedInfo.parentInfo = parentScope;
+            finalResolvedInfo.currentInfo = resolvedInfo;
+            return finalResolvedInfo;        }
 
         throw new Error('Method not implemented');
     }
