@@ -213,23 +213,22 @@ export class Emitter {
             // TODO: track correct register (1)
             this.functionContext.code.push([Ops.LOADK, this.functionContext.useRegister(node), resolvedInfo.value]);
         }
+
+        // if it simple expression of identifier
+        if ((<any>node).resolved_owner) {
+            // then it is simple Table lookup
+            const objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
+            const memberIdentifierInfo = resolvedInfo;
+
+            this.functionContext.code.push(
+                [Ops.GETTABUP, this.functionContext.useRegister(node), objectIdentifierInfo.value, memberIdentifierInfo.value]);
+        }
     }
 
     private processIndentifier(node: ts.Identifier): void {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
         if (resolvedInfo !== undefined) {
             (<any>node).resolved_value = resolvedInfo;
-
-            // if it simple expression of identifier
-            if ((<any>node).resolved_owner && (<any>node).resolved_value) {
-                // then it is simple Table lookup
-                const objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
-                const methodIdentifierInfo = <ResolvedInfo>(<any>node).resolved_value;
-
-                this.functionContext.code.push(
-                    [Ops.GETTABUP, this.functionContext.useRegister(node), objectIdentifierInfo.value, methodIdentifierInfo.value]);
-            }
-
             return;
         }
 

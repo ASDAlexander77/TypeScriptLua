@@ -1,3 +1,2 @@
-var x = 0;
-x = 1;
+var x = "Hello World!";
 console.log(x);
