@@ -143,7 +143,8 @@ export class Emitter {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = -this.functionContext.findOrCreateConst(node.kind === ts.SyntaxKind.TrueKeyword);
-        (<any>node).resolved_value = resolvedInfo;
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
@@ -151,14 +152,16 @@ export class Emitter {
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = -this.functionContext.findOrCreateConst(
             node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text));
-        (<any>node).resolved_value = resolvedInfo;
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = -this.functionContext.findOrCreateConst(node.text);
-        (<any>node).resolved_value = resolvedInfo;
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
@@ -188,64 +191,73 @@ export class Emitter {
     private processCallExpression(node: ts.CallExpression): void {
         // method
         this.processExpression(node.expression);
-        this.consumeExpression(node.expression);
 
         // arguments
+        const args: Array<any> = [];
         node.arguments.forEach(a => {
             this.processExpression(a);
-            this.consumeExpression(a);
+            args.push(a);
         });
+
+        args.reverse().forEach(a => {
+            // pop method arguments
+            this.consumeExpression(a, this.functionContext.stack.pop());
+        });
+
+        // pop method ref.
+        const resultInfo = this.consumeExpression(node.expression, this.functionContext.stack.pop());
 
         const returnCount = 0;
         this.functionContext.code.push(
-            [Ops.CALL, this.functionContext.getRegister(node.expression), node.arguments.length + 1, returnCount + 1]);
+            [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount + 1]);
+
         this.functionContext.decreaseRegister(returnCount);
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(node: ts.Node): void {
-        if (!(<any>node).resolved_value) {
-            return;
-        }
-
-        const resolvedInfo: ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
+    private consumeExpression(node: ts.Node, resolvedInfo: ResolvedInfo): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
-            // TODO: track correct register (1)
-            this.functionContext.code.push([Ops.LOADK, this.functionContext.useRegister(node), resolvedInfo.value]);
+            const resultInfo = this.functionContext.useRegister();
+            this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.value]);
+            return resultInfo;
         }
 
         // if it simple expression of identifier
-        if ((<any>node).resolved_owner) {
+        if (resolvedInfo.kind === ResolvedKind.LoadMember) {
             // then it is simple Table lookup
-            const objectIdentifierInfo = <ResolvedInfo>(<any>node).resolved_owner;
             const memberIdentifierInfo = resolvedInfo;
+            const objectIdentifierInfo = memberIdentifierInfo.parentInfo;
+            const resultInfo = this.functionContext.useRegister();
 
             this.functionContext.code.push(
-                [Ops.GETTABUP, this.functionContext.useRegister(node), objectIdentifierInfo.value, memberIdentifierInfo.value]);
+                [Ops.GETTABUP, resultInfo.value, objectIdentifierInfo.value, memberIdentifierInfo.value]);
+
+            return resultInfo;
         }
+
+        throw new Error('Not Implemented');
     }
 
     private processIndentifier(node: ts.Identifier): void {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
-        if (resolvedInfo !== undefined) {
-            (<any>node).resolved_value = resolvedInfo;
-            return;
-        }
-
-        // TODO: finish it
-        throw new Error('Method not implemented.');
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
-        this.consumeExpression(node.expression);
 
-        (<any>node.name).resolved_owner = (<any>node.expression).resolved_value;
-
+        this.resolver.Scope.push(this.functionContext.stack.peek());
         this.processExpression(node.name);
-        this.consumeExpression(node.name);
+        this.resolver.Scope.pop();
 
-        (<any>node).resolved_value = (<any>node.name).resolved_value;
+        // perform load
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.LoadMember;
+        resolvedInfo.value = this.functionContext.stack.pop();
+        resolvedInfo.parentInfo = this.functionContext.stack.pop();
+
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private emitHeader(): void {

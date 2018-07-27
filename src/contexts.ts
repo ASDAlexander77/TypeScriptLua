@@ -1,11 +1,13 @@
 import * as ts from 'typescript';
-import { ResolvedInfo, ResolvedKind } from './resolvers';
+import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 
 export class FunctionContext {
     // if undefined == "_ENV"
     public container: FunctionContext;
     // to track current register(stack)
     public current_register = 0;
+    // stack resolver
+    public stack: StackResolver = new StackResolver();
 
     // function information
     public debug_location: string;
@@ -70,34 +72,19 @@ export class FunctionContext {
         return this.protos.length;
     }
 
-    public useRegister(node: ts.Node): number {
+    public useRegister(): ResolvedInfo {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Register;
-        resolvedInfo.value = this.current_register;
-        (<any>node).resolved_value = resolvedInfo;
-        const ret = this.current_register++;
+        const ret = resolvedInfo.value = this.current_register++;
         if (ret > this.maxstacksize) {
             this.maxstacksize = ret;
         }
 
-        return ret;
+        return resolvedInfo;
     }
 
     public decreaseRegister(count: number): void {
         this.current_register -= count;
-    }
-
-    public getRegister(node: ts.Node): number {
-        if (!(<any>node).resolved_value) {
-            throw new Error('Resolved info can\'t be found');
-        }
-
-        const resolvedInfo: ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
-        if (resolvedInfo.kind === ResolvedKind.Register) {
-            return resolvedInfo.value;
-        }
-
-        throw new Error('Resolved info can\'t be found');
     }
 
     public getRegisterOrConst(node: ts.Node): number {

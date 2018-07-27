@@ -3,24 +3,77 @@ import { FunctionContext } from './contexts';
 import { Helpers } from './helpers';
 
 export enum ResolvedKind {
+    // up values
     Upvalue,
+    // const
     Const,
-    Register
+    // registers
+    Register,
+    // to support methods load
+    LoadMember,
 }
 
 export class ResolvedInfo {
     public kind: ResolvedKind;
     public value: number;
     public name: string;
+    public node: ts.Node;
+    public parentInfo: ResolvedInfo;
+}
+
+export class StackResolver {
+    private stack: any[] = [];
+
+    public push(item: any) {
+        if (!item) {
+            throw new Error('Item is not defined');
+        }
+
+        this.stack.push(item);
+    }
+
+    public pop(): any {
+        return this.stack.pop();
+    }
+
+    public peek(): any {
+        return this.stack[this.stack.length - 1];
+    }
+}
+
+export class ScopeContext {
+    private scope: any[] = [];
+
+    public push(item: any) {
+        if (!item) {
+            throw new Error('Item is not defined');
+        }
+
+        this.scope.push(item);
+    }
+
+    public pop(): any {
+        return this.scope.pop();
+    }
+
+    public peek(): any {
+        return this.scope[this.scope.length - 1];
+    }
+
+    public any(): boolean {
+        return this.scope.length > 0;
+    }
 }
 
 export class IdentifierResolver {
+
+    public Scope: ScopeContext = new ScopeContext();
 
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
-        if ((<any>identifier).resolved_owner) {
+        if (this.Scope.any()) {
             return this.resolveMemberOfResolvedOwner(identifier, functionContext);
         }
 
@@ -34,7 +87,7 @@ export class IdentifierResolver {
                     if (type && type.typeName) {
                         switch (type.typeName.text) {
                             case 'Console':
-                                return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
+                                return this.returnResolvedEnv(functionContext);
                         }
                     }
 
@@ -67,15 +120,15 @@ export class IdentifierResolver {
     }
 
     private resolveMemberOfResolvedOwner(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
-        const resolved_owner: any = (<any>identifier).resolved_owner;
-        if (resolved_owner && resolved_owner.kind === ResolvedKind.Upvalue) {
+        const parentScope: any = this.Scope.peek();
+        if (parentScope && parentScope.kind === ResolvedKind.Upvalue) {
             const resolvedInfo = new ResolvedInfo();
             resolvedInfo.kind = ResolvedKind.Const;
             resolvedInfo.name = identifier.text;
 
             // resolve _ENV
             // TODO: hack
-            if (resolved_owner.name === '_ENV') {
+            if (parentScope.name === '_ENV') {
                 switch (resolvedInfo.name) {
                     case 'log': resolvedInfo.name = 'print'; break;
                 }
