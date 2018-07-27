@@ -199,23 +199,28 @@ export class Emitter {
             args.push(a);
         });
 
+        const resolvedArgs: Array<any> = [];
         args.reverse().forEach(a => {
             // pop method arguments
-            this.consumeExpression(a, this.functionContext.stack.pop());
+            resolvedArgs.push(this.functionContext.stack.pop());
         });
 
         // pop method ref.
-        const resultInfo = this.consumeExpression(node.expression, this.functionContext.stack.pop());
+        const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
+        resolvedArgs.forEach(a => {
+            // pop method arguments
+            this.consumeExpression(a);
+        });
 
         const returnCount = 0;
         this.functionContext.code.push(
             [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount + 1]);
 
-        this.functionContext.decreaseRegister(returnCount);
+        this.functionContext.setRegister(resultInfo);
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(node: ts.Node, resolvedInfo: ResolvedInfo): ResolvedInfo {
+    private consumeExpression(resolvedInfo: ResolvedInfo): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.value]);
