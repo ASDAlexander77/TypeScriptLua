@@ -70,6 +70,10 @@ export class ScopeContext {
     public any(): boolean {
         return this.scope.length > 0;
     }
+
+    public anyNotRoot(): boolean {
+        return this.scope.length > 1 || this.scope.length > 0 && !this.scope[this.scope.length - 1].root;
+    }
 }
 
 export class IdentifierResolver {
@@ -80,7 +84,7 @@ export class IdentifierResolver {
     }
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
-        if (this.Scope.any()) {
+        if (this.Scope.anyNotRoot()) {
             return this.resolveMemberOfCurrentScope(identifier, functionContext);
         }
 
@@ -146,8 +150,7 @@ export class IdentifierResolver {
 
             resolvedInfo.value = -functionContext.findOrCreateConst(resolvedInfo.name);
 
-            if (!parentScope.root)
-            {
+            if (!parentScope.root) {
                 return resolvedInfo;
             }
 
@@ -155,7 +158,8 @@ export class IdentifierResolver {
             finalResolvedInfo.kind = ResolvedKind.LoadMember;
             finalResolvedInfo.parentInfo = parentScope;
             finalResolvedInfo.currentInfo = resolvedInfo;
-            return finalResolvedInfo;        }
+            return finalResolvedInfo;
+        }
 
         throw new Error('Method not implemented');
     }

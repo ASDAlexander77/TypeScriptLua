@@ -178,12 +178,12 @@ export class Emitter {
                 const leftNode = this.functionContext.stack.pop();
                 const rightNode = this.functionContext.stack.pop();
 
-                if (rightNode.kind == ResolvedKind.LoadMember) {
+                if (leftNode.kind == ResolvedKind.LoadMember) {
                     this.functionContext.code.push([
                         Ops.SETTABUP,
-                        rightNode.parentInfo.value,
-                        rightNode.currentInfo.value,
-                        leftNode.value]);
+                        leftNode.parentInfo.value,
+                        leftNode.currentInfo.value,
+                        rightNode.value]);
                 }
 
                 break;
@@ -235,8 +235,8 @@ export class Emitter {
             // then it is simple Table lookup
             const memberIdentifierInfo = resolvedInfo.currentInfo;
             const objectIdentifierInfo = resolvedInfo.parentInfo;
-            const resultInfo = this.functionContext.useRegister();
 
+            const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
                 [Ops.GETTABUP, resultInfo.value, objectIdentifierInfo.value, memberIdentifierInfo.value]);
 
