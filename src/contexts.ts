@@ -112,4 +112,33 @@ export class FunctionContext {
 
         throw new Error('Resolved info can\'t be found');
     }
+
+    public getUpvalue(node: ts.Node): number {
+        if (!(<any>node).resolved_value) {
+            throw new Error('Resolved info can\'t be found');
+        }
+
+        if ((<any>node).resolved_owner) {
+            const resolved_owner = <ResolvedInfo>(<any>node).resolved_owner;
+            if (resolved_owner.kind === ResolvedKind.Upvalue)
+            {
+                return resolved_owner.value;
+            }
+        }
+
+        throw new Error('Resolved info can\'t be found');
+    }
+
+    public isUpvalue(node: ts.Node): boolean {
+        if (!(<any>node).resolved_value) {
+            throw new Error('Resolved info can\'t be found');
+        }
+
+        if ((<any>node).resolved_owner) {
+            const resolved_owner = <ResolvedInfo>(<any>node).resolved_owner;
+            return resolved_owner.kind === ResolvedKind.Upvalue;
+        }
+
+        return false;
+    }
 }

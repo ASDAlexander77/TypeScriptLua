@@ -19,12 +19,18 @@ export class BinaryWriter {
     }
 
     public writeInteger(data: number): void {
-        // write 8 bytes
-        throw new Error('Not implemented');
+        this.data.push((data & 0x00000000000000ff));
+        this.data.push((data & 0x000000000000ff00) >> 8);
+        this.data.push((data & 0x0000000000ff0000) >> 16);
+        this.data.push((data & 0x00000000ff000000) >> 24);
+        this.data.push((data & 0x000000ff00000000) >> 32);
+        this.data.push((data & 0x0000ff0000000000) >> 40);
+        this.data.push((data & 0x00ff000000000000) >> 48);
+        this.data.push((data & 0xff00000000000000) >> 56);
     }
 
     public writeNumber(data: number): void {
-        throw new Error('Not implemented');
+        this.writeArrayBuffer(new Float64Array([data]).buffer);
     }
 
     public writeString(data: string): void {
@@ -50,6 +56,14 @@ export class BinaryWriter {
         data.forEach((b) => {
             this.write(b);
         });
+    }
+
+    public writeArrayBuffer(data: ArrayBuffer): void {
+        const byteArray = new Uint8Array(data);
+        let i = 0;
+        for (i = 0; i < byteArray.byteLength; i++) {
+            this.write(byteArray[i]);
+        }
     }
 
     public getBytes(): Uint8Array {

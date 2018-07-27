@@ -31,7 +31,7 @@ export class IdentifierResolver {
                 case ts.SyntaxKind.VariableDeclaration:
                     const type = resolved.valueDeclaration.type;
                     // can be keyward to 'string'
-                    if (type.typeName) {
+                    if (type && type.typeName) {
                         switch (type.typeName.text) {
                             case 'Console':
                                 return (<any>identifier).resolved_value = this.returnResolvedEnv(functionContext);
@@ -55,7 +55,7 @@ export class IdentifierResolver {
         }
 
         // TODO: hack
-        throw new Error('Coult not resolve: ' + identifier.text);
+        throw new Error('Could not resolve: ' + identifier.text);
     }
 
     public returnResolvedEnv(functionContext: FunctionContext): ResolvedInfo {

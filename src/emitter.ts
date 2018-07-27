@@ -127,6 +127,10 @@ export class Emitter {
         switch (node.kind) {
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
             case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
+            case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
+            case ts.SyntaxKind.TrueKeyword:
+            case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
+            case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
@@ -135,11 +139,50 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
+    private processBooleanLiteral(node: ts.BooleanLiteral): void {
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Const;
+        resolvedInfo.value = -this.functionContext.findOrCreateConst(node.kind === ts.SyntaxKind.TrueKeyword);
+        (<any>node).resolved_value = resolvedInfo;
+    }
+
+    private processNumericLiteral(node: ts.NumericLiteral): void {
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Const;
+        resolvedInfo.value = -this.functionContext.findOrCreateConst(
+            node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text));
+        (<any>node).resolved_value = resolvedInfo;
+    }
+
     private processStringLiteral(node: ts.StringLiteral): void {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = -this.functionContext.findOrCreateConst(node.text);
         (<any>node).resolved_value = resolvedInfo;
+    }
+
+    private processBinaryExpression(node: ts.BinaryExpression): void {
+        // ... = <right>
+        this.processExpression(node.right);
+
+        // <left> = ...
+        this.processExpression(node.left);
+
+        // perform '='
+        switch (node.operatorToken.kind) {
+            case ts.SyntaxKind.EqualsToken:
+
+                if (this.functionContext.isUpvalue(node.left)) {
+                    this.functionContext.code.push([
+                        Ops.SETTABUP,
+                        this.functionContext.getUpvalue(node.left),
+                        this.functionContext.getRegisterOrConst(node.left),
+                        this.functionContext.getRegisterOrConst(node.right)]);
+                }
+
+                break;
+            default: throw new Error('Not Implemented');
+        }
     }
 
     private processCallExpression(node: ts.CallExpression): void {
@@ -273,8 +316,13 @@ export class Emitter {
                     this.writer.writeByte(c);
                     break;
                 case 'number':
-                    this.writer.writeByte(LuaTypes.LUA_TNUMBER);
-                    this.writer.writeNumber(c);
+                    if (Number.isInteger(c)) {
+                        this.writer.writeByte(LuaTypes.LUA_TNUMINT);
+                        this.writer.writeInteger(c);
+                    } else {
+                        this.writer.writeByte(LuaTypes.LUA_TNUMBER);
+                        this.writer.writeNumber(c);
+                    }
                     break;
                 case 'string':
                     if ((<string>c).length > 255) {

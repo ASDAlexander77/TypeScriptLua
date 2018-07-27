@@ -91,7 +91,7 @@ export class Run {
 
                     // start program and test it to
                     const result: any = spawn.sync('__build/win64/lua/Debug/lua.exe', [tempTestOutputFile]);
-                    actualOutput = (<Uint8Array>result.stdout).toString();
+                    actualOutput = (<Uint8Array>result.stdout).toString().trim();
                 }
             });
         } catch (e) {
