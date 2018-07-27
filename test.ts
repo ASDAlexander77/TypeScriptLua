@@ -1,2 +1,3 @@
-var x: string = "Hello World!";
+var x: boolean = true;
+x = false;
 console.log(x);

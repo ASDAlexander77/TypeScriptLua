@@ -24,9 +24,12 @@ export class ResolvedInfo {
 }
 
 export class StackResolver {
-    private stack: any[] = [];
+    private stack: ResolvedInfo[] = [];
 
-    public push(item: any) {
+    public constructor(private functionContext: FunctionContext) {
+    }
+
+    public push(item: ResolvedInfo) {
         if (!item) {
             throw new Error('Item is not defined');
         }
@@ -34,11 +37,13 @@ export class StackResolver {
         this.stack.push(item);
     }
 
-    public pop(): any {
-        return this.stack.pop();
+    public pop(): ResolvedInfo {
+        const resolvedInfo = this.stack.pop();
+        this.functionContext.popRegister(resolvedInfo);
+        return resolvedInfo;
     }
 
-    public peek(): any {
+    public peek(): ResolvedInfo {
         return this.stack[this.stack.length - 1];
     }
 }

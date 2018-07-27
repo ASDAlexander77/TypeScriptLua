@@ -100,8 +100,6 @@ export class Emitter {
                         -this.resolver.returnResolvedEnv(this.functionContext).value,
                         nameConstIndex,
                         resolvedInfo.value]);
-
-                    this.functionContext.popRegister(resolvedInfo);
                 }
             }
         });
@@ -177,12 +175,15 @@ export class Emitter {
         switch (node.operatorToken.kind) {
             case ts.SyntaxKind.EqualsToken:
 
-                if (this.functionContext.isUpvalue(node.left)) {
+                const leftNode = this.functionContext.stack.pop();
+                const rightNode = this.functionContext.stack.pop();
+
+                if (rightNode.kind == ResolvedKind.LoadMember) {
                     this.functionContext.code.push([
                         Ops.SETTABUP,
-                        this.functionContext.getUpvalue(node.left),
-                        this.functionContext.getRegisterOrConst(node.left),
-                        this.functionContext.getRegisterOrConst(node.right)]);
+                        rightNode.parentInfo.value,
+                        rightNode.currentInfo.value,
+                        leftNode.value]);
                 }
 
                 break;
@@ -215,15 +216,12 @@ export class Emitter {
         const returnCount = 0;
         this.functionContext.code.push(
             [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount + 1]);
-
-        this.functionContext.popRegister(resultInfo);     
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?:boolean): ResolvedInfo {
+    private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?: boolean): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
-            if (allowConst)
-            {
+            if (allowConst) {
                 return resolvedInfo;
             }
 

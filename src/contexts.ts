@@ -7,7 +7,7 @@ export class FunctionContext {
     // to track current register(stack)
     public current_register = 0;
     // stack resolver
-    public stack: StackResolver = new StackResolver();
+    public stack: StackResolver = new StackResolver(this);
 
     // function information
     public debug_location: string;
@@ -83,12 +83,6 @@ export class FunctionContext {
         return resolvedInfo;
     }
 
-    public popRegister(resolvedInfo: ResolvedInfo): void {
-        if (resolvedInfo.kind === ResolvedKind.Register) {
-            this.current_register = resolvedInfo.value;
-        }
-    }
-
     public getRegisterOrConst(node: ts.Node): number {
         if (!(<any>node).resolved_value) {
             throw new Error('Resolved info can\'t be found');
@@ -128,5 +122,11 @@ export class FunctionContext {
         }
 
         return false;
+    }
+
+    public popRegister(resolvedInfo: ResolvedInfo): void {
+        if (resolvedInfo.kind === ResolvedKind.Register) {
+            this.current_register = resolvedInfo.value;
+        }
     }
 }
