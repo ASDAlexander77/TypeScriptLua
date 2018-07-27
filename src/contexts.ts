@@ -120,8 +120,7 @@ export class FunctionContext {
 
         if ((<any>node).resolved_owner) {
             const resolved_owner = <ResolvedInfo>(<any>node).resolved_owner;
-            if (resolved_owner.kind === ResolvedKind.Upvalue)
-            {
+            if (resolved_owner.kind === ResolvedKind.Upvalue) {
                 return resolved_owner.value;
             }
         }

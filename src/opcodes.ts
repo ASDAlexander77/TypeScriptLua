@@ -213,6 +213,7 @@ export enum LuaTypes {
     LUA_TUSERDATA = 7,
     LUA_TTHREAD = 8,
 
-    LUA_TNUMINT = 3 || (1 << 4),
-    LUA_TLNGSTR = 4 || (1 << 4),
+    LUA_TNUMFLT = 3 | (0 << 4),
+    LUA_TNUMINT = 3 | (1 << 4),
+    LUA_TLNGSTR = 4 | (1 << 4),
 }
