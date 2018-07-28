@@ -11,6 +11,8 @@ export enum ResolvedKind {
     Register,
     // to support methods load
     LoadMember,
+    // to support loading closures
+    LoadFunction
 }
 
 export class ResolvedInfo {

@@ -33,13 +33,6 @@ describe('Test 1', () => {
             console.log(x);                     \
         '])));
 
-    it('equals: print - true', () => expect('true\r\n').to.equals(new Run().test([
-        '                                       \
-            var x;                              \
-            x = true;                           \
-            console.log(x);                     \
-        '])));
-
     it('equals: print - 2 true,1,1.5,Hello World!', () => expect('true\r\n1\r\n1.5\r\nHello World!\r\n').to.equals(new Run().test([
         '                                       \
             var x;                              \

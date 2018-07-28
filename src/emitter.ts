@@ -87,36 +87,42 @@ export class Emitter {
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
             if (Helpers.isConstOrLet(node)) {
-                const nameLocalIndex = -this.functionContext.findOrCreateLocal((<ts.Identifier>d.name).text);
                 throw new Error('Method not implemented.');
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
                     this.processExpression(d.initializer);
-                    const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
-
-                    this.functionContext.code.push([
-                        Ops.SETTABUP,
-                        -this.resolver.returnResolvedEnv(this.functionContext).value,
-                        nameConstIndex,
-                        resolvedInfo.value]);
+                    this.emitStoreToObjectProperty(nameConstIndex);
                 }
             }
         });
     }
 
+    private emitStoreToObjectProperty(nameConstIndex:number)
+    {
+        const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+
+        this.functionContext.code.push([
+            Ops.SETTABUP,
+            -this.resolver.returnResolvedEnv(this.functionContext).value,
+            nameConstIndex,
+            resolvedInfo.value]);
+    }
+
+    private processFunctionExpression(node: ts.FunctionExpression): void {
+        const protoIndex = -this.functionContext.createProto(this.processFunction(node.body.statements));
+
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.LoadFunction;
+        resolvedInfo.value = protoIndex;
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);        
+    }
+
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
-        const closureFunctionContext = this.processFunction(node.body.statements);
-        const protoIndex = -this.functionContext.createProto(closureFunctionContext);
-
-        // load closure into R(A), TODO: finish it
-        const register = this.functionContext.current_register++;
-        this.functionContext.code.push([Ops.CLOSURE, register, protoIndex]);
-
-        // store in Upvalue
-        const upvalueContainer = (!this.functionContext.container) ? this.resolver.returnResolvedEnv(this.functionContext).value : null;
-        this.functionContext.code.push([Ops.SETTABUP, upvalueContainer, protoIndex, register]);
+        this.processFunctionExpression(<ts.FunctionExpression><any>node);
+        this.emitStoreToObjectProperty(nameConstIndex);
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -128,6 +134,7 @@ export class Emitter {
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
             case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
             case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
+            case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
             case ts.SyntaxKind.TrueKeyword:
             case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
@@ -239,6 +246,14 @@ export class Emitter {
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
                 [Ops.GETTABUP, resultInfo.value, objectIdentifierInfo.value, memberIdentifierInfo.value]);
+
+            return resultInfo;
+        }
+
+        // if it simple expression of identifier
+        if (resolvedInfo.kind === ResolvedKind.LoadFunction) {
+            const resultInfo = this.functionContext.useRegister();
+            this.functionContext.code.push([Ops.CLOSURE, resultInfo.value, resolvedInfo.value]);
 
             return resultInfo;
         }

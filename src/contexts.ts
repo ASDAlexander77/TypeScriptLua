@@ -69,7 +69,7 @@ export class FunctionContext {
     public createProto(value: FunctionContext): number {
         // consts start with 1
         this.protos.push(value);
-        return this.protos.length;
+        return this.protos.length - 1;
     }
 
     public useRegister(): ResolvedInfo {

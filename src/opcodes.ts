@@ -113,8 +113,6 @@ export class OpMode {
                 val = c[2];
                 if (val < 0) {
                     val = -(val + 1);
-                } else {
-                    throw new Error('Should be negative');
                 }
 
                 encoded += val << (8 + 6);
