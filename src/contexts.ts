@@ -83,47 +83,6 @@ export class FunctionContext {
         return resolvedInfo;
     }
 
-    public getRegisterOrConst(node: ts.Node): number {
-        if (!(<any>node).resolved_value) {
-            throw new Error('Resolved info can\'t be found');
-        }
-
-        const resolvedInfo: ResolvedInfo = <ResolvedInfo>(<any>node).resolved_value;
-        if (resolvedInfo.kind === ResolvedKind.Const || resolvedInfo.kind === ResolvedKind.Register) {
-            return resolvedInfo.value;
-        }
-
-        throw new Error('Resolved info can\'t be found');
-    }
-
-    public getUpvalue(node: ts.Node): number {
-        if (!(<any>node).resolved_value) {
-            throw new Error('Resolved info can\'t be found');
-        }
-
-        if ((<any>node).resolved_owner) {
-            const resolved_owner = <ResolvedInfo>(<any>node).resolved_owner;
-            if (resolved_owner.kind === ResolvedKind.Upvalue) {
-                return resolved_owner.value;
-            }
-        }
-
-        throw new Error('Resolved info can\'t be found');
-    }
-
-    public isUpvalue(node: ts.Node): boolean {
-        if (!(<any>node).resolved_value) {
-            throw new Error('Resolved info can\'t be found');
-        }
-
-        if ((<any>node).resolved_owner) {
-            const resolved_owner = <ResolvedInfo>(<any>node).resolved_owner;
-            return resolved_owner.kind === ResolvedKind.Upvalue;
-        }
-
-        return false;
-    }
-
     public popRegister(resolvedInfo: ResolvedInfo): void {
         if (resolvedInfo.kind === ResolvedKind.Register) {
             this.current_register = resolvedInfo.value;

@@ -92,20 +92,20 @@ export class Emitter {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
                     this.processExpression(d.initializer);
-                    this.emitStoreToObjectProperty(nameConstIndex);
+                    this.emitStoreToEnvObjectProperty(nameConstIndex);
                 }
             }
         });
     }
 
-    private emitStoreToObjectProperty(nameConstIndex: number) {
+    private emitStoreToEnvObjectProperty(nameConstIndex: number) {
         const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
 
         this.functionContext.code.push([
             Ops.SETTABUP,
             -this.resolver.returnResolvedEnv(this.functionContext).value,
             nameConstIndex,
-            resolvedInfo.value]);
+            resolvedInfo.getRegisterNumberOrConstIndex()]);
         this.functionContext.popRegister(resolvedInfo);
     }
 
@@ -121,8 +121,7 @@ export class Emitter {
 
     private processArrowFunction(node: ts.ArrowFunction): void {
 
-        if (node.body.kind !== ts.SyntaxKind.Block)
-        {
+        if (node.body.kind !== ts.SyntaxKind.Block) {
             throw new Error('Arrow function as expression is not implemented yet');
         }
 
@@ -138,7 +137,7 @@ export class Emitter {
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
-        this.emitStoreToObjectProperty(nameConstIndex);
+        this.emitStoreToEnvObjectProperty(nameConstIndex);
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -154,6 +153,7 @@ export class Emitter {
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.TrueKeyword:
             case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
+            case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
@@ -166,7 +166,15 @@ export class Emitter {
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = -this.functionContext.findOrCreateConst(node.kind === ts.SyntaxKind.TrueKeyword);
+        resolvedInfo.value = node.kind === ts.SyntaxKind.TrueKeyword;
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);
+    }
+
+    private processNullLiteral(node: ts.NullLiteral): void {
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.Const;
+        resolvedInfo.value = null;
         resolvedInfo.node = node;
         this.functionContext.stack.push(resolvedInfo);
     }
@@ -174,8 +182,7 @@ export class Emitter {
     private processNumericLiteral(node: ts.NumericLiteral): void {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = -this.functionContext.findOrCreateConst(
-            node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text));
+        resolvedInfo.value = node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text);
         resolvedInfo.node = node;
         this.functionContext.stack.push(resolvedInfo);
     }
@@ -183,7 +190,7 @@ export class Emitter {
     private processStringLiteral(node: ts.StringLiteral): void {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = -this.functionContext.findOrCreateConst(node.text);
+        resolvedInfo.value = node.text;
         resolvedInfo.node = node;
         this.functionContext.stack.push(resolvedInfo);
     }
@@ -200,14 +207,13 @@ export class Emitter {
             case ts.SyntaxKind.EqualsToken:
 
                 const leftNode = this.functionContext.stack.pop();
-                const rightNode = this.functionContext.stack.pop();
-
                 if (leftNode.kind === ResolvedKind.LoadMember) {
+                    const rightNode = this.consumeExpression(this.functionContext.stack.pop(), true);
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         leftNode.parentInfo.value,
                         leftNode.currentInfo.value,
-                        rightNode.value]);
+                        rightNode.getRegisterNumberOrConstIndex()]);
 
                     this.functionContext.popRegister(rightNode);
                 }
@@ -254,11 +260,12 @@ export class Emitter {
     private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?: boolean): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
             if (allowConst) {
+                resolvedInfo.ensureConstIndex(this.functionContext);
                 return resolvedInfo;
             }
 
             const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.value]);
+            this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.ensureConstIndex(this.functionContext)]);
             return resultInfo;
         }
 
@@ -368,31 +375,36 @@ export class Emitter {
         this.writer.writeInt(functionContext.contants.length);
 
         functionContext.contants.forEach(c => {
-            // create 4 bytes value
-            switch (typeof c) {
-                case 'boolean':
-                    this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
-                    this.writer.writeByte(c);
-                    break;
-                case 'number':
-                    if (Number.isInteger(c)) {
-                        this.writer.writeByte(LuaTypes.LUA_TNUMINT);
-                        this.writer.writeInteger(c);
-                    } else {
-                        this.writer.writeByte(LuaTypes.LUA_TNUMBER);
-                        this.writer.writeNumber(c);
-                    }
-                    break;
-                case 'string':
-                    if ((<string>c).length > 255) {
-                        this.writer.writeByte(LuaTypes.LUA_TLNGSTR);
-                    } else {
-                        this.writer.writeByte(LuaTypes.LUA_TSTRING);
-                    }
 
-                    this.writer.writeString(c);
-                    break;
-                default: throw new Error('Method not implemeneted');
+            if (c !== null) {
+                // create 4 bytes value
+                switch (typeof c) {
+                    case 'boolean':
+                        this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
+                        this.writer.writeByte(c);
+                        break;
+                    case 'number':
+                        if (Number.isInteger(c)) {
+                            this.writer.writeByte(LuaTypes.LUA_TNUMINT);
+                            this.writer.writeInteger(c);
+                        } else {
+                            this.writer.writeByte(LuaTypes.LUA_TNUMBER);
+                            this.writer.writeNumber(c);
+                        }
+                        break;
+                    case 'string':
+                        if ((<string>c).length > 255) {
+                            this.writer.writeByte(LuaTypes.LUA_TLNGSTR);
+                        } else {
+                            this.writer.writeByte(LuaTypes.LUA_TSTRING);
+                        }
+
+                        this.writer.writeString(c);
+                        break;
+                    default: throw new Error('Method not implemeneted');
+                }
+            } else {
+                this.writer.writeByte(LuaTypes.LUA_TNIL);
             }
         });
     }

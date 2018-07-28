@@ -17,12 +17,33 @@ export enum ResolvedKind {
 
 export class ResolvedInfo {
     public kind: ResolvedKind;
-    public value: number;
+    public value: any;
     public name: string;
     public node: ts.Node;
     public currentInfo: ResolvedInfo;
     public parentInfo: ResolvedInfo;
     public root: boolean;
+    private const_index: number;
+
+    public ensureConstIndex(functionContext: FunctionContext): number {
+        if (this.const_index !== undefined) {
+            return this.const_index;
+        }
+
+        return this.const_index = -functionContext.findOrCreateConst(this.value);
+    }
+
+    public getRegisterNumberOrConstIndex() {
+        if (this.const_index !== undefined) {
+            return this.const_index;
+        }
+
+        if (this.kind === ResolvedKind.Register) {
+            return this.value;
+        }
+
+        throw new Error('It is not register or const index');
+    }
 }
 
 export class StackResolver {
