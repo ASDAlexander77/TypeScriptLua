@@ -98,8 +98,7 @@ export class Emitter {
         });
     }
 
-    private emitStoreToObjectProperty(nameConstIndex:number)
-    {
+    private emitStoreToObjectProperty(nameConstIndex: number) {
         const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
 
         this.functionContext.code.push([
@@ -107,6 +106,7 @@ export class Emitter {
             -this.resolver.returnResolvedEnv(this.functionContext).value,
             nameConstIndex,
             resolvedInfo.value]);
+        this.functionContext.popRegister(resolvedInfo);
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
@@ -116,7 +116,7 @@ export class Emitter {
         resolvedInfo.kind = ResolvedKind.LoadFunction;
         resolvedInfo.value = protoIndex;
         resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);        
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
@@ -185,12 +185,14 @@ export class Emitter {
                 const leftNode = this.functionContext.stack.pop();
                 const rightNode = this.functionContext.stack.pop();
 
-                if (leftNode.kind == ResolvedKind.LoadMember) {
+                if (leftNode.kind === ResolvedKind.LoadMember) {
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         leftNode.parentInfo.value,
                         leftNode.currentInfo.value,
                         rightNode.value]);
+
+                    this.functionContext.popRegister(rightNode);
                 }
 
                 break;
@@ -223,6 +225,12 @@ export class Emitter {
         const returnCount = 0;
         this.functionContext.code.push(
             [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount + 1]);
+
+        this.functionContext.popRegister(resultInfo);
+        resolvedArgs.forEach(a => {
+            // pop method arguments
+            this.functionContext.popRegister(a);
+        });
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.

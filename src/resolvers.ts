@@ -40,9 +40,7 @@ export class StackResolver {
     }
 
     public pop(): ResolvedInfo {
-        const resolvedInfo = this.stack.pop();
-        this.functionContext.popRegister(resolvedInfo);
-        return resolvedInfo;
+        return this.stack.pop();
     }
 
     public peek(): ResolvedInfo {
