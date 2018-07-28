@@ -119,6 +119,22 @@ export class Emitter {
         this.functionContext.stack.push(resolvedInfo);
     }
 
+    private processArrowFunction(node: ts.ArrowFunction): void {
+
+        if (node.body.kind !== ts.SyntaxKind.Block)
+        {
+            throw new Error('Arrow function as expression is not implemented yet');
+        }
+
+        const protoIndex = -this.functionContext.createProto(this.processFunction((<ts.FunctionBody>node.body).statements));
+
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.LoadFunction;
+        resolvedInfo.value = protoIndex;
+        resolvedInfo.node = node;
+        this.functionContext.stack.push(resolvedInfo);
+    }
+
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
@@ -135,6 +151,7 @@ export class Emitter {
             case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
             case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
             case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
+            case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.TrueKeyword:
             case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;

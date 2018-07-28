@@ -1,4 +1,4 @@
-var x: () => any = function() {
+var x = function () {
   console.log('Hello World!');
 };
 x();
