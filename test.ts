@@ -1,4 +1,6 @@
-var isDoneVar = false;
-const isDoneConst = false;
-let isDoneLocal = false;   
-console.log(isDoneLocal);
+function f()
+{
+    return "Hello World!";
+}
+
+console.log(f());

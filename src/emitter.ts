@@ -77,6 +77,7 @@ export class Emitter {
             case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
+            case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
         }
 
@@ -145,6 +146,21 @@ export class Emitter {
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
         this.emitStoreToEnvObjectProperty(nameConstIndex);
+    }
+
+    private processReturnStatement(node: ts.ReturnStatement): void {
+        if (node.expression) {
+            this.processExpression(node.expression);
+
+            const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
+
+            this.functionContext.code.push(
+                [Ops.RETURN, resultInfo.value, 2]);
+
+            this.functionContext.popRegister(resultInfo);
+        } else {
+            this.functionContext.code.push([Ops.RETURN, 0, 1]);
+        }
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -278,7 +294,7 @@ export class Emitter {
             } else if (resolvedInfo.value === true || resolvedInfo.value === false) {
                 // LLOADBOOL A B C    R(A) := (Bool)B; if (C) pc++
                 this.functionContext.code.push(
-                    [Ops.LOADBOOL, resultInfo.value, resolvedInfo.value  ? 1 : 0, 0]);
+                    [Ops.LOADBOOL, resultInfo.value, resolvedInfo.value ? 1 : 0, 0]);
             } else {
                 // LOADK A Bx    R(A) := Kst(Bx)
                 this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.ensureConstIndex(this.functionContext)]);
