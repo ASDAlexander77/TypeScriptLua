@@ -1,6 +1,12 @@
 import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 
+class LocalInfo
+{
+    public name: string;
+    public register: number;
+}
+
 export class FunctionContext {
     // if undefined == "_ENV"
     public container: FunctionContext;
@@ -18,7 +24,7 @@ export class FunctionContext {
     public maxstacksize = 2; // register 0/1 at least
     public code: Array<Array<number>> = [];
     public contants: Array<any> = [];
-    public locals: Array<string> = [];
+    public locals: Array<LocalInfo> = [];
     public upvalues: Array<string> = [];
     public protos: Array<FunctionContext> = [];
     public debug: Array<any> = [];
@@ -44,15 +50,25 @@ export class FunctionContext {
         return index;
     }
 
-    public findOrCreateLocal(name: string): number {
+    public createLocal(name: string, register?: number): number {
         // locals start with 0
-        const index = this.locals.findIndex(e => e === name);
+        const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
-            this.locals.push(name);
-            return this.locals.length - 1;
+            this.locals.push(<LocalInfo>{ name: name, register: register });
+            return register;
         }
 
-        return index;
+        throw new Error('Local already created.');
+    }
+
+    public findLocal(name: string): number {
+        // locals start with 0
+        const index = this.locals.findIndex(e => e.name === name);
+        if (index === -1) {
+            return index;
+        }
+
+        return this.locals[index].register;
     }
 
     public findOrCreateConst(value: any): number {

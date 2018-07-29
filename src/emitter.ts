@@ -87,7 +87,13 @@ export class Emitter {
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
             if (Helpers.isConstOrLet(node)) {
-                throw new Error('Method not implemented.');
+                if (d.initializer) {
+                    this.processExpression(d.initializer);
+                } else {
+                    this.processNullLiteral(null);
+                }
+
+                this.functionContext.createLocal((<ts.Identifier>d.name).text, this.functionContext.current_register);
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
