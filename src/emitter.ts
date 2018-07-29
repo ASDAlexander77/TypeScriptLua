@@ -86,7 +86,7 @@ export class Emitter {
 
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
-            if (Helpers.isConstOrLet(node)) {
+            if (Helpers.isConstOrLet(node.declarationList)) {
                 if (d.initializer) {
                     this.processExpression(d.initializer);
                 } else {

@@ -123,7 +123,7 @@ export class IdentifierResolver {
                         }
                     }
 
-                    if (!Helpers.isConstOrLet(identifier)) {
+                    if (!Helpers.isConstOrLet(resolved)) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
                         // TODO: finish returning info about local variable
