@@ -65,7 +65,7 @@ export class FunctionContext {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
-            return index;
+            throw new Error('Can\'t find local: ' + name);
         }
 
         return this.locals[index].register;

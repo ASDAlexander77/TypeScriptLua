@@ -128,7 +128,7 @@ export class IdentifierResolver {
                     } else {
                         const resolvedInfo = new ResolvedInfo();
                         resolvedInfo.kind = ResolvedKind.Register;
-                        resolvedInfo.name = resolvedInfo.name;
+                        resolvedInfo.name = identifier.text;
                         resolvedInfo.value = functionContext.findLocal(resolvedInfo.name);
                         return resolvedInfo;
                     }
