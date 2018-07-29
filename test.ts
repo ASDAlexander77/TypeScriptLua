@@ -1,2 +1,4 @@
-let x = 10;
-console.log(x);
+var isDoneVar = false;
+const isDoneConst = false;
+let isDoneLocal = false;   
+console.log(isDoneLocal);

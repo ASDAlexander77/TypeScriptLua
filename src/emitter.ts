@@ -278,7 +278,7 @@ export class Emitter {
             } else if (resolvedInfo.value === true || resolvedInfo.value === false) {
                 // LLOADBOOL A B C    R(A) := (Bool)B; if (C) pc++
                 this.functionContext.code.push(
-                    [Ops.LOADBOOL, resultInfo.value ? 1 : 0, resolvedInfo.ensureConstIndex(this.functionContext), 0]);
+                    [Ops.LOADBOOL, resultInfo.value, resolvedInfo.value  ? 1 : 0, 0]);
             } else {
                 // LOADK A Bx    R(A) := Kst(Bx)
                 this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.ensureConstIndex(this.functionContext)]);

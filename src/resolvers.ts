@@ -123,7 +123,8 @@ export class IdentifierResolver {
                         }
                     }
 
-                    if (!Helpers.isConstOrLet(resolved)) {
+                    // values are not the same as Node.Flags
+                    if (resolved.flags !== 2) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
                         const resolvedInfo = new ResolvedInfo();

@@ -8,7 +8,7 @@ describe('Basic Types', () => {
         'let isDone: boolean = false;\
          console.log(isDone);'])));
 
-    it('simple true/false value: local', () => expect('false\r\n').to.equals(new Run().test([
+    it('simple true/false value: console', () => expect('false\r\n').to.equals(new Run().test([
         'const isDone: boolean = false;\
         console.log(isDone);'])));
 
