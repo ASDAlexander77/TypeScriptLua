@@ -126,8 +126,11 @@ export class IdentifierResolver {
                     if (!Helpers.isConstOrLet(resolved)) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
-                        // TODO: finish returning info about local variable
-                        throw new Error('Not Implemented');
+                        const resolvedInfo = new ResolvedInfo();
+                        resolvedInfo.kind = ResolvedKind.Register;
+                        resolvedInfo.name = resolvedInfo.name;
+                        resolvedInfo.value = functionContext.findLocal(resolvedInfo.name);
+                        return resolvedInfo;
                     }
 
                     break;

@@ -94,6 +94,7 @@ export class Emitter {
                 }
 
                 this.functionContext.createLocal((<ts.Identifier>d.name).text, this.functionContext.current_register);
+                const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop());
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
@@ -248,7 +249,7 @@ export class Emitter {
         const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
         resolvedArgs.forEach(a => {
             // pop method arguments
-            this.consumeExpression(a);
+            this.consumeExpression(a, undefined, true);
         });
 
         const returnCount = 0;
@@ -263,7 +264,7 @@ export class Emitter {
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?: boolean): ResolvedInfo {
+    private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
             if (allowConst) {
                 resolvedInfo.ensureConstIndex(this.functionContext);
@@ -283,6 +284,16 @@ export class Emitter {
                 this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.ensureConstIndex(this.functionContext)]);
             }
 
+            return resultInfo;
+        }
+
+        if (resolvedInfo.kind === ResolvedKind.Register) {
+            if (!cloneRegister) {
+                return resolvedInfo;
+            }
+
+            const resultInfo = this.functionContext.useRegister();
+            this.functionContext.code.push([Ops.MOVE, resultInfo.value, resolvedInfo.value]);
             return resultInfo;
         }
 
