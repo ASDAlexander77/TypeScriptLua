@@ -1,8 +1,7 @@
 import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 
-class LocalInfo
-{
+class LocalInfo {
     public name: string;
     public register: number;
 }
