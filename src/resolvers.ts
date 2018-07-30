@@ -11,6 +11,8 @@ export enum ResolvedKind {
     Register,
     // to support methods load
     LoadMember,
+    // load array element
+    LoadElement,
     // to support loading closures
     LoadFunction,
     // fake stack record

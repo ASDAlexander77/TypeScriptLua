@@ -279,25 +279,15 @@ export class Emitter {
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
         this.processExpression(node.expression);
-
-        const variableInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
-
         this.processExpression(node.argumentExpression);
 
-        const indexInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+        // perform load
+        const resolvedInfo = new ResolvedInfo();
+        resolvedInfo.kind = ResolvedKind.LoadElement;
+        resolvedInfo.currentInfo = this.functionContext.stack.pop();
+        resolvedInfo.parentInfo = this.functionContext.stack.pop();
 
-        if (variableInfo.kind === ResolvedKind.Upvalue) {
-
-        } else if (variableInfo.kind === ResolvedKind.Register) {
-            const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push(
-                [Ops.GETTABLE, resultInfo.value, variableInfo.value, indexInfo.getRegisterNumberOrConstIndex()]);
-
-            this.functionContext.stack.push(resultInfo);
-        }
-
-        this.functionContext.popRegister(indexInfo);
-        this.functionContext.popRegister(variableInfo);
+        this.functionContext.stack.push(resolvedInfo);
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
@@ -429,6 +419,24 @@ export class Emitter {
                 [Ops.GETTABUP, resultInfo.value, objectIdentifierInfo.value, memberIdentifierInfo.value]);
 
             return resultInfo;
+        }
+
+        if (resolvedInfo.kind === ResolvedKind.LoadElement) {
+            const variableInfo = this.consumeExpression(resolvedInfo.parentInfo);
+            const indexInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
+
+            if (variableInfo.kind === ResolvedKind.Upvalue) {
+                throw new Error('Not implemented');
+            } else if (variableInfo.kind === ResolvedKind.Register) {
+
+                const resultInfo = this.functionContext.useRegister();
+                this.functionContext.code.push(
+                    [Ops.GETTABLE, resultInfo.value, variableInfo.value, indexInfo.getRegisterNumberOrConstIndex()]);
+
+                this.functionContext.stack.push(resultInfo);
+
+                return resultInfo;
+            }
         }
 
         // if it simple expression of identifier
