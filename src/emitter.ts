@@ -85,6 +85,31 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
+    private processExpression(node: ts.Expression): void {
+        switch (node.kind) {
+            case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
+            case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
+            case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
+            case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
+            case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
+            case ts.SyntaxKind.ElementAccessExpression: this.processElementAccessExpression(<ts.ElementAccessExpression>node); return;
+            case ts.SyntaxKind.TrueKeyword:
+            case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
+            case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
+            case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
+            case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
+            case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
+            case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
+        }
+
+        // TODO: finish it
+        throw new Error('Method not implemented.');
+    }
+
+    private processExpressionStatement(node: ts.ExpressionStatement): void {
+        this.processExpression(node.expression);
+    }
+
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
             if (Helpers.isConstOrLet(node.declarationList)) {
@@ -163,29 +188,6 @@ export class Emitter {
         }
     }
 
-    private processExpressionStatement(node: ts.ExpressionStatement): void {
-        this.processExpression(node.expression);
-    }
-
-    private processExpression(node: ts.Expression): void {
-        switch (node.kind) {
-            case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
-            case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
-            case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
-            case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
-            case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
-            case ts.SyntaxKind.TrueKeyword:
-            case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
-            case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
-            case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
-            case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
-            case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
-        }
-
-        // TODO: finish it
-        throw new Error('Method not implemented.');
-    }
-
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.Const;
@@ -216,6 +218,51 @@ export class Emitter {
         resolvedInfo.value = node.text;
         resolvedInfo.node = node;
         this.functionContext.stack.push(resolvedInfo);
+    }
+
+    private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
+        const resultInfo = this.functionContext.useRegister();
+        this.functionContext.code.push([
+            Ops.NEWTABLE,
+            resultInfo.value,
+            node.elements.length,
+            0]);
+
+        if (node.elements.length > 0) {
+            (<Array<any>><any>node.elements).reverse().forEach(e => {
+                this.processExpression(e);
+            });
+
+            const resolvedElements: Array<any> = [];
+            node.elements.forEach(a => {
+                // pop method arguments
+                resolvedElements.push(this.functionContext.stack.pop());
+            });
+
+            const resolvedArgsAndConsumed: Array<ResolvedInfo> = [];
+            resolvedElements.forEach(e => {
+                // pop method arguments
+                resolvedArgsAndConsumed.push(this.consumeExpression(e));
+            });
+
+            resolvedArgsAndConsumed.reverse().forEach(a => {
+                // pop method arguments
+                this.functionContext.popRegister(a);
+            });
+
+            if (node.elements.length > 511) {
+                throw new Error('finish using C in SETLIST');
+            }
+
+            this.functionContext.code.push(
+                [Ops.SETLIST, resultInfo.value, node.elements.length, 1]);
+        }
+
+        this.functionContext.stack.push(resultInfo);
+    }
+
+    private processElementAccessExpression(node: ts.ElementAccessExpression): void {
+        throw new Error('Not Implemented');
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {

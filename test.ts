@@ -1,11 +1,2 @@
-let x;
-let y;
-x = true;
-y = 1;
-console.log(x);
-x = 1;
-console.log(x);
-x = 1.5;
-console.log(x);
-x = "Hello World!";
-console.log(x);
+let list2: Array<number> = [1, 2, 3];   
+console.log(list2[1]);
