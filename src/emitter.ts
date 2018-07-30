@@ -250,6 +250,9 @@ export class Emitter {
         // method
         this.processExpression(node.expression);
 
+        // pop method ref.
+        const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
+
         // arguments
         node.arguments.forEach(a => {
             this.processExpression(a);
@@ -261,16 +264,26 @@ export class Emitter {
             resolvedArgs.push(this.functionContext.stack.pop());
         });
 
-        // pop method ref.
-        const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
         resolvedArgs.forEach(a => {
             // pop method arguments
             this.consumeExpression(a, undefined, true);
         });
 
-        const returnCount = 0;
+        // TODO: temporary solution: if method called in Statement then it is not returning value
+        const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement;
+        const isMethodArgumentCall = node.parent.kind === ts.SyntaxKind.CallExpression;
+        const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
+
         this.functionContext.code.push(
-            [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount + 1]);
+            [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount]);
+
+        if (returnCount !== 1) {
+            const resolvedInfo = new ResolvedInfo();
+            resolvedInfo.kind = ResolvedKind.MethodCall;
+            resolvedInfo.value = null;
+            resolvedInfo.node = node;
+            this.functionContext.stack.push(resolvedInfo);
+        }
 
         this.functionContext.popRegister(resultInfo);
         resolvedArgs.forEach(a => {
@@ -332,6 +345,10 @@ export class Emitter {
             this.functionContext.code.push([Ops.CLOSURE, resultInfo.value, resolvedInfo.value]);
 
             return resultInfo;
+        }
+
+        if (resolvedInfo.kind === ResolvedKind.MethodCall) {
+            return resolvedInfo;
         }
 
         throw new Error('Not Implemented');

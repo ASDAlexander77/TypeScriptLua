@@ -12,7 +12,9 @@ export enum ResolvedKind {
     // to support methods load
     LoadMember,
     // to support loading closures
-    LoadFunction
+    LoadFunction,
+    // fake stack record
+    MethodCall
 }
 
 export class ResolvedInfo {

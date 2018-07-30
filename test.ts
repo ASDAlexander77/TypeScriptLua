@@ -1,6 +1,3 @@
-function f()
-{
-    return "Hello World!";
-}
-
-console.log(f());
+let x;
+x = true;
+console.log(x);
