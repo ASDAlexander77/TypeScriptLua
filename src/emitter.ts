@@ -230,12 +230,14 @@ export class Emitter {
             0]);
 
         if (node.elements.length > 0) {
-            (<Array<any>><any>node.elements).reverse().forEach(e => {
+            const reversedValues = (<Array<any>><any>node.elements.slice(1)).reverse();
+
+            reversedValues.forEach((e, index: number) => {
                 this.processExpression(e);
             });
 
             const resolvedElements: Array<any> = [];
-            node.elements.forEach(a => {
+            reversedValues.forEach(a => {
                 // pop method arguments
                 resolvedElements.push(this.functionContext.stack.pop());
             });
@@ -254,7 +256,20 @@ export class Emitter {
             }
 
             this.functionContext.code.push(
-                [Ops.SETLIST, resultInfo.value, node.elements.length, 1]);
+                [Ops.SETLIST, resultInfo.value, reversedValues.length, 1]);
+
+            // set 0 element
+            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+            this.processExpression(node.elements[0]);
+
+            const zeroValueInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+            const zeroIndexInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+
+            this.functionContext.code.push(
+                [Ops.SETTABLE,
+                resultInfo.value,
+                zeroIndexInfo.getRegisterNumberOrConstIndex(),
+                zeroValueInfo.getRegisterNumberOrConstIndex()]);
 
             this.functionContext.popRegister(lastInfo);
         }
