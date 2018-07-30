@@ -113,14 +113,15 @@ export class Emitter {
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
             if (Helpers.isConstOrLet(node.declarationList)) {
+
                 if (d.initializer) {
                     this.processExpression(d.initializer);
                 } else {
                     this.processNullLiteral(null);
                 }
 
-                this.functionContext.createLocal((<ts.Identifier>d.name).text, this.functionContext.current_register);
                 const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop());
+                this.functionContext.createLocal((<ts.Identifier>d.name).text, resolvedInfo.value);
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
@@ -239,9 +240,13 @@ export class Emitter {
                 resolvedElements.push(this.functionContext.stack.pop());
             });
 
+            let lastInfo;
             resolvedElements.forEach(e => {
                 // pop method arguments
-                this.consumeExpression(e);
+                const currentInfo = this.consumeExpression(e);
+                if (lastInfo === undefined) {
+                    lastInfo = currentInfo;
+                }
             });
 
             if (node.elements.length > 511) {
@@ -250,10 +255,11 @@ export class Emitter {
 
             this.functionContext.code.push(
                 [Ops.SETLIST, resultInfo.value, node.elements.length, 1]);
+
+            this.functionContext.popRegister(lastInfo);
         }
 
         this.functionContext.stack.push(resultInfo);
-        this.functionContext.popRegister(resultInfo);
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
@@ -270,7 +276,7 @@ export class Emitter {
         } else if (variableInfo.kind === ResolvedKind.Register) {
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
-                [Ops.GETTABLE, resultInfo.value, variableInfo.value, indexInfo.value]);
+                [Ops.GETTABLE, resultInfo.value, variableInfo.value, indexInfo.getRegisterNumberOrConstIndex()]);
 
             this.functionContext.stack.push(resultInfo);
         }
