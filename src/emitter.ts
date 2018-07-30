@@ -239,15 +239,9 @@ export class Emitter {
                 resolvedElements.push(this.functionContext.stack.pop());
             });
 
-            const resolvedArgsAndConsumed: Array<ResolvedInfo> = [];
             resolvedElements.forEach(e => {
                 // pop method arguments
-                resolvedArgsAndConsumed.push(this.consumeExpression(e));
-            });
-
-            resolvedArgsAndConsumed.reverse().forEach(a => {
-                // pop method arguments
-                this.functionContext.popRegister(a);
+                this.consumeExpression(e);
             });
 
             if (node.elements.length > 511) {
@@ -259,10 +253,30 @@ export class Emitter {
         }
 
         this.functionContext.stack.push(resultInfo);
+        this.functionContext.popRegister(resultInfo);
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
-        throw new Error('Not Implemented');
+        this.processExpression(node.expression);
+
+        const variableInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+
+        this.processExpression(node.argumentExpression);
+
+        const indexInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+
+        if (variableInfo.kind === ResolvedKind.Upvalue) {
+
+        } else if (variableInfo.kind === ResolvedKind.Register) {
+            const resultInfo = this.functionContext.useRegister();
+            this.functionContext.code.push(
+                [Ops.GETTABLE, resultInfo.value, variableInfo.value, indexInfo.value]);
+
+            this.functionContext.stack.push(resultInfo);
+        }
+
+        this.functionContext.popRegister(indexInfo);
+        this.functionContext.popRegister(variableInfo);
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
