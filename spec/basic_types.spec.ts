@@ -44,7 +44,7 @@ describe('Basic Types', () => {
         I\'ll be ${ age + 1 } years old next month.`;               \
     '])));
 
-    it('Array', () => expect('').to.equals(new Run().test([
+    it('Array', () => expect('nil\r\n1\r\n2\r\nnil\r\n1\r\n2\r\n').to.equals(new Run().test([
         'let list: number[] = [1, 2, 3];        \
         console.log(list[0]);                   \
         console.log(list[1]);                   \

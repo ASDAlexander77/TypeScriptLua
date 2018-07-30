@@ -335,9 +335,12 @@ export class Emitter {
             resolvedArgs.push(this.functionContext.stack.pop());
         });
 
-        resolvedArgs.forEach(a => {
+        resolvedArgs.forEach((a: ResolvedInfo, index: number) => {
             // pop method arguments
-            this.consumeExpression(a, undefined, true);
+            this.consumeExpression(
+                a,
+                undefined,
+                a.kind === ResolvedKind.Register && a.value !== (index + methodResolvedInfo.value + 1));
         });
 
         // TODO: temporary solution: if method called in Statement then it is not returning value
