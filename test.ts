@@ -1,3 +1,11 @@
 let x;
+let y;
 x = true;
+y = 1;
+console.log(x);
+x = 1;
+console.log(x);
+x = 1.5;
+console.log(x);
+x = "Hello World!";
 console.log(x);

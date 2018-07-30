@@ -239,6 +239,10 @@ export class Emitter {
                         rightNode.getRegisterNumberOrConstIndex()]);
 
                     this.functionContext.popRegister(rightNode);
+                } else if (leftNode.kind === ResolvedKind.Register) {
+                    this.consumeExpression(this.functionContext.stack.pop(), undefined, undefined, leftNode);
+                } else {
+                    throw new Error('Not Implemented');
                 }
 
                 break;
@@ -251,7 +255,7 @@ export class Emitter {
         this.processExpression(node.expression);
 
         // pop method ref.
-        const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
+        const methodResolvedInfo = this.consumeExpression(this.functionContext.stack.pop());
 
         // arguments
         node.arguments.forEach(a => {
@@ -275,7 +279,7 @@ export class Emitter {
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
 
         this.functionContext.code.push(
-            [Ops.CALL, resultInfo.value, node.arguments.length + 1, returnCount]);
+            [Ops.CALL, methodResolvedInfo.value, node.arguments.length + 1, returnCount]);
 
         if (returnCount !== 1) {
             const resolvedInfo = new ResolvedInfo();
@@ -285,22 +289,25 @@ export class Emitter {
             this.functionContext.stack.push(resolvedInfo);
         }
 
-        this.functionContext.popRegister(resultInfo);
-        resolvedArgs.forEach(a => {
+        /*
+        resolvedArgsAndConsumed.forEach(a => {
             // pop method arguments
             this.functionContext.popRegister(a);
         });
+        */
+        this.functionContext.popRegister(methodResolvedInfo);
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean): ResolvedInfo {
+    private consumeExpression(
+        resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean, resultInfoTopStack?: ResolvedInfo): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
             if (allowConst) {
                 resolvedInfo.ensureConstIndex(this.functionContext);
                 return resolvedInfo;
             }
 
-            const resultInfo = this.functionContext.useRegister();
+            const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
             if (resolvedInfo.value == null) {
                 // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
                 this.functionContext.code.push([Ops.LOADNIL, resultInfo.value, 1]);
