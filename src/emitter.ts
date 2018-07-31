@@ -402,6 +402,8 @@ export class Emitter {
 
         if (returnCount !== 1) {
             const resultInfo = this.functionContext.useRegister();
+            // we can reuse method placed register
+            resultInfo.value = methodResolvedInfo.value;
             resultInfo.node = node;
             this.functionContext.stack.push(resultInfo);
         }
