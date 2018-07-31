@@ -30,6 +30,10 @@ export class ResolvedInfo {
     private const_index: number;
 
     public ensureConstIndex(functionContext: FunctionContext): number {
+        if (this.kind !== ResolvedKind.Const) {
+            throw new Error('It is not Const');
+        }
+
         if (this.const_index !== undefined) {
             return this.const_index;
         }
@@ -177,7 +181,8 @@ export class IdentifierResolver {
                 }
             }
 
-            resolvedInfo.value = -functionContext.findOrCreateConst(resolvedInfo.name);
+            // to load Const
+            resolvedInfo.value = resolvedInfo.name;
 
             if (!parentScope.root) {
                 return resolvedInfo;

@@ -385,7 +385,7 @@ export class Emitter {
             const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
             if (resolvedInfo.value == null) {
                 // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
-                this.functionContext.code.push([Ops.LOADNIL, resultInfo.value, 1]);
+                this.functionContext.code.push([Ops.LOADNIL, resultInfo.value, resultInfo.value]);
             } else if (resolvedInfo.value === true || resolvedInfo.value === false) {
                 // LLOADBOOL A B C    R(A) := (Bool)B; if (C) pc++
                 this.functionContext.code.push(
