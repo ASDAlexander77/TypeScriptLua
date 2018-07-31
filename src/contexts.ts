@@ -11,7 +11,7 @@ export class FunctionContext {
     // if undefined == "_ENV"
     public container: FunctionContext;
     // to track current register(stack)
-    public current_register = 0;
+    public availableRegister = 0;
     // stack resolver
     public stack: StackResolver = new StackResolver(this);
 
@@ -89,9 +89,9 @@ export class FunctionContext {
     }
 
     public useRegister(): ResolvedInfo {
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this);
         resolvedInfo.kind = ResolvedKind.Register;
-        const ret = resolvedInfo.value = this.current_register++;
+        const ret = resolvedInfo.register = this.availableRegister++;
         if (ret > this.maxstacksize) {
             this.maxstacksize = ret;
         }
@@ -101,7 +101,7 @@ export class FunctionContext {
 
     public popRegister(resolvedInfo: ResolvedInfo): void {
         if (resolvedInfo.kind === ResolvedKind.Register) {
-            this.current_register = resolvedInfo.value;
+            this.availableRegister = resolvedInfo.getRegister();
         }
     }
 }

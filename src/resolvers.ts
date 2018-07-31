@@ -14,54 +14,78 @@ export enum ResolvedKind {
     // load array element
     LoadElement,
     // to support loading closures
-    LoadFunction
+    Closure
 }
 
 export class ResolvedInfo {
     public kind: ResolvedKind;
     public value: any;
-    public name: string;
+    public identifierName: string;
     public node: ts.Node;
     public currentInfo: ResolvedInfo;
     public parentInfo: ResolvedInfo;
     public root: boolean;
-    private const_index: number;
+    public local: boolean;
+    public register: number;
+    private constIndex: number;
+    private upvalueIndex: number;
+    public protoIndex: number;
 
-    public ensureConstIndex(functionContext: FunctionContext): number {
+    public constructor (private functionContext: FunctionContext) {
+    }
+
+    private ensureConstIndex(): number {
         if (this.kind !== ResolvedKind.Const) {
             throw new Error('It is not Const');
         }
 
-        if (this.const_index !== undefined) {
-            return this.const_index;
+        if (this.constIndex !== undefined) {
+            return this.constIndex;
         }
 
-        return this.const_index = -functionContext.findOrCreateConst(this.value);
+        if (this.value === undefined && this.identifierName === undefined)
+        {
+            throw new Error('Value is undefined or IdentifierName to create Const');
+        }
+
+        return this.constIndex = -this.functionContext.findOrCreateConst(this.value || this.identifierName);
     }
 
-    public getRegisterNumberOrIndex() {
-        if (this.const_index !== undefined) {
-            return this.const_index;
+    private ensureUpvalueIndex(): number {
+        if (this.kind !== ResolvedKind.Upvalue) {
+            throw new Error('It is not Upvalue');
         }
 
+        if (this.upvalueIndex !== undefined) {
+            return this.upvalueIndex;
+        }
+
+        return this.upvalueIndex = -this.functionContext.findOrCreateUpvalue(this.identifierName);
+    }
+
+    public getRegisterOrIndex() {
         if (this.kind === ResolvedKind.Register) {
-            return this.value;
+            return this.register;
         }
 
         if (this.kind === ResolvedKind.Upvalue) {
-            return this.value;
+            return this.ensureUpvalueIndex();
         }
 
-        if (this.kind === ResolvedKind.LoadFunction) {
-            return this.value;
+        if (this.kind === ResolvedKind.Closure) {
+            return this.protoIndex;
+        }
+
+        if (this.kind === ResolvedKind.Const) {
+            return this.ensureConstIndex();
         }
 
         throw new Error('It is not register or const index');
     }
 
-    public getRegisterNumber() {
+    public getRegister() {
         if (this.kind === ResolvedKind.Register) {
-            return this.value;
+            return this.register;
         }
 
         throw new Error('It is not register or const index');
@@ -69,10 +93,18 @@ export class ResolvedInfo {
 
     public getUpvalue() {
         if (this.kind === ResolvedKind.Upvalue) {
-            return this.value;
+            return this.ensureUpvalueIndex();
         }
 
         throw new Error('It is not upvalue');
+    }
+
+    public getProto() {
+        if (this.kind === ResolvedKind.Closure) {
+            return this.protoIndex;
+        }
+
+        throw new Error('It is not Closure');
     }
 }
 
@@ -158,10 +190,11 @@ export class IdentifierResolver {
                     if (resolved.flags !== 2) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
-                        const resolvedInfo = new ResolvedInfo();
+                        const resolvedInfo = new ResolvedInfo(functionContext);
                         resolvedInfo.kind = ResolvedKind.Register;
-                        resolvedInfo.name = identifier.text;
-                        resolvedInfo.value = functionContext.findLocal(resolvedInfo.name);
+                        resolvedInfo.identifierName = identifier.text;
+                        resolvedInfo.register = functionContext.findLocal(resolvedInfo.identifierName);
+                        resolvedInfo.local = true;
                         return resolvedInfo;
                     }
 
@@ -177,10 +210,9 @@ export class IdentifierResolver {
     }
 
     public returnResolvedEnv(functionContext: FunctionContext, root?: boolean): ResolvedInfo {
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Upvalue;
-        resolvedInfo.name = '_ENV';
-        resolvedInfo.value = -functionContext.findOrCreateUpvalue(resolvedInfo.name);
+        resolvedInfo.identifierName = '_ENV';
         resolvedInfo.root = root;
         return resolvedInfo;
     }
@@ -192,26 +224,23 @@ export class IdentifierResolver {
 
         const parentScope: any = this.Scope.peek();
         if (parentScope && parentScope.kind === ResolvedKind.Upvalue) {
-            const resolvedInfo = new ResolvedInfo();
+            const resolvedInfo = new ResolvedInfo(functionContext);
             resolvedInfo.kind = ResolvedKind.Const;
-            resolvedInfo.name = identifier.text;
+            resolvedInfo.identifierName = identifier.text;
 
             // resolve _ENV
             // TODO: hack
-            if (parentScope.name === '_ENV') {
-                switch (resolvedInfo.name) {
-                    case 'log': resolvedInfo.name = 'print'; break;
+            if (parentScope.identifierName === '_ENV') {
+                switch (resolvedInfo.identifierName) {
+                    case 'log': resolvedInfo.identifierName = 'print'; break;
                 }
             }
-
-            // to load Const
-            resolvedInfo.value = resolvedInfo.name;
 
             if (!parentScope.root) {
                 return resolvedInfo;
             }
 
-            const finalResolvedInfo = new ResolvedInfo();
+            const finalResolvedInfo = new ResolvedInfo(functionContext);
             finalResolvedInfo.kind = ResolvedKind.LoadMember;
             finalResolvedInfo.parentInfo = parentScope;
             finalResolvedInfo.currentInfo = resolvedInfo;

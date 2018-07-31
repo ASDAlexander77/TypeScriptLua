@@ -122,7 +122,8 @@ export class Emitter {
                 }
 
                 const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop());
-                this.functionContext.createLocal((<ts.Identifier>d.name).text, resolvedInfo.value);
+                this.functionContext.createLocal((<ts.Identifier>d.name).text, resolvedInfo.getRegister());
+                resolvedInfo.local = true;
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
@@ -138,18 +139,18 @@ export class Emitter {
 
         this.functionContext.code.push([
             Ops.SETTABUP,
-            -this.resolver.returnResolvedEnv(this.functionContext).value,
+            this.resolver.returnResolvedEnv(this.functionContext).getRegisterOrIndex(),
             nameConstIndex,
-            resolvedInfo.getRegisterNumberOrIndex()]);
+            resolvedInfo.getRegisterOrIndex()]);
         this.functionContext.popRegister(resolvedInfo);
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
         const protoIndex = -this.functionContext.createProto(this.processFunction(node, node.body.statements));
 
-        const resolvedInfo = new ResolvedInfo();
-        resolvedInfo.kind = ResolvedKind.LoadFunction;
-        resolvedInfo.value = protoIndex;
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
+        resolvedInfo.kind = ResolvedKind.Closure;
+        resolvedInfo.protoIndex = protoIndex;
         resolvedInfo.node = node;
         this.functionContext.stack.push(resolvedInfo);
     }
@@ -162,9 +163,9 @@ export class Emitter {
 
         const protoIndex = -this.functionContext.createProto(this.processFunction(node, (<ts.FunctionBody>node.body).statements));
 
-        const resolvedInfo = new ResolvedInfo();
-        resolvedInfo.kind = ResolvedKind.LoadFunction;
-        resolvedInfo.value = protoIndex;
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
+        resolvedInfo.kind = ResolvedKind.Closure;
+        resolvedInfo.protoIndex = protoIndex;
         resolvedInfo.node = node;
         this.functionContext.stack.push(resolvedInfo);
     }
@@ -182,7 +183,7 @@ export class Emitter {
             const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
 
             this.functionContext.code.push(
-                [Ops.RETURN, resultInfo.value, 2]);
+                [Ops.RETURN, resultInfo.getRegister(), 2]);
 
             this.functionContext.popRegister(resultInfo);
         } else {
@@ -191,7 +192,7 @@ export class Emitter {
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = node.kind === ts.SyntaxKind.TrueKeyword;
         resolvedInfo.node = node;
@@ -199,7 +200,7 @@ export class Emitter {
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = null;
         resolvedInfo.node = node;
@@ -207,7 +208,7 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text);
         resolvedInfo.node = node;
@@ -215,7 +216,7 @@ export class Emitter {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.Const;
         resolvedInfo.value = node.text;
         resolvedInfo.node = node;
@@ -226,7 +227,7 @@ export class Emitter {
         const resultInfo = this.functionContext.useRegister();
         this.functionContext.code.push([
             Ops.NEWTABLE,
-            resultInfo.value,
+            resultInfo.getRegister(),
             node.elements.length,
             0]);
 
@@ -257,7 +258,7 @@ export class Emitter {
             }
 
             this.functionContext.code.push(
-                [Ops.SETLIST, resultInfo.value, reversedValues.length, 1]);
+                [Ops.SETLIST, resultInfo.getRegister(), reversedValues.length, 1]);
 
             // set 0 element
             this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
@@ -268,9 +269,9 @@ export class Emitter {
 
             this.functionContext.code.push(
                 [Ops.SETTABLE,
-                resultInfo.value,
-                zeroIndexInfo.getRegisterNumberOrIndex(),
-                zeroValueInfo.getRegisterNumberOrIndex()]);
+                resultInfo.getRegister(),
+                zeroIndexInfo.getRegisterOrIndex(),
+                zeroValueInfo.getRegisterOrIndex()]);
 
             this.functionContext.popRegister(lastInfo);
         }
@@ -283,7 +284,7 @@ export class Emitter {
         this.processExpression(node.argumentExpression);
 
         // perform load
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.LoadElement;
         resolvedInfo.currentInfo = this.functionContext.stack.pop();
         resolvedInfo.parentInfo = this.functionContext.stack.pop();
@@ -304,13 +305,12 @@ export class Emitter {
 
                 const leftNode = this.functionContext.stack.pop();
                 if (leftNode.kind === ResolvedKind.LoadMember) {
-                    leftNode.currentInfo.ensureConstIndex(this.functionContext);
                     const rightNode = this.consumeExpression(this.functionContext.stack.pop(), true);
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         leftNode.parentInfo.getUpvalue(),
-                        leftNode.currentInfo.getRegisterNumberOrIndex(),
-                        rightNode.getRegisterNumberOrIndex()]);
+                        leftNode.currentInfo.getRegisterOrIndex(),
+                        rightNode.getRegisterOrIndex()]);
 
                     this.functionContext.popRegister(rightNode);
                 } else if (leftNode.kind === ResolvedKind.Register) {
@@ -355,9 +355,9 @@ export class Emitter {
 
                 this.functionContext.code.push([
                     opsMap[node.operatorToken.kind],
-                    resultInfo.getRegisterNumber(),
-                    leftOpNode.getRegisterNumberOrIndex(),
-                    rightOpNode.getRegisterNumberOrIndex()]);
+                    resultInfo.getRegister(),
+                    leftOpNode.getRegisterOrIndex(),
+                    rightOpNode.getRegisterOrIndex()]);
 
                 this.functionContext.stack.push(resultInfo);
 
@@ -392,7 +392,7 @@ export class Emitter {
             this.consumeExpression(
                 a,
                 undefined,
-                a.kind === ResolvedKind.Register && a.value !== (index + methodResolvedInfo.value + 1));
+                a.kind === ResolvedKind.Register && a.getRegister() !== (index + methodResolvedInfo.getRegister() + 1));
         });
 
         // TODO: temporary solution: if method called in Statement then it is not returning value
@@ -403,13 +403,13 @@ export class Emitter {
         if (returnCount !== 1) {
             const resultInfo = this.functionContext.useRegister();
             // we can reuse method placed register
-            resultInfo.value = methodResolvedInfo.value;
+            resultInfo.register = methodResolvedInfo.getRegister();
             resultInfo.node = node;
             this.functionContext.stack.push(resultInfo);
         }
 
         this.functionContext.code.push(
-            [Ops.CALL, methodResolvedInfo.value, node.arguments.length + 1, returnCount]);
+            [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1, returnCount]);
 
         /*
         resolvedArgsAndConsumed.forEach(a => {
@@ -425,22 +425,20 @@ export class Emitter {
         resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean, resultInfoTopStack?: ResolvedInfo): ResolvedInfo {
         if (resolvedInfo.kind === ResolvedKind.Const) {
             if (allowConst) {
-                resolvedInfo.ensureConstIndex(this.functionContext);
                 return resolvedInfo;
             }
 
             const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
             if (resolvedInfo.value == null) {
                 // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
-                this.functionContext.code.push([Ops.LOADNIL, resultInfo.value, resultInfo.value]);
+                this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), resultInfo.getRegister()]);
             } else if (resolvedInfo.value === true || resolvedInfo.value === false) {
                 // LLOADBOOL A B C    R(A) := (Bool)B; if (C) pc++
                 this.functionContext.code.push(
-                    [Ops.LOADBOOL, resultInfo.getRegisterNumber(), resolvedInfo.value ? 1 : 0, 0]);
+                    [Ops.LOADBOOL, resultInfo.getRegister(), resolvedInfo.value ? 1 : 0, 0]);
             } else {
                 // LOADK A Bx    R(A) := Kst(Bx)
-                resolvedInfo.ensureConstIndex(this.functionContext);
-                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegisterNumber(), resolvedInfo.getRegisterNumberOrIndex()]);
+                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
             }
 
             return resultInfo;
@@ -452,7 +450,7 @@ export class Emitter {
             }
 
             const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegisterNumber(), resolvedInfo.getRegisterNumberOrIndex()]);
+            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
             return resultInfo;
         }
 
@@ -473,9 +471,9 @@ export class Emitter {
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
                 [Ops.GETTABUP,
-                resultInfo.getRegisterNumber(),
-                objectIdentifierInfo.getRegisterNumberOrIndex(),
-                memberIdentifierInfo.getRegisterNumberOrIndex()]);
+                resultInfo.getRegister(),
+                objectIdentifierInfo.getRegisterOrIndex(),
+                memberIdentifierInfo.getRegisterOrIndex()]);
 
             return resultInfo;
         }
@@ -499,9 +497,9 @@ export class Emitter {
                 const resultInfo = this.functionContext.useRegister();
                 this.functionContext.code.push(
                     [Ops.GETTABLE,
-                    resultInfo.getRegisterNumber(),
-                    variableInfo.getRegisterNumberOrIndex(),
-                    indexInfo.getRegisterNumberOrIndex()]);
+                    resultInfo.getRegister(),
+                    variableInfo.getRegisterOrIndex(),
+                    indexInfo.getRegisterOrIndex()]);
 
                 this.functionContext.stack.push(resultInfo);
 
@@ -510,9 +508,9 @@ export class Emitter {
         }
 
         // if it simple expression of identifier
-        if (resolvedInfo.kind === ResolvedKind.LoadFunction) {
+        if (resolvedInfo.kind === ResolvedKind.Closure) {
             const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegisterNumber(), resolvedInfo.getRegisterNumberOrIndex()]);
+            this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), resolvedInfo.getProto()]);
 
             return resultInfo;
         }
@@ -538,7 +536,7 @@ export class Emitter {
         this.resolver.Scope.pop();
 
         // perform load
-        const resolvedInfo = new ResolvedInfo();
+        const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.LoadMember;
         resolvedInfo.currentInfo = this.functionContext.stack.pop();
         resolvedInfo.parentInfo = this.functionContext.stack.pop();
