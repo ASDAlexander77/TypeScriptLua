@@ -361,7 +361,7 @@ export class Emitter {
 
                 this.functionContext.stack.push(resultInfo);
 
-                this.functionContext.popRegister(leftOpNode);
+                this.functionContext.popRegister(rightOpNode);
 
                 break;
 
