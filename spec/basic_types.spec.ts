@@ -35,7 +35,7 @@ describe('Basic Types', () => {
         console.log(color);             \
     '])));
 
-    it('Template Strings', () => expect(
+    it.skip('Template Strings', () => expect(
         'Hello, my name is Bob Bobbington.\r\n\r\nI\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
         'let fullName: string = `Bob Bobbington`;                   \
         let age: number = 37;                                       \
@@ -55,7 +55,7 @@ describe('Basic Types', () => {
         console.log(list2[2]);                  \
     '])));
 
-    it('Tuple 1', () => expect('hello\r\n10\r\nhello\r\n10\r\n').to.equals(new Run().test([
+    it('Tuple', () => expect('hello\r\n10\r\nhello\r\n10\r\n').to.equals(new Run().test([
         'let x: [string, number];               \
         x = ["hello", 10];                      \
         console.log(x[0]);                      \
@@ -65,4 +65,10 @@ describe('Basic Types', () => {
         console.log(x2[0]);                     \
         console.log(x2[1]);                     \
     '])));
+
+    it.skip('Enum', () => expect('Green\r\n').to.equals(new Run().test([
+        'enum Color {Red = 1, Green, Blue};     \
+        let colorName: string = Color[2];       \
+        console.log(colorName);                 \
+'])));
 });

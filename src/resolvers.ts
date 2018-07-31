@@ -141,7 +141,8 @@ export class IdentifierResolver {
             return this.resolveMemberOfCurrentScope(identifier, functionContext);
         }
 
-        const resolved = (<any>this.typeChecker).resolveName(identifier.text, undefined, ((1 << 27) - 1)/*mask for all types*/);
+        const resolved = (<any>this.typeChecker).resolveName(
+            identifier.text, functionContext.location_node, ((1 << 27) - 1)/*mask for all types*/);
         if (resolved) {
             const kind: ts.SyntaxKind = <ts.SyntaxKind>resolved.valueDeclaration.kind;
             switch (kind) {

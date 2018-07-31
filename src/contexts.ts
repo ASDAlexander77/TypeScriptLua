@@ -7,6 +7,7 @@ class LocalInfo {
 }
 
 export class FunctionContext {
+    public location_node: ts.Node;
     // if undefined == "_ENV"
     public container: FunctionContext;
     // to track current register(stack)

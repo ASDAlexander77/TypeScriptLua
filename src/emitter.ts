@@ -26,11 +26,12 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
-    private pushFunctionContext() {
+    private pushFunctionContext(location: ts.Node) {
         const localFunctionContext = this.functionContext;
         this.functionContextStack.push(localFunctionContext);
         this.functionContext = new FunctionContext();
         this.functionContext.container = localFunctionContext;
+        this.functionContext.location_node = location;
     }
 
     private popFunctionContext(): FunctionContext {
@@ -39,8 +40,8 @@ export class Emitter {
         return localFunctionContext;
     }
 
-    private processFunction(statements: ts.NodeArray<ts.Statement>): FunctionContext {
-        this.pushFunctionContext();
+    private processFunction(location: ts.Node, statements: ts.NodeArray<ts.Statement>): FunctionContext {
+        this.pushFunctionContext(location);
         statements.forEach(s => {
             this.processStatement(s);
         });
@@ -54,7 +55,7 @@ export class Emitter {
     private processFile(sourceFile: ts.SourceFile): void {
         this.emitHeader();
 
-        const localFunctionContext = this.processFunction(sourceFile.statements);
+        const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements);
 
         // this is global function
         localFunctionContext.is_vararg = true;
@@ -144,7 +145,7 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        const protoIndex = -this.functionContext.createProto(this.processFunction(node.body.statements));
+        const protoIndex = -this.functionContext.createProto(this.processFunction(node, node.body.statements));
 
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.LoadFunction;
@@ -159,7 +160,7 @@ export class Emitter {
             throw new Error('Arrow function as expression is not implemented yet');
         }
 
-        const protoIndex = -this.functionContext.createProto(this.processFunction((<ts.FunctionBody>node.body).statements));
+        const protoIndex = -this.functionContext.createProto(this.processFunction(node, (<ts.FunctionBody>node.body).statements));
 
         const resolvedInfo = new ResolvedInfo();
         resolvedInfo.kind = ResolvedKind.LoadFunction;
