@@ -320,6 +320,51 @@ export class Emitter {
                 }
 
                 break;
+
+                case ts.SyntaxKind.PlusToken:
+                case ts.SyntaxKind.MinusToken:
+                case ts.SyntaxKind.AsteriskToken:
+                case ts.SyntaxKind.AsteriskAsteriskToken:
+                case ts.SyntaxKind.PercentToken:
+                case ts.SyntaxKind.CaretToken:
+                case ts.SyntaxKind.SlashToken:
+                case ts.SyntaxKind.AmpersandToken:
+                case ts.SyntaxKind.LessThanLessThanToken:
+                case ts.SyntaxKind.GreaterThanGreaterThanToken:
+                case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+
+                const leftOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
+                const rightOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
+
+                const resultInfo = this.functionContext.useRegister();
+
+                const opsMap = [];
+                opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
+                opsMap[ts.SyntaxKind.MinusToken] = Ops.SUB;
+                opsMap[ts.SyntaxKind.AsteriskToken] = Ops.MUL;
+                opsMap[ts.SyntaxKind.PercentToken] = Ops.MOD;
+                opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = Ops.POW;
+                opsMap[ts.SyntaxKind.SlashToken] = Ops.DIV;
+                //// opsMap[ts.SyntaxKind.] = Ops.IDIV;
+                opsMap[ts.SyntaxKind.AmpersandToken] = Ops.BAND;
+                opsMap[ts.SyntaxKind.ColonToken] = Ops.BOR;
+                opsMap[ts.SyntaxKind.CaretToken] = Ops.BXOR;
+                opsMap[ts.SyntaxKind.LessThanLessThanToken] = Ops.SHL;
+                opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = Ops.SHR;
+                opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = Ops.SHR;
+
+                this.functionContext.code.push([
+                    opsMap[node.operatorToken.kind],
+                    resultInfo.getRegisterNumber(),
+                    leftOpNode.getRegisterNumberOrIndex(),
+                    rightOpNode.getRegisterNumberOrIndex()]);
+
+                this.functionContext.stack.push(resultInfo);
+
+                this.functionContext.popRegister(leftOpNode);
+
+                break;
+
             default: throw new Error('Not Implemented');
         }
     }
