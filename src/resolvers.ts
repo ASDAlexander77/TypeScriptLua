@@ -68,6 +68,14 @@ export class ResolvedInfo {
 
         throw new Error('It is not register or const index');
     }
+
+    public getUpvalue() {
+        if (this.kind === ResolvedKind.Upvalue) {
+            return this.value;
+        }
+
+        throw new Error('It is not upvalue');
+    }
 }
 
 export class StackResolver {

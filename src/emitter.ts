@@ -303,11 +303,12 @@ export class Emitter {
 
                 const leftNode = this.functionContext.stack.pop();
                 if (leftNode.kind === ResolvedKind.LoadMember) {
+                    leftNode.currentInfo.ensureConstIndex(this.functionContext);
                     const rightNode = this.consumeExpression(this.functionContext.stack.pop(), true);
                     this.functionContext.code.push([
                         Ops.SETTABUP,
-                        leftNode.parentInfo.value,
-                        leftNode.currentInfo.value,
+                        leftNode.parentInfo.getUpvalue(),
+                        leftNode.currentInfo.getRegisterNumberOrIndex(),
                         rightNode.getRegisterNumberOrIndex()]);
 
                     this.functionContext.popRegister(rightNode);

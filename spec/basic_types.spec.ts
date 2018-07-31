@@ -55,10 +55,21 @@ describe('Basic Types', () => {
         console.log(list2[2]);                  \
     '])));
 
-    it('Tuple', () => expect('1\r\n2\r\n3\r\n1\r\n2\r\n3\r\n').to.equals(new Run().test([
+    it('Tuple', () => expect('hello\r\n10\r\n').to.equals(new Run().test([
         '// Declare a tuple type                \
         let x: [string, number];                \
         // Initialize it                        \
         x = ["hello", 10];                      \
+        console.log(x[0])                       \
+        console.log(x[1])                       \
+    '])));
+
+    it('Tuple', () => expect('hello\r\n10\r\n').to.equals(new Run().test([
+        '// Declare a tuple type                \
+        var x: [string, number];                \
+        // Initialize it                        \
+        x = ["hello", 10];                      \
+        console.log(x[0])                       \
+        console.log(x[1])                       \
     '])));
 });
