@@ -32,11 +32,11 @@ describe('Arithmetic Operators', () => {
     '])));
 
     it('String', () => expect('Good Morning\r\n').to.equals(new Run().test([
-        'let text1, text2;                          \
+        'let text1, text2, text3;                   \
         text1 = "Good ";                            \
         text2 = "Morning";                          \
         text3 = text1 + text2;                      \
-        console.log(text);                          \
+        console.log(text3);                         \
     '])));
 
 });
