@@ -41,11 +41,27 @@ export class ResolvedInfo {
         return this.const_index = -functionContext.findOrCreateConst(this.value);
     }
 
-    public getRegisterNumberOrConstIndex() {
+    public getRegisterNumberOrIndex() {
         if (this.const_index !== undefined) {
             return this.const_index;
         }
 
+        if (this.kind === ResolvedKind.Register) {
+            return this.value;
+        }
+
+        if (this.kind === ResolvedKind.Upvalue) {
+            return this.value;
+        }
+
+        if (this.kind === ResolvedKind.LoadFunction) {
+            return this.value;
+        }
+
+        throw new Error('It is not register or const index');
+    }
+
+    public getRegisterNumber() {
         if (this.kind === ResolvedKind.Register) {
             return this.value;
         }

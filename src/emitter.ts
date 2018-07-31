@@ -139,7 +139,7 @@ export class Emitter {
             Ops.SETTABUP,
             -this.resolver.returnResolvedEnv(this.functionContext).value,
             nameConstIndex,
-            resolvedInfo.getRegisterNumberOrConstIndex()]);
+            resolvedInfo.getRegisterNumberOrIndex()]);
         this.functionContext.popRegister(resolvedInfo);
     }
 
@@ -268,8 +268,8 @@ export class Emitter {
             this.functionContext.code.push(
                 [Ops.SETTABLE,
                 resultInfo.value,
-                zeroIndexInfo.getRegisterNumberOrConstIndex(),
-                zeroValueInfo.getRegisterNumberOrConstIndex()]);
+                zeroIndexInfo.getRegisterNumberOrIndex(),
+                zeroValueInfo.getRegisterNumberOrIndex()]);
 
             this.functionContext.popRegister(lastInfo);
         }
@@ -308,7 +308,7 @@ export class Emitter {
                         Ops.SETTABUP,
                         leftNode.parentInfo.value,
                         leftNode.currentInfo.value,
-                        rightNode.getRegisterNumberOrConstIndex()]);
+                        rightNode.getRegisterNumberOrIndex()]);
 
                     this.functionContext.popRegister(rightNode);
                 } else if (leftNode.kind === ResolvedKind.Register) {
@@ -389,22 +389,23 @@ export class Emitter {
             } else if (resolvedInfo.value === true || resolvedInfo.value === false) {
                 // LLOADBOOL A B C    R(A) := (Bool)B; if (C) pc++
                 this.functionContext.code.push(
-                    [Ops.LOADBOOL, resultInfo.value, resolvedInfo.value ? 1 : 0, 0]);
+                    [Ops.LOADBOOL, resultInfo.getRegisterNumber(), resolvedInfo.value ? 1 : 0, 0]);
             } else {
                 // LOADK A Bx    R(A) := Kst(Bx)
-                this.functionContext.code.push([Ops.LOADK, resultInfo.value, resolvedInfo.ensureConstIndex(this.functionContext)]);
+                resolvedInfo.ensureConstIndex(this.functionContext);
+                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegisterNumber(), resolvedInfo.getRegisterNumberOrIndex()]);
             }
 
             return resultInfo;
         }
 
         if (resolvedInfo.kind === ResolvedKind.Register) {
-            if (!cloneRegister) {
+            if (!cloneRegister && !resultInfoTopStack) {
                 return resolvedInfo;
             }
 
-            const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.MOVE, resultInfo.value, resolvedInfo.value]);
+            const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
+            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegisterNumber(), resolvedInfo.getRegisterNumberOrIndex()]);
             return resultInfo;
         }
 
@@ -424,7 +425,10 @@ export class Emitter {
 
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
-                [Ops.GETTABUP, resultInfo.value, objectIdentifierInfo.value, memberIdentifierInfo.value]);
+                [Ops.GETTABUP,
+                resultInfo.getRegisterNumber(),
+                objectIdentifierInfo.getRegisterNumberOrIndex(),
+                memberIdentifierInfo.getRegisterNumberOrIndex()]);
 
             return resultInfo;
         }
@@ -447,7 +451,10 @@ export class Emitter {
 
                 const resultInfo = this.functionContext.useRegister();
                 this.functionContext.code.push(
-                    [Ops.GETTABLE, resultInfo.value, variableInfo.value, indexInfo.getRegisterNumberOrConstIndex()]);
+                    [Ops.GETTABLE,
+                    resultInfo.getRegisterNumber(),
+                    variableInfo.getRegisterNumberOrIndex(),
+                    indexInfo.getRegisterNumberOrIndex()]);
 
                 this.functionContext.stack.push(resultInfo);
 
@@ -458,7 +465,7 @@ export class Emitter {
         // if it simple expression of identifier
         if (resolvedInfo.kind === ResolvedKind.LoadFunction) {
             const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.CLOSURE, resultInfo.value, resolvedInfo.value]);
+            this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegisterNumber(), resolvedInfo.getRegisterNumberOrIndex()]);
 
             return resultInfo;
         }
