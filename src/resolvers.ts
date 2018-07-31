@@ -43,12 +43,11 @@ export class ResolvedInfo {
             return this.constIndex;
         }
 
-        if (this.value === undefined && this.identifierName === undefined)
-        {
+        if (this.value === undefined && this.identifierName === undefined) {
             throw new Error('Value is undefined or IdentifierName to create Const');
         }
 
-        return this.constIndex = -this.functionContext.findOrCreateConst(this.value || this.identifierName);
+        return this.constIndex = -this.functionContext.findOrCreateConst(this.value !== undefined ? this.value : this.identifierName);
     }
 
     private ensureUpvalueIndex(): number {
