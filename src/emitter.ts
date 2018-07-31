@@ -411,8 +411,16 @@ export class Emitter {
         // if it simple expression of identifier
         if (resolvedInfo.kind === ResolvedKind.LoadMember) {
             // then it is simple Table lookup
-            const memberIdentifierInfo = resolvedInfo.currentInfo;
-            const objectIdentifierInfo = resolvedInfo.parentInfo;
+            const objectIdentifierInfo = this.consumeExpression(resolvedInfo.parentInfo);
+            const memberIdentifierInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
+
+            if (resolvedInfo.currentInfo !== memberIdentifierInfo) {
+                this.functionContext.popRegister(memberIdentifierInfo);
+            }
+
+            if (objectIdentifierInfo !== resolvedInfo.parentInfo) {
+                this.functionContext.popRegister(objectIdentifierInfo);
+            }
 
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
@@ -424,6 +432,14 @@ export class Emitter {
         if (resolvedInfo.kind === ResolvedKind.LoadElement) {
             const variableInfo = this.consumeExpression(resolvedInfo.parentInfo);
             const indexInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
+
+            if (resolvedInfo.currentInfo !== indexInfo) {
+                this.functionContext.popRegister(indexInfo);
+            }
+
+            if (variableInfo !== resolvedInfo.parentInfo) {
+                this.functionContext.popRegister(variableInfo);
+            }
 
             if (variableInfo.kind === ResolvedKind.Upvalue) {
                 throw new Error('Not implemented');
@@ -447,7 +463,8 @@ export class Emitter {
             return resultInfo;
         }
 
-        if (resolvedInfo.kind === ResolvedKind.MethodCall) {
+        if (resolvedInfo.kind === ResolvedKind.MethodCall
+            || resolvedInfo.kind === ResolvedKind.Upvalue) {
             return resolvedInfo;
         }
 
