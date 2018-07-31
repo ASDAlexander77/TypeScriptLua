@@ -400,16 +400,14 @@ export class Emitter {
         const isMethodArgumentCall = node.parent.kind === ts.SyntaxKind.CallExpression;
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
 
+        if (returnCount !== 1) {
+            const resultInfo = this.functionContext.useRegister();
+            resultInfo.node = node;
+            this.functionContext.stack.push(resultInfo);
+        }
+
         this.functionContext.code.push(
             [Ops.CALL, methodResolvedInfo.value, node.arguments.length + 1, returnCount]);
-
-        if (returnCount !== 1) {
-            const resolvedInfo = new ResolvedInfo();
-            resolvedInfo.kind = ResolvedKind.MethodCall;
-            resolvedInfo.value = null;
-            resolvedInfo.node = node;
-            this.functionContext.stack.push(resolvedInfo);
-        }
 
         /*
         resolvedArgsAndConsumed.forEach(a => {
@@ -517,8 +515,7 @@ export class Emitter {
             return resultInfo;
         }
 
-        if (resolvedInfo.kind === ResolvedKind.MethodCall
-            || resolvedInfo.kind === ResolvedKind.Upvalue) {
+        if (resolvedInfo.kind === ResolvedKind.Upvalue) {
             return resolvedInfo;
         }
 

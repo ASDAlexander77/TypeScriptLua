@@ -14,9 +14,7 @@ export enum ResolvedKind {
     // load array element
     LoadElement,
     // to support loading closures
-    LoadFunction,
-    // fake stack record
-    MethodCall
+    LoadFunction
 }
 
 export class ResolvedInfo {

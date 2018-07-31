@@ -1,6 +1,10 @@
-        let x2, y2;                                 
-        y2 = 5;                                     
-        x2 = y2 + 2;	                            
-        console.log(x2);                            
-        x2 = y2 - 2;	                            
-        console.log(x2);                            
+function f() {                         
+            var a = 10;                         
+            return function g() {               
+                var b = a + 1;                  
+                return b;                       
+            }                                   
+        }                                       
+                                                
+        var g = f();                            
+        console.log(g());
