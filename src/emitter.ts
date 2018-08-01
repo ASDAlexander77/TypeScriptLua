@@ -159,12 +159,8 @@ export class Emitter {
         }
 
         const protoIndex = -this.functionContext.createProto(this.processFunction(node, (<ts.FunctionBody>node.body).statements));
-
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.Closure;
-        resolvedInfo.protoIndex = protoIndex;
-        resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
@@ -178,8 +174,7 @@ export class Emitter {
         if (node.expression) {
             this.processExpression(node.expression);
 
-            const resultInfo = this.consumeExpression(this.functionContext.stack.pop());
-
+            const resultInfo = this.functionContext.stack.pop();
             this.functionContext.code.push(
                 [Ops.RETURN, resultInfo.getRegister(), 2]);
         } else {
@@ -300,31 +295,35 @@ export class Emitter {
 
                 const leftNode = this.functionContext.stack.pop();
                 const rightNode = this.functionContext.stack.pop();
-                if (leftNode.kind === ResolvedKind.LoadMember) {
-                    this.functionContext.code.push([
-                        Ops.SETTABUP,
-                        leftNode.parentInfo.getUpvalue(),
-                        leftNode.currentInfo.getRegisterOrIndex(),
-                        rightNode.getRegisterOrIndex()]);
-                } else if (leftNode.kind === ResolvedKind.Register) {
-                    this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
+                if (leftNode.kind === ResolvedKind.Register) {
+                    if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABUP) {
+                        // left of = is method reference
+                        const getTabUpOpArray = this.functionContext.code.pop();
+                        this.functionContext.code.push([
+                            Ops.SETTABUP,
+                            getTabUpOpArray[2],
+                            getTabUpOpArray[3],
+                            rightNode.getRegisterOrIndex()]);
+                    } else {
+                        this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
+                    }
                 } else {
                     throw new Error('Not Implemented');
                 }
 
                 break;
 
-                case ts.SyntaxKind.PlusToken:
-                case ts.SyntaxKind.MinusToken:
-                case ts.SyntaxKind.AsteriskToken:
-                case ts.SyntaxKind.AsteriskAsteriskToken:
-                case ts.SyntaxKind.PercentToken:
-                case ts.SyntaxKind.CaretToken:
-                case ts.SyntaxKind.SlashToken:
-                case ts.SyntaxKind.AmpersandToken:
-                case ts.SyntaxKind.LessThanLessThanToken:
-                case ts.SyntaxKind.GreaterThanGreaterThanToken:
-                case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+            case ts.SyntaxKind.PlusToken:
+            case ts.SyntaxKind.MinusToken:
+            case ts.SyntaxKind.AsteriskToken:
+            case ts.SyntaxKind.AsteriskAsteriskToken:
+            case ts.SyntaxKind.PercentToken:
+            case ts.SyntaxKind.CaretToken:
+            case ts.SyntaxKind.SlashToken:
+            case ts.SyntaxKind.AmpersandToken:
+            case ts.SyntaxKind.LessThanLessThanToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
                 const leftOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
                 const rightOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
