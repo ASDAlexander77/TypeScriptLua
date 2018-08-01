@@ -148,12 +148,8 @@ export class Emitter {
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
         const protoIndex = -this.functionContext.createProto(this.processFunction(node, node.body.statements));
-
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.Closure;
-        resolvedInfo.protoIndex = protoIndex;
-        resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -174,10 +170,6 @@ export class Emitter {
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
-
-        const resolvedInfo = this.functionContext.stack.pop();
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), resolvedInfo.getProto()]);
 
         this.emitStoreToEnvObjectProperty(nameConstIndex);
     }
