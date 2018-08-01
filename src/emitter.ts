@@ -137,7 +137,7 @@ export class Emitter {
     }
 
     private emitStoreToEnvObjectProperty(nameConstIndex: number) {
-        const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+        const resolvedInfo = this.functionContext.stack.pop();
 
         this.functionContext.code.push([
             Ops.SETTABUP,
@@ -174,6 +174,11 @@ export class Emitter {
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
+
+        const resolvedInfo = this.functionContext.stack.pop();
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), resolvedInfo.getProto()]);
+
         this.emitStoreToEnvObjectProperty(nameConstIndex);
     }
 
@@ -391,19 +396,6 @@ export class Emitter {
     private consumeExpression(
         resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean, resultInfoTopStack?: ResolvedInfo): ResolvedInfo {
         // if it simple expression of identifier
-        if (resolvedInfo.kind === ResolvedKind.LoadMember) {
-            // then it is simple Table lookup
-            const objectIdentifierInfo = this.consumeExpression(resolvedInfo.parentInfo);
-            const memberIdentifierInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
-            const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push(
-                [Ops.GETTABUP,
-                resultInfo.getRegister(),
-                objectIdentifierInfo.getRegisterOrIndex(),
-                memberIdentifierInfo.getRegisterOrIndex()]);
-
-            return resultInfo;
-        }
 
         if (resolvedInfo.kind === ResolvedKind.LoadElement) {
             const variableInfo = this.consumeExpression(resolvedInfo.parentInfo);
@@ -426,14 +418,6 @@ export class Emitter {
             }
         }
 
-        // if it simple expression of identifier
-        if (resolvedInfo.kind === ResolvedKind.Closure) {
-            const resultInfo = this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), resolvedInfo.getProto()]);
-
-            return resultInfo;
-        }
-
         if (resolvedInfo.kind === ResolvedKind.Upvalue) {
             return resolvedInfo;
         }
@@ -449,7 +433,25 @@ export class Emitter {
             return;
         }
 
-        this.functionContext.stack.push(resolvedInfo);
+        if (resolvedInfo.kind === ResolvedKind.LoadMember) {
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            const objectIdentifierInfo = resolvedInfo.parentInfo;
+            const memberIdentifierInfo = resolvedInfo.currentInfo;
+            this.functionContext.code.push(
+                [Ops.GETTABUP,
+                resultInfo.getRegister(),
+                objectIdentifierInfo.getRegisterOrIndex(),
+                memberIdentifierInfo.getRegisterOrIndex()]);
+            return;
+        }
+
+        if (resolvedInfo.kind === ResolvedKind.Upvalue
+            || resolvedInfo.kind === ResolvedKind.Const) {
+            this.functionContext.stack.push(resolvedInfo);
+            return;
+        }
+
+        throw new Error('Not Implemeneted');
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
