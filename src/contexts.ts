@@ -99,14 +99,26 @@ export class FunctionContext {
         return resolvedInfo;
     }
 
+    public useEmptyRegister(): ResolvedInfo {
+        const resolvedInfo = new ResolvedInfo(this);
+        resolvedInfo.kind = ResolvedKind.Register;
+        return resolvedInfo;
+    }
+
     public useRegisterAndPush(): ResolvedInfo {
         const resolvedInfo = this.useRegister();
         this.stack.push(resolvedInfo);
         return resolvedInfo;
     }
 
+    public useEmptyRegisterAndPush(): ResolvedInfo {
+        const resolvedInfo = this.useEmptyRegister();
+        this.stack.push(resolvedInfo);
+        return resolvedInfo;
+    }
+
     public popRegister(resolvedInfo: ResolvedInfo): void {
-        if (resolvedInfo.kind === ResolvedKind.Register && !resolvedInfo.local) {
+        if (resolvedInfo.kind === ResolvedKind.Register && resolvedInfo.register !== undefined && !resolvedInfo.local) {
             if ((this.availableRegister - resolvedInfo.getRegister()) > 1) {
                 throw new Error('available register and restored register are to far (> 1)');
             }

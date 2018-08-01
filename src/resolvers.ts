@@ -31,7 +31,19 @@ export class ResolvedInfo {
     private upvalueIndex: number;
     public protoIndex: number;
 
+    // to support delayed register bind
+    public delayedOpCode: Array<any>;
+    public delayedOpCodeRegisterIndex: number;
+
     public constructor (private functionContext: FunctionContext) {
+    }
+
+    public isEmptyRegister(): boolean {
+        return this.kind === ResolvedKind.Register && this.register === undefined;
+    }
+
+    public bindDelayedRegister(destination: ResolvedInfo): void {
+        this.delayedOpCode[this.delayedOpCodeRegisterIndex] = destination.getRegister();
     }
 
     private ensureConstIndex(): number {

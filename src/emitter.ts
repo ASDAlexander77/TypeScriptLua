@@ -121,9 +121,15 @@ export class Emitter {
                     this.processNullLiteral(null);
                 }
 
-                const resolvedInfo = this.consumeExpression(this.functionContext.stack.pop());
-                this.functionContext.createLocal((<ts.Identifier>d.name).text, resolvedInfo.getRegister());
-                resolvedInfo.local = true;
+                const localVarRegisterInfo = this.functionContext.useRegister();
+                this.functionContext.createLocal((<ts.Identifier>d.name).text, localVarRegisterInfo.getRegister());
+
+                const resolvedInfo = this.functionContext.stack.pop();
+                if (resolvedInfo.isEmptyRegister()) {
+                    resolvedInfo.bindDelayedRegister(localVarRegisterInfo);
+                } else {
+                    this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), resolvedInfo.getRegister()]);
+                }
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
@@ -142,7 +148,6 @@ export class Emitter {
             this.resolver.returnResolvedEnv(this.functionContext).getRegisterOrIndex(),
             nameConstIndex,
             resolvedInfo.getRegisterOrIndex()]);
-        this.functionContext.popRegister(resolvedInfo);
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
@@ -184,19 +189,19 @@ export class Emitter {
 
             this.functionContext.code.push(
                 [Ops.RETURN, resultInfo.getRegister(), 2]);
-
-            this.functionContext.popRegister(resultInfo);
         } else {
             this.functionContext.code.push([Ops.RETURN, 0, 1]);
         }
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = node.kind === ts.SyntaxKind.TrueKeyword;
-        resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);
+        const boolValue = node.kind === ts.SyntaxKind.TrueKeyword;
+        const opCode = [Ops.LOADBOOL, undefined, boolValue ? 1 : 0, 0];
+        this.functionContext.code.push(opCode);
+
+        const resolvedInfo = this.functionContext.useEmptyRegisterAndPush();
+        resolvedInfo.delayedOpCode = opCode;
+        resolvedInfo.delayedOpCodeRegisterIndex = 1;
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
@@ -224,7 +229,7 @@ export class Emitter {
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
-        const resultInfo = this.functionContext.useRegister();
+        const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([
             Ops.NEWTABLE,
             resultInfo.getRegister(),
@@ -272,11 +277,7 @@ export class Emitter {
                 resultInfo.getRegister(),
                 zeroIndexInfo.getRegisterOrIndex(),
                 zeroValueInfo.getRegisterOrIndex()]);
-
-            this.functionContext.popRegister(lastInfo);
         }
-
-        this.functionContext.stack.push(resultInfo);
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
@@ -304,17 +305,15 @@ export class Emitter {
             case ts.SyntaxKind.EqualsToken:
 
                 const leftNode = this.functionContext.stack.pop();
+                const rightNode = this.functionContext.stack.pop();
                 if (leftNode.kind === ResolvedKind.LoadMember) {
-                    const rightNode = this.consumeExpression(this.functionContext.stack.pop(), true);
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         leftNode.parentInfo.getUpvalue(),
                         leftNode.currentInfo.getRegisterOrIndex(),
                         rightNode.getRegisterOrIndex()]);
-
-                    this.functionContext.popRegister(rightNode);
                 } else if (leftNode.kind === ResolvedKind.Register) {
-                    this.consumeExpression(this.functionContext.stack.pop(), undefined, undefined, leftNode);
+                    this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
                 } else {
                     throw new Error('Not Implemented');
                 }
@@ -442,15 +441,6 @@ export class Emitter {
             // then it is simple Table lookup
             const objectIdentifierInfo = this.consumeExpression(resolvedInfo.parentInfo);
             const memberIdentifierInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
-
-            if (resolvedInfo.currentInfo !== memberIdentifierInfo) {
-                this.functionContext.popRegister(memberIdentifierInfo);
-            }
-
-            if (objectIdentifierInfo !== resolvedInfo.parentInfo) {
-                this.functionContext.popRegister(objectIdentifierInfo);
-            }
-
             const resultInfo = this.functionContext.useRegister();
             this.functionContext.code.push(
                 [Ops.GETTABUP,
@@ -464,14 +454,6 @@ export class Emitter {
         if (resolvedInfo.kind === ResolvedKind.LoadElement) {
             const variableInfo = this.consumeExpression(resolvedInfo.parentInfo);
             const indexInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
-
-            if (resolvedInfo.currentInfo !== indexInfo) {
-                this.functionContext.popRegister(indexInfo);
-            }
-
-            if (variableInfo !== resolvedInfo.parentInfo) {
-                this.functionContext.popRegister(variableInfo);
-            }
 
             if (variableInfo.kind === ResolvedKind.Upvalue) {
                 throw new Error('Not implemented');
