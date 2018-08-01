@@ -226,25 +226,15 @@ export class Emitter {
             0]);
 
         if (node.elements.length > 0) {
-            const reversedValues = (<Array<any>><any>node.elements.slice(1)).reverse();
+            const reversedValues = (<Array<any>><any>node.elements.slice(1));
 
             reversedValues.forEach((e, index: number) => {
                 this.processExpression(e);
             });
 
-            const resolvedElements: Array<any> = [];
             reversedValues.forEach(a => {
                 // pop method arguments
-                resolvedElements.push(this.functionContext.stack.pop());
-            });
-
-            let lastInfo;
-            resolvedElements.forEach(e => {
-                // pop method arguments
-                const currentInfo = this.consumeExpression(e);
-                if (lastInfo === undefined) {
-                    lastInfo = currentInfo;
-                }
+                this.functionContext.stack.pop();
             });
 
             if (node.elements.length > 511) {
@@ -258,8 +248,8 @@ export class Emitter {
             this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
             this.processExpression(node.elements[0]);
 
-            const zeroValueInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
-            const zeroIndexInfo = this.consumeExpression(this.functionContext.stack.pop(), true);
+            const zeroValueInfo = this.functionContext.stack.pop();
+            const zeroIndexInfo = this.functionContext.stack.pop();
 
             this.functionContext.code.push(
                 [Ops.SETTABLE,
@@ -274,12 +264,15 @@ export class Emitter {
         this.processExpression(node.argumentExpression);
 
         // perform load
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.LoadElement;
-        resolvedInfo.currentInfo = this.functionContext.stack.pop();
-        resolvedInfo.parentInfo = this.functionContext.stack.pop();
+        const indexInfo = this.functionContext.stack.pop();
+        const variableInfo = this.functionContext.stack.pop();
 
-        this.functionContext.stack.push(resolvedInfo);
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push(
+            [Ops.GETTABLE,
+            resultInfo.getRegister(),
+            variableInfo.getRegisterOrIndex(),
+            indexInfo.getRegisterOrIndex()]);
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
@@ -329,8 +322,8 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
-                const leftOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
-                const rightOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
+                const leftOpNode = this.functionContext.stack.pop();
+                const rightOpNode = this.functionContext.stack.pop();
                 const resultInfo = this.functionContext.useRegisterAndPush();
 
                 const opsMap = [];
@@ -385,39 +378,6 @@ export class Emitter {
 
         this.functionContext.code.push(
             [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1, returnCount]);
-    }
-
-    // method to load constants into registers when they are needed, for example for CALL code.
-    private consumeExpression(
-        resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean, resultInfoTopStack?: ResolvedInfo): ResolvedInfo {
-        // if it simple expression of identifier
-
-        if (resolvedInfo.kind === ResolvedKind.LoadElement) {
-            const variableInfo = this.consumeExpression(resolvedInfo.parentInfo);
-            const indexInfo = this.consumeExpression(resolvedInfo.currentInfo, true);
-
-            if (variableInfo.kind === ResolvedKind.Upvalue) {
-                throw new Error('Not implemented');
-            } else if (variableInfo.kind === ResolvedKind.Register) {
-
-                const resultInfo = this.functionContext.useRegister();
-                this.functionContext.code.push(
-                    [Ops.GETTABLE,
-                    resultInfo.getRegister(),
-                    variableInfo.getRegisterOrIndex(),
-                    indexInfo.getRegisterOrIndex()]);
-
-                this.functionContext.stack.push(resultInfo);
-
-                return resultInfo;
-            }
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.Upvalue) {
-            return resolvedInfo;
-        }
-
-        throw new Error('Not Implemented');
     }
 
     private processIndentifier(node: ts.Identifier): void {
