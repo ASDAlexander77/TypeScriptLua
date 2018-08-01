@@ -335,8 +335,7 @@ export class Emitter {
 
                 const leftOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
                 const rightOpNode = this.consumeExpression(this.functionContext.stack.pop(), true);
-
-                const resultInfo = this.functionContext.useRegister();
+                const resultInfo = this.functionContext.useRegisterAndPush();
 
                 const opsMap = [];
                 opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
@@ -358,10 +357,6 @@ export class Emitter {
                     resultInfo.getRegister(),
                     leftOpNode.getRegisterOrIndex(),
                     rightOpNode.getRegisterOrIndex()]);
-
-                this.functionContext.stack.push(resultInfo);
-
-                this.functionContext.popRegister(rightOpNode);
 
                 break;
 
@@ -401,23 +396,11 @@ export class Emitter {
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
 
         if (returnCount !== 1) {
-            const resultInfo = this.functionContext.useRegister();
-            // we can reuse method placed register
-            resultInfo.register = methodResolvedInfo.getRegister();
-            resultInfo.node = node;
-            this.functionContext.stack.push(resultInfo);
+            this.functionContext.useRegisterAndPush();
         }
 
         this.functionContext.code.push(
             [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1, returnCount]);
-
-        /*
-        resolvedArgsAndConsumed.forEach(a => {
-            // pop method arguments
-            this.functionContext.popRegister(a);
-        });
-        */
-        this.functionContext.popRegister(methodResolvedInfo);
     }
 
     // method to load constants into registers when they are needed, for example for CALL code.

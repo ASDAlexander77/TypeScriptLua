@@ -122,7 +122,9 @@ export class StackResolver {
     }
 
     public pop(): ResolvedInfo {
-        return this.stack.pop();
+        const stackItem = this.stack.pop();
+        this.functionContext.popRegister(stackItem);
+        return stackItem;
     }
 
     public peek(): ResolvedInfo {

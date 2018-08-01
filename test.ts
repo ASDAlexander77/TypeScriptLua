@@ -1,5 +1,5 @@
-let text1, text2, text3;                          
-text1 = "Good ";                            
-text2 = "Morning";                          
-text3 = text1 + text2;                      
-console.log(text3);     
+let a,b;
+a = 1;
+b = 10;
+a = a + b;
+console.log(a);
