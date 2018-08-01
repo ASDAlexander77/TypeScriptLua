@@ -31,10 +31,6 @@ export class ResolvedInfo {
     private upvalueIndex: number;
     public protoIndex: number;
 
-    // to support delayed register bind
-    public delayedOpCode: Array<any>;
-    public delayedOpCodeRegisterIndex: number;
-
     public constructor (private functionContext: FunctionContext) {
     }
 
@@ -42,11 +38,7 @@ export class ResolvedInfo {
         return this.kind === ResolvedKind.Register && this.register === undefined;
     }
 
-    public bindDelayedRegister(destination: ResolvedInfo): void {
-        this.delayedOpCode[this.delayedOpCodeRegisterIndex] = destination.getRegister();
-    }
-
-    private ensureConstIndex(): number {
+    public ensureConstIndex(): number {
         if (this.kind !== ResolvedKind.Const) {
             throw new Error('It is not Const');
         }
@@ -62,7 +54,7 @@ export class ResolvedInfo {
         return this.constIndex = -this.functionContext.findOrCreateConst(this.value !== undefined ? this.value : this.identifierName);
     }
 
-    private ensureUpvalueIndex(): number {
+    public ensureUpvalueIndex(): number {
         if (this.kind !== ResolvedKind.Upvalue) {
             throw new Error('It is not Upvalue');
         }
@@ -227,6 +219,7 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.identifierName = '_ENV';
         resolvedInfo.root = root;
+        resolvedInfo.ensureUpvalueIndex();
         return resolvedInfo;
     }
 

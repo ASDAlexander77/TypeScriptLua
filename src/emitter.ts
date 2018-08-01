@@ -115,21 +115,21 @@ export class Emitter {
         node.declarationList.declarations.forEach(d => {
             if (Helpers.isConstOrLet(node.declarationList)) {
 
+                const localVarRegisterInfo = this.functionContext.useRegister();
+                this.functionContext.createLocal((<ts.Identifier>d.name).text, localVarRegisterInfo.getRegister());
+
+                // reduce available register to store result
+                // DO NOT DELETE IT
+                this.functionContext.popRegister(localVarRegisterInfo);
+
                 if (d.initializer) {
                     this.processExpression(d.initializer);
                 } else {
                     this.processNullLiteral(null);
                 }
 
-                const localVarRegisterInfo = this.functionContext.useRegister();
-                this.functionContext.createLocal((<ts.Identifier>d.name).text, localVarRegisterInfo.getRegister());
-
-                const resolvedInfo = this.functionContext.stack.pop();
-                if (resolvedInfo.isEmptyRegister()) {
-                    resolvedInfo.bindDelayedRegister(localVarRegisterInfo);
-                } else {
-                    this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), resolvedInfo.getRegister()]);
-                }
+                // this is used in local register
+                this.functionContext.stack.pop();
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
@@ -196,12 +196,8 @@ export class Emitter {
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         const boolValue = node.kind === ts.SyntaxKind.TrueKeyword;
-        const opCode = [Ops.LOADBOOL, undefined, boolValue ? 1 : 0, 0];
+        const opCode = [Ops.LOADBOOL, this.functionContext.useRegisterAndPush().getRegister(), boolValue ? 1 : 0, 0];
         this.functionContext.code.push(opCode);
-
-        const resolvedInfo = this.functionContext.useEmptyRegisterAndPush();
-        resolvedInfo.delayedOpCode = opCode;
-        resolvedInfo.delayedOpCodeRegisterIndex = 1;
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {

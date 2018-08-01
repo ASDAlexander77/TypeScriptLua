@@ -50,12 +50,13 @@ export class FunctionContext {
         return index;
     }
 
-    public createLocal(name: string, register?: number): number {
+    public createLocal(name: string, register?: number): ResolvedInfo {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
-            this.locals.push(<LocalInfo>{ name: name, register: register });
-            return register;
+            const registerInfo = this.useRegister();
+            this.locals.push(<LocalInfo>{ name: name, register: registerInfo.getRegister() });
+            return registerInfo;
         }
 
         throw new Error('Local already created.');
@@ -99,20 +100,8 @@ export class FunctionContext {
         return resolvedInfo;
     }
 
-    public useEmptyRegister(): ResolvedInfo {
-        const resolvedInfo = new ResolvedInfo(this);
-        resolvedInfo.kind = ResolvedKind.Register;
-        return resolvedInfo;
-    }
-
     public useRegisterAndPush(): ResolvedInfo {
         const resolvedInfo = this.useRegister();
-        this.stack.push(resolvedInfo);
-        return resolvedInfo;
-    }
-
-    public useEmptyRegisterAndPush(): ResolvedInfo {
-        const resolvedInfo = this.useEmptyRegister();
         this.stack.push(resolvedInfo);
         return resolvedInfo;
     }
