@@ -197,27 +197,32 @@ export class Emitter {
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
+        this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), resultInfo.getRegister()]);
+    }
+
+    private processConst(value: any, node: ts.Node): ResolvedInfo {
         const resolvedInfo = new ResolvedInfo(this.functionContext);
         resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = null;
+        resolvedInfo.value = value;
         resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);
+        resolvedInfo.ensureConstIndex();
+        return resolvedInfo;
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text);
-        resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        const resolvedInfo = this.processConst(node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text), node);
+        // LOADK A Bx    R(A) := Kst(Bx)
+        this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = node.text;
-        resolvedInfo.node = node;
-        this.functionContext.stack.push(resolvedInfo);
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        const resolvedInfo = this.processConst(node.text, node);
+        // LOADK A Bx    R(A) := Kst(Bx)
+        this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
@@ -363,15 +368,6 @@ export class Emitter {
             // pop method arguments
             this.processExpression(a);
         });
-        /*
-        resolvedArgs.forEach((a: ResolvedInfo, index: number) => {
-            // pop method arguments
-            this.consumeExpression(
-                a,
-                undefined,
-                a.kind === ResolvedKind.Register && a.getRegister() !== (index + methodResolvedInfo.getRegister() + 1));
-        });
-        */
 
         node.arguments.forEach(a => {
             this.functionContext.stack.pop();
@@ -394,37 +390,6 @@ export class Emitter {
     // method to load constants into registers when they are needed, for example for CALL code.
     private consumeExpression(
         resolvedInfo: ResolvedInfo, allowConst?: boolean, cloneRegister?: boolean, resultInfoTopStack?: ResolvedInfo): ResolvedInfo {
-        if (resolvedInfo.kind === ResolvedKind.Const) {
-            if (allowConst) {
-                return resolvedInfo;
-            }
-
-            const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
-            if (resolvedInfo.value == null) {
-                // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
-                this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), resultInfo.getRegister()]);
-            } else if (resolvedInfo.value === true || resolvedInfo.value === false) {
-                // LLOADBOOL A B C    R(A) := (Bool)B; if (C) pc++
-                this.functionContext.code.push(
-                    [Ops.LOADBOOL, resultInfo.getRegister(), resolvedInfo.value ? 1 : 0, 0]);
-            } else {
-                // LOADK A Bx    R(A) := Kst(Bx)
-                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            }
-
-            return resultInfo;
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.Register) {
-            if (!cloneRegister && !resultInfoTopStack) {
-                return resolvedInfo;
-            }
-
-            const resultInfo = resultInfoTopStack || this.functionContext.useRegister();
-            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            return resultInfo;
-        }
-
         // if it simple expression of identifier
         if (resolvedInfo.kind === ResolvedKind.LoadMember) {
             // then it is simple Table lookup
