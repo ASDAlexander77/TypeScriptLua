@@ -304,6 +304,10 @@ export class Emitter {
                             getTabUpOpArray[2],
                             getTabUpOpArray[3],
                             rightNode.getRegisterOrIndex()]);
+                    } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.MOVE) {
+                        // if we put local var value we need to remove it
+                        const readMoveOpArray = this.functionContext.code.pop();
+                        this.functionContext.code.push([Ops.MOVE, readMoveOpArray[2], rightNode.getRegister()]);
                     } else {
                         this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
                     }
