@@ -115,8 +115,7 @@ export class Emitter {
         node.declarationList.declarations.forEach(d => {
             if (Helpers.isConstOrLet(node.declarationList)) {
 
-                const localVarRegisterInfo = this.functionContext.useRegister();
-                this.functionContext.createLocal((<ts.Identifier>d.name).text, localVarRegisterInfo.getRegister());
+                const localVarRegisterInfo = this.functionContext.createLocal((<ts.Identifier>d.name).text);
 
                 // reduce available register to store result
                 // DO NOT DELETE IT
@@ -127,9 +126,6 @@ export class Emitter {
                 } else {
                     this.processNullLiteral(null);
                 }
-
-                // this is used in local register
-                this.functionContext.stack.pop();
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
                 if (d.initializer) {
@@ -360,23 +356,14 @@ export class Emitter {
     }
 
     private processCallExpression(node: ts.CallExpression): void {
-        // method
+
         this.processExpression(node.expression);
 
-        // pop method ref.
-        const methodResolvedInfo = this.consumeExpression(this.functionContext.stack.pop());
-
-        // arguments
-        node.arguments.forEach(a => {
+        node.arguments.slice().reverse().forEach(a => {
+            // pop method arguments
             this.processExpression(a);
         });
-
-        const resolvedArgs: Array<any> = [];
-        node.arguments.forEach(a => {
-            // pop method arguments
-            resolvedArgs.push(this.functionContext.stack.pop());
-        });
-
+        /*
         resolvedArgs.forEach((a: ResolvedInfo, index: number) => {
             // pop method arguments
             this.consumeExpression(
@@ -384,6 +371,12 @@ export class Emitter {
                 undefined,
                 a.kind === ResolvedKind.Register && a.getRegister() !== (index + methodResolvedInfo.getRegister() + 1));
         });
+        */
+
+        node.arguments.forEach(a => {
+            this.functionContext.stack.pop();
+        });
+        const methodResolvedInfo = this.functionContext.stack.pop();
 
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement;
@@ -485,7 +478,12 @@ export class Emitter {
 
     private processIndentifier(node: ts.Identifier): void {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
-        resolvedInfo.node = node;
+        if (resolvedInfo.kind === ResolvedKind.Register) {
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+            return;
+        }
+
         this.functionContext.stack.push(resolvedInfo);
     }
 
@@ -497,12 +495,15 @@ export class Emitter {
         this.resolver.Scope.pop();
 
         // perform load
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.LoadMember;
-        resolvedInfo.currentInfo = this.functionContext.stack.pop();
-        resolvedInfo.parentInfo = this.functionContext.stack.pop();
+        const memberIdentifierInfo = this.functionContext.stack.pop();
+        const objectIdentifierInfo = this.functionContext.stack.pop();
 
-        this.functionContext.stack.push(resolvedInfo);
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push(
+            [Ops.GETTABUP,
+            resultInfo.getRegister(),
+            objectIdentifierInfo.getRegisterOrIndex(),
+            memberIdentifierInfo.getRegisterOrIndex()]);
     }
 
     private emitHeader(): void {
