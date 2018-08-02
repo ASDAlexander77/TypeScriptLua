@@ -90,6 +90,8 @@ export class Emitter {
         switch (node.kind) {
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
             case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
+            case ts.SyntaxKind.PrefixUnaryExpression: this.processPrefixUnaryExpression(<ts.PrefixUnaryExpression>node); return;
+            case ts.SyntaxKind.PostfixUnaryExpression: this.processPostfixUnaryExpression(<ts.PostfixUnaryExpression>node); return;
             case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
             case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
@@ -273,6 +275,36 @@ export class Emitter {
             indexInfo.getRegisterOrIndex()]);
     }
 
+    private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
+        this.processExpression(node.operand);
+
+        let opCode;
+        switch (node.operator) {
+            case ts.SyntaxKind.MinusToken:
+                opCode = Ops.UNM;
+                break;
+            case ts.SyntaxKind.TildeToken:
+                opCode = Ops.BNOT;
+                break;
+            case ts.SyntaxKind.ExclamationToken:
+                opCode = Ops.NOT;
+                break;
+        }
+
+        // no optimization required as expecting only Registers
+        const rightNode = this.functionContext.stack.pop();
+        const resultInfo = this.functionContext.useRegisterAndPush();
+
+        this.functionContext.code.push([
+            opCode,
+            resultInfo.getRegister(),
+            rightNode.getRegister()]);
+    }
+
+    private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
+        throw new Error ('Not implemented');
+    }
+
     private processBinaryExpression(node: ts.BinaryExpression): void {
         // ... = <right>
         this.processExpression(node.right);
@@ -330,6 +362,8 @@ export class Emitter {
             case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.SlashToken:
             case ts.SyntaxKind.AmpersandToken:
+            case ts.SyntaxKind.BarToken:
+            case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.LessThanLessThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
@@ -347,7 +381,7 @@ export class Emitter {
                 opsMap[ts.SyntaxKind.SlashToken] = Ops.DIV;
                 //// opsMap[ts.SyntaxKind.] = Ops.IDIV;
                 opsMap[ts.SyntaxKind.AmpersandToken] = Ops.BAND;
-                opsMap[ts.SyntaxKind.ColonToken] = Ops.BOR;
+                opsMap[ts.SyntaxKind.BarToken] = Ops.BOR;
                 opsMap[ts.SyntaxKind.CaretToken] = Ops.BXOR;
                 opsMap[ts.SyntaxKind.LessThanLessThanToken] = Ops.SHL;
                 opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = Ops.SHR;

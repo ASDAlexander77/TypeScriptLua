@@ -111,6 +111,11 @@ export class ResolvedInfo {
     }
 
     public optimize(): ResolvedInfo {
+        // TODO: finish optimization for code
+        // let x;
+        // x = ~ 5;
+        // console.log(x);
+
         if (this.kind !== ResolvedKind.Register) {
             return this;
         }

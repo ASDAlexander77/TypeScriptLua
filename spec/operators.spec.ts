@@ -39,4 +39,20 @@ describe('Arithmetic Operators', () => {
         console.log(text3);                         \
     '])));
 
+    it('Bitwise', () => expect('1\r\n5\r\n-6\r\n4\r\n10\r\n2\r\n').to.equals(new Run().test([
+        'let x;                                     \
+        x = 5 & 1;                                  \
+        console.log(x);                             \
+        x = 5 | 1;                                  \
+        console.log(x);                             \
+        x = ~ 5;                                    \
+        console.log(x);                             \
+        x = 5 ^ 1;                                  \
+        console.log(x);                             \
+        x = 5 << 1;                                 \
+        console.log(x);                             \
+        x = 5 >> 1;                                 \
+        console.log(x);                             \
+    '])));
+
 });
