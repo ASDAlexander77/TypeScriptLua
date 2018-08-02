@@ -62,10 +62,15 @@ export class FunctionContext {
         throw new Error('Local already created.');
     }
 
-    public findLocal(name: string): number {
+    public findLocal(name: string, noerror?: boolean): number {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
+            if (noerror)
+            {
+                return index;
+            }
+
             throw new Error('Can\'t find local: ' + name);
         }
 

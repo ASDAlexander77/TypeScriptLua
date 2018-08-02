@@ -225,15 +225,13 @@ export class IdentifierResolver {
                     if (resolved.flags !== 2) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
-                        const resolvedInfo = new ResolvedInfo(functionContext);
-                        resolvedInfo.kind = ResolvedKind.Register;
-                        resolvedInfo.identifierName = identifier.text;
-                        resolvedInfo.register = functionContext.findLocal(resolvedInfo.identifierName);
-                        resolvedInfo.local = true;
-                        return resolvedInfo;
+                        return this.returnLocal(identifier.text, functionContext);
                     }
 
                     break;
+
+                case ts.SyntaxKind.Parameter:
+                    return this.returnLocal(identifier.text, functionContext);
 
                 case ts.SyntaxKind.FunctionDeclaration:
                     return this.resolveMemberOfCurrentScope(identifier, functionContext);
@@ -242,6 +240,15 @@ export class IdentifierResolver {
 
         // TODO: hack
         throw new Error('Could not resolve: ' + identifier.text);
+    }
+
+    public returnLocal(text: string, functionContext: FunctionContext): ResolvedInfo {
+        const resolvedInfo = new ResolvedInfo(functionContext);
+        resolvedInfo.kind = ResolvedKind.Register;
+        resolvedInfo.identifierName = text;
+        resolvedInfo.register = functionContext.findLocal(resolvedInfo.identifierName);
+        resolvedInfo.local = true;
+        return resolvedInfo;
     }
 
     public returnResolvedEnv(functionContext: FunctionContext, root?: boolean): ResolvedInfo {

@@ -40,8 +40,14 @@ export class Emitter {
         return localFunctionContext;
     }
 
-    private processFunction(location: ts.Node, statements: ts.NodeArray<ts.Statement>): FunctionContext {
+    private processFunction(
+        location: ts.Node, statements: ts.NodeArray<ts.Statement>, parameters: ts.NodeArray<ts.ParameterDeclaration>): FunctionContext {
         this.pushFunctionContext(location);
+
+        parameters.forEach(p => {
+            this.functionContext.createLocal((<ts.Identifier>p.name).text);
+        });
+
         statements.forEach(s => {
             this.processStatement(s);
         });
@@ -55,7 +61,7 @@ export class Emitter {
     private processFile(sourceFile: ts.SourceFile): void {
         this.emitHeader();
 
-        const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements);
+        const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements, <any>[]);
 
         // this is global function
         localFunctionContext.is_vararg = true;
@@ -115,8 +121,8 @@ export class Emitter {
 
     private processVariableStatement(node: ts.VariableStatement): void {
         node.declarationList.declarations.forEach(d => {
-            if (Helpers.isConstOrLet(node.declarationList)) {
-
+            const localVar = this.functionContext.findLocal((<ts.Identifier>d.name).text, true);
+            if (Helpers.isConstOrLet(node.declarationList) && localVar === -1) {
                 const localVarRegisterInfo = this.functionContext.createLocal((<ts.Identifier>d.name).text);
 
                 // reduce available register to store result
@@ -127,6 +133,13 @@ export class Emitter {
                     this.processExpression(d.initializer);
                 } else {
                     this.processNullLiteral(null);
+                }
+            } else if (localVar !== -1) {
+                if (d.initializer) {
+                    const localVarRegisterInfo = this.resolver.returnLocal((<ts.Identifier>d.name).text, this.functionContext);
+                    this.processExpression(d.initializer);
+                    const rightNode = this.functionContext.stack.pop();
+                    this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
                 }
             } else {
                 const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
@@ -139,7 +152,7 @@ export class Emitter {
     }
 
     private emitStoreToEnvObjectProperty(nameConstIndex: number) {
-        const resolvedInfo = this.functionContext.stack.pop();
+        const resolvedInfo = this.functionContext.stack.pop().optimize();
 
         this.functionContext.code.push([
             Ops.SETTABUP,
@@ -149,7 +162,7 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        const protoIndex = -this.functionContext.createProto(this.processFunction(node, node.body.statements));
+        const protoIndex = -this.functionContext.createProto(this.processFunction(node, node.body.statements, node.parameters));
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
     }
