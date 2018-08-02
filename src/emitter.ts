@@ -158,9 +158,7 @@ export class Emitter {
             throw new Error('Arrow function as expression is not implemented yet');
         }
 
-        const protoIndex = -this.functionContext.createProto(this.processFunction(node, (<ts.FunctionBody>node.body).statements));
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
+        this.processFunctionExpression(<any>node);
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
@@ -292,14 +290,20 @@ export class Emitter {
                     if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABUP) {
                         // left of = is method reference
                         const getTabUpOpArray = this.functionContext.code.pop();
+
+                        rightNode.optimize();
+
                         this.functionContext.code.push([
                             Ops.SETTABUP,
                             getTabUpOpArray[2],
                             getTabUpOpArray[3],
                             rightNode.getRegisterOrIndex()]);
-                    } if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
+                    } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
                         // left of = is method reference
                         const getTableOpArray = this.functionContext.code.pop();
+
+                        rightNode.optimize();
+
                         this.functionContext.code.push([
                             Ops.SETTABLE,
                             getTableOpArray[2],
