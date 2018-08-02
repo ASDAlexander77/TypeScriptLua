@@ -439,10 +439,10 @@ export class Emitter {
                         let trueValue = 1;
                         let falseValue = 0;
                         switch (node.operatorToken.kind) {
-                            case ts.SyntaxKind.EqualsEqualsToken:
-                            case ts.SyntaxKind.EqualsEqualsEqualsToken:
-                            case ts.SyntaxKind.LessThanToken:
-                            case ts.SyntaxKind.LessThanEqualsToken:
+                            case ts.SyntaxKind.ExclamationEqualsToken:
+                            case ts.SyntaxKind.ExclamationEqualsEqualsToken:
+                            case ts.SyntaxKind.GreaterThanToken:
+                            case ts.SyntaxKind.GreaterThanEqualsToken:
                                 trueValue = 0;
                                 falseValue = 1;
                                 break;
@@ -456,13 +456,13 @@ export class Emitter {
                         this.functionContext.code.push([
                             Ops.LOADBOOL,
                             resultInfo.getRegister(),
-                            trueValue,
+                            falseValue,
                             1]);
 
                         this.functionContext.code.push([
                             Ops.LOADBOOL,
                             resultInfo.getRegister(),
-                            falseValue,
+                            trueValue,
                             0]);
                         break;
                 }
