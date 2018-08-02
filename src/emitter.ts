@@ -10,9 +10,33 @@ export class Emitter {
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
+    private opsMap = [];
 
     public constructor(typeChecker: ts.TypeChecker) {
         this.resolver = new IdentifierResolver(typeChecker);
+
+        this.opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
+        this.opsMap[ts.SyntaxKind.MinusToken] = Ops.SUB;
+        this.opsMap[ts.SyntaxKind.AsteriskToken] = Ops.MUL;
+        this.opsMap[ts.SyntaxKind.PercentToken] = Ops.MOD;
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = Ops.POW;
+        this.opsMap[ts.SyntaxKind.SlashToken] = Ops.DIV;
+        this.opsMap[ts.SyntaxKind.AmpersandToken] = Ops.BAND;
+        this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = Ops.BAND;
+        this.opsMap[ts.SyntaxKind.BarToken] = Ops.BOR;
+        this.opsMap[ts.SyntaxKind.BarBarToken] = Ops.BOR;
+        this.opsMap[ts.SyntaxKind.CaretToken] = Ops.BXOR;
+        this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = Ops.SHL;
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = Ops.SHR;
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = Ops.SHR;
+        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = Ops.EQ;
+        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = Ops.EQ;
+        this.opsMap[ts.SyntaxKind.LessThanToken] = Ops.LT;
+        this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = Ops.LE;
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = Ops.EQ;
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = Ops.EQ;
+        this.opsMap[ts.SyntaxKind.GreaterThanToken] = Ops.LE;
+        this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = Ops.LT;
     }
 
     public processNode(node: ts.Node): void {
@@ -375,36 +399,73 @@ export class Emitter {
             case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.SlashToken:
             case ts.SyntaxKind.AmpersandToken:
+            case ts.SyntaxKind.AmpersandAmpersandToken:
             case ts.SyntaxKind.BarToken:
+            case ts.SyntaxKind.BarBarToken:
             case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.LessThanLessThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+            case ts.SyntaxKind.EqualsEqualsToken:
+            case ts.SyntaxKind.EqualsEqualsEqualsToken:
+            case ts.SyntaxKind.LessThanToken:
+            case ts.SyntaxKind.LessThanEqualsToken:
+            case ts.SyntaxKind.ExclamationEqualsToken:
+            case ts.SyntaxKind.ExclamationEqualsEqualsToken:
+            case ts.SyntaxKind.GreaterThanToken:
+            case ts.SyntaxKind.GreaterThanEqualsToken:
 
                 const leftOpNode = this.functionContext.stack.pop().optimize();
                 const rightOpNode = this.functionContext.stack.pop().optimize();
                 const resultInfo = this.functionContext.useRegisterAndPush();
 
-                const opsMap = [];
-                opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
-                opsMap[ts.SyntaxKind.MinusToken] = Ops.SUB;
-                opsMap[ts.SyntaxKind.AsteriskToken] = Ops.MUL;
-                opsMap[ts.SyntaxKind.PercentToken] = Ops.MOD;
-                opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = Ops.POW;
-                opsMap[ts.SyntaxKind.SlashToken] = Ops.DIV;
-                //// opsMap[ts.SyntaxKind.] = Ops.IDIV;
-                opsMap[ts.SyntaxKind.AmpersandToken] = Ops.BAND;
-                opsMap[ts.SyntaxKind.BarToken] = Ops.BOR;
-                opsMap[ts.SyntaxKind.CaretToken] = Ops.BXOR;
-                opsMap[ts.SyntaxKind.LessThanLessThanToken] = Ops.SHL;
-                opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = Ops.SHR;
-                opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = Ops.SHR;
-
                 this.functionContext.code.push([
-                    opsMap[node.operatorToken.kind],
+                    this.opsMap[node.operatorToken.kind],
                     resultInfo.getRegister(),
                     leftOpNode.getRegisterOrIndex(),
                     rightOpNode.getRegisterOrIndex()]);
+
+                // in case of logical ops finish it
+                switch (node.operatorToken.kind) {
+                    case ts.SyntaxKind.EqualsEqualsToken:
+                    case ts.SyntaxKind.EqualsEqualsEqualsToken:
+                    case ts.SyntaxKind.LessThanToken:
+                    case ts.SyntaxKind.LessThanEqualsToken:
+                    case ts.SyntaxKind.ExclamationEqualsToken:
+                    case ts.SyntaxKind.ExclamationEqualsEqualsToken:
+                    case ts.SyntaxKind.GreaterThanToken:
+                    case ts.SyntaxKind.GreaterThanEqualsToken:
+
+                        let trueValue = 1;
+                        let falseValue = 0;
+                        switch (node.operatorToken.kind) {
+                            case ts.SyntaxKind.EqualsEqualsToken:
+                            case ts.SyntaxKind.EqualsEqualsEqualsToken:
+                            case ts.SyntaxKind.LessThanToken:
+                            case ts.SyntaxKind.LessThanEqualsToken:
+                                trueValue = 0;
+                                falseValue = 1;
+                                break;
+                        }
+
+                        this.functionContext.code.push([
+                            Ops.JMP,
+                            resultInfo.getRegister(),
+                            1]);
+
+                        this.functionContext.code.push([
+                            Ops.LOADBOOL,
+                            resultInfo.getRegister(),
+                            trueValue,
+                            1]);
+
+                        this.functionContext.code.push([
+                            Ops.LOADBOOL,
+                            resultInfo.getRegister(),
+                            falseValue,
+                            0]);
+                        break;
+                }
 
                 break;
 

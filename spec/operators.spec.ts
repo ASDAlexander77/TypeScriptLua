@@ -55,4 +55,50 @@ describe('Arithmetic Operators', () => {
         console.log(x);                             \
     '])));
 
+    it('Logical', () => expect('true\r\nfalse\r\ntrue\r\n').to.equals(new Run().test([
+        'let r, x = 6, y = 3;                       \
+        r = x < 10 && y > 1;                        \
+        console.log(r);                             \
+        r = x === 5 || y === 5;                     \
+        console.log(r);                             \
+        r = ~ false;                                \
+        console.log(x);                             \
+    '])));
+
+    it('Logical (basic 1)', () => expect('false\r\ntrue\r\nfalse\r\ntrue\r\n').to.equals(new Run().test([
+        'let r, x = 1, y = 2;                       \
+        r = x > y;                                  \
+        console.log(r);                             \
+        r = x < y;                                  \
+        console.log(r);                             \
+        r = x >= y;                                 \
+        console.log(r);                             \
+        r = x <= y;                                 \
+        console.log(r);                             \
+    '])));
+
+    it('Logical (basic 2)', () => expect('false\r\false\r\true\r\ntrue\r\n').to.equals(new Run().test([
+        'let r, x = 1, y = 1;                       \
+        r = x > y;                                  \
+        console.log(r);                             \
+        r = x < y;                                  \
+        console.log(r);                             \
+        r = x >= y;                                 \
+        console.log(r);                             \
+        r = x <= y;                                 \
+        console.log(r);                             \
+    '])));
+
+    it('Logical (basic 3)', () => expect('true\r\nfalse\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
+        'let r, x = 2, y = 1;                       \
+        r = x > y;                                  \
+        console.log(r);                             \
+        r = x < y;                                  \
+        console.log(r);                             \
+        r = x >= y;                                 \
+        console.log(r);                             \
+        r = x <= y;                                 \
+        console.log(r);                             \
+    '])));
+
 });

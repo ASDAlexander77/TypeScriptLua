@@ -121,11 +121,7 @@ export class OpMode {
             case OpCodeMode.iAsBx:
                 encoded += c[1] << (6);
 
-                val = c[2];
-                if (val < 0) {
-                    val = -(val + 1);
-                    val |= 1 << 17;
-                }
+                val = c[2] + 131071;
 
                 encoded += val << (8 + 6);
 
