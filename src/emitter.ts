@@ -22,9 +22,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = Ops.POW;
         this.opsMap[ts.SyntaxKind.SlashToken] = Ops.DIV;
         this.opsMap[ts.SyntaxKind.AmpersandToken] = Ops.BAND;
-        this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = Ops.BAND;
         this.opsMap[ts.SyntaxKind.BarToken] = Ops.BOR;
-        this.opsMap[ts.SyntaxKind.BarBarToken] = Ops.BOR;
         this.opsMap[ts.SyntaxKind.CaretToken] = Ops.BXOR;
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = Ops.SHL;
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = Ops.SHR;
@@ -399,9 +397,7 @@ export class Emitter {
             case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.SlashToken:
             case ts.SyntaxKind.AmpersandToken:
-            case ts.SyntaxKind.AmpersandAmpersandToken:
             case ts.SyntaxKind.BarToken:
-            case ts.SyntaxKind.BarBarToken:
             case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.LessThanLessThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
@@ -469,6 +465,11 @@ export class Emitter {
 
                 break;
 
+            case ts.SyntaxKind.AmpersandAmpersandToken:
+            case ts.SyntaxKind.BarBarToken:
+            
+                break;
+
             default: throw new Error('Not Implemented');
         }
     }
@@ -477,7 +478,7 @@ export class Emitter {
 
         this.processExpression(node.expression);
 
-        node.arguments.slice().reverse().forEach(a => {
+        node.arguments.forEach(a => {
             // pop method arguments
             this.processExpression(a);
         });
