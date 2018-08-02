@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { FunctionContext } from './contexts';
-import { Helpers } from './helpers';
+import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 
 export enum ResolvedKind {
     // up values
@@ -27,7 +27,7 @@ export class ResolvedInfo {
     public root: boolean;
     public local: boolean;
     public register: number;
-    private constIndex: number;
+    public constIndex: number;
     private upvalueIndex: number;
     public protoIndex: number;
 
@@ -66,7 +66,7 @@ export class ResolvedInfo {
         return this.upvalueIndex = -this.functionContext.findOrCreateUpvalue(this.identifierName);
     }
 
-    public getRegisterOrIndex() {
+    public getRegisterOrIndex(): number {
         if (this.kind === ResolvedKind.Register) {
             return this.register;
         }
@@ -86,7 +86,7 @@ export class ResolvedInfo {
         throw new Error('It is not register or const index');
     }
 
-    public getRegister() {
+    public getRegister(): number {
         if (this.kind === ResolvedKind.Register) {
             return this.register;
         }
@@ -94,7 +94,7 @@ export class ResolvedInfo {
         throw new Error('It is not register or const index');
     }
 
-    public getUpvalue() {
+    public getUpvalue(): number {
         if (this.kind === ResolvedKind.Upvalue) {
             return this.ensureUpvalueIndex();
         }
@@ -102,12 +102,37 @@ export class ResolvedInfo {
         throw new Error('It is not upvalue');
     }
 
-    public getProto() {
+    public getProto(): number {
         if (this.kind === ResolvedKind.Closure) {
             return this.protoIndex;
         }
 
         throw new Error('It is not Closure');
+    }
+
+    public optimize(): ResolvedInfo {
+        if (this.kind !== ResolvedKind.Register) {
+            return this;
+        }
+
+        // we need to suppres redundant LOADK & MOVES
+        const opCodes = this.functionContext.code[this.functionContext.code.length - 1];
+        if (opCodes[0] === Ops.LOADK) {
+            this.kind = ResolvedKind.Const;
+            this.constIndex = opCodes[2];
+            // remove optimized code
+            this.functionContext.code.pop();
+            return this;
+        }
+
+        if (opCodes[0] === Ops.MOVE) {
+            this.register = opCodes[2];
+            // remove optimized code
+            this.functionContext.code.pop();
+            return this;
+        }
+
+        return this;
     }
 }
 

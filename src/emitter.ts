@@ -248,8 +248,8 @@ export class Emitter {
             this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
             this.processExpression(node.elements[0]);
 
-            const zeroValueInfo = this.functionContext.stack.pop();
-            const zeroIndexInfo = this.functionContext.stack.pop();
+            const zeroValueInfo = this.functionContext.stack.pop().optimize();
+            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
 
             this.functionContext.code.push(
                 [Ops.SETTABLE,
@@ -264,8 +264,8 @@ export class Emitter {
         this.processExpression(node.argumentExpression);
 
         // perform load
-        const indexInfo = this.functionContext.stack.pop();
-        const variableInfo = this.functionContext.stack.pop();
+        const indexInfo = this.functionContext.stack.pop().optimize();
+        const variableInfo = this.functionContext.stack.pop().optimize();
 
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
@@ -330,8 +330,8 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
-                const leftOpNode = this.functionContext.stack.pop();
-                const rightOpNode = this.functionContext.stack.pop();
+                const leftOpNode = this.functionContext.stack.pop().optimize();
+                const rightOpNode = this.functionContext.stack.pop().optimize();
                 const resultInfo = this.functionContext.useRegisterAndPush();
 
                 const opsMap = [];
@@ -400,6 +400,7 @@ export class Emitter {
             const resultInfo = this.functionContext.useRegisterAndPush();
             const objectIdentifierInfo = resolvedInfo.parentInfo;
             const memberIdentifierInfo = resolvedInfo.currentInfo;
+
             this.functionContext.code.push(
                 [Ops.GETTABUP,
                 resultInfo.getRegister(),
@@ -425,8 +426,8 @@ export class Emitter {
         this.resolver.Scope.pop();
 
         // perform load
-        const memberIdentifierInfo = this.functionContext.stack.pop();
-        const objectIdentifierInfo = this.functionContext.stack.pop();
+        const memberIdentifierInfo = this.functionContext.stack.pop().optimize();
+        const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(

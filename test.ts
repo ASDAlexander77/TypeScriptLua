@@ -1,2 +1,3 @@
 let list: number[] = [];
-let l = list[1];
+list[1] = 10;
+console.log(list[1]);
