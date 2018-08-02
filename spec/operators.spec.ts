@@ -77,7 +77,7 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
-    it('Logical (basic 2)', () => expect('false\r\false\r\true\r\ntrue\r\n').to.equals(new Run().test([
+    it('Logical (basic 2)', () => expect('false\r\nfalse\r\ntrue\r\ntrue\r\n').to.equals(new Run().test([
         'let r, x = 1, y = 1;                       \
         r = x > y;                                  \
         console.log(r);                             \
