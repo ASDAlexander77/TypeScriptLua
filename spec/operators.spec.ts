@@ -65,7 +65,24 @@ describe('Arithmetic Operators', () => {
         console.log(x);                             \
     '])));
 
-    it('Logical (basic 1)', () => expect('false\r\ntrue\r\nfalse\r\ntrue\r\n').to.equals(new Run().test([
+    it('Logical (basic 1)', () => expect(
+        'false\r\nfalse\r\ntrue\r\ntrue\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\ntrue\r\nfalse\r\ntrue\r\n')
+        .to.equals(new Run().test([
+        'console.log(1 > 2);                        \
+        console.log(1 >= 2);                        \
+        console.log(1 < 2);                         \
+        console.log(1 <= 2);                        \
+        console.log(2 > 1);                         \
+        console.log(2 >= 1);                        \
+        console.log(2 < 1);                         \
+        console.log(2 <= 1);                        \
+        console.log(2 > 2);                         \
+        console.log(2 >= 2);                        \
+        console.log(2 < 2);                         \
+        console.log(2 <= 2);                        \
+    '])));
+
+    it('Logical (basic 2)', () => expect('false\r\ntrue\r\nfalse\r\ntrue\r\n').to.equals(new Run().test([
         'let r, x = 1, y = 2;                       \
         r = x > y;                                  \
         console.log(r);                             \
@@ -77,7 +94,7 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
-    it('Logical (basic 2)', () => expect('false\r\nfalse\r\ntrue\r\ntrue\r\n').to.equals(new Run().test([
+    it('Logical (basic 3)', () => expect('false\r\nfalse\r\ntrue\r\ntrue\r\n').to.equals(new Run().test([
         'let r, x = 1, y = 1;                       \
         r = x > y;                                  \
         console.log(r);                             \
@@ -89,7 +106,7 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
-    it('Logical (basic 3)', () => expect('true\r\nfalse\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
+    it('Logical (basic 4)', () => expect('true\r\nfalse\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
         'let r, x = 2, y = 1;                       \
         r = x > y;                                  \
         console.log(r);                             \
