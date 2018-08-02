@@ -297,6 +297,14 @@ export class Emitter {
                             getTabUpOpArray[2],
                             getTabUpOpArray[3],
                             rightNode.getRegisterOrIndex()]);
+                    } if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
+                        // left of = is method reference
+                        const getTableOpArray = this.functionContext.code.pop();
+                        this.functionContext.code.push([
+                            Ops.SETTABLE,
+                            getTableOpArray[2],
+                            getTableOpArray[3],
+                            rightNode.getRegisterOrIndex()]);
                     } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.MOVE) {
                         // if we put local var value we need to remove it
                         const readMoveOpArray = this.functionContext.code.pop();
