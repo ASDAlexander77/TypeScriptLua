@@ -96,14 +96,23 @@ export class Run {
             });
         } catch (e) {
             // clean up
-            tempSourceFiles.forEach(f => fs.unlinkSync(f));
-            fs.unlinkSync(tempTestOutputFile);
+            tempSourceFiles.forEach(f => {
+                if (fs.existsSync(f)) { fs.unlinkSync(f); }
+            });
+            if (fs.existsSync(tempTestOutputFile)) {
+                fs.unlinkSync(tempTestOutputFile);
+            }
+
             throw e;
         }
 
         // clean up
-        tempSourceFiles.forEach(f => fs.unlinkSync(f));
-        fs.unlinkSync(tempTestOutputFile);
+        tempSourceFiles.forEach(f => {
+            if (fs.existsSync(f)) { fs.unlinkSync(f); }
+        });
+        if (fs.existsSync(tempTestOutputFile)) {
+            fs.unlinkSync(tempTestOutputFile);
+        }
 
         return actualOutput;
     }

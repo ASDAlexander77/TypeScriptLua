@@ -402,6 +402,19 @@ export class Emitter {
             case ts.SyntaxKind.LessThanLessThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+
+                let leftOpNode = this.functionContext.stack.pop().optimize();
+                let rightOpNode = this.functionContext.stack.pop().optimize();
+                let resultInfo = this.functionContext.useRegisterAndPush();
+
+                this.functionContext.code.push([
+                    this.opsMap[node.operatorToken.kind],
+                    resultInfo.getRegister(),
+                    leftOpNode.getRegisterOrIndex(),
+                    rightOpNode.getRegisterOrIndex()]);
+
+                break;
+
             case ts.SyntaxKind.EqualsEqualsToken:
             case ts.SyntaxKind.EqualsEqualsEqualsToken:
             case ts.SyntaxKind.LessThanToken:
@@ -411,63 +424,51 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanToken:
             case ts.SyntaxKind.GreaterThanEqualsToken:
 
-                const leftOpNode = this.functionContext.stack.pop().optimize();
-                const rightOpNode = this.functionContext.stack.pop().optimize();
-                const resultInfo = this.functionContext.useRegisterAndPush();
+                const leftOpNode2 = this.functionContext.stack.pop().optimize();
+                const rightOpNode2 = this.functionContext.stack.pop().optimize();
+                const resultInfo2 = this.functionContext.useRegisterAndPush();
 
                 this.functionContext.code.push([
                     this.opsMap[node.operatorToken.kind],
-                    resultInfo.getRegister(),
-                    leftOpNode.getRegisterOrIndex(),
-                    rightOpNode.getRegisterOrIndex()]);
+                    1,
+                    leftOpNode2.getRegisterOrIndex(),
+                    rightOpNode2.getRegisterOrIndex()]);
 
                 // in case of logical ops finish it
+                let trueValue = 1;
+                let falseValue = 0;
                 switch (node.operatorToken.kind) {
-                    case ts.SyntaxKind.EqualsEqualsToken:
-                    case ts.SyntaxKind.EqualsEqualsEqualsToken:
-                    case ts.SyntaxKind.LessThanToken:
-                    case ts.SyntaxKind.LessThanEqualsToken:
                     case ts.SyntaxKind.ExclamationEqualsToken:
                     case ts.SyntaxKind.ExclamationEqualsEqualsToken:
                     case ts.SyntaxKind.GreaterThanToken:
                     case ts.SyntaxKind.GreaterThanEqualsToken:
-
-                        let trueValue = 1;
-                        let falseValue = 0;
-                        switch (node.operatorToken.kind) {
-                            case ts.SyntaxKind.ExclamationEqualsToken:
-                            case ts.SyntaxKind.ExclamationEqualsEqualsToken:
-                            case ts.SyntaxKind.GreaterThanToken:
-                            case ts.SyntaxKind.GreaterThanEqualsToken:
-                                trueValue = 0;
-                                falseValue = 1;
-                                break;
-                        }
-
-                        this.functionContext.code.push([
-                            Ops.JMP,
-                            resultInfo.getRegister(),
-                            1]);
-
-                        this.functionContext.code.push([
-                            Ops.LOADBOOL,
-                            resultInfo.getRegister(),
-                            falseValue,
-                            1]);
-
-                        this.functionContext.code.push([
-                            Ops.LOADBOOL,
-                            resultInfo.getRegister(),
-                            trueValue,
-                            0]);
+                        trueValue = 0;
+                        falseValue = 1;
                         break;
                 }
+
+                this.functionContext.code.push([
+                    Ops.JMP,
+                    0,
+                    1]);
+
+                this.functionContext.code.push([
+                    Ops.LOADBOOL,
+                    resultInfo2.getRegister(),
+                    falseValue,
+                    1]);
+
+                this.functionContext.code.push([
+                    Ops.LOADBOOL,
+                    resultInfo2.getRegister(),
+                    trueValue,
+                    0]);
 
                 break;
 
             case ts.SyntaxKind.AmpersandAmpersandToken:
             case ts.SyntaxKind.BarBarToken:
-            
+
                 break;
 
             default: throw new Error('Not Implemented');
