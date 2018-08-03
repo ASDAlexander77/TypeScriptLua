@@ -403,9 +403,9 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
-                let leftOpNode = this.functionContext.stack.pop().optimize();
-                let rightOpNode = this.functionContext.stack.pop().optimize();
-                let resultInfo = this.functionContext.useRegisterAndPush();
+                const leftOpNode = this.functionContext.stack.pop().optimize();
+                const rightOpNode = this.functionContext.stack.pop().optimize();
+                const resultInfo = this.functionContext.useRegisterAndPush();
 
                 this.functionContext.code.push([
                     this.opsMap[node.operatorToken.kind],
@@ -428,24 +428,25 @@ export class Emitter {
                 const rightOpNode2 = this.functionContext.stack.pop().optimize();
                 const resultInfo2 = this.functionContext.useRegisterAndPush();
 
-                this.functionContext.code.push([
-                    this.opsMap[node.operatorToken.kind],
-                    1,
-                    leftOpNode2.getRegisterOrIndex(),
-                    rightOpNode2.getRegisterOrIndex()]);
-
-                // in case of logical ops finish it
-                let trueValue = 1;
-                let falseValue = 0;
+                let equalsTo = 1;
                 switch (node.operatorToken.kind) {
                     case ts.SyntaxKind.ExclamationEqualsToken:
                     case ts.SyntaxKind.ExclamationEqualsEqualsToken:
                     case ts.SyntaxKind.GreaterThanToken:
                     case ts.SyntaxKind.GreaterThanEqualsToken:
-                        trueValue = 0;
-                        falseValue = 1;
-                        break;
+                        equalsTo = 0;
+                    break;
                 }
+
+                this.functionContext.code.push([
+                    this.opsMap[node.operatorToken.kind],
+                    equalsTo,
+                    leftOpNode2.getRegisterOrIndex(),
+                    rightOpNode2.getRegisterOrIndex()]);
+
+                // in case of logical ops finish it
+                const trueValue = 1;
+                const falseValue = 0;
 
                 this.functionContext.code.push([
                     Ops.JMP,
