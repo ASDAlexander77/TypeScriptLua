@@ -1,16 +1,10 @@
-function f() {                         
-            var a = 1;                          
-
-            function g() {                      
-                return a;                       
-            }                                   
-                                                
-            a = 2;                              
-            var b = g();                        
-            a = 3;                              
-                                                
-            return b;                           
-                                               
+const numLivesForCat = 9;              
+      const kitty = {                         
+            name: "Aurora",                     
+            numLives: numLivesForCat,           
         }                                       
                                                 
-        console.write(f()); 
+        kitty.name = "Rory";                    
+        kitty.name = "Kitty";                   
+        kitty.name = "Cat";                     
+        console.log(kitty.name); 

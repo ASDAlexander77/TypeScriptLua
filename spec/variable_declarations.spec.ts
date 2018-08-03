@@ -67,7 +67,7 @@ describe('Variable Declarations', () => {
         kitty.name = "Rory";                    \
         kitty.name = "Kitty";                   \
         kitty.name = "Cat";                     \
-        console.log(kitty.name)                 \
+        console.log(kitty.name);                \
     '])));
 
 });

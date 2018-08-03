@@ -129,6 +129,7 @@ export class Emitter {
             case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
+            case ts.SyntaxKind.ObjectLiteralExpression: this.processObjectLiteralExpression(<ts.ObjectLiteralExpression>node); return;
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
@@ -250,6 +251,36 @@ export class Emitter {
         const resolvedInfo = this.processConst(node.text, node);
         // LOADK A Bx    R(A) := Kst(Bx)
         this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+    }
+
+    private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.NEWTABLE,
+            resultInfo.getRegister(),
+            node.properties.length,
+            0]);
+
+        this.resolver.Scope.push(node);
+
+        if (node.properties.length > 0) {
+            node.properties.forEach((e: ts.PropertyAssignment, index: number) => {
+                // set 0 element
+                this.processExpression(<ts.Expression><any>e.name);
+                this.processExpression(e.initializer);
+
+                const propertyValueInfo = this.functionContext.stack.pop().optimize();
+                const propertyIndexInfo = this.functionContext.stack.pop().optimize();
+
+                this.functionContext.code.push(
+                    [Ops.SETTABLE,
+                    resultInfo.getRegister(),
+                    propertyIndexInfo.getRegisterOrIndex(),
+                    propertyValueInfo.getRegisterOrIndex()]);
+            });
+        }
+
+        this.resolver.Scope.pop();
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
