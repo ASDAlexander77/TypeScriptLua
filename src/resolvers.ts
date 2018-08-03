@@ -292,15 +292,7 @@ export class IdentifierResolver {
             return finalResolvedInfo;
         }
 
-        if (parentScope && parentScope.kind === ResolvedKind.Register) {
-            const resolvedInfo = new ResolvedInfo(functionContext);
-            resolvedInfo.kind = ResolvedKind.Const;
-            resolvedInfo.identifierName = identifier.text;
-            resolvedInfo.ensureConstIndex();
-            return resolvedInfo;
-        }
-
-        if (parentScope && parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
             const finalResolvedInfo = new ResolvedInfo(functionContext);
             finalResolvedInfo.kind = ResolvedKind.Const;
             finalResolvedInfo.identifierName = identifier.text;
