@@ -116,6 +116,8 @@ export class ResolvedInfo {
         // x = ~ 5;
         // console.log(x);
 
+        // TODO: finish optimization for logic operations
+
         if (this.kind !== ResolvedKind.Register) {
             return this;
         }
