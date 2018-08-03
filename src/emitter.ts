@@ -605,7 +605,7 @@ export class Emitter {
 
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
-            [Ops.GETTABUP,
+            [objectIdentifierInfo.kind === ResolvedKind.Upvalue ? Ops.GETTABUP : Ops.GETTABLE,
             resultInfo.getRegister(),
             objectIdentifierInfo.getRegisterOrIndex(),
             memberIdentifierInfo.getRegisterOrIndex()]);
