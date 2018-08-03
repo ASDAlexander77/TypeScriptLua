@@ -1,10 +1,13 @@
-const numLivesForCat = 9;              
-      const kitty = {                         
-            name: "Aurora",                     
-            numLives: numLivesForCat,           
-        }                                       
-                                                
-        kitty.name = "Rory";                    
-        kitty.name = "Kitty";                   
-        kitty.name = "Cat";                     
-        console.log(kitty.name); 
+let deck = {                                                           
+            suits: ["hearts", "spades", "clubs", "diamonds"],                   
+            createCardPicker: function() {                                      
+                return function() {                                             
+                    return {suit: this.suits[1]};                               
+                }                                                               
+            }                                                                   
+        }                                                                       
+                                                                                
+        let cardPicker = deck.createCardPicker();                               
+        let pickedCard = cardPicker();                                          
+                                                                                
+        console.log("spades");

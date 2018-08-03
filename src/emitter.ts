@@ -131,6 +131,7 @@ export class Emitter {
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
             case ts.SyntaxKind.ObjectLiteralExpression: this.processObjectLiteralExpression(<ts.ObjectLiteralExpression>node); return;
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
+            case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
 
@@ -434,12 +435,20 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
+                let operationCode = this.opsMap[node.operatorToken.kind];
+                if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+                    const typeResult = this.resolver.getTypeAtLocation(node);
+                    if (typeResult && typeResult.intrinsicName === 'string') {
+                        operationCode = Ops.CONCAT;
+                    }
+                }
+
                 const leftOpNode = this.functionContext.stack.pop().optimize();
                 const rightOpNode = this.functionContext.stack.pop().optimize();
                 const resultInfo = this.functionContext.useRegisterAndPush();
 
                 this.functionContext.code.push([
-                    this.opsMap[node.operatorToken.kind],
+                    operationCode,
                     resultInfo.getRegister(),
                     leftOpNode.getRegisterOrIndex(),
                     rightOpNode.getRegisterOrIndex()]);
@@ -560,6 +569,10 @@ export class Emitter {
 
         this.functionContext.code.push(
             [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1, returnCount]);
+    }
+
+    private processThisExpression(node: ts.ThisExpression): void {
+        this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
     }
 
     private processIndentifier(node: ts.Identifier): void {

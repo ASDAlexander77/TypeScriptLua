@@ -31,7 +31,15 @@ describe('Arithmetic Operators', () => {
         console.log(x2);                            \
     '])));
 
-    it.skip('String', () => expect('Good Morning\r\n').to.equals(new Run().test([
+    it('String (strict)', () => expect('Good Morning\r\n').to.equals(new Run().test([
+        'let text1:string, text2:string, text3:string;  \
+        text1 = "Good ";                                \
+        text2 = "Morning";                              \
+        text3 = text1 + text2;                          \
+        console.log(text3);                             \
+    '])));
+
+    it.skip('String (any)', () => expect('Good Morning\r\n').to.equals(new Run().test([
         'let text1, text2, text3;                   \
         text1 = "Good ";                            \
         text2 = "Morning";                          \

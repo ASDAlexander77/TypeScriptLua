@@ -66,8 +66,7 @@ export class FunctionContext {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
-            if (noerror)
-            {
+            if (noerror) {
                 return index;
             }
 

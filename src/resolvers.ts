@@ -203,6 +203,10 @@ export class IdentifierResolver {
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 
+    public getTypeAtLocation(location: ts.Node): any {
+        return (<any>this.typeChecker).getTypeAtLocation(location);
+    }
+
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         if (this.Scope.anyNotRoot()) {
             return this.resolveMemberOfCurrentScope(identifier, functionContext);
@@ -249,6 +253,15 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Register;
         resolvedInfo.identifierName = text;
         resolvedInfo.register = functionContext.findLocal(resolvedInfo.identifierName);
+        resolvedInfo.local = true;
+        return resolvedInfo;
+    }
+
+    public returnThis(functionContext: FunctionContext): ResolvedInfo {
+        const resolvedInfo = new ResolvedInfo(functionContext);
+        resolvedInfo.kind = ResolvedKind.Register;
+        resolvedInfo.identifierName = 'this';
+        resolvedInfo.register = 0;
         resolvedInfo.local = true;
         return resolvedInfo;
     }
