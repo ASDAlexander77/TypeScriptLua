@@ -30,6 +30,24 @@ describe('Variable Declarations', () => {
         console.log(g());                       \
     '])));
 
+    it.skip('var access variables within other functions 2', () => expect('2\r\n').to.equals(new Run().test([
+        'function f() {                         \
+            var a = 1;                          \
+                                                \
+            a = 2;                              \
+            var b = g();                        \
+            a = 3;                              \
+                                                \
+            return b;                           \
+                                                \
+            function g() {                      \
+                return a;                       \
+            }                                   \
+        }                                       \
+                                                \
+        console.write(f());                     \
+    '])));
+
     it('var Re-declarations and Shadowing', () => expect('1\r\n').to.equals(new Run().test([
         'function f(x:any) {                    \
             var x:any;                          \
@@ -39,5 +57,17 @@ describe('Variable Declarations', () => {
         f(20);                                  \
     '])));
 
+    it('const declarations', () => expect('Cat\r\n').to.equals(new Run().test([
+        'const numLivesForCat = 9;              \
+        const kitty = {                         \
+            name: "Aurora",                     \
+            numLives: numLivesForCat,           \
+        }                                       \
+                                                \
+        kitty.name = "Rory";                    \
+        kitty.name = "Kitty";                   \
+        kitty.name = "Cat";                     \
+        console.log(kitty.name)                 \
+    '])));
 
 });

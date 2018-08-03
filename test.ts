@@ -1,7 +1,16 @@
-let r, x = 6, y = 3;                       
-r = x < 10 && y > 1;                        
-console.log(r);                             
-r = x === 5 || y === 5;                     
-console.log(r);                             
-r = ~ false;                                
-console.log(x);
+function f() {                         
+            var a = 1;                          
+
+            function g() {                      
+                return a;                       
+            }                                   
+                                                
+            a = 2;                              
+            var b = g();                        
+            a = 3;                              
+                                                
+            return b;                           
+                                               
+        }                                       
+                                                
+        console.write(f()); 
