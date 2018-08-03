@@ -470,6 +470,34 @@ export class Emitter {
             case ts.SyntaxKind.AmpersandAmpersandToken:
             case ts.SyntaxKind.BarBarToken:
 
+                const leftOpNode3 = this.functionContext.stack.pop().optimize();
+                const rightOpNode3 = this.functionContext.stack.pop().optimize();
+                const resultInfo3 = this.functionContext.useRegisterAndPush();
+
+                let equalsTo2 = 0;
+                switch (node.operatorToken.kind) {
+                    case ts.SyntaxKind.BarBarToken:
+                        equalsTo2 = 1;
+                    break;
+                }
+
+                this.functionContext.code.push([
+                    this.opsMap[node.operatorToken.kind],
+                    resultInfo3.getRegister(),
+                    leftOpNode3.getRegisterOrIndex(),
+                    equalsTo2]);
+
+                this.functionContext.code.push([
+                    Ops.JMP,
+                    0,
+                    1]);
+
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    resultInfo3.getRegister(),
+                    rightOpNode3.getRegisterOrIndex(),
+                    0]);
+
                 break;
 
             default: throw new Error('Not Implemented');
