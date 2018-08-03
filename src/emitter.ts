@@ -482,7 +482,7 @@ export class Emitter {
                 }
 
                 this.functionContext.code.push([
-                    this.opsMap[node.operatorToken.kind],
+                    Ops.TESTSET,
                     resultInfo3.getRegister(),
                     leftOpNode3.getRegisterOrIndex(),
                     equalsTo2]);
