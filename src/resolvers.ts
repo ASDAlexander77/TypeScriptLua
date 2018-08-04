@@ -122,6 +122,10 @@ export class ResolvedInfo {
             return this;
         }
 
+        if (this.functionContext.code.length === 0) {
+            return this;
+        }
+
         // we need to suppres redundant LOADK & MOVES
         const opCodes = this.functionContext.code[this.functionContext.code.length - 1];
         if (opCodes[0] === Ops.LOADK) {
