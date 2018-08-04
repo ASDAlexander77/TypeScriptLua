@@ -66,6 +66,22 @@ export class Emitter {
         location: ts.Node, statements: ts.NodeArray<ts.Statement>, parameters: ts.NodeArray<ts.ParameterDeclaration>): FunctionContext {
         this.pushFunctionContext(location);
 
+        // if function is in object add "this" to it
+        let addThis = false;
+        let currentNode = location;
+        while (currentNode) {
+            if (currentNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+                addThis = true;
+                break;
+            }
+
+            currentNode = currentNode.parent;
+        }
+
+        if (addThis) {
+            this.functionContext.createLocal('this');
+        }
+
         parameters.forEach(p => {
             this.functionContext.createLocal((<ts.Identifier>p.name).text);
         });
@@ -369,7 +385,7 @@ export class Emitter {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
-        throw new Error ('Not implemented');
+        throw new Error('Not implemented');
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
@@ -475,7 +491,7 @@ export class Emitter {
                     case ts.SyntaxKind.GreaterThanToken:
                     case ts.SyntaxKind.GreaterThanEqualsToken:
                         equalsTo = 0;
-                    break;
+                        break;
                 }
 
                 this.functionContext.code.push([
@@ -518,7 +534,7 @@ export class Emitter {
                 switch (node.operatorToken.kind) {
                     case ts.SyntaxKind.BarBarToken:
                         equalsTo2 = 1;
-                    break;
+                        break;
                 }
 
                 this.functionContext.code.push([
@@ -572,6 +588,10 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
+        if (this.functionContext.findLocal('this') === -1) {
+            throw new Error('function does not have this');
+        }
+
         this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
     }
 
