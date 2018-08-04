@@ -38,6 +38,10 @@ export class ResolvedInfo {
         return this.kind === ResolvedKind.Register && this.register === undefined;
     }
 
+    public isThis(): boolean {
+        return this.kind === ResolvedKind.Register && this.register === 0 && this.identifierName === 'this';
+    }
+
     public ensureConstIndex(): number {
         if (this.kind !== ResolvedKind.Const) {
             throw new Error('It is not Const');

@@ -636,9 +636,16 @@ export class Emitter {
         const memberIdentifierInfo = this.functionContext.stack.pop().optimize();
         const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
+        let opCode = objectIdentifierInfo.kind === ResolvedKind.Upvalue ? Ops.GETTABUP : Ops.GETTABLE;
+        if (node.parent && node.parent.kind === ts.SyntaxKind.CallExpression && objectIdentifierInfo.kind === ResolvedKind.Register)
+        {
+            // this call
+            opCode = Ops.SELF;
+        }
+
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
-            [objectIdentifierInfo.kind === ResolvedKind.Upvalue ? Ops.GETTABUP : Ops.GETTABLE,
+            [opCode,
             resultInfo.getRegister(),
             objectIdentifierInfo.getRegisterOrIndex(),
             memberIdentifierInfo.getRegisterOrIndex()]);
