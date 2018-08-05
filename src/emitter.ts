@@ -66,36 +66,7 @@ export class Emitter {
         location: ts.Node, statements: ts.NodeArray<ts.Statement>, parameters: ts.NodeArray<ts.ParameterDeclaration>): FunctionContext {
         this.pushFunctionContext(location);
 
-        // create upvalues
-        const thisUpvalueAdded = false;
-        /*
-        if (this.functionContext.container) {
-            this.functionContext.container.locals.forEach(l => {
-                this.functionContext.createUpvalue(l.name);
-                if (l.name === 'this') {
-                    thisUpvalueAdded = true;
-                }
-            });
-        }
-        */
-
-        if (!thisUpvalueAdded) {
-            // if function is in object add "this" to it
-            let addThis = false;
-            let currentNode = location;
-            while (currentNode) {
-                if (currentNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-                    addThis = true;
-                    break;
-                }
-
-                currentNode = currentNode.parent;
-            }
-
-            if (addThis) {
-                this.functionContext.createLocal('this');
-            }
-        }
+        this.functionContext.createLocal('this');
 
         parameters.forEach(p => {
             this.functionContext.createLocal((<ts.Identifier>p.name).text);
@@ -147,6 +118,7 @@ export class Emitter {
 
     private processExpression(node: ts.Expression): void {
         switch (node.kind) {
+            case ts.SyntaxKind.NewExpression: this.processNewExpression(<ts.NewExpression>node); return;
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
             case ts.SyntaxKind.PropertyAccessExpression: this.processPropertyAccessExpression(<ts.PropertyAccessExpression>node); return;
             case ts.SyntaxKind.PrefixUnaryExpression: this.processPrefixUnaryExpression(<ts.PrefixUnaryExpression>node); return;
@@ -565,6 +537,17 @@ export class Emitter {
 
             default: throw new Error('Not Implemented');
         }
+    }
+
+    private processNewExpression(node: ts.NewExpression): void {
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.NEWTABLE,
+            resultInfo.getRegister(),
+            0,
+            0]);
+
+        this.processCallExpression(<ts.CallExpression><any>node);
     }
 
     private processCallExpression(node: ts.CallExpression): void {

@@ -139,7 +139,7 @@ export class ResolvedInfo {
             return this;
         }
 
-        if (opCodes[0] === Ops.MOVE) {
+        if (opCodes[0] === Ops.MOVE && opCodes[1] === this.register) {
             this.register = opCodes[2];
             // remove optimized code
             this.functionContext.code.pop();
