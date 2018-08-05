@@ -279,26 +279,12 @@ export class IdentifierResolver {
     }
 
     public returnThis(functionContext: FunctionContext): ResolvedInfo {
-        const thisLocal = functionContext.findLocal('this', true);
-        if (thisLocal !== -1) {
-            const resolvedInfo = new ResolvedInfo(functionContext);
-            resolvedInfo.kind = ResolvedKind.Register;
-            resolvedInfo.identifierName = 'this';
-            resolvedInfo.register = 0;
-            resolvedInfo.local = true;
-            return resolvedInfo;
-        }
-
-        const thisUpvalue = functionContext.findUpvalue('this', true);
-        if (thisUpvalue !== -1) {
-            const resolvedInfo = new ResolvedInfo(functionContext);
-            resolvedInfo.kind = ResolvedKind.Upvalue;
-            resolvedInfo.identifierName = 'this';
-            resolvedInfo.upvalueIndex = thisUpvalue;
-            return resolvedInfo;
-        }
-
-        throw new Error('"this" is not in locals and not in upvalues');
+        const resolvedInfo = new ResolvedInfo(functionContext);
+        resolvedInfo.kind = ResolvedKind.Register;
+        resolvedInfo.identifierName = 'this';
+        resolvedInfo.register = 0;
+        resolvedInfo.local = true;
+        return resolvedInfo;
     }
 
     public returnResolvedEnv(functionContext: FunctionContext, root?: boolean): ResolvedInfo {
