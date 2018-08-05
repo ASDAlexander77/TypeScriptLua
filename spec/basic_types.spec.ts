@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Basic Types', () => {
 
-    it('simple /null value: local', () => expect('false\r\nfalse\r\nfalse\r\nnil\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+    it('simple bool/null value: local', () => expect('false\r\nfalse\r\nfalse\r\nnil\r\nnil\r\nnil\r\n').to.equals(new Run().test([
         'let isDone1: boolean = false;  \
         const isDone2: boolean = false; \
         var isDone3: boolean = false;   \
