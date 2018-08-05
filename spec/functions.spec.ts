@@ -42,6 +42,7 @@ describe('Functions', () => {
       console.log(o.f());                                                       \
     '])));
 
+    // TODO: this is not working in javascript
     it.skip('this 2', () => expect('spades\r\n').to.equals(new Run().test([
         'let deck = {                                                           \
             suits: ["hearts", "spades", "clubs", "diamonds"],                   \
