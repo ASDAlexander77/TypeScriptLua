@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Objects', () => {
 
-    it('new', () => expect('true\r\nfalse\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
+    it('new', () => expect('Doe\r\n').to.equals(new Run().test([
         'function Person(first, last, age, eyecolor) {                      \
             this.firstName = first;                                         \
             this.lastName = last;                                           \

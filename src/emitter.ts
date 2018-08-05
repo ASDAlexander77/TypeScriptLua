@@ -547,14 +547,19 @@ export class Emitter {
             0,
             0]);
 
-        this.processCallExpression(<ts.CallExpression><any>node);
+        this.processCallExpression(<ts.CallExpression><any>node, resultInfo);
     }
 
-    private processCallExpression(node: ts.CallExpression): void {
+    private processCallExpression(node: ts.CallExpression, _thisForNew?: ResolvedInfo): void {
 
         this.resolver.methodCall = true;
         this.processExpression(node.expression);
         this.resolver.methodCall = false;
+
+        if (_thisForNew) {
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), _thisForNew.getRegister()]);
+        }
 
         node.arguments.forEach(a => {
             // pop method arguments
@@ -564,10 +569,15 @@ export class Emitter {
         node.arguments.forEach(a => {
             this.functionContext.stack.pop();
         });
+
+        if (_thisForNew) {
+            this.functionContext.stack.pop();
+        }
+
         const methodResolvedInfo = this.functionContext.stack.pop();
 
         // TODO: temporary solution: if method called in Statement then it is not returning value
-        const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement;
+        const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement || _thisForNew;
         const isMethodArgumentCall = node.parent.kind === ts.SyntaxKind.CallExpression;
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
 
@@ -576,7 +586,7 @@ export class Emitter {
         }
 
         this.functionContext.code.push(
-            [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1, returnCount]);
+            [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1 + (_thisForNew ? 1 : 0), returnCount]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
