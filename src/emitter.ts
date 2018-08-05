@@ -77,8 +77,7 @@ export class Emitter {
             });
         }
 
-        if (!thisUpvalueAdded)
-        {
+        if (!thisUpvalueAdded) {
             // if function is in object add "this" to it
             let addThis = false;
             let currentNode = location;
