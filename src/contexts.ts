@@ -40,10 +40,21 @@ export class FunctionContext {
         return index;
     }
 
-    public findUpvalue(name: string): number {
+    public createUpvalue(name: string): number {
         // upvalues start with 0
         const index = this.upvalues.findIndex(e => e === name);
         if (index === -1) {
+            this.upvalues.push(name);
+            return this.upvalues.length - 1;
+        }
+
+        throw new Error('Upvalue:' + name + 'exists');
+    }
+
+    public findUpvalue(name: string, noerror?: boolean): number {
+        // upvalues start with 0
+        const index = this.upvalues.findIndex(e => e === name);
+        if (index === -1 && !noerror) {
             throw new Error('Item can\'t be found');
         }
 

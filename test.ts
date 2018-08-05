@@ -1,8 +1,13 @@
-var o = {                                                              
-        prop: 37,                                                               
-        f: function() {                                                         
-          return this.prop;                                                     
-        }                                                                       
-      };                                                                        
-                                                                                
-      console.log(o.f())
+let deck = {
+  suits: ['hearts', 'spades', 'clubs', 'diamonds'],
+  createCardPicker: function () {
+    return function () {
+      return { suit: this.suits[1] };
+    }
+  }
+}
+
+let cardPicker = deck.createCardPicker();
+let pickedCard = cardPicker();
+
+console.log(pickedCard.suit);

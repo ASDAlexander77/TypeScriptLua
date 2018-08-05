@@ -66,20 +66,34 @@ export class Emitter {
         location: ts.Node, statements: ts.NodeArray<ts.Statement>, parameters: ts.NodeArray<ts.ParameterDeclaration>): FunctionContext {
         this.pushFunctionContext(location);
 
-        // if function is in object add "this" to it
-        let addThis = false;
-        let currentNode = location;
-        while (currentNode) {
-            if (currentNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-                addThis = true;
-                break;
-            }
-
-            currentNode = currentNode.parent;
+        // create upvalues
+        let thisUpvalueAdded = false;
+        if (this.functionContext.container) {
+            this.functionContext.container.locals.forEach(l => {
+                this.functionContext.createUpvalue(l.name);
+                if (l.name === 'this') {
+                    thisUpvalueAdded = true;
+                }
+            });
         }
 
-        if (addThis) {
-            this.functionContext.createLocal('this');
+        if (!thisUpvalueAdded)
+        {
+            // if function is in object add "this" to it
+            let addThis = false;
+            let currentNode = location;
+            while (currentNode) {
+                if (currentNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+                    addThis = true;
+                    break;
+                }
+
+                currentNode = currentNode.parent;
+            }
+
+            if (addThis) {
+                this.functionContext.createLocal('this');
+            }
         }
 
         parameters.forEach(p => {
@@ -247,25 +261,17 @@ export class Emitter {
         this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), resultInfo.getRegister()]);
     }
 
-    private processConst(value: any, node: ts.Node): ResolvedInfo {
-        const resolvedInfo = new ResolvedInfo(this.functionContext);
-        resolvedInfo.kind = ResolvedKind.Const;
-        resolvedInfo.value = value;
-        resolvedInfo.node = node;
-        resolvedInfo.ensureConstIndex();
-        return resolvedInfo;
-    }
-
     private processNumericLiteral(node: ts.NumericLiteral): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
-        const resolvedInfo = this.processConst(node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text), node);
+        const resolvedInfo = this.resolver.returnConst(
+            node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text), this.functionContext);
         // LOADK A Bx    R(A) := Kst(Bx)
         this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
-        const resolvedInfo = this.processConst(node.text, node);
+        const resolvedInfo = this.resolver.returnConst(node.text, this.functionContext);
         // LOADK A Bx    R(A) := Kst(Bx)
         this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
     }
@@ -588,10 +594,6 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        if (this.functionContext.findLocal('this') === -1) {
-            throw new Error('function does not have this');
-        }
-
         this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
     }
 
@@ -637,11 +639,8 @@ export class Emitter {
         const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
         let opCode = objectIdentifierInfo.kind === ResolvedKind.Upvalue ? Ops.GETTABUP : Ops.GETTABLE;
-        if (objectIdentifierInfo.kind === ResolvedKind.Register) {
-            // this call
-            // TODO: finish when returned via function
+        if (node.parent && node.parent.kind === ts.SyntaxKind.CallExpression && objectIdentifierInfo.kind === ResolvedKind.Register) {
             opCode = Ops.SELF;
-            const typeInfo = this.resolver.getTypeAtLocation(node);
         }
 
         const resultInfo = this.functionContext.useRegisterAndPush();
