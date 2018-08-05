@@ -190,8 +190,12 @@ export class ScopeContext {
         return this.scope.pop();
     }
 
-    public peek(): any {
-        return this.scope[this.scope.length - 1];
+    public peek(index?: number): any {
+        return this.scope[index ? index : this.scope.length - 1];
+    }
+
+    public getLength(): any {
+        return this.scope.length;
     }
 
     public any(): boolean {
@@ -209,6 +213,8 @@ export class IdentifierResolver {
 
     public constructor(private typeChecker: ts.TypeChecker) {
     }
+
+    public methodCall: boolean;
 
     public getTypeAtLocation(location: ts.Node): any {
         return (<any>this.typeChecker).getTypeAtLocation(location);
