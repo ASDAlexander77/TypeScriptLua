@@ -67,7 +67,8 @@ export class Emitter {
         this.pushFunctionContext(location);
 
         // create upvalues
-        let thisUpvalueAdded = false;
+        const thisUpvalueAdded = false;
+        /*
         if (this.functionContext.container) {
             this.functionContext.container.locals.forEach(l => {
                 this.functionContext.createUpvalue(l.name);
@@ -76,9 +77,9 @@ export class Emitter {
                 }
             });
         }
+        */
 
-        if (!thisUpvalueAdded)
-        {
+        if (!thisUpvalueAdded) {
             // if function is in object add "this" to it
             let addThis = false;
             let currentNode = location;
@@ -568,7 +569,9 @@ export class Emitter {
 
     private processCallExpression(node: ts.CallExpression): void {
 
+        this.resolver.methodCall = true;
         this.processExpression(node.expression);
+        this.resolver.methodCall = false;
 
         node.arguments.forEach(a => {
             // pop method arguments
@@ -639,7 +642,7 @@ export class Emitter {
         const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
         let opCode = objectIdentifierInfo.kind === ResolvedKind.Upvalue ? Ops.GETTABUP : Ops.GETTABLE;
-        if (node.parent && node.parent.kind === ts.SyntaxKind.CallExpression && objectIdentifierInfo.kind === ResolvedKind.Register) {
+        if (this.resolver.methodCall && objectIdentifierInfo.kind === ResolvedKind.Register) {
             opCode = Ops.SELF;
         }
 
