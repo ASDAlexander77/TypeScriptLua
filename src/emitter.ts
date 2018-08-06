@@ -583,7 +583,6 @@ export class Emitter {
                 this.processExpression(node.left);
 
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
-                const resultInfo3 = this.functionContext.useRegisterAndPush();
 
                 let equalsTo2 = 0;
                 switch (node.operatorToken.kind) {
@@ -592,11 +591,12 @@ export class Emitter {
                         break;
                 }
 
-                this.functionContext.code.push([
+                const testSetOp = [
                     Ops.TESTSET,
-                    resultInfo3.getRegister(),
+                    undefined,
                     leftOpNode3.getRegisterOrIndex(),
-                    equalsTo2]);
+                    equalsTo2]
+                this.functionContext.code.push(testSetOp);
 
                 const jmpOp = [
                     Ops.JMP,
@@ -609,6 +609,8 @@ export class Emitter {
                 this.processExpression(node.right);
 
                 const rightOpNode3 = this.functionContext.stack.pop().optimize();
+                const resultInfo3 = this.functionContext.useRegisterAndPush();
+                testSetOp[1] = resultInfo3.getRegister();
 
                 if (rightOpNode3.getRegisterOrIndex() < 0) {
                     this.functionContext.code.push([
