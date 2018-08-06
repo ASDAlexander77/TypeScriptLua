@@ -149,8 +149,8 @@ export class Emitter {
             case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
-            case ts.SyntaxKind.NoSubstitutionTemplateLiteral: 
-                this.processNoSubstitutionTemplateLiteral(<ts.NoSubstitutionTemplateLiteral>node); return;
+            case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+                            this.processNoSubstitutionTemplateLiteral(<ts.NoSubstitutionTemplateLiteral>node); return;
             case ts.SyntaxKind.ObjectLiteralExpression: this.processObjectLiteralExpression(<ts.ObjectLiteralExpression>node); return;
             case ts.SyntaxKind.TemplateExpression: this.processTemplateExpression(<ts.TemplateExpression>node); return;
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
@@ -483,6 +483,11 @@ export class Emitter {
 
                         this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
                     }
+                } else if (leftNode.kind === ResolvedKind.Upvalue) {
+                    this.functionContext.code.push([
+                        Ops.SETUPVAL,
+                        rightNode.getRegister(),
+                        leftNode.getRegisterOrIndex()]);
                 } else {
                     throw new Error('Not Implemented');
                 }
@@ -852,9 +857,9 @@ export class Emitter {
 
         functionContext.upvalues.forEach((upvalue, index: number) => {
             // in stack (bool)
-            this.writer.writeByte((functionContext.container) ? 0 : 1);
+            this.writer.writeByte((upvalue.instack) ? 1 : 0);
             // index
-            this.writer.writeByte(index);
+            this.writer.writeByte(upvalue.index || index);
         });
     }
 

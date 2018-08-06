@@ -23,14 +23,15 @@ export class ResolvedInfo {
     public identifierName: string;
     public currentInfo: ResolvedInfo;
     public parentInfo: ResolvedInfo;
-    public root: boolean;
     public local: boolean;
     public register: number;
     public constIndex: number;
     public upvalueIndex: number;
     public protoIndex: number;
+    public upvalueInstack: boolean;
+    public root: boolean;
 
-    public constructor (private functionContext: FunctionContext) {
+    public constructor(private functionContext: FunctionContext) {
     }
 
     public isEmptyRegister(): boolean {
@@ -66,7 +67,7 @@ export class ResolvedInfo {
             return this.upvalueIndex;
         }
 
-        return this.upvalueIndex = -this.functionContext.findOrCreateUpvalue(this.identifierName);
+        return this.upvalueIndex = -this.functionContext.findOrCreateUpvalue(this.identifierName, this.upvalueInstack);
     }
 
     public getRegisterOrIndex(): number {
@@ -244,7 +245,7 @@ export class IdentifierResolver {
                     if (resolved.flags !== 2) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
                     } else {
-                        return this.returnLocal(identifier.text, functionContext);
+                        return this.returnLocalOrUpvalue(identifier.text, functionContext);
                     }
 
                     break;
@@ -294,9 +295,36 @@ export class IdentifierResolver {
         const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.identifierName = '_ENV';
-        resolvedInfo.root = root;
+        resolvedInfo.upvalueInstack = true;
+        resolvedInfo.root = true;
         resolvedInfo.ensureUpvalueIndex();
         return resolvedInfo;
+    }
+
+    public returnLocalOrUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {
+
+        const localVarIndex = functionContext.findLocal(text, true);
+        if (localVarIndex !== -1) {
+            const resolvedInfo = new ResolvedInfo(functionContext);
+            resolvedInfo.kind = ResolvedKind.Register;
+            resolvedInfo.identifierName = text;
+            resolvedInfo.register = localVarIndex;
+            resolvedInfo.local = true;
+            return resolvedInfo;
+        }
+
+        if (functionContext.container) {
+            const localVarIndexAsUpvalue = functionContext.container.findLocal(text, true);
+            if (localVarIndexAsUpvalue !== -1) {
+                const resolvedInfo = new ResolvedInfo(functionContext);
+                resolvedInfo.kind = ResolvedKind.Upvalue;
+                resolvedInfo.identifierName = text;
+                resolvedInfo.upvalueInstack = true;
+                return resolvedInfo;
+            }
+        }
+
+        throw new Error('Could not find variable');
     }
 
     private resolveMemberOfCurrentScope(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {

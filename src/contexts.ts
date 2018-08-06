@@ -1,9 +1,15 @@
 import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 
-class LocalInfo {
+class LocalVarInfo {
     public name: string;
     public register: number;
+}
+
+class UpvalueInfo {
+    public name: string;
+    public instack: boolean;
+    public index: number;
 }
 
 export class FunctionContext {
@@ -24,27 +30,27 @@ export class FunctionContext {
     public maxstacksize = 2; // register 0/1 at least
     public code: Array<Array<number>> = [];
     public contants: Array<any> = [];
-    public locals: Array<LocalInfo> = [];
-    public upvalues: Array<string> = [];
+    public locals: Array<LocalVarInfo> = [];
+    public upvalues: Array<UpvalueInfo> = [];
     public protos: Array<FunctionContext> = [];
     public debug: Array<any> = [];
 
-    public findOrCreateUpvalue(name: string): number {
+    public findOrCreateUpvalue(name: string, instack: boolean): number {
         // upvalues start with 0
-        const index = this.upvalues.findIndex(e => e === name);
+        const index = this.upvalues.findIndex(e => e.name === name);
         if (index === -1) {
-            this.upvalues.push(name);
+            this.upvalues.push({name, instack: instack, index: undefined});
             return this.upvalues.length - 1;
         }
 
         return index;
     }
 
-    public createUpvalue(name: string): number {
+    public createUpvalue(name: string, instack: boolean): number {
         // upvalues start with 0
-        const index = this.upvalues.findIndex(e => e === name);
+        const index = this.upvalues.findIndex(e => e.name === name);
         if (index === -1) {
-            this.upvalues.push(name);
+            this.upvalues.push({name, instack: false || instack, index: undefined});
             return this.upvalues.length - 1;
         }
 
@@ -53,7 +59,7 @@ export class FunctionContext {
 
     public findUpvalue(name: string, noerror?: boolean): number {
         // upvalues start with 0
-        const index = this.upvalues.findIndex(e => e === name);
+        const index = this.upvalues.findIndex(e => e.name === name);
         if (index === -1 && !noerror) {
             throw new Error('Item can\'t be found');
         }
@@ -66,7 +72,7 @@ export class FunctionContext {
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
             const registerInfo = this.useRegister();
-            this.locals.push(<LocalInfo>{ name: name, register: registerInfo.getRegister() });
+            this.locals.push(<LocalVarInfo>{ name: name, register: registerInfo.getRegister() });
             return registerInfo;
         }
 
