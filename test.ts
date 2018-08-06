@@ -1,6 +1,6 @@
-var a;
-var b;
+let a;
+let b = false;
 
-a = b = 1;
+a = b || 10;
 
 console.log(a);

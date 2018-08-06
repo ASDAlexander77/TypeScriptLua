@@ -589,11 +589,19 @@ export class Emitter {
                     0,
                     1]);
 
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    resultInfo3.getRegister(),
-                    rightOpNode3.getRegisterOrIndex(),
-                    0]);
+                if (rightOpNode3.getRegisterOrIndex() < 0) {
+                    this.functionContext.code.push([
+                        Ops.LOADK,
+                        resultInfo3.getRegister(),
+                        rightOpNode3.getRegisterOrIndex(),
+                        0]);
+                } else {
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        resultInfo3.getRegister(),
+                        rightOpNode3.getRegisterOrIndex(),
+                        0]);
+                }
 
                 break;
 
