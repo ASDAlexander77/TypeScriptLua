@@ -1,6 +1,3 @@
-let a;
-let b;
-
-a = (b || (b = 1));
-
-console.log(a);
+let fullName = `Bob Bobbington`;
+let age  = 37;
+let sentence = `Hello, my name is ${fullName}. I\'ll be ${ age + 1} years old next month.`;

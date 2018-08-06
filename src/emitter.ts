@@ -149,7 +149,10 @@ export class Emitter {
             case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
+            case ts.SyntaxKind.NoSubstitutionTemplateLiteral: 
+                this.processNoSubstitutionTemplateLiteral(<ts.NoSubstitutionTemplateLiteral>node); return;
             case ts.SyntaxKind.ObjectLiteralExpression: this.processObjectLiteralExpression(<ts.ObjectLiteralExpression>node); return;
+            case ts.SyntaxKind.TemplateExpression: this.processTemplateExpression(<ts.TemplateExpression>node); return;
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
             case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
@@ -283,6 +286,14 @@ export class Emitter {
         const resolvedInfo = this.resolver.returnConst(node.text, this.functionContext);
         // LOADK A Bx    R(A) := Kst(Bx)
         this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+    }
+
+    private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
+        this.processStringLiteral(<ts.StringLiteral><any>node);
+    }
+
+    private processTemplateExpression(node: ts.TemplateExpression): void {
+        this.transpileTSNode(node);
     }
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
@@ -595,7 +606,7 @@ export class Emitter {
                     Ops.TESTSET,
                     undefined,
                     leftOpNode3.getRegisterOrIndex(),
-                    equalsTo2]
+                    equalsTo2];
                 this.functionContext.code.push(testSetOp);
 
                 const jmpOp = [
