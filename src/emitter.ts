@@ -66,7 +66,21 @@ export class Emitter {
         location: ts.Node, statements: ts.NodeArray<ts.Statement>, parameters: ts.NodeArray<ts.ParameterDeclaration>): FunctionContext {
         this.pushFunctionContext(location);
 
-        this.functionContext.createLocal('this');
+        let createThis = false;
+        function checkThisKeyward(node: ts.Node): any {
+            if (node.kind === ts.SyntaxKind.ThisKeyword) {
+                createThis = true;
+                return true;
+            }
+
+            ts.forEachChild(node, checkThisKeyward);
+        }
+
+        ts.forEachChild(location, checkThisKeyward);
+
+        if (createThis) {
+            this.functionContext.createLocal('this');
+        }
 
         parameters.forEach(p => {
             this.functionContext.createLocal((<ts.Identifier>p.name).text);
