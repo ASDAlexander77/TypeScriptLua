@@ -1,5 +1,5 @@
-let a;
-let b;
+var a;
+var b;
 
 a = b = 1;
 
