@@ -254,6 +254,9 @@ export class IdentifierResolver {
 
                 case ts.SyntaxKind.FunctionDeclaration:
                     return this.resolveMemberOfCurrentScope(identifier, functionContext);
+
+                case ts.SyntaxKind.EnumDeclaration:
+                    return this.resolveMemberOfCurrentScope(identifier, functionContext);
             }
         }
 

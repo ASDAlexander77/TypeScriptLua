@@ -97,6 +97,7 @@ export class Emitter {
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
+
         this.emitHeader();
 
         const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements, <any>[]);
@@ -124,6 +125,7 @@ export class Emitter {
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
+            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
         }
 
         // TODO: finish it
@@ -141,6 +143,7 @@ export class Emitter {
             case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.ElementAccessExpression: this.processElementAccessExpression(<ts.ElementAccessExpression>node); return;
+            case ts.SyntaxKind.ParenthesizedExpression: this.processParenthesizedExpression(<ts.ParenthesizedExpression>node); return;
             case ts.SyntaxKind.TrueKeyword:
             case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
             case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
@@ -158,6 +161,27 @@ export class Emitter {
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
         this.processExpression(node.expression);
+    }
+
+    private transpileTSNode(node: ts.Node) {
+        const result = ts.transpileModule(node.getFullText(), {
+            compilerOptions: { module: ts.ModuleKind.CommonJS }
+        });
+
+        const sourceFile = ts.createSourceFile(
+            'partial',
+            result.outputText,
+            ts.ScriptTarget.ES5,
+            /*setParentNodes */ true
+        );
+
+        sourceFile.statements.forEach(s => {
+            this.processStatement(s);
+        });
+    }
+
+    private processEnumDeclaration(node: ts.EnumDeclaration): void {
+        this.transpileTSNode(node);
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
@@ -349,6 +373,10 @@ export class Emitter {
             resultInfo.getRegister(),
             variableInfo.getRegisterOrIndex(),
             indexInfo.getRegisterOrIndex()]);
+    }
+
+    private processParenthesizedExpression(node: ts.ParenthesizedExpression) {
+        this.processExpression(node.expression);
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
@@ -656,9 +684,9 @@ export class Emitter {
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
             [opCode,
-            resultInfo.getRegister(),
-            objectIdentifierInfo.getRegisterOrIndex(),
-            memberIdentifierInfo.getRegisterOrIndex()]);
+                resultInfo.getRegister(),
+                objectIdentifierInfo.getRegisterOrIndex(),
+                memberIdentifierInfo.getRegisterOrIndex()]);
     }
 
     private emitHeader(): void {
