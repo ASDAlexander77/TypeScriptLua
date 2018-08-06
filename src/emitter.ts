@@ -408,15 +408,15 @@ export class Emitter {
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
-        // ... = <right>
-        this.processExpression(node.right);
-
-        // <left> = ...
-        this.processExpression(node.left);
-
         // perform '='
         switch (node.operatorToken.kind) {
             case ts.SyntaxKind.EqualsToken:
+
+                // ... = <right>
+                this.processExpression(node.right);
+
+                // <left> = ...
+                this.processExpression(node.left);
 
                 const leftNode = this.functionContext.stack.pop();
                 const rightNode = this.functionContext.stack.pop();
@@ -492,6 +492,12 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
+                // ... = <right>
+                this.processExpression(node.right);
+
+                // <left> = ...
+                this.processExpression(node.left);
+
                 let operationCode = this.opsMap[node.operatorToken.kind];
                 if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
                     const typeResult = this.resolver.getTypeAtLocation(node);
@@ -520,6 +526,12 @@ export class Emitter {
             case ts.SyntaxKind.ExclamationEqualsEqualsToken:
             case ts.SyntaxKind.GreaterThanToken:
             case ts.SyntaxKind.GreaterThanEqualsToken:
+
+                // ... = <right>
+                this.processExpression(node.right);
+
+                // <left> = ...
+                this.processExpression(node.left);
 
                 const leftOpNode2 = this.functionContext.stack.pop().optimize();
                 const rightOpNode2 = this.functionContext.stack.pop().optimize();
@@ -567,8 +579,10 @@ export class Emitter {
             case ts.SyntaxKind.AmpersandAmpersandToken:
             case ts.SyntaxKind.BarBarToken:
 
+                // <left> = ...
+                this.processExpression(node.left);
+
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
-                const rightOpNode3 = this.functionContext.stack.pop().optimize();
                 const resultInfo3 = this.functionContext.useRegisterAndPush();
 
                 let equalsTo2 = 0;
@@ -584,10 +598,17 @@ export class Emitter {
                     leftOpNode3.getRegisterOrIndex(),
                     equalsTo2]);
 
-                this.functionContext.code.push([
+                const jmpOp = [
                     Ops.JMP,
                     0,
-                    1]);
+                    1];
+                this.functionContext.code.push(jmpOp);
+                const beforeBlock = this.functionContext.code.length;
+
+                // ... = <right>
+                this.processExpression(node.right);
+
+                const rightOpNode3 = this.functionContext.stack.pop().optimize();
 
                 if (rightOpNode3.getRegisterOrIndex() < 0) {
                     this.functionContext.code.push([
@@ -602,6 +623,8 @@ export class Emitter {
                         rightOpNode3.getRegisterOrIndex(),
                         0]);
                 }
+
+                jmpOp[2] = this.functionContext.code.length - beforeBlock;
 
                 break;
 

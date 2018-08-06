@@ -40,4 +40,32 @@ describe('Special cases', () => {
         console.log(a);                         \
     '])));
 
+    it('Or in assignments(local) 3', () => expect('1\r\n').to.equals(new Run().test([
+        'let a;                                 \
+        let b;                                  \
+                                                \
+        function f() {                          \
+            return 1;                           \
+        }                                       \
+                                                \
+        a = b || f();                           \
+                                                \
+        console.log(a);                         \
+    '])));
+
+    it('Or in assignments(local) 4', () => expect('1\r\n').to.equals(new Run().test([
+        'let a;                                 \
+        let b = 1;                              \
+                                                \
+        function f() {                          \
+            let s = null;                       \
+            s();                                \
+            return 2;                           \
+        }                                       \
+                                                \
+        a = b || f();                           \
+                                                \
+        console.log(a);                         \
+    '])));
+
 });
