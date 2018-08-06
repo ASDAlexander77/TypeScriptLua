@@ -59,4 +59,16 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
+    it('external values', () => expect('true\r\n').to.equals(new Run().test([
+        'let test = false;                                                      \
+                                                                                \
+        function inner() {                                                      \
+            test = true;                                                        \
+        }                                                                       \
+                                                                                \
+        inner();                                                                \
+                                                                                \
+        console.log(test);                                                      \
+    '])));
+
 });
