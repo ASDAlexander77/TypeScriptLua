@@ -422,13 +422,12 @@ export class Emitter {
                 const rightNode = this.functionContext.stack.pop();
                 if (leftNode.kind === ResolvedKind.Register) {
 
-                    if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement)
-                    {
-                        // we need to store register in stack to reuse it in next expression
-                        this.functionContext.stack.push(leftNode);
-                    }
-
                     if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABUP) {
+                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                            // we need to store register in stack to reuse it in next expression
+                            this.functionContext.stack.push(rightNode);
+                        }
+
                         // left of = is method reference
                         const getTabUpOpArray = this.functionContext.code.pop();
 
@@ -440,6 +439,11 @@ export class Emitter {
                             getTabUpOpArray[3],
                             rightNode.getRegisterOrIndex()]);
                     } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
+                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                            // we need to store register in stack to reuse it in next expression
+                            this.functionContext.stack.push(rightNode);
+                        }
+
                         // left of = is method reference
                         const getTableOpArray = this.functionContext.code.pop();
 
@@ -451,11 +455,21 @@ export class Emitter {
                             getTableOpArray[3],
                             rightNode.getRegisterOrIndex()]);
                     } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.MOVE) {
+                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                            // we need to store register in stack to reuse it in next expression
+                            this.functionContext.stack.push(leftNode);
+                        }
+
                         // if we put local var value we need to remove it
                         const readMoveOpArray = this.functionContext.code.pop();
                         leftNode.register = readMoveOpArray[2];
                         this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
                     } else {
+                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                            // we need to store register in stack to reuse it in next expression
+                            this.functionContext.stack.push(leftNode);
+                        }
+
                         this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
                     }
                 } else {
