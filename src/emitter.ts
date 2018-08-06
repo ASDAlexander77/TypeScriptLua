@@ -189,16 +189,14 @@ export class Emitter {
             const localVar = this.functionContext.findLocal((<ts.Identifier>d.name).text, true);
             if (Helpers.isConstOrLet(node.declarationList) && localVar === -1) {
                 const localVarRegisterInfo = this.functionContext.createLocal((<ts.Identifier>d.name).text);
-
-                // reduce available register to store result
-                // DO NOT DELETE IT
-                this.functionContext.popRegister(localVarRegisterInfo);
-
                 if (d.initializer) {
                     this.processExpression(d.initializer);
                 } else {
                     this.processNullLiteral(null);
                 }
+
+                const rightNode = this.functionContext.stack.pop();
+                this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
             } else if (localVar !== -1) {
                 if (d.initializer) {
                     const localVarRegisterInfo = this.resolver.returnLocal((<ts.Identifier>d.name).text, this.functionContext);
