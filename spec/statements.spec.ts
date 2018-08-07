@@ -30,12 +30,10 @@ describe('Statements', () => {
         };                                                      \
     '])));
 
-    it('simple for', () => expect('loop 0\r\nloop 1\r\nloop 2\r\nloop 3\r\nloop 4\r\n').to.equals(new Run().test([
-        'var text = "";                                         \
-        var i;                                                  \
+    it('simple for', () => expect('0\r\n1\r\n2\r\n3\r\n4\r\n').to.equals(new Run().test([
+        'var i;                                                 \
         for (i = 0; i < 5; i++) {                               \
-            text += "loop " + i + "\r\n";                       \
+            console.log(i);                                     \
         }                                                       \
-        console.log(text);                                      \
     '])));
 });
