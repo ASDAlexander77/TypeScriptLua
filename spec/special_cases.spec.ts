@@ -68,8 +68,16 @@ describe('Special cases', () => {
         console.log(a);                         \
     '])));
 
-    it('++/-- prefix/suffix', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
+    it('++/-- prefix/suffix (local)', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
         'let a = 1;                             \
+        console.log(++a);                       \
+        console.log(--a);                       \
+        console.log(a++);                       \
+        console.log(a--);                       \
+    '])));
+
+    it('++/-- prefix/suffix (global)', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
+        'var a = 1;                             \
         console.log(++a);                       \
         console.log(--a);                       \
         console.log(a++);                       \
