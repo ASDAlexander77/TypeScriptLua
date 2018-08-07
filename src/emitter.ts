@@ -300,24 +300,39 @@ export class Emitter {
     }
 
     private processDoStatement(node: ts.DoStatement): void {
+        this.emitLoop(node.expression, node);
+    }
+
+    private processWhileStatement(node: ts.WhileStatement): void {
+
+        // jump to expression
+        const jmpOp = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(jmpOp);
+
+        const beforeBlock = this.functionContext.code.length;
+
+        jmpOp[2] = this.emitLoop(node.expression, node) - beforeBlock;
+    }
+
+    private emitLoop(expression: ts.Expression, node: ts.IterationStatement): number {
         const beforeBlock = this.functionContext.code.length;
 
         this.processStatement(node.statement);
 
-        this.processExpression(node.expression);
+        const expressionBlock = this.functionContext.code.length;
+
+        this.processExpression(expression);
 
         const ifExptNode = this.functionContext.stack.pop().optimize();
 
         const equalsTo = 1;
-        const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), 0/*unused*/, equalsTo];
+        const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), 0 /*unused*/, equalsTo];
         this.functionContext.code.push(testSetOp);
 
         const jmpOp = [Ops.JMP, 0, beforeBlock - this.functionContext.code.length - 1];
         this.functionContext.code.push(jmpOp);
-    }
 
-    private processWhileStatement(node: ts.WhileStatement): void {
-        this.processExpression(node.expression);
+        return expressionBlock;
     }
 
     private processBlock(node: ts.Block): void {

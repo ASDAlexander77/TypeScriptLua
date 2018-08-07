@@ -1,5 +1,5 @@
 let a = 10;
-do {
+while (a > 0) {
     a = a - 1;
     console.log(a); 
-} while (a > 0);
+}

@@ -21,4 +21,12 @@ describe('Statements', () => {
             console.log(a);                                     \
         } while (a > 0);                                        \
     '])));
+
+    it('simple while', () => expect('9\r\n8\r\n7\r\n6\r\n5\r\n4\r\n3\r\n2\r\n1\r\n0\r\n').to.equals(new Run().test([
+        'let a = 10;                                            \
+        while (a > 0) {                                         \
+            a = a - 1;                                          \
+            console.log(a);                                     \
+        };                                        \
+    '])));
 });
