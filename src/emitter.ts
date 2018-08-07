@@ -123,8 +123,11 @@ export class Emitter {
             case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
+            case ts.SyntaxKind.Block: this.processBlock(<ts.Block>node); return;
             case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); return;
             case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); return;
+            case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); return;
+            case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
         }
@@ -281,8 +284,7 @@ export class Emitter {
 
         let jmpElseOp;
         let elseBlock;
-        if (node.elseStatement)
-        {
+        if (node.elseStatement) {
             jmpElseOp = [Ops.JMP, 0, 1];
             this.functionContext.code.push(jmpOp);
 
@@ -291,11 +293,37 @@ export class Emitter {
 
         jmpOp[2] = this.functionContext.code.length - beforeBlock;
 
-        if (node.elseStatement)
-        {
+        if (node.elseStatement) {
             this.processStatement(node.elseStatement);
             jmpElseOp[2] = this.functionContext.code.length - elseBlock;
         }
+    }
+
+    private processDoStatement(node: ts.DoStatement): void {
+        const beforeBlock = this.functionContext.code.length;
+
+        this.processStatement(node.statement);
+
+        this.processExpression(node.expression);
+
+        const ifExptNode = this.functionContext.stack.pop().optimize();
+
+        const equalsTo = 1;
+        const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), 0/*unused*/, equalsTo];
+        this.functionContext.code.push(testSetOp);
+
+        const jmpOp = [Ops.JMP, 0, beforeBlock - this.functionContext.code.length - 1];
+        this.functionContext.code.push(jmpOp);
+    }
+
+    private processWhileStatement(node: ts.WhileStatement): void {
+        this.processExpression(node.expression);
+    }
+
+    private processBlock(node: ts.Block): void {
+        node.statements.forEach(s => {
+            this.processStatement(s);
+        });
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {

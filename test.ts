@@ -1,8 +1,5 @@
-let a = true;
-if (!a) 
-    console.log("no"); 
-else 
-    if (a) 
-        console.log("works"); 
-    else 
-        console.log("end."); 
+let a = 10;
+do {
+    a = a - 1;
+    console.log(a); 
+} while (a > 0);

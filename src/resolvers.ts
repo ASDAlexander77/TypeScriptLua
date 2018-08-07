@@ -114,7 +114,7 @@ export class ResolvedInfo {
         throw new Error('It is not Closure');
     }
 
-    public optimize(skip?:boolean): ResolvedInfo {
+    public optimize(skip?: boolean): ResolvedInfo {
         // TODO: finish optimization for code
         // let x;
         // x = ~ 5;
