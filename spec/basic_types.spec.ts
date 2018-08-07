@@ -36,12 +36,14 @@ describe('Basic Types', () => {
     '])));
 
     it('Template Strings', () => expect(
-        'Hello, my name is Bob Bobbington.\r\n\r\nI\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
+        'Hello, my name is Bob Bobbington.                                                                                \
+I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
         'let fullName: string = `Bob Bobbington`;                   \
         let age: number = 37;                                       \
         let sentence: string = `Hello, my name is ${ fullName }.    \
                                                                     \
         I\'ll be ${ age + 1 } years old next month.`;               \
+        console.log(sentence);                                      \
     '])));
 
     it('Array', () => expect('1\r\n2\r\n3\r\n10\r\n1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([

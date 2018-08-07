@@ -114,13 +114,16 @@ export class ResolvedInfo {
         throw new Error('It is not Closure');
     }
 
-    public optimize(): ResolvedInfo {
+    public optimize(skip?:boolean): ResolvedInfo {
         // TODO: finish optimization for code
         // let x;
         // x = ~ 5;
         // console.log(x);
 
         // TODO: finish optimization for logic operations
+        if (skip) {
+            return this;
+        }
 
         if (this.kind !== ResolvedKind.Register) {
             return this;

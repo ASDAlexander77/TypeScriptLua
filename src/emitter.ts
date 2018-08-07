@@ -150,7 +150,7 @@ export class Emitter {
             case ts.SyntaxKind.NumericLiteral: this.processNumericLiteral(<ts.NumericLiteral>node); return;
             case ts.SyntaxKind.StringLiteral: this.processStringLiteral(<ts.StringLiteral>node); return;
             case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-                            this.processNoSubstitutionTemplateLiteral(<ts.NoSubstitutionTemplateLiteral>node); return;
+                this.processNoSubstitutionTemplateLiteral(<ts.NoSubstitutionTemplateLiteral>node); return;
             case ts.SyntaxKind.ObjectLiteralExpression: this.processObjectLiteralExpression(<ts.ObjectLiteralExpression>node); return;
             case ts.SyntaxKind.TemplateExpression: this.processTemplateExpression(<ts.TemplateExpression>node); return;
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
@@ -508,11 +508,8 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
-                // ... = <right>
-                this.processExpression(node.right);
-
-                // <left> = ...
-                this.processExpression(node.left);
+                let leftOpNode;
+                let rightOpNode;
 
                 let operationCode = this.opsMap[node.operatorToken.kind];
                 if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
@@ -522,8 +519,21 @@ export class Emitter {
                     }
                 }
 
-                const leftOpNode = this.functionContext.stack.pop().optimize();
-                const rightOpNode = this.functionContext.stack.pop().optimize();
+                // <left> + ...
+                this.processExpression(node.left);
+
+                // ... + <right>
+                this.processExpression(node.right);
+
+
+                if (operationCode === Ops.CONCAT) {
+                    rightOpNode = this.functionContext.stack.pop();
+                    leftOpNode = this.functionContext.stack.pop();
+                } else {
+                    rightOpNode = this.functionContext.stack.pop().optimize();
+                    leftOpNode = this.functionContext.stack.pop().optimize();
+                }
+
                 const resultInfo = this.functionContext.useRegisterAndPush();
 
                 this.functionContext.code.push([
