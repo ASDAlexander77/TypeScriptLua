@@ -295,7 +295,7 @@ export class IdentifierResolver {
         const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.identifierName = '_ENV';
-        resolvedInfo.upvalueInstack = true;
+        resolvedInfo.upvalueInstack = functionContext.container ? false : true;
         resolvedInfo.root = root;
         resolvedInfo.ensureUpvalueIndex();
         return resolvedInfo;

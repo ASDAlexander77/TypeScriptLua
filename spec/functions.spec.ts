@@ -59,8 +59,7 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
-    // TODO: inverstigate why it is not working in LUA but can be done in JS
-    it.skip('external values', () => expect('true\r\n').to.equals(new Run().test([
+    it('external values', () => expect('true\r\n').to.equals(new Run().test([
         'let test = false;                                                      \
                                                                                 \
         function inner() {                                                      \
