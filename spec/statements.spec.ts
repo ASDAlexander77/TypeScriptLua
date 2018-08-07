@@ -27,6 +27,15 @@ describe('Statements', () => {
         while (a > 0) {                                         \
             a = a - 1;                                          \
             console.log(a);                                     \
-        };                                        \
+        };                                                      \
+    '])));
+
+    it('simple for', () => expect('loop 0\r\nloop 1\r\nloop 2\r\nloop 3\r\nloop 4\r\n').to.equals(new Run().test([
+        'var text = "";                                         \
+        var i;                                                  \
+        for (i = 0; i < 5; i++) {                               \
+            text += "loop " + i + "\r\n";                       \
+        }                                                       \
+        console.log(text);                                      \
     '])));
 });

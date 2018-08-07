@@ -128,6 +128,7 @@ export class Emitter {
             case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); return;
             case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); return;
             case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
+            case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.WhileStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
         }
@@ -192,10 +193,10 @@ export class Emitter {
         this.transpileTSNode(node);
     }
 
-    private processVariableStatement(node: ts.VariableStatement): void {
-        node.declarationList.declarations.forEach(d => {
+    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
+        declarationList.declarations.forEach(d => {
             const localVar = this.functionContext.findLocal((<ts.Identifier>d.name).text, true);
-            if (Helpers.isConstOrLet(node.declarationList) && localVar === -1) {
+            if (Helpers.isConstOrLet(declarationList) && localVar === -1) {
                 const localVarRegisterInfo = this.functionContext.createLocal((<ts.Identifier>d.name).text);
                 if (d.initializer) {
                     this.processExpression(d.initializer);
@@ -220,6 +221,10 @@ export class Emitter {
                 }
             }
         });
+    }
+
+    private processVariableStatement(node: ts.VariableStatement): void {
+        this.processVariableDeclarationList(node.declarationList);
     }
 
     private emitStoreToEnvObjectProperty(nameConstIndex: number) {
@@ -314,20 +319,44 @@ export class Emitter {
         jmpOp[2] = this.emitLoop(node.expression, node) - beforeBlock;
     }
 
-    private emitLoop(expression: ts.Expression, node: ts.IterationStatement): number {
+    private processForStatement(node: ts.ForStatement): void {
+        if (node.initializer) {
+            if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
+                this.processVariableDeclarationList(<ts.VariableDeclarationList>node.initializer);
+            } else {
+                this.processExpression(node.initializer);
+            }
+        }
+
+        // jump to expression
+        const jmpOp = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(jmpOp);
+
+        const beforeBlock = this.functionContext.code.length;
+
+        jmpOp[2] = this.emitLoop(node.condition, node, node.incrementor) - beforeBlock;
+    }
+
+    private emitLoop(expression: ts.Expression, node: ts.IterationStatement, incrementor?: ts.Expression): number {
         const beforeBlock = this.functionContext.code.length;
 
         this.processStatement(node.statement);
 
+        if (incrementor) {
+            this.processExpression(incrementor);
+        }
+
         const expressionBlock = this.functionContext.code.length;
 
-        this.processExpression(expression);
+        if (expression) {
+            this.processExpression(expression);
 
-        const ifExptNode = this.functionContext.stack.pop().optimize();
+            const ifExptNode = this.functionContext.stack.pop().optimize();
 
-        const equalsTo = 1;
-        const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), 0 /*unused*/, equalsTo];
-        this.functionContext.code.push(testSetOp);
+            const equalsTo = 1;
+            const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), 0 /*unused*/, equalsTo];
+            this.functionContext.code.push(testSetOp);
+        }
 
         const jmpOp = [Ops.JMP, 0, beforeBlock - this.functionContext.code.length - 1];
         this.functionContext.code.push(jmpOp);
