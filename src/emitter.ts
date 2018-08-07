@@ -124,6 +124,7 @@ export class Emitter {
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); return;
+            case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
         }
@@ -259,6 +260,41 @@ export class Emitter {
                 [Ops.RETURN, resultInfo.getRegister(), 2]);
         } else {
             this.functionContext.code.push([Ops.RETURN, 0, 1]);
+        }
+    }
+
+    private processIfStatement(node: ts.IfStatement): void {
+        this.processExpression(node.expression);
+
+        const equalsTo = 0;
+        const ifExptNode = this.functionContext.stack.pop().optimize();
+
+        const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), equalsTo];
+        this.functionContext.code.push(testSetOp);
+
+        const jmpOp = [Ops.JMP, 0, 1];
+        this.functionContext.code.push(jmpOp);
+
+        const beforeBlock = this.functionContext.code.length;
+
+        this.processStatement(node.thenStatement);
+
+        let jmpElseOp;
+        let elseBlock;
+        if (node.elseStatement)
+        {
+            jmpElseOp = [Ops.JMP, 0, 1];
+            this.functionContext.code.push(jmpOp);
+
+            elseBlock = this.functionContext.code.length;
+        }
+
+        jmpOp[2] = this.functionContext.code.length - beforeBlock;
+
+        if (node.elseStatement)
+        {
+            this.processStatement(node.elseStatement);
+            jmpElseOp[2] = this.functionContext.code.length - elseBlock;
         }
     }
 
