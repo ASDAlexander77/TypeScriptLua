@@ -1,3 +1,3 @@
-let sentence;
-sentence = 'Hello, my name is ' + ' I\'ll be years old next month.';
-console.log(sentence);
+enum Color { Red = 1, Green, Blue }
+let colorName: string = Color[2];
+console.log(colorName);

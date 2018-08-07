@@ -72,7 +72,7 @@ I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
         console.log(x2[1]);                     \
     '])));
 
-    it.skip('Enum', () => expect('Green\r\n').to.equals(new Run().test([
+    it('Enum', () => expect('Green\r\n').to.equals(new Run().test([
         'enum Color {Red = 1, Green, Blue};     \
         let colorName: string = Color[2];       \
         console.log(colorName);                 \
