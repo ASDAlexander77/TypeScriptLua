@@ -140,6 +140,7 @@ export class Emitter {
             case ts.SyntaxKind.PrefixUnaryExpression: this.processPrefixUnaryExpression(<ts.PrefixUnaryExpression>node); return;
             case ts.SyntaxKind.PostfixUnaryExpression: this.processPostfixUnaryExpression(<ts.PostfixUnaryExpression>node); return;
             case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
+            case ts.SyntaxKind.DeleteExpression: this.processDeleteExpression(<ts.DeleteExpression>node); return;
             case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.ElementAccessExpression: this.processElementAccessExpression(<ts.ElementAccessExpression>node); return;
@@ -429,68 +430,7 @@ export class Emitter {
                 // <left> = ...
                 this.processExpression(node.left);
 
-                const leftNode = this.functionContext.stack.pop();
-                const rightNode = this.functionContext.stack.pop();
-                if (leftNode.kind === ResolvedKind.Register) {
-
-                    if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABUP) {
-                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                            // we need to store register in stack to reuse it in next expression
-                            this.functionContext.stack.push(rightNode);
-                        }
-
-                        // left of = is method reference
-                        const getTabUpOpArray = this.functionContext.code.pop();
-
-                        rightNode.optimize();
-
-                        this.functionContext.code.push([
-                            Ops.SETTABUP,
-                            getTabUpOpArray[2],
-                            getTabUpOpArray[3],
-                            rightNode.getRegisterOrIndex()]);
-                    } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
-                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                            // we need to store register in stack to reuse it in next expression
-                            this.functionContext.stack.push(rightNode);
-                        }
-
-                        // left of = is method reference
-                        const getTableOpArray = this.functionContext.code.pop();
-
-                        rightNode.optimize();
-
-                        this.functionContext.code.push([
-                            Ops.SETTABLE,
-                            getTableOpArray[2],
-                            getTableOpArray[3],
-                            rightNode.getRegisterOrIndex()]);
-                    } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.MOVE) {
-                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                            // we need to store register in stack to reuse it in next expression
-                            this.functionContext.stack.push(leftNode);
-                        }
-
-                        // if we put local var value we need to remove it
-                        const readMoveOpArray = this.functionContext.code.pop();
-                        leftNode.register = readMoveOpArray[2];
-                        this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
-                    } else {
-                        if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                            // we need to store register in stack to reuse it in next expression
-                            this.functionContext.stack.push(leftNode);
-                        }
-
-                        this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
-                    }
-                } else if (leftNode.kind === ResolvedKind.Upvalue) {
-                    this.functionContext.code.push([
-                        Ops.SETUPVAL,
-                        rightNode.getRegister(),
-                        leftNode.getRegisterOrIndex()]);
-                } else {
-                    throw new Error('Not Implemented');
-                }
+                this.emitAssignOperation(node);
 
                 break;
 
@@ -658,6 +598,75 @@ export class Emitter {
 
             default: throw new Error('Not Implemented');
         }
+    }
+
+    private emitAssignOperation(node: ts.Node) {
+        const leftNode = this.functionContext.stack.pop();
+        const rightNode = this.functionContext.stack.pop();
+        if (leftNode.kind === ResolvedKind.Register) {
+            if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABUP) {
+                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                    // we need to store register in stack to reuse it in next expression
+                    this.functionContext.stack.push(rightNode);
+                }
+                // left of = is method reference
+                const getTabUpOpArray = this.functionContext.code.pop();
+                rightNode.optimize();
+                this.functionContext.code.push([
+                    Ops.SETTABUP,
+                    getTabUpOpArray[2],
+                    getTabUpOpArray[3],
+                    rightNode.getRegisterOrIndex()
+                ]);
+            } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
+                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                    // we need to store register in stack to reuse it in next expression
+                    this.functionContext.stack.push(rightNode);
+                }
+                // left of = is method reference
+                const getTableOpArray = this.functionContext.code.pop();
+                rightNode.optimize();
+                this.functionContext.code.push([
+                    Ops.SETTABLE,
+                    getTableOpArray[2],
+                    getTableOpArray[3],
+                    rightNode.getRegisterOrIndex()
+                ]);
+            } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.MOVE) {
+                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                    // we need to store register in stack to reuse it in next expression
+                    this.functionContext.stack.push(leftNode);
+                }
+                // if we put local var value we need to remove it
+                const readMoveOpArray = this.functionContext.code.pop();
+                leftNode.register = readMoveOpArray[2];
+                this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
+            } else {
+                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                    // we need to store register in stack to reuse it in next expression
+                    this.functionContext.stack.push(leftNode);
+                }
+                this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
+            }
+        } else if (leftNode.kind === ResolvedKind.Upvalue) {
+            this.functionContext.code.push([
+                Ops.SETUPVAL,
+                rightNode.getRegister(),
+                leftNode.getRegisterOrIndex()
+            ]);
+        } else {
+            throw new Error('Not Implemented');
+        }
+    }
+
+    private processDeleteExpression(node: ts.DeleteExpression): void {
+        // ... = <right>
+        this.processNullLiteral(<ts.NullLiteral><any>node);
+
+        // <left> = ...
+        this.processExpression(node.expression);
+
+        this.emitAssignOperation(node);
     }
 
     private processNewExpression(node: ts.NewExpression): void {
