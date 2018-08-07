@@ -68,4 +68,10 @@ describe('Special cases', () => {
         console.log(a);                         \
     '])));
 
+    it('Or in assignments(local) 4', () => expect('2\r\n1\r\n').to.equals(new Run().test([
+        'let a = 1;                             \
+        console.log(++a);                       \
+        console.log(--a);                       \
+    '])));
+
 });

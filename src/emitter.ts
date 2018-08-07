@@ -383,9 +383,13 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
+        this.emitNumericConst(node.text);
+    }
+
+    private emitNumericConst(text: string): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
         const resolvedInfo = this.resolver.returnConst(
-            node.text.indexOf('.') === -1 ? parseInt(node.text, 10) : parseFloat(node.text), this.functionContext);
+            text.indexOf('.') === -1 ? parseInt(text, 10) : parseFloat(text), this.functionContext);
         // LOADK A Bx    R(A) := Kst(Bx)
         this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
     }
@@ -503,24 +507,68 @@ export class Emitter {
         let opCode;
         switch (node.operator) {
             case ts.SyntaxKind.MinusToken:
-                opCode = Ops.UNM;
-                break;
             case ts.SyntaxKind.TildeToken:
-                opCode = Ops.BNOT;
-                break;
             case ts.SyntaxKind.ExclamationToken:
-                opCode = Ops.NOT;
+                switch (node.operator) {
+                    case ts.SyntaxKind.MinusToken:
+                        opCode = Ops.UNM;
+                        break;
+                    case ts.SyntaxKind.TildeToken:
+                        opCode = Ops.BNOT;
+                        break;
+                    case ts.SyntaxKind.ExclamationToken:
+                        opCode = Ops.NOT;
+                        break;
+                }
+
+                // no optimization required as expecting only Registers
+                const rightNode = this.functionContext.stack.pop();
+                const resultInfo = this.functionContext.useRegisterAndPush();
+
+                this.functionContext.code.push([
+                    opCode,
+                    resultInfo.getRegister(),
+                    rightNode.getRegisterOrIndex()]);
+                break;
+
+            case ts.SyntaxKind.PlusPlusToken:
+            case ts.SyntaxKind.MinusMinusToken:
+                switch (node.operator) {
+                    case ts.SyntaxKind.PlusPlusToken:
+                        opCode = Ops.ADD;
+                        break;
+                    case ts.SyntaxKind.MinusMinusToken:
+                        opCode = Ops.SUB;
+                        break;
+                }
+
+                this.emitNumericConst('1');
+
+                const leftNode2 = this.functionContext.stack.pop().optimize();
+                const rightNode2 = this.functionContext.stack.pop().optimize();
+                const resultInfo2 = this.functionContext.useRegisterAndPush();
+
+                this.functionContext.code.push([
+                    opCode,
+                    resultInfo2.getRegister(),
+                    rightNode2.getRegister(),
+                    leftNode2.getRegisterOrIndex()]);
+
+                const resultInfo3 = this.functionContext.stack.pop().optimize();
+
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    rightNode2.getRegister(),
+                    resultInfo3.getRegister()]);
+
+                const resultInfo4 = this.functionContext.useRegisterAndPush();
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    resultInfo4.getRegister(),
+                    rightNode2.getRegister()]);
+
                 break;
         }
-
-        // no optimization required as expecting only Registers
-        const rightNode = this.functionContext.stack.pop();
-        const resultInfo = this.functionContext.useRegisterAndPush();
-
-        this.functionContext.code.push([
-            opCode,
-            resultInfo.getRegister(),
-            rightNode.getRegister()]);
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
