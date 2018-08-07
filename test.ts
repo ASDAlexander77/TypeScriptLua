@@ -1,3 +1,2 @@
-let a = { obj: "asd" };
-delete a.obj;
-console.log(a.obj);
+let a = true;
+if (a) console.log("works");
