@@ -572,7 +572,55 @@ export class Emitter {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
-        throw new Error('Not implemented');
+        this.processExpression(node.operand);
+
+        let opCode;
+        switch (node.operator) {
+            case ts.SyntaxKind.PlusPlusToken:
+            case ts.SyntaxKind.MinusMinusToken:
+                switch (node.operator) {
+                    case ts.SyntaxKind.PlusPlusToken:
+                        opCode = Ops.ADD;
+                        break;
+                    case ts.SyntaxKind.MinusMinusToken:
+                        opCode = Ops.SUB;
+                        break;
+                }
+
+                const rightNode = this.functionContext.stack.pop().optimize();
+                const resultInfo = this.functionContext.useRegisterAndPush();
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    resultInfo.getRegister(),
+                    rightNode.getRegister()]);
+
+                const resultInfo2 = this.functionContext.useRegisterAndPush();
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    resultInfo2.getRegister(),
+                    rightNode.getRegister()]);
+
+                this.emitNumericConst('1');
+
+                const leftNode3 = this.functionContext.stack.pop().optimize();
+                const rightNode3 = this.functionContext.stack.pop().optimize();
+                const resultInfo3 = this.functionContext.useRegisterAndPush();
+
+                this.functionContext.code.push([
+                    opCode,
+                    resultInfo3.getRegister(),
+                    rightNode3.getRegister(),
+                    leftNode3.getRegisterOrIndex()]);
+
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    rightNode.getRegister(),
+                    resultInfo3.getRegister()]);
+
+                this.functionContext.stack.pop();
+
+                break;
+        }
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
