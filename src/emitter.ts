@@ -128,7 +128,7 @@ export class Emitter {
             case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); return;
             case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); return;
             case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
-            case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.WhileStatement>node); return;
+            case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.ForStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
         }
