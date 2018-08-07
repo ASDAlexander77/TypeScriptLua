@@ -296,7 +296,7 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.identifierName = '_ENV';
         resolvedInfo.upvalueInstack = true;
-        resolvedInfo.root = true;
+        resolvedInfo.root = root;
         resolvedInfo.ensureUpvalueIndex();
         return resolvedInfo;
     }

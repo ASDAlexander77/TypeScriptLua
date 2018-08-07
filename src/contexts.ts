@@ -6,7 +6,7 @@ class LocalVarInfo {
     public register: number;
 }
 
-class UpvalueInfo {
+export class UpvalueInfo {
     public name: string;
     public instack: boolean;
     public index: number;

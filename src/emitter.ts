@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { BinaryWriter } from './binarywriter';
-import { FunctionContext } from './contexts';
+import { FunctionContext, UpvalueInfo } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
@@ -855,7 +855,7 @@ export class Emitter {
     private emitUpvalues(functionContext: FunctionContext): void {
         this.writer.writeInt(functionContext.upvalues.length);
 
-        functionContext.upvalues.forEach((upvalue, index: number) => {
+        functionContext.upvalues.forEach((upvalue: UpvalueInfo, index: number) => {
             // in stack (bool)
             this.writer.writeByte((upvalue.instack) ? 1 : 0);
             // index
