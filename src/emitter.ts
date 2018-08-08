@@ -35,6 +35,19 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = Ops.EQ;
         this.opsMap[ts.SyntaxKind.GreaterThanToken] = Ops.LE;
         this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = Ops.LT;
+
+        this.opsMap[ts.SyntaxKind.PlusEqualsToken] = Ops.ADD;
+        this.opsMap[ts.SyntaxKind.MinusEqualsToken] = Ops.SUB;
+        this.opsMap[ts.SyntaxKind.AsteriskEqualsToken] = Ops.MUL;
+        this.opsMap[ts.SyntaxKind.PercentEqualsToken] = Ops.MOD;
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskEqualsToken] = Ops.POW;
+        this.opsMap[ts.SyntaxKind.SlashEqualsToken] = Ops.DIV;
+        this.opsMap[ts.SyntaxKind.AmpersandEqualsToken] = Ops.BAND;
+        this.opsMap[ts.SyntaxKind.BarEqualsToken] = Ops.BOR;
+        this.opsMap[ts.SyntaxKind.CaretEqualsToken] = Ops.BXOR;
+        this.opsMap[ts.SyntaxKind.LessThanLessThanEqualsToken] = Ops.SHL;
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = Ops.SHR;
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
     }
 
     public processNode(node: ts.Node): void {
@@ -682,6 +695,20 @@ export class Emitter {
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
 
+            case ts.SyntaxKind.PlusEqualsToken:
+            case ts.SyntaxKind.MinusEqualsToken:
+            case ts.SyntaxKind.AsteriskEqualsToken:
+            case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
+            case ts.SyntaxKind.PercentEqualsToken:
+            case ts.SyntaxKind.CaretEqualsToken:
+            case ts.SyntaxKind.SlashEqualsToken:
+            case ts.SyntaxKind.AmpersandEqualsToken:
+            case ts.SyntaxKind.BarEqualsToken:
+            case ts.SyntaxKind.CaretEqualsToken:
+            case ts.SyntaxKind.LessThanLessThanEqualsToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+
                 let leftOpNode;
                 let rightOpNode;
 
@@ -715,6 +742,29 @@ export class Emitter {
                     resultInfo.getRegister(),
                     leftOpNode.getRegisterOrIndex(),
                     rightOpNode.getRegisterOrIndex()]);
+
+                // we need to store result at the end of operation
+                switch (node.operatorToken.kind) {
+                    case ts.SyntaxKind.PlusEqualsToken:
+                    case ts.SyntaxKind.MinusEqualsToken:
+                    case ts.SyntaxKind.AsteriskEqualsToken:
+                    case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
+                    case ts.SyntaxKind.PercentEqualsToken:
+                    case ts.SyntaxKind.CaretEqualsToken:
+                    case ts.SyntaxKind.SlashEqualsToken:
+                    case ts.SyntaxKind.AmpersandEqualsToken:
+                    case ts.SyntaxKind.BarEqualsToken:
+                    case ts.SyntaxKind.CaretEqualsToken:
+                    case ts.SyntaxKind.LessThanLessThanEqualsToken:
+                    case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+
+                    // <left> = ...
+                    this.processExpression(node.left);
+
+                    this.emitAssignOperation(node);
+                    break;
+                }
 
                 break;
 

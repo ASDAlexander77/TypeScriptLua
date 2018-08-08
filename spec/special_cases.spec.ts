@@ -84,4 +84,30 @@ describe('Special cases', () => {
         console.log(a--);                       \
     '])));
 
+    it('chain of = (local)', () => expect('1\r\n1\r\n1\r\n').to.equals(new Run().test([
+        'let a, b, c;                         \
+        a = b = c = 1;                        \
+        console.log(a);                       \
+        console.log(b);                       \
+        console.log(c);                       \
+    '])));
+
+    it('chain of = (global)', () => expect('1\r\n1\r\n1\r\n').to.equals(new Run().test([
+        'var a, b, c;                         \
+        a = b = c = 1;                        \
+        console.log(a);                       \
+        console.log(b);                       \
+        console.log(c);                       \
+    '])));
+
+    it('chain of = (local)', () => expect('1\r\n').to.equals(new Run().test([
+        'let a = 0, b = 1;                    \
+        console.log(a += b);                  \
+    '])));
+
+    it('chain of = (global)', () => expect('1\r\n').to.equals(new Run().test([
+        'let a = 0, b = 1;                    \
+        console.log(a += b);                  \
+    '])));
+
 });
