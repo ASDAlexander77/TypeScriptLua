@@ -53,7 +53,7 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it.skip('simple for (global)', () => expect('0\r\n1\r\n2\r\n3\r\n4\r\n').to.equals(new Run().test([
+    it('simple for (global)', () => expect('0\r\n1\r\n2\r\n3\r\n4\r\n').to.equals(new Run().test([
         'var i;                                                 \
         for (i = 0; i < 5; i++) {                               \
             console.log(i);                                     \

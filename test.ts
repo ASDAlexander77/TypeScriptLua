@@ -1,2 +1,2 @@
-let a = 0, b = 1;
-console.log(a > 0 ? b : 2);
+let a = true;
+console.log(a ? 1 : 2);

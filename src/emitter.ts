@@ -305,7 +305,7 @@ export class Emitter {
         let elseBlock;
         if (node.elseStatement) {
             jmpElseOp = [Ops.JMP, 0, 1];
-            this.functionContext.code.push(jmpOp);
+            this.functionContext.code.push(jmpElseOp);
 
             elseBlock = this.functionContext.code.length;
         }
@@ -685,14 +685,22 @@ export class Emitter {
         this.processExpression(node.whenTrue);
         const whenTrueInfo = this.functionContext.stack.pop().optimize();
 
-        this.functionContext.code.push([
-            Ops.MOVE,
-            resultInfo.getRegister(),
-            whenTrueInfo.getRegisterOrIndex(),
-            0]);
+        if (whenTrueInfo.getRegisterOrIndex() < 0) {
+            this.functionContext.code.push([
+                Ops.LOADK,
+                resultInfo.getRegister(),
+                whenTrueInfo.getRegisterOrIndex(),
+                0]);
+        } else {
+            this.functionContext.code.push([
+                Ops.MOVE,
+                resultInfo.getRegister(),
+                whenTrueInfo.getRegister(),
+                0]);
+        }
 
         const jmpElseOp = [Ops.JMP, 0, 1];
-        this.functionContext.code.push(jmpOp);
+        this.functionContext.code.push(jmpElseOp);
 
         const elseBlock = this.functionContext.code.length;
 
@@ -701,11 +709,19 @@ export class Emitter {
         this.processExpression(node.whenFalse);
         const whenFalseInfo = this.functionContext.stack.pop().optimize();
 
-        this.functionContext.code.push([
-            Ops.MOVE,
-            resultInfo.getRegister(),
-            whenFalseInfo.getRegisterOrIndex(),
-            0]);
+        if (whenFalseInfo.getRegisterOrIndex() < 0) {
+            this.functionContext.code.push([
+                Ops.LOADK,
+                resultInfo.getRegister(),
+                whenFalseInfo.getRegisterOrIndex(),
+                0]);
+        } else {
+            this.functionContext.code.push([
+                Ops.MOVE,
+                resultInfo.getRegister(),
+                whenFalseInfo.getRegister(),
+                0]);
+        }
 
         jmpElseOp[2] = this.functionContext.code.length - elseBlock;
     }
@@ -803,11 +819,11 @@ export class Emitter {
                     case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
 
-                    // <left> = ...
-                    this.processExpression(node.left);
+                        // <left> = ...
+                        this.processExpression(node.left);
 
-                    this.emitAssignOperation(node);
-                    break;
+                        this.emitAssignOperation(node);
+                        break;
                 }
 
                 break;
@@ -916,7 +932,7 @@ export class Emitter {
                     this.functionContext.code.push([
                         Ops.MOVE,
                         resultInfo3.getRegister(),
-                        rightOpNode3.getRegisterOrIndex(),
+                        rightOpNode3.getRegister(),
                         0]);
                 }
 
