@@ -110,4 +110,8 @@ describe('Special cases', () => {
         console.log(a += b);                  \
     '])));
 
+    it('? :', () => expect('2\r\n').to.equals(new Run().test([
+        'let a = 0, b = 1;                    \
+        console.log(a > 0 ? b : 2);           \
+    '])));
 });

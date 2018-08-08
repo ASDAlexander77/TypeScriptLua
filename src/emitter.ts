@@ -158,6 +158,7 @@ export class Emitter {
             case ts.SyntaxKind.PrefixUnaryExpression: this.processPrefixUnaryExpression(<ts.PrefixUnaryExpression>node); return;
             case ts.SyntaxKind.PostfixUnaryExpression: this.processPostfixUnaryExpression(<ts.PostfixUnaryExpression>node); return;
             case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
+            case ts.SyntaxKind.ConditionalExpression: this.processConditionalExpression(<ts.ConditionalExpression>node); return;
             case ts.SyntaxKind.DeleteExpression: this.processDeleteExpression(<ts.DeleteExpression>node); return;
             case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
@@ -664,6 +665,49 @@ export class Emitter {
 
                 break;
         }
+    }
+
+    private processConditionalExpression(node: ts.ConditionalExpression): void {
+        this.processExpression(node.condition);
+
+        const equalsTo = 0;
+        const conditionInfo = this.functionContext.stack.pop().optimize();
+        const resultInfo = this.functionContext.useRegisterAndPush();
+
+        const testSetOp = [Ops.TEST, conditionInfo.getRegisterOrIndex(), equalsTo];
+        this.functionContext.code.push(testSetOp);
+
+        const jmpOp = [Ops.JMP, 0, 1];
+        this.functionContext.code.push(jmpOp);
+
+        const beforeBlock = this.functionContext.code.length;
+
+        this.processExpression(node.whenTrue);
+        const whenTrueInfo = this.functionContext.stack.pop().optimize();
+
+        this.functionContext.code.push([
+            Ops.MOVE,
+            resultInfo.getRegister(),
+            whenTrueInfo.getRegisterOrIndex(),
+            0]);
+
+        const jmpElseOp = [Ops.JMP, 0, 1];
+        this.functionContext.code.push(jmpOp);
+
+        const elseBlock = this.functionContext.code.length;
+
+        jmpOp[2] = this.functionContext.code.length - beforeBlock;
+
+        this.processExpression(node.whenFalse);
+        const whenFalseInfo = this.functionContext.stack.pop().optimize();
+
+        this.functionContext.code.push([
+            Ops.MOVE,
+            resultInfo.getRegister(),
+            whenFalseInfo.getRegisterOrIndex(),
+            0]);
+
+        jmpElseOp[2] = this.functionContext.code.length - elseBlock;
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
