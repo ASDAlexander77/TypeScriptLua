@@ -23,7 +23,6 @@ export class ResolvedInfo {
     public identifierName: string;
     public currentInfo: ResolvedInfo;
     public parentInfo: ResolvedInfo;
-    public local: boolean;
     public register: number;
     public constIndex: number;
     public upvalueIndex: number;
@@ -32,6 +31,12 @@ export class ResolvedInfo {
     public root: boolean;
 
     public constructor(private functionContext: FunctionContext) {
+    }
+
+    public isLocal(): boolean {
+        return this.kind === ResolvedKind.Register
+            && this.register !== undefined
+            && this.functionContext.locals.find((l) => l.register === this.register) !== undefined;
     }
 
     public isEmptyRegister(): boolean {
@@ -281,7 +286,6 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Register;
         resolvedInfo.identifierName = text;
         resolvedInfo.register = functionContext.findLocal(resolvedInfo.identifierName);
-        resolvedInfo.local = true;
         return resolvedInfo;
     }
 
@@ -290,7 +294,6 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Register;
         resolvedInfo.identifierName = 'this';
         resolvedInfo.register = 0;
-        resolvedInfo.local = true;
         return resolvedInfo;
     }
 
@@ -312,7 +315,6 @@ export class IdentifierResolver {
             resolvedInfo.kind = ResolvedKind.Register;
             resolvedInfo.identifierName = text;
             resolvedInfo.register = localVarIndex;
-            resolvedInfo.local = true;
             return resolvedInfo;
         }
 

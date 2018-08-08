@@ -502,6 +502,9 @@ export class Emitter {
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
+
+        const operandPosition = this.functionContext.code.length;
+
         this.processExpression(node.operand);
 
         let opCode;
@@ -544,28 +547,44 @@ export class Emitter {
 
                 this.emitNumericConst('1');
 
-                const leftNode2 = this.functionContext.stack.pop().optimize();
-                const rightNode2 = this.functionContext.stack.pop().optimize();
-                const resultInfo2 = this.functionContext.useRegisterAndPush();
+                // +/- 1
+                const leftNodeOf1 = this.functionContext.stack.pop().optimize();
+                const rightNodeOfOperand = this.functionContext.stack.pop().optimize();
+                const resultPlusOrMinusInfo = this.functionContext.useRegisterAndPush();
+
+                const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
 
                 this.functionContext.code.push([
                     opCode,
-                    resultInfo2.getRegister(),
-                    rightNode2.getRegister(),
-                    leftNode2.getRegisterOrIndex()]);
+                    resultPlusOrMinusInfo.getRegister(),
+                    rightNodeOfOperand.getRegister(),
+                    leftNodeOf1.getRegisterOrIndex()]);
 
-                const resultInfo3 = this.functionContext.stack.pop().optimize();
+                // save
+                const operationResultInfo = this.functionContext.stack.pop();
+                if (readOpCode[0] === Ops.GETTABUP) {
+                    this.functionContext.code.push([
+                        Ops.SETTABUP,
+                        readOpCode[2],
+                        readOpCode[3],
+                        rightNodeOfOperand.getRegister()
+                    ]);
+                } else if (readOpCode[0] === Ops.GETTABLE) {
+                    this.functionContext.code.push([
+                        Ops.SETTABLE,
+                        readOpCode[2],
+                        readOpCode[3],
+                        rightNodeOfOperand.getRegister()
+                    ]);
+                } else if (rightNodeOfOperand.kind === ResolvedKind.Register) {
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        rightNodeOfOperand.getRegister(),
+                        operationResultInfo.getRegister()]);
+                }
 
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    rightNode2.getRegister(),
-                    resultInfo3.getRegister()]);
-
-                const resultInfo4 = this.functionContext.useRegisterAndPush();
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    resultInfo4.getRegister(),
-                    rightNode2.getRegister()]);
+                // clone value
+                this.functionContext.stack.push(operationResultInfo);
 
                 break;
         }
@@ -805,58 +824,60 @@ export class Emitter {
     }
 
     private emitAssignOperation(node: ts.Node) {
-        const leftNode = this.functionContext.stack.pop();
-        const rightNode = this.functionContext.stack.pop();
-        if (leftNode.kind === ResolvedKind.Register) {
-            if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABUP) {
+        const leftOperandInfo = this.functionContext.stack.pop();
+        const rightOperandInfo = this.functionContext.stack.pop();
+        const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
+
+        if (leftOperandInfo.kind === ResolvedKind.Register) {
+            if (readOpCode[0] === Ops.GETTABUP) {
                 if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
                     // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(rightNode);
+                    this.functionContext.stack.push(rightOperandInfo);
                 }
                 // left of = is method reference
                 const getTabUpOpArray = this.functionContext.code.pop();
-                rightNode.optimize();
+                rightOperandInfo.optimize();
                 this.functionContext.code.push([
                     Ops.SETTABUP,
                     getTabUpOpArray[2],
                     getTabUpOpArray[3],
-                    rightNode.getRegisterOrIndex()
+                    rightOperandInfo.getRegisterOrIndex()
                 ]);
-            } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.GETTABLE) {
+            } else if (readOpCode[0] === Ops.GETTABLE) {
                 if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
                     // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(rightNode);
+                    this.functionContext.stack.push(rightOperandInfo);
                 }
                 // left of = is method reference
                 const getTableOpArray = this.functionContext.code.pop();
-                rightNode.optimize();
+                rightOperandInfo.optimize();
                 this.functionContext.code.push([
                     Ops.SETTABLE,
                     getTableOpArray[2],
                     getTableOpArray[3],
-                    rightNode.getRegisterOrIndex()
+                    rightOperandInfo.getRegisterOrIndex()
                 ]);
-            } else if (this.functionContext.code[this.functionContext.code.length - 1][0] === Ops.MOVE) {
+            } else if (readOpCode[0] === Ops.MOVE) {
                 if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
                     // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(leftNode);
+                    this.functionContext.stack.push(leftOperandInfo);
                 }
                 // if we put local var value we need to remove it
                 const readMoveOpArray = this.functionContext.code.pop();
-                leftNode.register = readMoveOpArray[2];
-                this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
+                leftOperandInfo.register = readMoveOpArray[2];
+                this.functionContext.code.push([Ops.MOVE, leftOperandInfo.getRegister(), rightOperandInfo.getRegister()]);
             } else {
                 if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
                     // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(leftNode);
+                    this.functionContext.stack.push(leftOperandInfo);
                 }
-                this.functionContext.code.push([Ops.MOVE, leftNode.getRegister(), rightNode.getRegister()]);
+                this.functionContext.code.push([Ops.MOVE, leftOperandInfo.getRegister(), rightOperandInfo.getRegister()]);
             }
-        } else if (leftNode.kind === ResolvedKind.Upvalue) {
+        } else if (leftOperandInfo.kind === ResolvedKind.Upvalue) {
             this.functionContext.code.push([
                 Ops.SETUPVAL,
-                rightNode.getRegister(),
-                leftNode.getRegisterOrIndex()
+                rightOperandInfo.getRegister(),
+                leftOperandInfo.getRegisterOrIndex()
             ]);
         } else {
             throw new Error('Not Implemented');
