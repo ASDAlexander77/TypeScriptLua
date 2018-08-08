@@ -1,6 +1,5 @@
-var vals = [1, 2, 3];
+let vals = [1, 2, 3];
 
-var i;
+let i;
 for (i in vals) {
-    console.log(vals[i]);
 }

@@ -67,7 +67,7 @@ export class FunctionContext {
         return index;
     }
 
-    public createLocal(name: string, register?: number): ResolvedInfo {
+    public createLocal(name: string): ResolvedInfo {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
@@ -77,6 +77,13 @@ export class FunctionContext {
         }
 
         throw new Error('Local already created.');
+    }
+
+    public pushNewLocal (name: string): ResolvedInfo {
+        // locals start with 0
+        const registerInfo = this.useRegister();
+        this.locals.push(<LocalVarInfo>{ name: name, register: registerInfo.getRegister() });
+        return registerInfo;
     }
 
     public findLocal(name: string, noerror?: boolean): number {

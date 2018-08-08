@@ -209,33 +209,36 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
-        declarationList.declarations.forEach(d => {
-            const localVar = this.functionContext.findLocal((<ts.Identifier>d.name).text, true);
-            if (Helpers.isConstOrLet(declarationList) && localVar === -1) {
-                const localVarRegisterInfo = this.functionContext.createLocal((<ts.Identifier>d.name).text);
-                if (d.initializer) {
-                    this.processExpression(d.initializer);
-                } else {
-                    this.processNullLiteral(null);
-                }
+        declarationList.declarations.forEach(
+            d => this.processVariableDeclarationOne(d.name.getText(), d.initializer, Helpers.isConstOrLet(declarationList)));
+    }
 
+    private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
+        const localVar = this.functionContext.findLocal(name, true);
+        if (isLetOrConst && localVar === -1) {
+            const localVarRegisterInfo = this.functionContext.createLocal(name);
+            if (initializer) {
+                this.processExpression(initializer);
+            } else {
+                this.processNullLiteral(null);
+            }
+
+            const rightNode = this.functionContext.stack.pop();
+            this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
+        } else if (localVar !== -1) {
+            if (initializer) {
+                const localVarRegisterInfo = this.resolver.returnLocal(name, this.functionContext);
+                this.processExpression(initializer);
                 const rightNode = this.functionContext.stack.pop();
                 this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
-            } else if (localVar !== -1) {
-                if (d.initializer) {
-                    const localVarRegisterInfo = this.resolver.returnLocal((<ts.Identifier>d.name).text, this.functionContext);
-                    this.processExpression(d.initializer);
-                    const rightNode = this.functionContext.stack.pop();
-                    this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
-                }
-            } else {
-                const nameConstIndex = -this.functionContext.findOrCreateConst((<ts.Identifier>d.name).text);
-                if (d.initializer) {
-                    this.processExpression(d.initializer);
-                    this.emitStoreToEnvObjectProperty(nameConstIndex);
-                }
             }
-        });
+        } else {
+            const nameConstIndex = -this.functionContext.findOrCreateConst(name);
+            if (initializer) {
+                this.processExpression(initializer);
+                this.emitStoreToEnvObjectProperty(nameConstIndex);
+            }
+        }
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
@@ -382,15 +385,19 @@ export class Emitter {
     private processForInStatement(node: ts.ForInStatement): void {
         // we need to generate 3 local variables for ForEach loop
         const generatorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
-        this.functionContext.createLocal('<state>' + node.getStart());
-        this.functionContext.createLocal('<control>' + node.getStart());
+        const stateInfo = this.functionContext.createLocal('<state>' + node.getStart());
+        const controlInfo = this.functionContext.createLocal('<control>' + node.getStart());
 
         // initializer
+        // NOT NEEDED HERE
         if (node.initializer) {
             if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
                 this.processVariableDeclarationList(<ts.VariableDeclarationList>node.initializer);
             } else {
+                // TODO: temp HACK: you need to create scoped local, so let i; for (i ...) are 2 different locals
+                this.functionContext.pushNewLocal(node.initializer.getText());
                 this.processExpression(node.initializer);
+                this.processVariableDeclarationOne(node.initializer.getText(), undefined, true);
             }
         }
 
@@ -421,7 +428,7 @@ export class Emitter {
 
         // finally - calling method 'pairs'
         this.functionContext.code.push(
-            [Ops.CALL, resultOfPairsMethodCallInfo.getRegister(), 2, 1]);
+            [Ops.CALL, resultOfPairsMethodCallInfo.getRegister(), 2, 4]);
 
         // cleaning up stack, first parameter, method ref, and expression
         this.functionContext.stack.pop();
@@ -438,11 +445,12 @@ export class Emitter {
 
         const loopOpsBlock = this.functionContext.code.length;
 
-        const tforCallOp = [Ops.TFORCALL, generatorInfo.getRegister(), 1];
+        // !!!! TODO: problem in calling this code, something happening to NULL value
+        const tforCallOp = [Ops.TFORCALL, generatorInfo.getRegister(), 0, 1];
         this.functionContext.code.push(tforCallOp);
 
         // replace with TFORLOOP
-        const tforLoopOp = [Ops.TFORLOOP, generatorInfo.getRegister(), beforeBlock - this.functionContext.code.length - 1];
+        const tforLoopOp = [Ops.TFORLOOP, controlInfo.getRegister(), beforeBlock - this.functionContext.code.length - 1];
         this.functionContext.code.push(tforLoopOp);
 
         // storing jump address
@@ -464,7 +472,7 @@ export class Emitter {
     private processNullLiteral(node: ts.NullLiteral): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
         // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
-        this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), resultInfo.getRegister()]);
+        this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), 0]);
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
