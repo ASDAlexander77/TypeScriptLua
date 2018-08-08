@@ -381,7 +381,7 @@ export class Emitter {
 
     private processForInStatement(node: ts.ForInStatement): void {
         // we need to generate 3 local variables for ForEach loop
-        const generattorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
+        const generatorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
         this.functionContext.createLocal('<state>' + node.getStart());
         this.functionContext.createLocal('<control>' + node.getStart());
 
@@ -397,13 +397,13 @@ export class Emitter {
         // call PAIRS(...) before jump
         // TODO: finish it
         this.processExpression(node.expression);
-        const expressionResultInfo = this.functionContext.stack.pop();
 
         // prepare call for _ENV "pairs"
         // prepare consts
         const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
         const pairsMethodInfo = this.resolver.returnConst('pairs', this.functionContext);
 
+        const expressionResultInfo = this.functionContext.stack.peek();
         // getting method referene
         const resultOfPairsMethodCallInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
@@ -419,6 +419,15 @@ export class Emitter {
                 [Ops.MOVE, firstParameterInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
         }
 
+        // finally - calling method 'pairs'
+        this.functionContext.code.push(
+            [Ops.CALL, resultOfPairsMethodCallInfo.getRegister(), 2, 1]);
+
+        // cleaning up stack, first parameter, method ref, and expression
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+
         // jump to expression
         const initialJmpOp = [Ops.JMP, 0, 0];
         this.functionContext.code.push(initialJmpOp);
@@ -429,11 +438,11 @@ export class Emitter {
 
         const loopOpsBlock = this.functionContext.code.length;
 
-        const tforCallOp = [Ops.TFORCALL, generattorInfo.getRegister(), 1];
+        const tforCallOp = [Ops.TFORCALL, generatorInfo.getRegister(), 1];
         this.functionContext.code.push(tforCallOp);
 
         // replace with TFORLOOP
-        const tforLoopOp = [Ops.TFORLOOP, generattorInfo.getRegister(), beforeBlock - this.functionContext.code.length - 1];
+        const tforLoopOp = [Ops.TFORLOOP, generatorInfo.getRegister(), beforeBlock - this.functionContext.code.length - 1];
         this.functionContext.code.push(tforLoopOp);
 
         // storing jump address
