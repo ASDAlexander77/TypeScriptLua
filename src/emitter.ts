@@ -165,6 +165,7 @@ export class Emitter {
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.ElementAccessExpression: this.processElementAccessExpression(<ts.ElementAccessExpression>node); return;
             case ts.SyntaxKind.ParenthesizedExpression: this.processParenthesizedExpression(<ts.ParenthesizedExpression>node); return;
+            case ts.SyntaxKind.VariableDeclarationList: this.processVariableDeclarationList(<ts.VariableDeclarationList><any>node); return;
             case ts.SyntaxKind.TrueKeyword:
             case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
             case ts.SyntaxKind.NullKeyword: this.processNullLiteral(<ts.NullLiteral>node); return;
@@ -338,13 +339,10 @@ export class Emitter {
     }
 
     private processForStatement(node: ts.ForStatement): void {
-        if (node.initializer) {
-            if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
-                this.processVariableDeclarationList(<ts.VariableDeclarationList>node.initializer);
-            } else {
-                this.processExpression(node.initializer);
-            }
-        }
+
+        this.functionContext.newLocalScope();
+
+        this.declareLoopVariables(<ts.Expression>node.initializer);
 
         // jump to expression
         const jmpOp = [Ops.JMP, 0, 0];
@@ -353,6 +351,18 @@ export class Emitter {
         const beforeBlock = this.functionContext.code.length;
 
         jmpOp[2] = this.emitLoop(node.condition, node, node.incrementor) - beforeBlock;
+
+        this.functionContext.restoreLocalScope();
+    }
+
+    private declareLoopVariables(initializer: ts.Expression) {
+        if (initializer) {
+            if (initializer.kind === ts.SyntaxKind.Identifier) {
+                this.processVariableDeclarationOne(initializer.getText(), undefined, true);
+            } else {
+                this.processExpression(<ts.Expression>initializer);
+            }
+        }
     }
 
     private emitLoop(expression: ts.Expression, node: ts.IterationStatement, incrementor?: ts.Expression): number {
@@ -383,21 +393,16 @@ export class Emitter {
     }
 
     private processForInStatement(node: ts.ForInStatement): void {
+
+        this.functionContext.newLocalScope();
+
         // we need to generate 3 local variables for ForEach loop
         const generatorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
         const stateInfo = this.functionContext.createLocal('<state>' + node.getStart());
         const controlInfo = this.functionContext.createLocal('<control>' + node.getStart());
 
         // initializer
-        // NOT NEEDED HERE
-        if (node.initializer) {
-            if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
-                this.processVariableDeclarationList(<ts.VariableDeclarationList>node.initializer);
-            } else {
-                // this.processExpression(node.initializer);
-                this.processVariableDeclarationOne(node.initializer.getText(), undefined, true);
-            }
-        }
+        this.declareLoopVariables(<ts.Expression>node.initializer);
 
         // call PAIRS(...) before jump
         // TODO: finish it
@@ -449,6 +454,8 @@ export class Emitter {
 
         // storing jump address
         initialJmpOp[2] = loopOpsBlock - beforeBlock;
+
+        this.functionContext.restoreLocalScope();
     }
 
     private processBlock(node: ts.Block): void {
@@ -540,6 +547,20 @@ export class Emitter {
             0]);
 
         if (node.elements.length > 0) {
+            // set 0 element
+            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+            this.processExpression(node.elements[0]);
+
+            const zeroValueInfo = this.functionContext.stack.pop().optimize();
+            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
+
+            this.functionContext.code.push(
+                [Ops.SETTABLE,
+                resultInfo.getRegister(),
+                zeroIndexInfo.getRegisterOrIndex(),
+                zeroValueInfo.getRegisterOrIndex()]);
+
+            // set 1.. elements
             const reversedValues = (<Array<any>><any>node.elements.slice(1));
 
             reversedValues.forEach((e, index: number) => {
@@ -557,19 +578,6 @@ export class Emitter {
 
             this.functionContext.code.push(
                 [Ops.SETLIST, resultInfo.getRegister(), reversedValues.length, 1]);
-
-            // set 0 element
-            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
-            this.processExpression(node.elements[0]);
-
-            const zeroValueInfo = this.functionContext.stack.pop().optimize();
-            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
-
-            this.functionContext.code.push(
-                [Ops.SETTABLE,
-                resultInfo.getRegister(),
-                zeroIndexInfo.getRegisterOrIndex(),
-                zeroValueInfo.getRegisterOrIndex()]);
         }
     }
 
