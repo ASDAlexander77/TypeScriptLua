@@ -214,7 +214,7 @@ export class Emitter {
     }
 
     private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
-        const localVar = this.functionContext.findLocal(name, true);
+        const localVar = this.functionContext.findScopedLocal(name, true);
         if (isLetOrConst && localVar === -1) {
             const localVarRegisterInfo = this.functionContext.createLocal(name);
             if (initializer) {
@@ -394,9 +394,7 @@ export class Emitter {
             if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
                 this.processVariableDeclarationList(<ts.VariableDeclarationList>node.initializer);
             } else {
-                // TODO: temp HACK: you need to create scoped local, so let i; for (i ...) are 2 different locals
-                this.functionContext.pushNewLocal(node.initializer.getText());
-                this.processExpression(node.initializer);
+                // this.processExpression(node.initializer);
                 this.processVariableDeclarationOne(node.initializer.getText(), undefined, true);
             }
         }
@@ -454,9 +452,14 @@ export class Emitter {
     }
 
     private processBlock(node: ts.Block): void {
+
+        this.functionContext.newLocalScope();
+
         node.statements.forEach(s => {
             this.processStatement(s);
         });
+
+        this.functionContext.restoreLocalScope();
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {

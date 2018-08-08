@@ -57,6 +57,19 @@ describe('Variable Declarations', () => {
         f(20);                                  \
     '])));
 
+    it ('Scoped locals',  () => expect('10\r\n5\r\n1\r\n5\r\n10\r\n').to.equals(new Run().test([
+        'let i = 10; let j = 5;                 \
+        console.log(i);                         \
+        console.log(j);                         \
+        if (true) {                             \
+            let i  = 1;                         \
+            console.log(i);                     \
+            console.log(j);                     \
+        }                                       \
+                                                \
+        console.log(i);                         \
+    '])));
+
     it('const declarations', () => expect('Cat\r\n').to.equals(new Run().test([
         'const numLivesForCat = 9;              \
         const kitty = {                         \

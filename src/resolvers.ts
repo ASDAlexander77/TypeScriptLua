@@ -36,7 +36,7 @@ export class ResolvedInfo {
     public isLocal(): boolean {
         return this.kind === ResolvedKind.Register
             && this.register !== undefined
-            && this.functionContext.locals.find((l) => l.register === this.register) !== undefined;
+            && this.functionContext.isRegisterLocal(this.register);
     }
 
     public isEmptyRegister(): boolean {

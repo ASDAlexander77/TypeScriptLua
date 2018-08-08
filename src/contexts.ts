@@ -34,6 +34,16 @@ export class FunctionContext {
     public upvalues: Array<UpvalueInfo> = [];
     public protos: Array<FunctionContext> = [];
     public debug: Array<any> = [];
+    public local_scopes: Array<any> = [];
+
+    public newLocalScope() {
+        this.local_scopes.push(this.locals);
+        this.locals = [];
+    }
+
+    public restoreLocalScope() {
+        this.locals = this.local_scopes.pop();
+    }
 
     public findOrCreateUpvalue(name: string, instack: boolean): number {
         // upvalues start with 0
@@ -79,14 +89,7 @@ export class FunctionContext {
         throw new Error('Local already created.');
     }
 
-    public pushNewLocal (name: string): ResolvedInfo {
-        // locals start with 0
-        const registerInfo = this.useRegister();
-        this.locals.push(<LocalVarInfo>{ name: name, register: registerInfo.getRegister() });
-        return registerInfo;
-    }
-
-    public findLocal(name: string, noerror?: boolean): number {
+    public findScopedLocal(name: string, noerror?: boolean): number {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
@@ -98,6 +101,48 @@ export class FunctionContext {
         }
 
         return this.locals[index].register;
+    }
+
+    public findLocal(name: string, noerror?: boolean): number {
+        // locals start with 0
+        let index = this.locals.findIndex(e => e.name === name);
+        if (index === -1) {
+
+            // try to find it in other scopes
+            for (let i = this.local_scopes.length - 1; i >= 0; i--) {
+                index = this.local_scopes[i].findIndex(e => e.name === name);
+                if (index !== -1) {
+                    return this.local_scopes[i][index].register;
+                }
+            }
+
+            if (noerror) {
+                return index;
+            }
+
+            throw new Error('Can\'t find local: ' + name);
+        }
+
+        return this.locals[index].register;
+    }
+
+    public isRegisterLocal(register: number): boolean {
+        // locals start with 0
+        let index = this.locals.findIndex(e => e.register === register);
+        if (index === -1) {
+
+            // try to find it in other scopes
+            for (let i = this.local_scopes.length - 1; i >= 0; i--) {
+                index = this.local_scopes[i].findIndex(e => e.register === register);
+                if (index !== -1) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     public findOrCreateConst(value: any): number {
