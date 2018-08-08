@@ -59,4 +59,27 @@ describe('Statements', () => {
             console.log(i);                                     \
         }                                                       \
     '])));
+
+    it('simple for/in (local)', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+        'let person = {fname:"John", lname:"Doe", age:25};      \
+                                                                \
+        let text = "";                                          \
+        let x;                                                  \
+        for (x in person) {                                     \
+            text += person[x] + " ";                            \
+        }                                                       \
+        console.log(text);                                      \
+    '])));
+
+    it('simple for/in (global)', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+        'var person = {fname:"John", lname:"Doe", age:25};      \
+                                                                \
+        var text = "";                                          \
+        var x;                                                  \
+        for (x in person) {                                     \
+            text += person[x] + " ";                            \
+        }                                                       \
+        console.log(text);                                      \
+    '])));
+
 });

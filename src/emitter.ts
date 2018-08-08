@@ -142,6 +142,7 @@ export class Emitter {
             case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); return;
             case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
             case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.ForStatement>node); return;
+            case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
         }
@@ -376,6 +377,45 @@ export class Emitter {
         this.functionContext.code.push(jmpOp);
 
         return expressionBlock;
+    }
+
+    private processForInStatement(node: ts.ForInStatement): void {
+        // we need to generate 3 local variables for ForEach loop
+        const generattorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
+        this.functionContext.createLocal('<state>' + node.getStart());
+        this.functionContext.createLocal('<control>' + node.getStart());
+
+        // initializer
+        if (node.initializer) {
+            if (node.initializer.kind === ts.SyntaxKind.VariableDeclarationList) {
+                this.processVariableDeclarationList(<ts.VariableDeclarationList>node.initializer);
+            } else {
+                this.processExpression(node.initializer);
+            }
+        }
+
+        // call PAIRS(...) before jump
+        // TODO: finish it
+
+        // jump to expression
+        const initialJmpOp = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(initialJmpOp);
+
+        const beforeBlock = this.functionContext.code.length;
+
+        this.processStatement(node.statement);
+
+        const expressionBlock = this.functionContext.code.length;
+
+        const tforCallOp = [Ops.TFORCALL, generattorInfo.getRegister(), 1];
+        this.functionContext.code.push(tforCallOp);
+
+        // replace with TFORLOOP
+        const tforLoopOp = [Ops.TFORLOOP, generattorInfo.getRegister(), beforeBlock - this.functionContext.code.length - 1];
+        this.functionContext.code.push(tforLoopOp);
+
+        // storing jump address
+        initialJmpOp[2] = expressionBlock - beforeBlock;
     }
 
     private processBlock(node: ts.Block): void {
