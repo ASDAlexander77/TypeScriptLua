@@ -503,6 +503,7 @@ export class Emitter {
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
 
+        // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where the beginning of the command
         const operandPosition = this.functionContext.code.length;
 
         this.processExpression(node.operand);
@@ -548,38 +549,37 @@ export class Emitter {
                 this.emitNumericConst('1');
 
                 // +/- 1
-                const leftNodeOf1 = this.functionContext.stack.pop().optimize();
-                const rightNodeOfOperand = this.functionContext.stack.pop().optimize();
+                const value1Info = this.functionContext.stack.pop().optimize();
+                const operandInfo = this.functionContext.stack.pop().optimize();
                 const resultPlusOrMinusInfo = this.functionContext.useRegisterAndPush();
-
-                const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
 
                 this.functionContext.code.push([
                     opCode,
                     resultPlusOrMinusInfo.getRegister(),
-                    rightNodeOfOperand.getRegister(),
-                    leftNodeOf1.getRegisterOrIndex()]);
+                    operandInfo.getRegister(),
+                    value1Info.getRegisterOrIndex()]);
 
                 // save
                 const operationResultInfo = this.functionContext.stack.pop();
-                if (readOpCode[0] === Ops.GETTABUP) {
+                const readOpCode = this.functionContext.code[operandPosition];
+                if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
                     this.functionContext.code.push([
                         Ops.SETTABUP,
                         readOpCode[2],
                         readOpCode[3],
-                        rightNodeOfOperand.getRegister()
+                        operandInfo.getRegister()
                     ]);
-                } else if (readOpCode[0] === Ops.GETTABLE) {
+                } else if (readOpCode && readOpCode[0] === Ops.GETTABLE) {
                     this.functionContext.code.push([
                         Ops.SETTABLE,
                         readOpCode[2],
                         readOpCode[3],
-                        rightNodeOfOperand.getRegister()
+                        operandInfo.getRegister()
                     ]);
-                } else if (rightNodeOfOperand.kind === ResolvedKind.Register) {
+                } else if (operandInfo.kind === ResolvedKind.Register) {
                     this.functionContext.code.push([
                         Ops.MOVE,
-                        rightNodeOfOperand.getRegister(),
+                        operandInfo.getRegister(),
                         operationResultInfo.getRegister()]);
                 }
 
@@ -591,6 +591,9 @@ export class Emitter {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
+        // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where the beginning of the command
+        const operandPosition = this.functionContext.code.length;
+
         this.processExpression(node.operand);
 
         let opCode;
@@ -606,37 +609,45 @@ export class Emitter {
                         break;
                 }
 
-                const rightNode = this.functionContext.stack.pop().optimize();
-                const resultInfo = this.functionContext.useRegisterAndPush();
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    resultInfo.getRegister(),
-                    rightNode.getRegister()]);
-
-                const resultInfo2 = this.functionContext.useRegisterAndPush();
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    resultInfo2.getRegister(),
-                    rightNode.getRegister()]);
+                // clone
+                const operandInfo = this.functionContext.stack.peek();
 
                 this.emitNumericConst('1');
+                const value1Info = this.functionContext.stack.pop().optimize();
 
-                const leftNode3 = this.functionContext.stack.pop().optimize();
-                const rightNode3 = this.functionContext.stack.pop().optimize();
-                const resultInfo3 = this.functionContext.useRegisterAndPush();
-
+                // +/- 1
+                const resultPlusOrMinuesInfo = this.functionContext.useRegisterAndPush();
                 this.functionContext.code.push([
                     opCode,
-                    resultInfo3.getRegister(),
-                    rightNode3.getRegister(),
-                    leftNode3.getRegisterOrIndex()]);
+                    resultPlusOrMinuesInfo.getRegister(),
+                    operandInfo.getRegister(),
+                    value1Info.getRegisterOrIndex()]);
 
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    rightNode.getRegister(),
-                    resultInfo3.getRegister()]);
-
+                // consumed operand. we need to pop here to maintain order of used registers
                 this.functionContext.stack.pop();
+
+                // save
+                const readOpCode = this.functionContext.code[operandPosition];
+                if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
+                    this.functionContext.code.push([
+                        Ops.SETTABUP,
+                        readOpCode[2],
+                        readOpCode[3],
+                        resultPlusOrMinuesInfo.getRegister()
+                    ]);
+                } else if (readOpCode && readOpCode[0] === Ops.GETTABLE) {
+                    this.functionContext.code.push([
+                        Ops.SETTABLE,
+                        readOpCode[2],
+                        readOpCode[3],
+                        resultPlusOrMinuesInfo.getRegister()
+                    ]);
+                } else if (readOpCode && readOpCode[0] === Ops.MOVE) {
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        readOpCode[2],
+                        resultPlusOrMinuesInfo.getRegister()]);
+                }
 
                 break;
         }
