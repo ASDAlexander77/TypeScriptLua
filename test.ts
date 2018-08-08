@@ -1,6 +1,8 @@
-let vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-let i;
-for (i in vals) {
-    console.log(vals[i]);
-}
+let person = {fname:"John", lname:"Doe", age:25};      
+                                                                
+        let text = "";                                          
+        let x;                                                  
+        for (x in person) {                                     
+            text += person[x] + " ";                            
+        }                                                       
+        console.log(text); 
