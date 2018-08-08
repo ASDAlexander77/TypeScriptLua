@@ -412,27 +412,23 @@ export class Emitter {
 
         const expressionResultInfo = this.functionContext.stack.peek();
         // getting method referene
-        const resultOfPairsMethodCallInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
-            [Ops.GETTABUP, resultOfPairsMethodCallInfo.getRegister(), envInfo.getRegisterOrIndex(), pairsMethodInfo.getRegisterOrIndex()]);
+            [Ops.GETTABUP, generatorInfo.getRegister(), envInfo.getRegisterOrIndex(), pairsMethodInfo.getRegisterOrIndex()]);
 
         // first parameter of method call "pairs"
-        const firstParameterInfo = this.functionContext.useRegisterAndPush();
         if (expressionResultInfo.getRegisterOrIndex() < 0) {
             this.functionContext.code.push(
-                [Ops.LOADK, firstParameterInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
+                [Ops.LOADK, stateInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
         } else {
             this.functionContext.code.push(
-                [Ops.MOVE, firstParameterInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
+                [Ops.MOVE, stateInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
         }
 
         // finally - calling method 'pairs'
         this.functionContext.code.push(
-            [Ops.CALL, resultOfPairsMethodCallInfo.getRegister(), 2, 4]);
+            [Ops.CALL, generatorInfo.getRegister(), 2, 4]);
 
         // cleaning up stack, first parameter, method ref, and expression
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
         this.functionContext.stack.pop();
 
         // jump to expression
