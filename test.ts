@@ -1,2 +1,6 @@
-let a = true;
-console.log(a ? 1 : 2);
+var vals = { 1, 2, 3 };
+
+var i;
+for (i in vals) {
+    console.log(vals[i]);
+}

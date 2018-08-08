@@ -396,6 +396,28 @@ export class Emitter {
 
         // call PAIRS(...) before jump
         // TODO: finish it
+        this.processExpression(node.expression);
+        const expressionResultInfo = this.functionContext.stack.pop();
+
+        // prepare call for _ENV "pairs"
+        // prepare consts
+        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        const pairsMethodInfo = this.resolver.returnConst('pairs', this.functionContext);
+
+        // getting method referene
+        const resultOfPairsMethodCallInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push(
+            [Ops.GETTABUP, resultOfPairsMethodCallInfo.getRegister(), envInfo.getRegisterOrIndex(), pairsMethodInfo.getRegisterOrIndex()]);
+
+        // first parameter of method call "pairs"
+        const firstParameterInfo = this.functionContext.useRegisterAndPush();
+        if (expressionResultInfo.getRegisterOrIndex() < 0) {
+            this.functionContext.code.push(
+                [Ops.LOADK, firstParameterInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
+        } else {
+            this.functionContext.code.push(
+                [Ops.MOVE, firstParameterInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
+        }
 
         // jump to expression
         const initialJmpOp = [Ops.JMP, 0, 0];
@@ -405,7 +427,7 @@ export class Emitter {
 
         this.processStatement(node.statement);
 
-        const expressionBlock = this.functionContext.code.length;
+        const loopOpsBlock = this.functionContext.code.length;
 
         const tforCallOp = [Ops.TFORCALL, generattorInfo.getRegister(), 1];
         this.functionContext.code.push(tforCallOp);
@@ -415,7 +437,7 @@ export class Emitter {
         this.functionContext.code.push(tforLoopOp);
 
         // storing jump address
-        initialJmpOp[2] = expressionBlock - beforeBlock;
+        initialJmpOp[2] = loopOpsBlock - beforeBlock;
     }
 
     private processBlock(node: ts.Block): void {
