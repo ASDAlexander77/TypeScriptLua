@@ -1,4 +1,4 @@
-let person = {fname:"John", lname:"Doe", age:25};      
+let person = {fname:"John", lname:"Doe"};      
                                                                 
         let text = "";                                          
         let x;                                                  

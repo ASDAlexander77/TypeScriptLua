@@ -68,7 +68,7 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it.skip('simple for/in (local)', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+    it.skip('simple for/in (local) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
         'let person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
         let text = "";                                          \
@@ -79,7 +79,7 @@ describe('Statements', () => {
         console.log(text);                                      \
     '])));
 
-    it.skip('simple for/in (global)', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+    it.skip('simple for/in (global) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
         'var person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
         var text = "";                                          \
