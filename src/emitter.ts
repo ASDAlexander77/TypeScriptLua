@@ -145,6 +145,7 @@ export class Emitter {
             case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); return;
             case ts.SyntaxKind.BreakStatement: this.processBreakStatement(<ts.BreakStatement>node); return;
             case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); return;
+            case ts.SyntaxKind.SwitchStatement: this.processSwitchStatement(<ts.SwitchStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); return;
@@ -540,6 +541,12 @@ export class Emitter {
         });
 
         this.functionContext.continues = [];
+    }
+
+    private processSwitchStatement(node: ts.SwitchStatement) {
+        this.processExpression(node.expression);
+
+        throw new Error('not finished');
     }
 
     private processBlock(node: ts.Block): void {
