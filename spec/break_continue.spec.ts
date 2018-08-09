@@ -12,4 +12,12 @@ describe('Breaks', () => {
         }                                       \
     '])));
 
+    it('Break/continue for for/in', () => expect('1\r\n2\r\n').to.equals(new Run().test([
+        'let a = [1, 2, 3, 4];                  \
+        for (let i in a) {                      \
+            console.log(i);                     \
+            if (i == 1) continue;               \
+            break;                              \
+        }                                       \
+    '])));
 });
