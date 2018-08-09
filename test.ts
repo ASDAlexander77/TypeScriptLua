@@ -1,5 +1,2 @@
-for (let i = 0; i < 10; i++)
-{
-	console.log('Hello'); 
-	continue;
-}
+let b = 8;
+throw b;

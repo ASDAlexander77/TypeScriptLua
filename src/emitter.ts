@@ -147,6 +147,7 @@ export class Emitter {
             case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
+            case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); return;
             case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
         }
 
@@ -206,6 +207,33 @@ export class Emitter {
         sourceFile.statements.forEach(s => {
             this.processStatement(s);
         });
+    }
+
+    private processThrowStatement(node: ts.ThrowStatement): void {
+
+        this.processExpression(node.expression);
+
+        const parameterValueInfo = this.functionContext.stack.peek();
+
+        // prepare call for _ENV "pairs"
+        // prepare consts
+        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        const errorMethodInfo = this.resolver.returnConst('error', this.functionContext);
+
+        const errorResultInfo = this.functionContext.useRegisterAndPush();
+        // getting method referene
+        this.functionContext.code.push(
+            [Ops.GETTABUP, errorResultInfo.getRegister(), envInfo.getRegisterOrIndex(), errorMethodInfo.getRegisterOrIndex()]);
+
+        const firstParametertInfo = this.functionContext.useRegisterAndPush();
+        // getting method referene
+        this.functionContext.code.push(
+            [Ops.MOVE, firstParametertInfo.getRegister(), parameterValueInfo.getRegister()]);
+
+        // finally - calling method 'debug.debug()'
+        this.functionContext.code.push([Ops.CALL, errorResultInfo.getRegister(), 2, 1]);
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
     }
 
     private processDebuggerStatement(node: ts.DebuggerStatement): void {
