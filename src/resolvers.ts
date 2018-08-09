@@ -235,7 +235,9 @@ export class IdentifierResolver {
         }
 
         const resolved = (<any>this.typeChecker).resolveName(
-            identifier.text, functionContext.location_node, ((1 << 27) - 1)/*mask for all types*/);
+            identifier.text,
+            functionContext.current_location_node ||  functionContext.function_or_file_location_node,
+            ((1 << 27) - 1)/*mask for all types*/);
         if (resolved) {
             const kind: ts.SyntaxKind = <ts.SyntaxKind>resolved.valueDeclaration.kind;
             switch (kind) {

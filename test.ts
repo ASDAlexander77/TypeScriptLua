@@ -1,8 +1,5 @@
-let person = {fname:"John", lname:"Doe"};      
-                                                                
-                                     
-        console.log('Hello1'); 
-
-	debugger;
-
-        console.log('Hello2'); 
+for (let i = 0; i < 10; i++)
+{
+	console.log('Hello'); 
+	continue;
+}

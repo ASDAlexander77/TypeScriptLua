@@ -13,7 +13,8 @@ export class UpvalueInfo {
 }
 
 export class FunctionContext {
-    public location_node: ts.Node;
+    public function_or_file_location_node: ts.Node;
+    public current_location_node: ts.Node;
     // if undefined == "_ENV"
     public container: FunctionContext;
     // to track current register(stack)
@@ -35,14 +36,22 @@ export class FunctionContext {
     public protos: Array<FunctionContext> = [];
     public debug: Array<any> = [];
     public local_scopes: Array<any> = [];
+    public location_scopes: Array<any> = [];
+    // to support break, continue in loops
+    public breaks: Array<number> = [];
+    public continues: Array<number> = [];
 
-    public newLocalScope() {
+    public newLocalScope(node: ts.Node) {
+        this.location_scopes.push(this.current_location_node);
+        this.current_location_node = node;
+
         this.local_scopes.push(this.locals);
         this.locals = [];
     }
 
     public restoreLocalScope() {
         this.locals = this.local_scopes.pop();
+        this.current_location_node = this.location_scopes.pop();
     }
 
     public findOrCreateUpvalue(name: string, instack: boolean): number {

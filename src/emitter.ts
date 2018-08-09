@@ -66,7 +66,7 @@ export class Emitter {
         this.functionContextStack.push(localFunctionContext);
         this.functionContext = new FunctionContext();
         this.functionContext.container = localFunctionContext;
-        this.functionContext.location_node = location;
+        this.functionContext.function_or_file_location_node = location;
     }
 
     private popFunctionContext(): FunctionContext {
@@ -143,6 +143,8 @@ export class Emitter {
             case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
             case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.ForStatement>node); return;
             case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); return;
+            case ts.SyntaxKind.BreakStatement: this.processBreakStatement(<ts.BreakStatement>node); return;
+            case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
@@ -347,7 +349,6 @@ export class Emitter {
     }
 
     private processWhileStatement(node: ts.WhileStatement): void {
-
         // jump to expression
         const jmpOp = [Ops.JMP, 0, 0];
         this.functionContext.code.push(jmpOp);
@@ -359,7 +360,7 @@ export class Emitter {
 
     private processForStatement(node: ts.ForStatement): void {
 
-        this.functionContext.newLocalScope();
+        this.functionContext.newLocalScope(node);
 
         this.declareLoopVariables(<ts.Expression>node.initializer);
 
@@ -389,6 +390,8 @@ export class Emitter {
 
         this.processStatement(node.statement);
 
+        this.resolveContinueJumps();
+
         if (incrementor) {
             this.processExpression(incrementor);
         }
@@ -408,12 +411,14 @@ export class Emitter {
         const jmpOp = [Ops.JMP, 0, beforeBlock - this.functionContext.code.length - 1];
         this.functionContext.code.push(jmpOp);
 
+        this.resolveBreakJumps();
+
         return expressionBlock;
     }
 
     private processForInStatement(node: ts.ForInStatement): void {
 
-        this.functionContext.newLocalScope();
+        this.functionContext.newLocalScope(node);
 
         // we need to generate 3 local variables for ForEach loop
         const generatorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
@@ -463,6 +468,8 @@ export class Emitter {
 
         const loopOpsBlock = this.functionContext.code.length;
 
+        this.resolveContinueJumps();
+
         // !!!! TODO: problem in calling this code, something happening to NULL value
         const tforCallOp = [Ops.TFORCALL, generatorInfo.getRegister(), 0, 1];
         this.functionContext.code.push(tforCallOp);
@@ -474,12 +481,42 @@ export class Emitter {
         // storing jump address
         initialJmpOp[2] = loopOpsBlock - beforeBlock;
 
+        this.resolveBreakJumps();
+
         this.functionContext.restoreLocalScope();
+    }
+
+    private processBreakStatement(node: ts.BreakStatement) {
+        const breakJmpOp = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(breakJmpOp);
+        this.functionContext.breaks.push(this.functionContext.code.length - 1);
+    }
+
+    private resolveBreakJumps(jump?: number) {
+        this.functionContext.breaks.forEach(b => {
+            this.functionContext.code[b][2] = (jump ? jump : this.functionContext.code.length) - b - 1;
+        });
+
+        this.functionContext.breaks = [];
+    }
+
+    private processContinueStatement(node: ts.ContinueStatement) {
+        const continueJmpOp = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(continueJmpOp);
+        this.functionContext.continues.push(this.functionContext.code.length - 1);
+    }
+
+    private resolveContinueJumps(jump?: number) {
+        this.functionContext.continues.forEach(c => {
+            this.functionContext.code[c][2] = (jump ? jump : this.functionContext.code.length) - c - 1;
+        });
+
+        this.functionContext.continues = [];
     }
 
     private processBlock(node: ts.Block): void {
 
-        this.functionContext.newLocalScope();
+        this.functionContext.newLocalScope(node);
 
         node.statements.forEach(s => {
             this.processStatement(s);
