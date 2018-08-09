@@ -145,6 +145,7 @@ export class Emitter {
             case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
+            case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
         }
 
         // TODO: finish it
@@ -203,6 +204,24 @@ export class Emitter {
         sourceFile.statements.forEach(s => {
             this.processStatement(s);
         });
+    }
+
+    private processDebuggerStatement(node: ts.DebuggerStatement): void {
+        // prepare call for _ENV "pairs"
+        // prepare consts
+        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        const debugMethodInfo = this.resolver.returnConst('debug', this.functionContext);
+
+        const debugResultInfo = this.functionContext.useRegisterAndPush();
+        // getting method referene
+        this.functionContext.code.push(
+            [Ops.GETTABUP, debugResultInfo.getRegister(), envInfo.getRegisterOrIndex(), debugMethodInfo.getRegisterOrIndex()]);
+        this.functionContext.code.push(
+            [Ops.GETTABLE, debugResultInfo.getRegister(), debugResultInfo.getRegister(), debugMethodInfo.getRegisterOrIndex()]);
+
+        // finally - calling method 'debug.debug()'
+        this.functionContext.code.push([Ops.CALL, debugResultInfo.getRegister(), 1, 1]);
+        this.functionContext.stack.pop();
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
