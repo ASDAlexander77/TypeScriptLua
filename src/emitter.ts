@@ -257,11 +257,15 @@ export class Emitter {
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
+        this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
+        this.functionContext.restoreLocalScope();
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
+        this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
+        this.functionContext.restoreLocalScope();
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
