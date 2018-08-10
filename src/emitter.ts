@@ -546,7 +546,57 @@ export class Emitter {
     private processSwitchStatement(node: ts.SwitchStatement) {
         this.processExpression(node.expression);
 
-        throw new Error('not finished');
+        const switchResultInfo = this.functionContext.stack.peek();
+
+        this.functionContext.newLocalScope(node);
+
+        let previousCaseJmpIndex = -1;
+        const lastCaseJmpIndexes: number[] = [];
+        node.caseBlock.clauses.forEach(c => {
+
+            // set jump for previouse 'false' case;
+            if (previousCaseJmpIndex !== -1) {
+                this.functionContext.code[previousCaseJmpIndex][2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
+                previousCaseJmpIndex = -1;
+            }
+
+            if (c.kind === ts.SyntaxKind.CaseClause) {
+                // process 'case'
+                const caseClause = <ts.CaseClause>c;
+                this.processExpression(caseClause.expression);
+
+                const caseResultInfo = this.functionContext.stack.pop().optimize();
+
+                const equalsTo = 1;
+                this.functionContext.code.push([
+                    Ops.EQ, equalsTo, switchResultInfo.getRegisterOrIndex(), caseResultInfo.getRegisterOrIndex()]);
+                    const jmpOp = [Ops.JMP, 0, 0];
+                    this.functionContext.code.push(jmpOp);
+                    lastCaseJmpIndexes.push(this.functionContext.code.length - 1);
+            }
+
+            if (c.statements.length > 0) {
+                // jump over the case
+                const jmpOp = [Ops.JMP, 0, 0];
+                this.functionContext.code.push(jmpOp);
+                previousCaseJmpIndex = this.functionContext.code.length - 1;
+
+                // set jump to body of the case
+                lastCaseJmpIndexes.forEach(j => {
+                    this.functionContext.code[j][2] = this.functionContext.code.length - j - 1;
+                });
+            }
+
+            // case or default body
+            c.statements.forEach(s => this.processStatement(s));
+        });
+
+        // clearup switch result;
+        this.functionContext.stack.pop();
+
+        this.functionContext.restoreLocalScope();
+
+        this.resolveBreakJumps();
     }
 
     private processBlock(node: ts.Block): void {
@@ -609,22 +659,20 @@ export class Emitter {
 
         this.resolver.Scope.push(node);
 
-        if (node.properties.length > 0) {
-            node.properties.forEach((e: ts.PropertyAssignment, index: number) => {
-                // set 0 element
-                this.processExpression(<ts.Expression><any>e.name);
-                this.processExpression(e.initializer);
+        node.properties.forEach((e: ts.PropertyAssignment, index: number) => {
+            // set 0 element
+            this.processExpression(<ts.Expression><any>e.name);
+            this.processExpression(e.initializer);
 
-                const propertyValueInfo = this.functionContext.stack.pop().optimize();
-                const propertyIndexInfo = this.functionContext.stack.pop().optimize();
+            const propertyValueInfo = this.functionContext.stack.pop().optimize();
+            const propertyIndexInfo = this.functionContext.stack.pop().optimize();
 
-                this.functionContext.code.push(
-                    [Ops.SETTABLE,
-                    resultInfo.getRegister(),
-                    propertyIndexInfo.getRegisterOrIndex(),
-                    propertyValueInfo.getRegisterOrIndex()]);
-            });
-        }
+            this.functionContext.code.push(
+                [Ops.SETTABLE,
+                resultInfo.getRegister(),
+                propertyIndexInfo.getRegisterOrIndex(),
+                propertyValueInfo.getRegisterOrIndex()]);
+        });
 
         this.resolver.Scope.pop();
     }
