@@ -148,6 +148,7 @@ export class Emitter {
             case ts.SyntaxKind.SwitchStatement: this.processSwitchStatement(<ts.SwitchStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
+            case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); return;
             case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
         }
@@ -256,6 +257,10 @@ export class Emitter {
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
+        this.transpileTSNode(node);
+    }
+
+    private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.transpileTSNode(node);
     }
 
