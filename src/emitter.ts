@@ -551,11 +551,15 @@ export class Emitter {
         this.functionContext.newLocalScope(node);
 
         let previousCaseJmpIndex = -1;
-        const lastCaseJmpIndexes: number[] = [];
+        let lastCaseJmpIndexes: number[] = [];
         node.caseBlock.clauses.forEach(c => {
 
             // set jump for previouse 'false' case;
             if (previousCaseJmpIndex !== -1) {
+                if (this.functionContext.code[previousCaseJmpIndex][2] !== 0) {
+                    throw new Error('Jump is set already');
+                }
+
                 this.functionContext.code[previousCaseJmpIndex][2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
                 previousCaseJmpIndex = -1;
             }
@@ -576,15 +580,23 @@ export class Emitter {
             }
 
             if (c.statements.length > 0) {
-                // jump over the case
-                const jmpOp = [Ops.JMP, 0, 0];
-                this.functionContext.code.push(jmpOp);
-                previousCaseJmpIndex = this.functionContext.code.length - 1;
+                if (c.kind === ts.SyntaxKind.CaseClause) {
+                    // jump over the case
+                    const jmpOp = [Ops.JMP, 0, 0];
+                    this.functionContext.code.push(jmpOp);
+                    previousCaseJmpIndex = this.functionContext.code.length - 1;
+                }
 
                 // set jump to body of the case
                 lastCaseJmpIndexes.forEach(j => {
+                    if (this.functionContext.code[j][2] !== 0) {
+                        throw new Error('Jump is set already');
+                    }
+
                     this.functionContext.code[j][2] = this.functionContext.code.length - j - 1;
                 });
+
+                lastCaseJmpIndexes = [];
             }
 
             // case or default body
