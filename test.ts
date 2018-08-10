@@ -1,15 +1,8 @@
-class Rectangle {
-    constructor(private w: number, private h: number) {
-        console.log('Hi!');
-        console.log(this.w);
-    }
+function Test() {
+    
+}
 
-/*
-    public run() {
-	console.log('run');
-    }
-*/
-  }
+Test.prototype.t = function() {
 
-const p = new Rectangle(1, 2);
-//p.run();
+}
+
