@@ -149,6 +149,7 @@ export class Emitter {
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
+            case ts.SyntaxKind.TryStatement: this.processTryStatement(<ts.TryStatement>node); return;
             case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); return;
             case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
         }
@@ -209,6 +210,10 @@ export class Emitter {
         sourceFile.statements.forEach(s => {
             this.processStatement(s);
         });
+    }
+
+    private processTryStatement(node: ts.TryStatement): void {
+        
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
