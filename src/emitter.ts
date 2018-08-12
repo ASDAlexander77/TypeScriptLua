@@ -215,12 +215,13 @@ export class Emitter {
     }
 
     private processTryStatement(node: ts.TryStatement): void {
-        this.processFunctionExpression(<any>node.tryBlock);
-
         const protoIndex = -this.functionContext.createProto(
             this.processFunction(node, node.tryBlock.statements, undefined));
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
+
+        this.functionContext.code.push([Ops.CALL, resultInfo.getRegister(), 1, 0]);
+        this.functionContext.stack.pop();
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {

@@ -45,6 +45,13 @@ describe('Test 1', () => {
             x();                                \
         '])));
 
+    it('print "Hello World!" as arrow function', () => expect('Hello World!\r\n').to.equals(new Run().test([
+        '                                       \
+        (function() {                           \
+            console.log("Hello World!");        \
+        })()                                    \
+    '])));
+
     it('var declaration: print - true,1,1.5,Hello World!', () => expect('true\r\n1\r\n1.5\r\nHello World!\r\n').to.equals(new Run().test([
         '                                       \
             var x = true;                       \
