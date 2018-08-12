@@ -80,42 +80,42 @@ export class Emitter {
         statements: ts.NodeArray<ts.Statement>,
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean): FunctionContext {
-        this.pushFunctionContext(location);
 
+        this.pushFunctionContext(location);
+        this.processFunctionWithinContext(location, statements, parameters, createEnvironment);
+        return this.popFunctionContext();
+    }
+
+    private processFunctionWithinContext(
+        location: ts.Node,
+        statements: ts.NodeArray<ts.Statement>,
+        parameters: ts.NodeArray<ts.ParameterDeclaration>,
+        createEnvironment?: boolean) {
         if (createEnvironment) {
             this.resolver.returnResolvedEnv(this.functionContext);
         }
-
         let createThis = false;
         function checkThisKeyward(node: ts.Node): any {
             if (node.kind === ts.SyntaxKind.ThisKeyword) {
                 createThis = true;
                 return true;
             }
-
             ts.forEachChild(node, checkThisKeyward);
         }
-
         ts.forEachChild(location, checkThisKeyward);
-
         if (createThis) {
             this.functionContext.createLocal('this');
         }
-
         if (parameters) {
             parameters.forEach(p => {
                 this.functionContext.createLocal((<ts.Identifier>p.name).text);
             });
         }
-
         statements.forEach(s => {
             this.processStatement(s);
         });
-
         // add final 'RETURN'
         this.functionContext.code.push([Ops.RETURN, 0, 1]);
-
-        return this.popFunctionContext();
     }
 
     private processFile(sourceFile: ts.SourceFile): void {

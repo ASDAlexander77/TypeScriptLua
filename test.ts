@@ -1,5 +1,6 @@
+let i = 1;
 try {
-    console.log('Hello Try!');
+    console.log(i);
 } finally {
 
 }
