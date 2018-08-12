@@ -76,8 +76,15 @@ export class Emitter {
     }
 
     private processFunction(
-        location: ts.Node, statements: ts.NodeArray<ts.Statement>, parameters: ts.NodeArray<ts.ParameterDeclaration>): FunctionContext {
+        location: ts.Node,
+        statements: ts.NodeArray<ts.Statement>,
+        parameters: ts.NodeArray<ts.ParameterDeclaration>,
+        createEnvironment?: boolean): FunctionContext {
         this.pushFunctionContext(location);
+
+        if (createEnvironment) {
+            this.resolver.returnResolvedEnv(this.functionContext);
+        }
 
         let createThis = false;
         function checkThisKeyward(node: ts.Node): any {
@@ -115,7 +122,7 @@ export class Emitter {
 
         this.emitHeader();
 
-        const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements, <any>[]);
+        const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements, <any>[], true);
 
         // this is global function
         localFunctionContext.is_vararg = true;
