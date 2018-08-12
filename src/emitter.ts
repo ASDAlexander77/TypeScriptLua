@@ -95,9 +95,11 @@ export class Emitter {
             this.functionContext.createLocal('this');
         }
 
-        parameters.forEach(p => {
-            this.functionContext.createLocal((<ts.Identifier>p.name).text);
-        });
+        if (parameters) {
+            parameters.forEach(p => {
+                this.functionContext.createLocal((<ts.Identifier>p.name).text);
+            });
+        }
 
         statements.forEach(s => {
             this.processStatement(s);
@@ -213,7 +215,12 @@ export class Emitter {
     }
 
     private processTryStatement(node: ts.TryStatement): void {
-        
+        this.processFunctionExpression(<any>node.tryBlock);
+
+        const protoIndex = -this.functionContext.createProto(
+            this.processFunction(node, node.tryBlock.statements, undefined));
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
@@ -321,7 +328,8 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        const protoIndex = -this.functionContext.createProto(this.processFunction(node, node.body.statements, node.parameters));
+        const protoIndex = -this.functionContext.createProto(
+            this.processFunction(node, node.body.statements, node.parameters));
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
     }
