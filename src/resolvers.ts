@@ -342,9 +342,9 @@ export class IdentifierResolver {
         if (!this.Scope.any()) {
             const objectInfo = this.returnResolvedEnv(functionContext, true);
             const methodInfo = new ResolvedInfo(functionContext);
-            methodInfo.kind = ResolvedKind.Upvalue;
+            methodInfo.kind = ResolvedKind.Const;
             methodInfo.identifierName = identifier.text;
-            methodInfo.upvalueInstack = true;
+            methodInfo.ensureConstIndex();
 
             const loadMemberInfo = new ResolvedInfo(functionContext);
             loadMemberInfo.kind = ResolvedKind.LoadMember;
