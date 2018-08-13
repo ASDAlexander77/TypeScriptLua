@@ -10,7 +10,7 @@ export enum ResolvedKind {
     // registers
     Register,
     // to support methods load
-    LoadMember,
+    LoadGlobalMember,
     // load array element
     LoadElement,
     // to support loading closures
@@ -347,7 +347,7 @@ export class IdentifierResolver {
             methodInfo.ensureConstIndex();
 
             const loadMemberInfo = new ResolvedInfo(functionContext);
-            loadMemberInfo.kind = ResolvedKind.LoadMember;
+            loadMemberInfo.kind = ResolvedKind.LoadGlobalMember;
             loadMemberInfo.objectInfo = objectInfo;
             loadMemberInfo.memberInfo = methodInfo;
             return loadMemberInfo;

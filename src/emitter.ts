@@ -1359,10 +1359,12 @@ export class Emitter {
             return;
         }
 
-        if (resolvedInfo.kind === ResolvedKind.LoadMember) {
+        if (resolvedInfo.kind === ResolvedKind.LoadGlobalMember) {
             const resultInfo = this.functionContext.useRegisterAndPush();
             const objectIdentifierInfo = resolvedInfo.objectInfo;
             const memberIdentifierInfo = resolvedInfo.memberInfo;
+
+            resultInfo.originalInfo = memberIdentifierInfo;
 
             this.functionContext.code.push(
                 [Ops.GETTABUP,
@@ -1389,7 +1391,7 @@ export class Emitter {
         let opCode = Ops.GETTABLE;
 
         const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
-        if (readOpCode[0] === Ops.GETUPVAL) {
+        if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
             this.functionContext.code.pop();
             opCode = Ops.GETTABUP;
             objectIdentifierInfo.register = readOpCode[2];
@@ -1397,6 +1399,7 @@ export class Emitter {
 
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
+            && objectIdentifierInfo.originalInfo
             && objectIdentifierInfo.originalInfo.kind !== ResolvedKind.Upvalue) {
             opCode = Ops.SELF;
         }

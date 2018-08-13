@@ -1,3 +1,8 @@
-let a = { obj: "asd" };
-delete a.obj;
-console.log(a.obj);
+var o = {
+    prop: 37,
+    f: function () {
+        return this.prop;
+    }
+};
+
+console.log(o.f());
