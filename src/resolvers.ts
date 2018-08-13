@@ -21,8 +21,8 @@ export class ResolvedInfo {
     public kind: ResolvedKind;
     public value: any;
     public identifierName: string;
-    public currentInfo: ResolvedInfo;
-    public parentInfo: ResolvedInfo;
+    public memberInfo: ResolvedInfo;
+    public objectInfo: ResolvedInfo;
     public register: number;
     public constIndex: number;
     public upvalueIndex: number;
@@ -237,7 +237,7 @@ export class IdentifierResolver {
 
         const resolved = (<any>this.typeChecker).resolveName(
             identifier.text,
-            functionContext.current_location_node ||  functionContext.function_or_file_location_node,
+            functionContext.current_location_node || functionContext.function_or_file_location_node,
             ((1 << 27) - 1)/*mask for all types*/);
         if (resolved) {
             const kind: ts.SyntaxKind = <ts.SyntaxKind>resolved.valueDeclaration.kind;
@@ -340,32 +340,34 @@ export class IdentifierResolver {
 
     private resolveMemberOfCurrentScope(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         if (!this.Scope.any()) {
-            this.returnResolvedEnv(functionContext, true);
-            const resolvedInfo = new ResolvedInfo(functionContext);
-            resolvedInfo.kind = ResolvedKind.Upvalue;
-            resolvedInfo.identifierName = identifier.text;
-            resolvedInfo.upvalueInstack = true;
-            return resolvedInfo;
+            const objectInfo = this.returnResolvedEnv(functionContext, true);
+            const methodInfo = new ResolvedInfo(functionContext);
+            methodInfo.kind = ResolvedKind.Upvalue;
+            methodInfo.identifierName = identifier.text;
+            methodInfo.upvalueInstack = true;
+
+            const loadMemberInfo = new ResolvedInfo(functionContext);
+            loadMemberInfo.kind = ResolvedKind.LoadMember;
+            loadMemberInfo.objectInfo = objectInfo;
+            loadMemberInfo.memberInfo = methodInfo;
+            return loadMemberInfo;
         }
 
+        let identifierName = identifier.text;
         const parentScope: any = this.Scope.peek();
         if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-            let identifierName = identifier.text;
-
             // HACK
             if (parentScope.originalInfo.kind === ResolvedKind.Upvalue && parentScope.originalInfo.identifierName === '_ENV') {
                 if (identifier.text === 'log') {
                     identifierName = 'print';
                 }
             }
-
-            const finalResolvedInfo = new ResolvedInfo(functionContext);
-            finalResolvedInfo.kind = ResolvedKind.Const;
-            finalResolvedInfo.identifierName = identifierName;
-            finalResolvedInfo.ensureConstIndex();
-            return finalResolvedInfo;
         }
 
-        throw new Error('Method not implemented');
+        const finalResolvedInfo = new ResolvedInfo(functionContext);
+        finalResolvedInfo.kind = ResolvedKind.Const;
+        finalResolvedInfo.identifierName = identifierName;
+        finalResolvedInfo.ensureConstIndex();
+        return finalResolvedInfo;
     }
 }

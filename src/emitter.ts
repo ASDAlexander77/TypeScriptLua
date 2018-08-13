@@ -1361,8 +1361,8 @@ export class Emitter {
 
         if (resolvedInfo.kind === ResolvedKind.LoadMember) {
             const resultInfo = this.functionContext.useRegisterAndPush();
-            const objectIdentifierInfo = resolvedInfo.parentInfo;
-            const memberIdentifierInfo = resolvedInfo.currentInfo;
+            const objectIdentifierInfo = resolvedInfo.objectInfo;
+            const memberIdentifierInfo = resolvedInfo.memberInfo;
 
             this.functionContext.code.push(
                 [Ops.GETTABUP,

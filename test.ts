@@ -1,2 +1,2 @@
-let b: boolean = true;
-console.log(b);           
+        var isDone3: boolean = false;   
+        console.log(isDone3);           
