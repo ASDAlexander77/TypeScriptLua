@@ -29,6 +29,7 @@ export class ResolvedInfo {
     public protoIndex: number;
     public upvalueInstack: boolean;
     public root: boolean;
+    public originalInfo: ResolvedInfo;
 
     public constructor(private functionContext: FunctionContext) {
     }
@@ -339,38 +340,28 @@ export class IdentifierResolver {
 
     private resolveMemberOfCurrentScope(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         if (!this.Scope.any()) {
-            this.Scope.push(this.returnResolvedEnv(functionContext, true));
+            this.returnResolvedEnv(functionContext, true);
+            const resolvedInfo = new ResolvedInfo(functionContext);
+            resolvedInfo.kind = ResolvedKind.Upvalue;
+            resolvedInfo.identifierName = identifier.text;
+            resolvedInfo.upvalueInstack = true;
+            return resolvedInfo;
         }
 
         const parentScope: any = this.Scope.peek();
-        if (parentScope && parentScope.kind === ResolvedKind.Upvalue) {
-            const resolvedInfo = new ResolvedInfo(functionContext);
-            resolvedInfo.kind = ResolvedKind.Const;
-            resolvedInfo.identifierName = identifier.text;
+        if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+            let identifierName = identifier.text;
 
-            // resolve _ENV
-            // TODO: hack
-            if (parentScope.identifierName === '_ENV') {
-                switch (resolvedInfo.identifierName) {
-                    case 'log': resolvedInfo.identifierName = 'print'; break;
+            // HACK
+            if (parentScope.originalInfo.kind === ResolvedKind.Upvalue && parentScope.originalInfo.identifierName === '_ENV') {
+                if (identifier.text === 'log') {
+                    identifierName = 'print';
                 }
             }
 
-            if (!parentScope.root) {
-                return resolvedInfo;
-            }
-
-            const finalResolvedInfo = new ResolvedInfo(functionContext);
-            finalResolvedInfo.kind = ResolvedKind.LoadMember;
-            finalResolvedInfo.parentInfo = parentScope;
-            finalResolvedInfo.currentInfo = resolvedInfo;
-            return finalResolvedInfo;
-        }
-
-        if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
             const finalResolvedInfo = new ResolvedInfo(functionContext);
             finalResolvedInfo.kind = ResolvedKind.Const;
-            finalResolvedInfo.identifierName = identifier.text;
+            finalResolvedInfo.identifierName = identifierName;
             finalResolvedInfo.ensureConstIndex();
             return finalResolvedInfo;
         }

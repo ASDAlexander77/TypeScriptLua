@@ -1340,7 +1340,22 @@ export class Emitter {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
         if (resolvedInfo.kind === ResolvedKind.Register) {
             const resultInfo = this.functionContext.useRegisterAndPush();
+            resultInfo.originalInfo = resolvedInfo;
             this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+            return;
+        }
+
+        if (resolvedInfo.kind === ResolvedKind.Upvalue) {
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            resultInfo.originalInfo = resolvedInfo;
+            this.functionContext.code.push([Ops.GETUPVAL, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+            return;
+        }
+
+        if (resolvedInfo.kind === ResolvedKind.Const) {
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            resultInfo.originalInfo = resolvedInfo;
+            this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
             return;
         }
 
@@ -1354,12 +1369,6 @@ export class Emitter {
                 resultInfo.getRegister(),
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
-            return;
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.Upvalue
-            || resolvedInfo.kind === ResolvedKind.Const) {
-            this.functionContext.stack.push(resolvedInfo);
             return;
         }
 
@@ -1377,8 +1386,18 @@ export class Emitter {
         const memberIdentifierInfo = this.functionContext.stack.pop().optimize();
         const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
-        let opCode = objectIdentifierInfo.kind === ResolvedKind.Upvalue ? Ops.GETTABUP : Ops.GETTABLE;
-        if (this.resolver.methodCall && objectIdentifierInfo.kind === ResolvedKind.Register) {
+        let opCode = Ops.GETTABLE;
+
+        const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
+        if (readOpCode[0] === Ops.GETUPVAL) {
+            this.functionContext.code.pop();
+            opCode = Ops.GETTABUP;
+            objectIdentifierInfo.register = readOpCode[2];
+        }
+
+        if (this.resolver.methodCall
+            && objectIdentifierInfo.kind === ResolvedKind.Register
+            && objectIdentifierInfo.originalInfo.kind !== ResolvedKind.Upvalue) {
             opCode = Ops.SELF;
         }
 
