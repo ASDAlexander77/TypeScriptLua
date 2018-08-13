@@ -59,11 +59,23 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
-    it('external values', () => expect('true\r\n').to.equals(new Run().test([
+    it('external values (bool)', () => expect('true\r\n').to.equals(new Run().test([
         'let test = false;                                                      \
                                                                                 \
         function inner() {                                                      \
             test = true;                                                        \
+        }                                                                       \
+                                                                                \
+        inner();                                                                \
+                                                                                \
+        console.log(test);                                                      \
+    '])));
+
+    it('external values (value)', () => expect('2\r\n').to.equals(new Run().test([
+        'let test = 1;                                                          \
+                                                                                \
+        function inner() {                                                      \
+            test = 2;                                                           \
         }                                                                       \
                                                                                 \
         inner();                                                                \
