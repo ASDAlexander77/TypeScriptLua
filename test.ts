@@ -1,9 +1,8 @@
-let test = 1;                                                      
-                                                                                
-        function inner() {                                                      
-            test = 2;                                                        
-        }                                                                       
-                                                                                
-        inner();                                                                
-                                                                                
-        console.log(test);
+let i = 1;
+try
+{
+    console.log(i);
+}
+finally {
+    
+}
