@@ -1,20 +1,9 @@
-let i = 1;
-
-function f() {
-    ////console.log(i);
-	i = 2;
-}
-
-f();
-
-console.log(i);
-
-/*
-try
-{
-    console.log(i);
-} finally {
-
-}
-
-*/
+let test = 1;                                                      
+                                                                                
+        function inner() {                                                      
+            test = 2;                                                        
+        }                                                                       
+                                                                                
+        inner();                                                                
+                                                                                
+        console.log(test);

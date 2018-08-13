@@ -72,15 +72,16 @@ describe('Functions', () => {
     '])));
 
     it('external values (value)', () => expect('2\r\n').to.equals(new Run().test([
-        'let test = 1;                                                          \
+        'let i = 1;                                                             \
                                                                                 \
-        function inner() {                                                      \
-            test = 2;                                                           \
+        function f() {                                                          \
+            i = 2;                                                              \
         }                                                                       \
                                                                                 \
-        inner();                                                                \
+        f();                                                                    \
                                                                                 \
-        console.log(test);                                                      \
+        console.log(i);                                                         \
+                                                                                \
     '])));
 
 });

@@ -253,10 +253,12 @@ export class IdentifierResolver {
                     }
 
                     // values are not the same as Node.Flags
-                    if (resolved.flags !== 2) {
+                    if ((resolved.flags & 1) === 1) {
                         return this.resolveMemberOfCurrentScope(identifier, functionContext);
-                    } else {
+                    } else if ((resolved.flags & 2) === 2) {
                         return this.returnLocalOrUpvalue(identifier.text, functionContext);
+                    } else {
+                        throw new Error('Not implemented');
                     }
 
                     break;
