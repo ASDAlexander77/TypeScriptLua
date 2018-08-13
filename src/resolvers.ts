@@ -357,7 +357,9 @@ export class IdentifierResolver {
         const parentScope: any = this.Scope.peek();
         if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
             // HACK
-            if (parentScope.originalInfo.kind === ResolvedKind.Upvalue && parentScope.originalInfo.identifierName === '_ENV') {
+            if (parentScope.originalInfo
+                && parentScope.originalInfo.kind === ResolvedKind.Upvalue
+                && parentScope.originalInfo.identifierName === '_ENV') {
                 if (identifier.text === 'log') {
                     identifierName = 'print';
                 }
