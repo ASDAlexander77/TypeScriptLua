@@ -84,4 +84,14 @@ describe('Functions', () => {
                                                                                 \
     '])));
 
+    it('external values (value) 2', () => expect('1\r\n').to.equals(new Run().test([
+        'let i = 1;                                                             \
+                                                                                \
+        function f() {                                                          \
+            console.log(i)                                                      \
+        }                                                                       \
+                                                                                \
+        f();                                                                    \
+    '])));
+
 });
