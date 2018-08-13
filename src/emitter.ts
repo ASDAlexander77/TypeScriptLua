@@ -1521,7 +1521,7 @@ export class Emitter {
             // in stack (bool)
             this.writer.writeByte((upvalue.instack) ? 1 : 0);
             // index
-            this.writer.writeByte(upvalue.index || index);
+            this.writer.writeByte(upvalue.index !== undefined ? upvalue.index : index);
         });
     }
 

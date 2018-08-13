@@ -54,11 +54,11 @@ export class FunctionContext {
         this.current_location_node = this.location_scopes.pop();
     }
 
-    public findOrCreateUpvalue(name: string, instack: boolean): number {
+    public findOrCreateUpvalue(name: string, instack: boolean, indexInStack?: number): number {
         // upvalues start with 0
         const index = this.upvalues.findIndex(e => e.name === name);
         if (index === -1) {
-            this.upvalues.push({name, instack: instack, index: undefined});
+            this.upvalues.push({name, instack: instack, index: indexInStack});
             return this.upvalues.length - 1;
         }
 

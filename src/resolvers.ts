@@ -28,6 +28,7 @@ export class ResolvedInfo {
     public upvalueIndex: number;
     public protoIndex: number;
     public upvalueInstack: boolean;
+    public upvalueStackIndex: number;
     public root: boolean;
     public originalInfo: ResolvedInfo;
 
@@ -73,7 +74,8 @@ export class ResolvedInfo {
             return this.upvalueIndex;
         }
 
-        return this.upvalueIndex = -this.functionContext.findOrCreateUpvalue(this.identifierName, this.upvalueInstack);
+        return this.upvalueIndex = this.functionContext.findOrCreateUpvalue(
+            this.identifierName, this.upvalueInstack, this.upvalueStackIndex);
     }
 
     public getRegisterOrIndex(): number {
@@ -333,6 +335,7 @@ export class IdentifierResolver {
                 resolvedInfo.kind = ResolvedKind.Upvalue;
                 resolvedInfo.identifierName = text;
                 resolvedInfo.upvalueInstack = true;
+                resolvedInfo.upvalueStackIndex = localVarIndexAsUpvalue;
                 return resolvedInfo;
             }
         }
