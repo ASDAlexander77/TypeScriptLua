@@ -257,15 +257,12 @@ export class Emitter {
 
         // process "finally" block
         if (node.finallyBlock) {
-            node.finallyBlock.statements.forEach(s => {
-                this.processStatement(s);
-            });
+            this.processBlock(node.finallyBlock);
         }
 
         // process 'catch'
         if (node.catchClause) {
             // if status == true, jump over 'catch'-es.
-
             // create 'true' boolean
             const resolvedInfo = this.resolver.returnConst(true, this.functionContext);
 
@@ -277,8 +274,25 @@ export class Emitter {
             this.functionContext.code.push(jmpOp);
             const casesBlockBegin = this.functionContext.code.length;
 
+            // registring local var
+            let localVar = -1;
+            const variableDeclaration = node.catchClause.variableDeclaration;
+            if (variableDeclaration) {
+                const localResolvedInfo = this.functionContext.createLocal(variableDeclaration.name.getText());
+                localVar =  this.functionContext.locals.length - 1;
+                const localInfo = this.functionContext.locals[localVar];
+                this.functionContext.availableRegister = localResolvedInfo.getRegister();
+                localInfo.register = errorResultInfo.getRegister();
+            }
+
             // catch...
             this.processBlock(node.catchClause.block);
+
+            // clean up of local var
+            if (localVar !== -1) {
+                // remove catch local variable
+                this.functionContext.locals.splice(localVar, 1);
+            }
 
             // end of cases block
             jmpOp[2] = this.functionContext.code.length - casesBlockBegin;
