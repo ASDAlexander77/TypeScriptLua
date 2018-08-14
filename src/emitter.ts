@@ -222,13 +222,38 @@ export class Emitter {
     }
 
     private processTryStatement(node: ts.TryStatement): void {
+
+        // 1) get method pcall
+        // prepare call for _ENV "pcall"
+        // prepare consts
+        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        const pcallMethodInfo = this.resolver.returnConst('pcall', this.functionContext);
+
+        const pcallResultInfo = this.functionContext.useRegisterAndPush();
+        // getting method referene
+        this.functionContext.code.push(
+            [Ops.GETTABUP, pcallResultInfo.getRegister(), envInfo.getRegisterOrIndex(), pcallMethodInfo.getRegisterOrIndex()]);
+
+        // 2) get closure
+        // prepare Closure
         const protoIndex = -this.functionContext.createProto(
             this.processFunction(node, node.tryBlock.statements, undefined));
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
+        const closureResultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([Ops.CLOSURE, closureResultInfo.getRegister(), protoIndex]);
 
-        this.functionContext.code.push([Ops.CALL, resultInfo.getRegister(), 1, 0]);
+        // 3) calling closure
+        // calling PCall
+        this.functionContext.code.push([Ops.CALL, pcallResultInfo.getRegister(), 2, 3]);
+
+        // 4) cleanup
         this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+
+        // creating 2 results
+        const statusResultInfo = this.functionContext.useRegisterAndPush();
+        statusResultInfo.identifierName = 'status';
+        const errorResultInfo = this.functionContext.useRegisterAndPush();
+        errorResultInfo.identifierName = 'error';
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
@@ -237,7 +262,7 @@ export class Emitter {
 
         const parameterValueInfo = this.functionContext.stack.peek();
 
-        // prepare call for _ENV "pairs"
+        // prepare call for _ENV "error"
         // prepare consts
         const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
         const errorMethodInfo = this.resolver.returnConst('error', this.functionContext);
