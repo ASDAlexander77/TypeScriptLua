@@ -262,10 +262,31 @@ export class Emitter {
             });
         }
 
+        // process 'catch'
         if (node.catchClause) {
             // if status == true, jump over 'catch'-es.
 
+            // create 'true' boolean
+            const resolvedInfo = this.resolver.returnConst(true, this.functionContext);
+
+            const equalsTo = 1;
+            this.functionContext.code.push([
+                Ops.EQ, equalsTo, statusResultInfo.getRegisterOrIndex(), resolvedInfo.getRegisterOrIndex()]);
+
+            const jmpOp = [Ops.JMP, 0, 0];
+            this.functionContext.code.push(jmpOp);
+            const casesBlockBegin = this.functionContext.code.length;
+
+            // catch...
+            this.processBlock(node.catchClause.block);
+
+            // end of cases block
+            jmpOp[2] = this.functionContext.code.length - casesBlockBegin;
         }
+
+        // final cleanup error & status
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {

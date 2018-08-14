@@ -1,10 +1,11 @@
 let i = 1;
-try
-{
+try {
     console.log(i);
-    throw i;
+    throw 10;
     i = 2;
-}
-finally {
+} catch (err) {
+    console.log('error ');
+    console.log(err);
+} finally {
     console.log(i);
 }
