@@ -254,6 +254,18 @@ export class Emitter {
         statusResultInfo.identifierName = 'status';
         const errorResultInfo = this.functionContext.useRegisterAndPush();
         errorResultInfo.identifierName = 'error';
+
+        // process "finally" block
+        if (node.finallyBlock) {
+            node.finallyBlock.statements.forEach(s => {
+                this.processStatement(s);
+            });
+        }
+
+        if (node.catchClause) {
+            // if status == true, jump over 'catch'-es.
+
+        }
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
