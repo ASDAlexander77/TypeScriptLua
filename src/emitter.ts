@@ -177,6 +177,7 @@ export class Emitter {
             case ts.SyntaxKind.BinaryExpression: this.processBinaryExpression(<ts.BinaryExpression>node); return;
             case ts.SyntaxKind.ConditionalExpression: this.processConditionalExpression(<ts.ConditionalExpression>node); return;
             case ts.SyntaxKind.DeleteExpression: this.processDeleteExpression(<ts.DeleteExpression>node); return;
+            case ts.SyntaxKind.TypeOfExpression: this.processTypeOfExpression(<ts.TypeOfExpression>node); return;
             case ts.SyntaxKind.FunctionExpression: this.processFunctionExpression(<ts.FunctionExpression>node); return;
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.ElementAccessExpression: this.processElementAccessExpression(<ts.ElementAccessExpression>node); return;
@@ -305,10 +306,6 @@ export class Emitter {
 
     private processThrowStatement(node: ts.ThrowStatement): void {
 
-        this.processExpression(node.expression);
-
-        const parameterValueInfo = this.functionContext.stack.peek();
-
         // prepare call for _ENV "error"
         // prepare consts
         const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
@@ -319,15 +316,30 @@ export class Emitter {
         this.functionContext.code.push(
             [Ops.GETTABUP, errorResultInfo.getRegister(), envInfo.getRegisterOrIndex(), errorMethodInfo.getRegisterOrIndex()]);
 
-        const firstParametertInfo = this.functionContext.useRegisterAndPush();
-        // getting method referene
-        this.functionContext.code.push(
-            [Ops.MOVE, firstParametertInfo.getRegister(), parameterValueInfo.getRegister()]);
+        this.processExpression(node.expression);
+        this.functionContext.stack.pop();
 
         // finally - calling method 'debug.debug()'
         this.functionContext.code.push([Ops.CALL, errorResultInfo.getRegister(), 2, 1]);
         this.functionContext.stack.pop();
+    }
+
+    private processTypeOfExpression(node: ts.TypeOfExpression): void {
+        // prepare call for _ENV "error"
+        // prepare consts
+        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        const typeMethodInfo = this.resolver.returnConst('type', this.functionContext);
+
+        const typeResultInfo = this.functionContext.useRegisterAndPush();
+        // getting method referene
+        this.functionContext.code.push(
+            [Ops.GETTABUP, typeResultInfo.getRegister(), envInfo.getRegisterOrIndex(), typeMethodInfo.getRegisterOrIndex()]);
+
+        this.processExpression(node.expression);
         this.functionContext.stack.pop();
+
+        // finally - calling method 'type(xxx)'
+        this.functionContext.code.push([Ops.CALL, typeResultInfo.getRegister(), 2, 0]);
     }
 
     private processDebuggerStatement(node: ts.DebuggerStatement): void {
