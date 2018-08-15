@@ -120,4 +120,9 @@ describe('Special cases', () => {
         console.log(a > 0 ? b : 2);           \
     '])));
 
+    it('= || : (local)', () => expect('test\r\n').to.equals(new Run().test([
+        'let a;                                           \
+        console.log((a = a || { name: "test" }).name;     \
+    '])));
+
 });

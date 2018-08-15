@@ -1458,6 +1458,20 @@ export class Emitter {
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
+
+        // special case: HACK, concat <function>.prototype to access prototype property
+        if (node.expression.kind === ts.SyntaxKind.Identifier
+            && node.name.kind === ts.SyntaxKind.Identifier
+            && node.name.getText() === 'prototype') {
+            const prototypeIdentifier = ts.createIdentifier((<any>node.expression).text + '_prototype');
+            const getOrCreateObjectExpr = ts.createAssignment(
+                prototypeIdentifier, ts.createBinary(prototypeIdentifier, ts.SyntaxKind.BarBarToken, ts.createObjectLiteral()));
+            this.processExpression(getOrCreateObjectExpr);
+            return;
+        }
+
+        // end of HACK
+
         this.processExpression(node.expression);
 
         this.resolver.Scope.push(this.functionContext.stack.peek());

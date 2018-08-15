@@ -279,8 +279,10 @@ export class IdentifierResolver {
             }
         }
 
-        // TODO: hack
-        throw new Error('Could not resolve: ' + identifier.text);
+        console.warn('Could not resolve: ' + identifier.text);
+
+        // default
+        return this.resolveMemberOfCurrentScope(identifier, functionContext);
     }
 
     public returnConst(value: any, functionContext: FunctionContext): ResolvedInfo {
