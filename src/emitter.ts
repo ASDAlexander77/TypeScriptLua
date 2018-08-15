@@ -1478,6 +1478,7 @@ export class Emitter {
             const prototypeIdentifier = ts.createIdentifier((<any>node.expression).text + '_prototype');
             const getOrCreateObjectExpr = ts.createAssignment(
                 prototypeIdentifier, ts.createBinary(prototypeIdentifier, ts.SyntaxKind.BarBarToken, ts.createObjectLiteral()));
+            getOrCreateObjectExpr.parent = node.parent;
             this.processExpression(getOrCreateObjectExpr);
             return;
         }
