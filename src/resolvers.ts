@@ -362,18 +362,27 @@ export class IdentifierResolver {
             return loadMemberInfo;
         }
 
+        // HACK mapping to LUA methods
         let identifierName = identifier;
         const parentScope: any = this.Scope.peek();
         if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
             // HACK
-            if (parentScope.originalInfo
-                && parentScope.originalInfo.kind === ResolvedKind.Upvalue
-                && parentScope.originalInfo.identifierName === '_ENV') {
-                if (identifier === 'log') {
-                    identifierName = 'print';
+            if (parentScope.originalInfo) {
+                if (parentScope.originalInfo.kind === ResolvedKind.Upvalue) {
+                    if (parentScope.originalInfo.identifierName === '_ENV') {
+                        if (identifier === 'log') {
+                            identifierName = 'print';
+                        }
+                    }
+                } else if (parentScope.originalInfo.kind === ResolvedKind.Const) {
+                    if (parentScope.originalInfo.identifierName === 'math') {
+                        identifierName = identifier.toLowerCase();
+                    }
                 }
             }
         }
+
+        // end of HACK
 
         const finalResolvedInfo = new ResolvedInfo(functionContext);
         finalResolvedInfo.kind = ResolvedKind.Const;
