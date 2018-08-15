@@ -280,7 +280,7 @@ export class Emitter {
             const variableDeclaration = node.catchClause.variableDeclaration;
             if (variableDeclaration) {
                 const localResolvedInfo = this.functionContext.createLocal(variableDeclaration.name.getText());
-                localVar =  this.functionContext.locals.length - 1;
+                localVar = this.functionContext.locals.length - 1;
                 const localInfo = this.functionContext.locals[localVar];
                 this.functionContext.availableRegister = localResolvedInfo.getRegister();
                 localInfo.register = errorResultInfo.getRegister();
@@ -688,9 +688,9 @@ export class Emitter {
                 const equalsTo = 1;
                 this.functionContext.code.push([
                     Ops.EQ, equalsTo, switchResultInfo.getRegisterOrIndex(), caseResultInfo.getRegisterOrIndex()]);
-                    const jmpOp = [Ops.JMP, 0, 0];
-                    this.functionContext.code.push(jmpOp);
-                    lastCaseJmpIndexes.push(this.functionContext.code.length - 1);
+                const jmpOp = [Ops.JMP, 0, 0];
+                this.functionContext.code.push(jmpOp);
+                lastCaseJmpIndexes.push(this.functionContext.code.length - 1);
             }
 
             if (c.statements.length > 0) {
@@ -1382,6 +1382,24 @@ export class Emitter {
             0,
             0]);
 
+        // getting prototype
+        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        const prototypeNameInfo = this.resolver.returnConst(
+            node.expression.getText() + '_prototype', this.functionContext);
+
+        const prototypeInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.GETTABUP, prototypeInfo.getRegister(), envInfo.getRegisterOrIndex(), prototypeNameInfo.getRegisterOrIndex()
+        ]);
+
+        // storing prototype into __index
+        this.functionContext.stack.pop();
+        const indexNameInfo = this.resolver.returnConst('__index', this.functionContext);
+        this.functionContext.code.push([
+            Ops.SETTABLE, resultInfo.getRegister(), indexNameInfo.getRegisterOrIndex(), prototypeInfo.getRegister()
+        ]);
+
+        // call constructor
         this.processCallExpression(<ts.CallExpression><any>node, resultInfo);
     }
 
