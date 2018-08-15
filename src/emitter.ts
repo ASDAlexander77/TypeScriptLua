@@ -1375,6 +1375,19 @@ export class Emitter {
     }
 
     private processNewExpression(node: ts.NewExpression): void {
+
+        // special cases: new Array and new Object
+        if (node.expression.kind === ts.SyntaxKind.Identifier) {
+            const name = node.expression.getText();
+            if (name === 'Object') {
+                return this.processObjectLiteralExpression(ts.createObjectLiteral());
+            }
+
+            if (name === 'Array') {
+                return this.processArrayLiteralExpression(ts.createArrayLiteral());
+            }
+        }
+
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([
             Ops.NEWTABLE,
@@ -1435,7 +1448,22 @@ export class Emitter {
     private processCallExpression(node: ts.CallExpression, _thisForNew?: ResolvedInfo): void {
 
         this.resolver.methodCall = true;
-        this.processExpression(node.expression);
+
+        // special cases to cast to string or number
+        let processed = false;
+        if (node.expression.kind === ts.SyntaxKind.Identifier && _thisForNew === undefined && node.arguments.length === 1) {
+            const name = node.expression.getText();
+            if (name === 'String' || name === 'Number') {
+                this.processExpression(ts.createIdentifier('to' + name.toLowerCase()));
+                processed = true;
+            }
+        }
+
+        // default case
+        if (!processed) {
+            this.processExpression(node.expression);
+        }
+
         this.resolver.methodCall = false;
 
         if (_thisForNew) {
