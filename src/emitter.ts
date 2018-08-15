@@ -237,7 +237,7 @@ export class Emitter {
 
         // 2) get closure
         // prepare Closure
-        const protoIndex = -this.functionContext.createProto(
+        const protoIndex = this.functionContext.createProto(
             this.processFunction(node, node.tryBlock.statements, undefined));
         const closureResultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([Ops.CLOSURE, closureResultInfo.getRegister(), protoIndex]);
@@ -420,7 +420,7 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        const protoIndex = -this.functionContext.createProto(
+        const protoIndex = this.functionContext.createProto(
             this.processFunction(node, node.body.statements, node.parameters));
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
