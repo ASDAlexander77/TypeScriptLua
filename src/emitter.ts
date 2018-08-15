@@ -1399,6 +1399,35 @@ export class Emitter {
             Ops.SETTABLE, resultInfo.getRegister(), indexNameInfo.getRegisterOrIndex(), prototypeInfo.getRegister()
         ]);
 
+        // call setmetatable(obj, obj)
+        // 1, get setmetatable reference
+        const setmetatableInfo = this.functionContext.useRegisterAndPush();
+        const setmetatableNameInfo = this.resolver.returnConst('setmetatable', this.functionContext);
+        this.functionContext.code.push([
+            Ops.GETTABUP, setmetatableInfo.getRegister(), envInfo.getRegisterOrIndex(), setmetatableNameInfo.getRegisterOrIndex()
+        ]);
+
+        // 2, store 2 params
+        const param1Info = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()
+        ]);
+
+        const param2Info = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.MOVE, param2Info.getRegister(), resultInfo.getRegisterOrIndex()
+        ]);
+
+        // call setmetatable
+        this.functionContext.code.push([
+            Ops.CALL, setmetatableInfo.getRegister(), 3, 1
+        ]);
+
+        // call cleanup
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+
         // call constructor
         this.processCallExpression(<ts.CallExpression><any>node, resultInfo);
     }

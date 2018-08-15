@@ -7,6 +7,4 @@ Class1.prototype.sayHi = function () {
 };
 
 let c = new Class1();
-console.log(c);
-console.log(c.__index);
 c.sayHi();

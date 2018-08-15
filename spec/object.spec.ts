@@ -16,4 +16,17 @@ describe('Objects', () => {
         console.log(myFather.lastName)                                      \
     '])));
 
+    it('new class', () => expect('const\r\nHi\r\n').to.equals(new Run().test([
+        'function Class1() {                                                \
+            console.log("const");                                           \
+        }                                                                   \
+                                                                            \
+        Class1.prototype.sayHi = function () {                              \
+            console.log("Hi");                                              \
+        };                                                                  \
+                                                                            \
+        let c = new Class1();                                               \
+        c.sayHi();                                      \                   \
+    '])));
+
 });
