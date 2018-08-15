@@ -234,7 +234,7 @@ export class IdentifierResolver {
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         if (this.Scope.anyNotRoot()) {
-            return this.resolveMemberOfCurrentScope(identifier, functionContext);
+            return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
         }
 
         const resolved = (<any>this.typeChecker).resolveName(
@@ -251,12 +251,14 @@ export class IdentifierResolver {
                         switch (type.typeName.text) {
                             case 'Console':
                                 return this.returnResolvedEnv(functionContext);
+                            case 'Math':
+                                return this.resolveMemberOfCurrentScope(identifier.text.toLowerCase(), functionContext);
                         }
                     }
 
                     // values are not the same as Node.Flags
                     if ((resolved.flags & 1) === 1) {
-                        return this.resolveMemberOfCurrentScope(identifier, functionContext);
+                        return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     } else if ((resolved.flags & 2) === 2) {
                         return this.returnLocalOrUpvalue(identifier.text, functionContext);
                     } else {
@@ -269,20 +271,20 @@ export class IdentifierResolver {
                     return this.returnLocal(identifier.text, functionContext);
 
                 case ts.SyntaxKind.FunctionDeclaration:
-                    return this.resolveMemberOfCurrentScope(identifier, functionContext);
+                    return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
 
                 case ts.SyntaxKind.EnumDeclaration:
-                    return this.resolveMemberOfCurrentScope(identifier, functionContext);
+                    return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
 
                 case ts.SyntaxKind.ClassDeclaration:
-                    return this.resolveMemberOfCurrentScope(identifier, functionContext);
+                    return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
             }
         }
 
         console.warn('Could not resolve: ' + identifier.text);
 
         // default
-        return this.resolveMemberOfCurrentScope(identifier, functionContext);
+        return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
     }
 
     public returnConst(value: any, functionContext: FunctionContext): ResolvedInfo {
@@ -345,12 +347,12 @@ export class IdentifierResolver {
         throw new Error('Could not find variable');
     }
 
-    private resolveMemberOfCurrentScope(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
+    private resolveMemberOfCurrentScope(identifier: string, functionContext: FunctionContext): ResolvedInfo {
         if (!this.Scope.any()) {
             const objectInfo = this.returnResolvedEnv(functionContext, true);
             const methodInfo = new ResolvedInfo(functionContext);
             methodInfo.kind = ResolvedKind.Const;
-            methodInfo.identifierName = identifier.text;
+            methodInfo.identifierName = identifier;
             methodInfo.ensureConstIndex();
 
             const loadMemberInfo = new ResolvedInfo(functionContext);
@@ -360,14 +362,14 @@ export class IdentifierResolver {
             return loadMemberInfo;
         }
 
-        let identifierName = identifier.text;
+        let identifierName = identifier;
         const parentScope: any = this.Scope.peek();
         if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
             // HACK
             if (parentScope.originalInfo
                 && parentScope.originalInfo.kind === ResolvedKind.Upvalue
                 && parentScope.originalInfo.identifierName === '_ENV') {
-                if (identifier.text === 'log') {
+                if (identifier === 'log') {
                     identifierName = 'print';
                 }
             }
