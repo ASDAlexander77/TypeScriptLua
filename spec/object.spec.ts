@@ -26,7 +26,7 @@ describe('Objects', () => {
         };                                                                  \
                                                                             \
         let c = new Class1();                                               \
-        c.sayHi();                                      \                   \
+        c.sayHi();                                                          \
     '])));
 
 });
