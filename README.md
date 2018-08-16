@@ -6,9 +6,9 @@ The TypeScriptLUA repo contains the complete source code implementation for Type
 Chat Room
 ---------
 
-Want to chat with other members of the Cs2Cpp community?
+Want to chat with other members of the TypeScript for LUA community?
 
-[![Join the chat at https://gitter.im/ASDAlexander77/cs2cpp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ASDAlexander77/TypeScriptLUA?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/ASDAlexander77/cs2cpp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScriptLUA/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Engage, Contribute and Provide Feedback
 ---------------------------------------
