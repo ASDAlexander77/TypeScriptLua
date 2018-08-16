@@ -65,8 +65,12 @@ export class Emitter {
         const localFunctionContext = this.functionContext;
         this.functionContextStack.push(localFunctionContext);
         this.functionContext = new FunctionContext();
-        this.functionContext.container = localFunctionContext;
         this.functionContext.function_or_file_location_node = location;
+        if (localFunctionContext) {
+            this.functionContext.container = localFunctionContext;
+            this.functionContext.current_location_node = localFunctionContext.current_location_node;
+            this.functionContext.location_scopes = localFunctionContext.location_scopes;
+        }
     }
 
     private popFunctionContext(): FunctionContext {

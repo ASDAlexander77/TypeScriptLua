@@ -237,10 +237,25 @@ export class IdentifierResolver {
             return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
         }
 
-        const resolved = (<any>this.typeChecker).resolveName(
+        let resolved = (<any>this.typeChecker).resolveName(
             identifier.text,
             functionContext.current_location_node || functionContext.function_or_file_location_node,
             ((1 << 27) - 1)/*mask for all types*/);
+
+        if (!resolved
+            && functionContext.current_location_node
+            && functionContext.current_location_node.kind === ts.SyntaxKind.ClassDeclaration) {
+            // 1 find constructor
+            const constuctorMember = (<ts.ClassDeclaration>functionContext.current_location_node)
+                .members.find(m => m.kind === ts.SyntaxKind.Constructor);
+            if (constuctorMember) {
+                resolved = (<any>this.typeChecker).resolveName(
+                    identifier.text,
+                    constuctorMember,
+                    ((1 << 27) - 1)/*mask for all types*/);
+            }
+        }
+
         if (resolved) {
             const kind: ts.SyntaxKind = <ts.SyntaxKind>resolved.valueDeclaration.kind;
             switch (kind) {
