@@ -130,4 +130,10 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
+    it('In operator', () => expect('true\r\n').to.equals(new Run().test([
+        'let c = [1, 2, 3];                         \
+        let b = 2 in c;                             \
+        console.log(b);                             \
+    '])));
+
 });

@@ -1296,8 +1296,11 @@ export class Emitter {
                 break;
 
             case ts.SyntaxKind.InKeyword:
-                this.processExpression(
-                    ts.createBinary(ts.createElementAccess(node.left, node.right), ts.SyntaxKind.CaretEqualsToken, ts.createNull()));
+
+                const inExpression =
+                    ts.createBinary(ts.createElementAccess(node.left, node.right), ts.SyntaxKind.CaretEqualsToken, ts.createNull());
+                inExpression.parent = node.parent;
+                this.processExpression(inExpression);
 
                 break;
 
