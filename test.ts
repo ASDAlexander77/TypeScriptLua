@@ -1,11 +1,2 @@
-class Class1 {
-  constructor(private i: number) {
-  }
-
-  public show() {
-    console.log(this.i);
-  }
-}
-
-let c = new Class1(1);
-c.show();
+let c = [1, 2, 3];
+let b = 2 in c;

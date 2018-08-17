@@ -1295,6 +1295,12 @@ export class Emitter {
 
                 break;
 
+            case ts.SyntaxKind.InKeyword:
+                this.processExpression(
+                    ts.createBinary(ts.createElementAccess(node.left, node.right), ts.SyntaxKind.CaretEqualsToken, ts.createNull()));
+
+                break;
+
             default: throw new Error('Not Implemented');
         }
     }
