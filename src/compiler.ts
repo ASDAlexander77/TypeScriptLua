@@ -4,7 +4,23 @@ import { spawn } from 'cross-spawn';
 import { Emitter } from './emitter';
 
 export class Run {
-    public run(sources: string[], output: string): void {
+
+    public run(sourcesOrConfigFile: string[] | string, outputExtention: string): void {
+        if (typeof(sourcesOrConfigFile) === 'string') {
+            const configPath = ts.findConfigFile('./', ts.sys.fileExists, sourcesOrConfigFile);
+            if (configPath) {
+                this.compileWithConfig(configPath, outputExtention);
+                return;
+            }
+
+            this.compileSources([sourcesOrConfigFile], outputExtention);
+            return;
+        }
+
+        this.compileSources(sourcesOrConfigFile, outputExtention);
+    }
+
+    public compileSources(sources: string[], outputExtention: string): void {
 
         /*
 		const sourceFile = ts.createSourceFile('test.ts', fs.readFileSync('test.ts').toString(), ts.ScriptTarget.ES2018, false);
@@ -17,9 +33,29 @@ export class Run {
 		console.log(result);
 		*/
 
-        console.log('Compiling...');
+        this.generateBinary(this.createProgram(ts.createProgram(sources, {})), sources, outputExtention);
+    }
 
-        const program = ts.createProgram(sources, {});
+    public compileWithConfig(configPath: string, outputExtention: string): void {
+        const configFile = ts.readJsonConfigFile(configPath, ts.sys.readFile);
+
+        const parseConfigHost: ts.ParseConfigHost = {
+            useCaseSensitiveFileNames: false,
+            readDirectory: ts.sys.readDirectory,
+            fileExists: ts.sys.fileExists,
+            readFile: ts.sys.readFile
+        };
+
+        const parsedCommandLine = ts.parseJsonSourceFileConfigFileContent(configFile, parseConfigHost, './');
+        const program = this.createProgram(ts.createProgram({
+            rootNames: parsedCommandLine.fileNames,
+            options: parsedCommandLine.options
+        }));
+        this.generateBinary(program, parsedCommandLine.fileNames, outputExtention);
+    }
+
+    private createProgram(program: ts.Program): any {
+        console.log('Compiling...');
         const emitResult = program.emit(undefined, (f) => {
             console.log('Emitting: ' + f);
         });
@@ -27,27 +63,35 @@ export class Run {
         emitResult.diagnostics.forEach(d => {
             let outputDiag = '';
             switch (d.category) {
-                case 0: outputDiag = 'Warning'; break;
-                case 1: outputDiag = 'Error'; break;
-                case 2: outputDiag = 'Suggestion'; break;
-                case 3: outputDiag = 'Message'; break;
+                case 0:
+                    outputDiag = 'Warning';
+                    break;
+                case 1:
+                    outputDiag = 'Error';
+                    break;
+                case 2:
+                    outputDiag = 'Suggestion';
+                    break;
+                case 3:
+                    outputDiag = 'Message';
+                    break;
             }
 
             console.log(outputDiag + ': ' + d.messageText + ' file: ' + d.file + ' line: ' + d.start);
         });
 
+        return program;
+    }
+
+    private generateBinary(program: ts.Program, sources: string[], outputExtention: string) {
         const sourceFiles = program.getSourceFiles();
-
         console.log('Generating binaries...');
-
         sourceFiles.forEach(s => {
             if (sources.some(sf => s.fileName.endsWith(sf))) {
                 console.log('File: ' + s.fileName);
-
                 const emitter = new Emitter(program.getTypeChecker());
                 emitter.processNode(s);
-
-                fs.writeFileSync(output, emitter.writer.getBytes());
+                fs.writeFileSync(s.fileName.concat('.', outputExtention), emitter.writer.getBytes());
             }
         });
     }

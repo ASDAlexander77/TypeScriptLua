@@ -1,3 +1,4 @@
 import { Run } from './compiler';
 
-new Run().run(['test.ts'], 'test.luabc');
+declare var process: any;
+new Run().run(process.argv[2], 'luabc');
