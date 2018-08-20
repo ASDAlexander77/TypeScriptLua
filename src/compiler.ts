@@ -6,11 +6,13 @@ import { Emitter } from './emitter';
 export class Run {
 
     public run(sourcesOrConfigFile: string[] | string, outputExtention: string): void {
-        if (typeof(sourcesOrConfigFile) === 'string') {
-            const configPath = ts.findConfigFile('./', ts.sys.fileExists, sourcesOrConfigFile);
-            if (configPath) {
-                this.compileWithConfig(configPath, outputExtention);
-                return;
+        if (typeof (sourcesOrConfigFile) === 'string') {
+            if (sourcesOrConfigFile.endsWith('.json')) {
+                const configPath = ts.findConfigFile('./', ts.sys.fileExists, sourcesOrConfigFile);
+                if (configPath) {
+                    this.compileWithConfig(configPath, outputExtention);
+                    return;
+                }
             }
 
             this.compileSources([sourcesOrConfigFile], outputExtention);
@@ -91,7 +93,7 @@ export class Run {
                 console.log('File: ' + s.fileName);
                 const emitter = new Emitter(program.getTypeChecker());
                 emitter.processNode(s);
-                fs.writeFileSync(s.fileName.concat('.', outputExtention), emitter.writer.getBytes());
+                fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
             }
         });
     }
