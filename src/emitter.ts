@@ -160,11 +160,12 @@ export class Emitter {
             case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); return;
             case ts.SyntaxKind.SwitchStatement: this.processSwitchStatement(<ts.SwitchStatement>node); return;
             case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
-            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
-            case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.TryStatement: this.processTryStatement(<ts.TryStatement>node); return;
             case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); return;
             case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
+            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
+            case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
+            case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
         }
 
         // TODO: finish it
@@ -371,6 +372,12 @@ export class Emitter {
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
+        this.functionContext.newLocalScope(node);
+        this.transpileTSNode(node);
+        this.functionContext.restoreLocalScope();
+    }
+
+    private processExportDeclaration(node: ts.ExportDeclaration): void {
         this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
