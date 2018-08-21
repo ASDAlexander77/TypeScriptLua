@@ -1,0 +1,30 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "outDir": "./__out/tests",
+      "baseUrl": "./",
+      "sourceMap": true,
+      "declaration": false,
+      "moduleResolution": "node",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "target": "es5",
+      "typeRoots": [
+      ],
+      "types": [],
+      "lib": [
+        "es2017",
+        "dom"
+      ]
+    },
+    "include": [
+      "test.ts",
+      "test2.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }
+  

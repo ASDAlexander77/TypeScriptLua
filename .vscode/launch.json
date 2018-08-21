@@ -10,7 +10,7 @@
             "name": "Launch Node.js",
             "program": "${workspaceFolder}/__out/main.js",
             "args": [
-                "test.ts"
+                "tsconfig1.json"
             ]
         },
         {
