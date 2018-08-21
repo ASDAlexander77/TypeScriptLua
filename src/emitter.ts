@@ -166,6 +166,7 @@ export class Emitter {
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
+            case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
         }
 
         // TODO: finish it
@@ -378,6 +379,12 @@ export class Emitter {
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
+        this.functionContext.newLocalScope(node);
+        this.transpileTSNode(node);
+        this.functionContext.restoreLocalScope();
+    }
+
+    private processImportDeclaration(node: ts.ExportDeclaration): void {
         this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
