@@ -257,7 +257,8 @@ export class IdentifierResolver {
         }
 
         if (resolved) {
-            const kind: ts.SyntaxKind = <ts.SyntaxKind>resolved.valueDeclaration.kind;
+            const declaration = resolved.valueDeclaration || resolved.declarations[0];
+            const kind: ts.SyntaxKind = <ts.SyntaxKind>declaration.kind;
             switch (kind) {
                 case ts.SyntaxKind.VariableDeclaration:
                     const type = resolved.valueDeclaration.type;
