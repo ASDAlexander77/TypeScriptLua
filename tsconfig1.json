@@ -1,6 +1,7 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
+      "module": "commonjs",
       "noUnusedLocals": true,
       "noUnusedParameters": true,
       "outDir": "./__out/tests",
@@ -11,6 +12,8 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "target": "es5",
+      "alwaysStrict": false,
+      "noImplicitUseStrict": true,
       "typeRoots": [
       ],
       "types": [],

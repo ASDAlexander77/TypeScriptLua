@@ -30,7 +30,7 @@ export class BinaryWriter {
     }
 
     public writeNumber(data: number): void {
-        this.writeArrayBuffer(new Float64Array([data]).buffer);
+        this.writeArrayBuffer(<ArrayBuffer>new Float64Array([data]).buffer);
     }
 
     public writeString(data: string): void {

@@ -213,7 +213,12 @@ export class Emitter {
 
     private transpileTSNode(node: ts.Node) {
         const result = ts.transpileModule(node.getFullText(), {
-            compilerOptions: { module: ts.ModuleKind.CommonJS }
+            compilerOptions: {
+                module: ts.ModuleKind.CommonJS,
+                alwaysStrict: false,
+                noImplicitUseStrict: true,
+                moduleResolution: ts.ModuleResolutionKind.NodeJs
+            }
         });
 
         const sourceFile = ts.createSourceFile(
@@ -384,7 +389,7 @@ export class Emitter {
         this.functionContext.restoreLocalScope();
     }
 
-    private processImportDeclaration(node: ts.ExportDeclaration): void {
+    private processImportDeclaration(node: ts.ImportDeclaration): void {
         this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();

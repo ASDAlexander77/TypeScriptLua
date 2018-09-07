@@ -58,8 +58,11 @@ export class Run {
 
     private createProgram(program: ts.Program): any {
         console.log('Compiling...');
-        const emitResult = program.emit(undefined, (f) => {
+        const emitResult = program.emit(undefined, (f, data, writeByteOrderMark) => {
             console.log('Emitting: ' + f);
+
+            // TODO: comment it when not needed
+            ts.sys.writeFile(f, data, writeByteOrderMark);
         });
 
         emitResult.diagnostics.forEach(d => {
