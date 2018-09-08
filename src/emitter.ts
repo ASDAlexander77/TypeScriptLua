@@ -385,14 +385,44 @@ export class Emitter {
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
         this.functionContext.newLocalScope(node);
+
+        this.emitGetOrCreateObjectExpression(node, 'exports');
+
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
     }
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
+        /*
         this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
+        */
+
+        // 1) require './<nodule>'
+        const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+        requireCall.parent = node.parent;
+        this.processExpression(requireCall);
+
+        // copy exported references from 'exports' object
+        if (node.importClause) {
+            if (node.importClause.namedBindings) {
+                switch (node.importClause.namedBindings.kind) {
+                    case ts.SyntaxKind.NamedImports:
+                        const namedImports = <ts.NamedImports>node.importClause.namedBindings;
+                        namedImports.elements.forEach(imp => {
+                            const assignOfImport = ts.createAssignment(
+                                imp.name,
+                                ts.createPropertyAccess(ts.createIdentifier('exports'), imp.name));
+                            assignOfImport.parent = node;
+                            this.processExpression(assignOfImport);
+                        });
+                        break;
+                    default:
+                        throw new Error('Not Implemented');
+                }
+            }
+        }
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
@@ -1584,11 +1614,7 @@ export class Emitter {
         if (node.expression.kind === ts.SyntaxKind.Identifier
             && node.name.kind === ts.SyntaxKind.Identifier
             && node.name.getText() === 'prototype') {
-            const prototypeIdentifier = ts.createIdentifier((<any>node.expression).text + '_prototype');
-            const getOrCreateObjectExpr = ts.createAssignment(
-                prototypeIdentifier, ts.createBinary(prototypeIdentifier, ts.SyntaxKind.BarBarToken, ts.createObjectLiteral()));
-            getOrCreateObjectExpr.parent = node.parent;
-            this.processExpression(getOrCreateObjectExpr);
+            this.emitGetOrCreateObjectExpression(node, (<any>node.expression).text + '_prototype');
             return;
         }
 
@@ -1626,6 +1652,15 @@ export class Emitter {
                 resultInfo.getRegister(),
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
+    }
+
+    private emitGetOrCreateObjectExpression(node: ts.Node, globalVariableName: string) {
+        const prototypeIdentifier = ts.createIdentifier(globalVariableName);
+        const getOrCreateObjectExpr = ts.createAssignment(
+            prototypeIdentifier,
+            ts.createBinary(prototypeIdentifier, ts.SyntaxKind.BarBarToken, ts.createObjectLiteral()));
+        getOrCreateObjectExpr.parent = node.parent;
+        this.processExpression(getOrCreateObjectExpr);
     }
 
     private emitHeader(): void {
