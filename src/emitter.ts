@@ -230,7 +230,7 @@ export class Emitter {
 
         sourceFile.statements.forEach(s => {
             this.processStatement(s);
-        });
+        }); 
     }
 
     private processTryStatement(node: ts.TryStatement): void {
@@ -426,6 +426,13 @@ export class Emitter {
                     default:
                         throw new Error('Not Implemented');
                 }
+            } else {
+                // default case
+                const assignOfImport = ts.createAssignment(
+                    node.importClause.name,
+                    ts.createElementAccess(ts.createIdentifier('exports'), ts.createStringLiteral('default')));
+                assignOfImport.parent = node;
+                this.processExpression(assignOfImport);
             }
         }
     }
