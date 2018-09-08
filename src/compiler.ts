@@ -105,15 +105,15 @@ export class Run {
         let actualOutput = '';
 
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
-        const tempTestOutputFile = 'testout.luabc';
+        const tempLuaFiles = sources.map((s: string, index: number) => 'test' + index + '.lua');
 
         // clean up
         tempSourceFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
-        if (fs.existsSync(tempTestOutputFile)) {
-            fs.unlinkSync(tempTestOutputFile);
-        }
+        tempLuaFiles.forEach(f => {
+            if (fs.existsSync(f)) { fs.unlinkSync(f); }
+        });
 
         try {
             sources.forEach((s: string, index: number) => {
@@ -130,27 +130,33 @@ export class Run {
                 }
             });
 
+            let lastLuaFile;
             const sourceFiles = program.getSourceFiles();
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
-                if (tempSourceFiles.some(sf => s.fileName.endsWith(sf))) {
+                const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
+                if (currentFile) {
                     const emitter = new Emitter(program.getTypeChecker());
                     emitter.processNode(s);
 
-                    fs.writeFileSync(tempTestOutputFile, emitter.writer.getBytes());
+                    const luaFile = currentFile.replace(/\.ts$/, '.lua');
+                    fs.writeFileSync(luaFile, emitter.writer.getBytes());
 
-                    // start program and test it to
-                    const result: any = spawn.sync('__build/win64/lua/Debug/lua.exe', [tempTestOutputFile]);
-                    actualOutput = (<Uint8Array>result.stdout).toString();
+                    lastLuaFile = luaFile;
+
                 }
             });
+
+            // start program and test it to
+            const result: any = spawn.sync('__build/win64/lua/Debug/lua.exe', [lastLuaFile]);
+            actualOutput = (<Uint8Array>result.stdout).toString();
         } catch (e) {
             // clean up
             tempSourceFiles.forEach(f => {
                 if (fs.existsSync(f)) { fs.unlinkSync(f); }
             });
-            if (fs.existsSync(tempTestOutputFile)) {
-                fs.unlinkSync(tempTestOutputFile);
-            }
+            tempLuaFiles.forEach(f => {
+                if (fs.existsSync(f)) { fs.unlinkSync(f); }
+            });
 
             throw e;
         }
@@ -159,9 +165,9 @@ export class Run {
         tempSourceFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
-        if (fs.existsSync(tempTestOutputFile)) {
-            fs.unlinkSync(tempTestOutputFile);
-        }
+        tempLuaFiles.forEach(f => {
+            if (fs.existsSync(f)) { fs.unlinkSync(f); }
+        });
 
         return actualOutput;
     }
