@@ -379,6 +379,11 @@ export class Emitter {
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
+
+        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
+            this.emitGetOrCreateObjectExpression(node, 'exports');
+        }
+
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
     }
@@ -1516,7 +1521,7 @@ export class Emitter {
         // special cases to cast to string or number
         let processed = false;
         if (node.expression.kind === ts.SyntaxKind.Identifier && _thisForNew === undefined && node.arguments.length === 1) {
-            const name = node.expression.getText();
+            const name = node.expression.kind === ts.SyntaxKind.Identifier ? (<ts.Identifier>node.expression).text : '';
             if (name === 'String' || name === 'Number') {
                 this.processExpression(ts.createIdentifier('to' + name.toLowerCase()));
                 processed = true;
