@@ -11,7 +11,7 @@ describe('Export', () => {
             }                                       \
         }                                           \
     ',
-    'import { ZipCodeValidator } from "./test1";    \
+    'import { ZipCodeValidator } from "./test0";    \
     const myValidator = new ZipCodeValidator();     \
     console.log(myValidator.isAcceptable("test"));  \
     '])));
