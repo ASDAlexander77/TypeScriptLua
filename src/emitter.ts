@@ -418,7 +418,7 @@ export class Emitter {
                         namedImports.elements.forEach(imp => {
                             const assignOfImport = ts.createAssignment(
                                 imp.name,
-                                ts.createPropertyAccess(ts.createIdentifier('exports'), imp.name));
+                                ts.createPropertyAccess(ts.createIdentifier('exports'), imp.propertyName || imp.name));
                             assignOfImport.parent = node;
                             this.processExpression(assignOfImport);
                         });

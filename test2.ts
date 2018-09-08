@@ -1,5 +1,5 @@
-import { ZipCodeValidator } from './test';
+import { ZipCodeValidator as ZCV } from './test';
 
-const myValidator = new ZipCodeValidator();
+const myValidator = new ZCV();
 
 console.log(myValidator.isAcceptable('test'));
