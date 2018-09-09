@@ -1,5 +1,7 @@
-export default class ZipCodeValidator {
-    isAcceptable(s: string): boolean {
-        return false;
+module TESTMODULE {
+    export class ZipCodeValidator {
+        isAcceptable(s: string): boolean {
+            return false;
+        }
     }
 }

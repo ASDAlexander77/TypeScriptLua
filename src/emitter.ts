@@ -167,6 +167,7 @@ export class Emitter {
             case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
             case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
+            case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
         }
 
         // TODO: finish it
@@ -230,7 +231,7 @@ export class Emitter {
 
         sourceFile.statements.forEach(s => {
             this.processStatement(s);
-        }); 
+        });
     }
 
     private processTryStatement(node: ts.TryStatement): void {
@@ -384,6 +385,12 @@ export class Emitter {
             this.emitGetOrCreateObjectExpression(node, 'exports');
         }
 
+        this.transpileTSNode(node);
+        this.functionContext.restoreLocalScope();
+    }
+
+    private processModuleDeclaration(node: ts.ModuleDeclaration): void {
+        this.functionContext.newLocalScope(node);
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
     }
