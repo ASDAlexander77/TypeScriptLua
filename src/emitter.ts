@@ -317,59 +317,24 @@ export class Emitter {
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
-
-        // prepare call for _ENV "error"
-        // prepare consts
-        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const errorMethodInfo = this.resolver.returnConst('error', this.functionContext);
-
-        const errorResultInfo = this.functionContext.useRegisterAndPush();
-        // getting method referene
-        this.functionContext.code.push(
-            [Ops.GETTABUP, errorResultInfo.getRegister(), envInfo.getRegisterOrIndex(), errorMethodInfo.getRegisterOrIndex()]);
-
-        this.processExpression(node.expression);
-        this.functionContext.stack.pop();
-
-        // finally - calling method 'debug.debug()'
-        this.functionContext.code.push([Ops.CALL, errorResultInfo.getRegister(), 2, 1]);
-        this.functionContext.stack.pop();
+        const errorCall = ts.createCall(ts.createIdentifier('error'), undefined, [node.expression]);
+        errorCall.parent = node;
+        this.processExpression(errorCall);
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        // prepare call for _ENV "error"
-        // prepare consts
-        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const typeMethodInfo = this.resolver.returnConst('type', this.functionContext);
-
-        const typeResultInfo = this.functionContext.useRegisterAndPush();
-        // getting method referene
-        this.functionContext.code.push(
-            [Ops.GETTABUP, typeResultInfo.getRegister(), envInfo.getRegisterOrIndex(), typeMethodInfo.getRegisterOrIndex()]);
-
-        this.processExpression(node.expression);
-        this.functionContext.stack.pop();
-
-        // finally - calling method 'type(xxx)'
-        this.functionContext.code.push([Ops.CALL, typeResultInfo.getRegister(), 2, 0]);
+        const typeCall = ts.createCall(ts.createIdentifier('type'), undefined, [node.expression]);
+        typeCall.parent = node;
+        this.processExpression(typeCall);
     }
 
     private processDebuggerStatement(node: ts.DebuggerStatement): void {
-        // prepare call for _ENV "pairs"
-        // prepare consts
-        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const debugMethodInfo = this.resolver.returnConst('debug', this.functionContext);
-
-        const debugResultInfo = this.functionContext.useRegisterAndPush();
-        // getting method referene
-        this.functionContext.code.push(
-            [Ops.GETTABUP, debugResultInfo.getRegister(), envInfo.getRegisterOrIndex(), debugMethodInfo.getRegisterOrIndex()]);
-        this.functionContext.code.push(
-            [Ops.GETTABLE, debugResultInfo.getRegister(), debugResultInfo.getRegister(), debugMethodInfo.getRegisterOrIndex()]);
-
-        // finally - calling method 'debug.debug()'
-        this.functionContext.code.push([Ops.CALL, debugResultInfo.getRegister(), 1, 1]);
-        this.functionContext.stack.pop();
+        const debugCall = ts.createCall(
+            ts.createPropertyAccess(ts.createIdentifier('debug'), ts.createIdentifier('debug')),
+            undefined,
+            []);
+        debugCall.parent = node;
+        this.processExpression(debugCall);
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
@@ -1448,13 +1413,9 @@ export class Emitter {
     }
 
     private processDeleteExpression(node: ts.DeleteExpression): void {
-        // ... = <right>
-        this.processNullLiteral(<ts.NullLiteral><any>node);
-
-        // <left> = ...
-        this.processExpression(node.expression);
-
-        this.emitAssignOperation(node);
+        const assignNull = ts.createAssignment(node.expression, ts.createNull());
+        assignNull.parent = node;
+        this.processExpression(assignNull);
     }
 
     private processNewExpression(node: ts.NewExpression): void {
