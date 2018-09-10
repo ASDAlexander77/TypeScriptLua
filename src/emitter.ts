@@ -833,11 +833,13 @@ export class Emitter {
             node.properties.length,
             0]);
 
-        this.resolver.Scope.push(node);
-
         node.properties.forEach((e: ts.PropertyAssignment, index: number) => {
             // set 0 element
+            this.resolver.Scope.push(node);
             this.processExpression(<ts.Expression><any>e.name);
+            this.resolver.Scope.pop();
+
+            // we need to remove scope as expression is not part of object
             this.processExpression(e.initializer);
 
             const propertyValueInfo = this.functionContext.stack.pop().optimize();
@@ -850,7 +852,6 @@ export class Emitter {
                 propertyValueInfo.getRegisterOrIndex()]);
         });
 
-        this.resolver.Scope.pop();
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
@@ -1471,39 +1472,16 @@ export class Emitter {
             }
         }
 
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.NEWTABLE,
-            resultInfo.getRegister(),
-            0,
-            0]);
+        this.processExpression(
+            ts.createObjectLiteral([
+                ts.createPropertyAssignment('__index', ts.createIdentifier(node.expression.getText() + '_prototype'))
+            ]));
+        const resultInfo = this.functionContext.stack.peek();
 
-        // getting prototype
-        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const prototypeNameInfo = this.resolver.returnConst(
-            node.expression.getText() + '_prototype', this.functionContext);
-
-        const prototypeInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.GETTABUP, prototypeInfo.getRegister(), envInfo.getRegisterOrIndex(), prototypeNameInfo.getRegisterOrIndex()
-        ]);
-
-        // storing prototype into __index
-        this.functionContext.stack.pop();
-        const indexNameInfo = this.resolver.returnConst('__index', this.functionContext);
-        this.functionContext.code.push([
-            Ops.SETTABLE, resultInfo.getRegister(), indexNameInfo.getRegisterOrIndex(), prototypeInfo.getRegister()
-        ]);
+        this.processExpression(ts.createIdentifier('setmetatable'));
+        const setmetatableInfo = this.functionContext.stack.peek();
 
         // call setmetatable(obj, obj)
-        // 1, get setmetatable reference
-        const setmetatableInfo = this.functionContext.useRegisterAndPush();
-        const setmetatableNameInfo = this.resolver.returnConst('setmetatable', this.functionContext);
-        this.functionContext.code.push([
-            Ops.GETTABUP, setmetatableInfo.getRegister(), envInfo.getRegisterOrIndex(), setmetatableNameInfo.getRegisterOrIndex()
-        ]);
-
-        // 2, store 2 params
         const param1Info = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([
             Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()

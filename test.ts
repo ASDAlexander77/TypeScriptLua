@@ -4,8 +4,5 @@ class Class1 {
     }
 }
 
-class Class2 extends Class1 {
-    public method2(): boolean {
-        return true;
-    }
-}
+const c = new Class1();
+console.log(c.method1());
