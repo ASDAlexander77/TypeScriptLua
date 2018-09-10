@@ -276,7 +276,8 @@ export class IdentifierResolver {
                     if ((resolved.flags & 1) === 1) {
                         return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     } else if ((resolved.flags & 2) === 2) {
-                        return this.returnLocalOrUpvalue(identifier.text, functionContext);
+                        return this.returnLocalOrUpvalueNoException(identifier.text, functionContext)
+                               || this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     } else {
                         throw new Error('Not implemented');
                     }
@@ -337,8 +338,7 @@ export class IdentifierResolver {
         return resolvedInfo;
     }
 
-    public returnLocalOrUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {
-
+    public returnLocalOrUpvalueNoException(text: string, functionContext: FunctionContext): ResolvedInfo {
         const localVarIndex = functionContext.findLocal(text, true);
         if (localVarIndex !== -1) {
             const resolvedInfo = new ResolvedInfo(functionContext);
@@ -358,6 +358,15 @@ export class IdentifierResolver {
                 resolvedInfo.upvalueStackIndex = localVarIndexAsUpvalue;
                 return resolvedInfo;
             }
+        }
+
+        return null;
+    }
+
+    public returnLocalOrUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {
+        const result = this.returnLocalOrUpvalueNoException(text, functionContext);
+        if (result) {
+            return result;
         }
 
         throw new Error('Could not find variable');

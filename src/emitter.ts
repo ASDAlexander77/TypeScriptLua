@@ -1339,6 +1339,24 @@ export class Emitter {
 
                 break;
 
+            case ts.SyntaxKind.CommaToken:
+
+                this.processExpression(node.left);
+                this.processExpression(node.right);
+
+                break;
+
+            case ts.SyntaxKind.InstanceOfKeyword:
+                // TODO: temporary solution, finish it
+                const instanceOfExpression = ts.createBinary(
+                    ts.createTypeOf(node.right),
+                    ts.SyntaxKind.EqualsEqualsToken,
+                    ts.createTypeOf(node.left));
+                    instanceOfExpression.parent = node.parent;
+                this.processExpression(instanceOfExpression);
+
+                break;
+
             default: throw new Error('Not Implemented');
         }
     }
