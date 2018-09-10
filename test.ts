@@ -4,5 +4,8 @@ class Class1 {
     }
 }
 
-const c = new Class1();
+class Class2 extends Class1 {
+}
+
+const c = new Class2();
 console.log(c.method1());
