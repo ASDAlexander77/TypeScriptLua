@@ -258,6 +258,14 @@ export class IdentifierResolver {
 
         if (resolved) {
             const declaration = resolved.valueDeclaration || resolved.declarations[0];
+            if (!declaration) {
+                if (resolved.name === 'undefined') {
+                    return this.returnConst(null, functionContext);
+                }
+
+                throw Error('Can\'t find declaration for "' + identifier.text + '"');
+            }
+
             const kind: ts.SyntaxKind = <ts.SyntaxKind>declaration.kind;
             switch (kind) {
                 case ts.SyntaxKind.VariableDeclaration:
