@@ -434,7 +434,8 @@ export class Emitter {
         this.functionContext.stack.pop();
         this.functionContext.stack.pop();
 
-        this.emitStoreToEnvObjectProperty(this.functionContext.findOrCreateConst(node.name.getText() + '_prototype'));
+        const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.getText() + '_prototype');
+        this.emitStoreToEnvObjectProperty(nameConstIndex);
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
