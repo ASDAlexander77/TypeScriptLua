@@ -168,6 +168,7 @@ export class Emitter {
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
             case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
+            case ts.SyntaxKind.InterfaceDeclaration: /*nothing to do*/ return;
         }
 
         // TODO: finish it
@@ -200,7 +201,9 @@ export class Emitter {
             case ts.SyntaxKind.ObjectLiteralExpression: this.processObjectLiteralExpression(<ts.ObjectLiteralExpression>node); return;
             case ts.SyntaxKind.TemplateExpression: this.processTemplateExpression(<ts.TemplateExpression>node); return;
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
+            case ts.SyntaxKind.RegularExpressionLiteral: this.processRegularExpressionLiteral(<ts.RegularExpressionLiteral>node); return;
             case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
+            case ts.SyntaxKind.VoidExpression: this.processVoidExpression(<ts.VoidExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
 
@@ -473,6 +476,11 @@ export class Emitter {
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
+        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)) {
+            // skip it, as it is only declaration
+            return;
+        }
+
         const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
 
@@ -810,6 +818,11 @@ export class Emitter {
 
     private processTemplateExpression(node: ts.TemplateExpression): void {
         this.transpileTSNode(node);
+    }
+
+    private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
+        // TODO: temporary hack for Regular Expressions
+        this.processExpression(ts.createStringLiteral(node.getText()));
     }
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
@@ -1162,9 +1175,13 @@ export class Emitter {
 
                 let operationCode = this.opsMap[node.operatorToken.kind];
                 if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-                    const typeResult = this.resolver.getTypeAtLocation(node);
-                    if (typeResult && typeResult.intrinsicName === 'string') {
-                        operationCode = Ops.CONCAT;
+                    try {
+                        const typeResult = this.resolver.getTypeAtLocation(node);
+                        if (typeResult && typeResult.intrinsicName === 'string') {
+                            operationCode = Ops.CONCAT;
+                        }
+                    } catch (e) {
+                        console.warn('Can\'t get type of "' + node.getText() + '"');
                     }
                 }
 
@@ -1563,6 +1580,15 @@ export class Emitter {
 
     private processThisExpression(node: ts.ThisExpression): void {
         this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
+    }
+
+    private processVoidExpression(node: ts.VoidExpression): void {
+        // call expression
+        this.processExpression(node.expression);
+        this.functionContext.stack.pop();
+
+        // convert it into null
+        this.processExpression(ts.createIdentifier('undefined'));
     }
 
     private processIndentifier(node: ts.Identifier): void {

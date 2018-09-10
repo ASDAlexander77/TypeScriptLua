@@ -237,10 +237,15 @@ export class IdentifierResolver {
             return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
         }
 
-        let resolved = (<any>this.typeChecker).resolveName(
+        let resolved;
+        try {
+            resolved = (<any>this.typeChecker).resolveName(
             identifier.text,
             functionContext.current_location_node || functionContext.function_or_file_location_node,
             ((1 << 27) - 1)/*mask for all types*/);
+        } catch (e) {
+            console.warn('Can\'t resolve "' + identifier.text + '"');
+        }
 
         if (!resolved
             && functionContext.current_location_node
@@ -257,10 +262,15 @@ export class IdentifierResolver {
         }
 
         if (resolved) {
-            const declaration = resolved.valueDeclaration || resolved.declarations[0];
+            const declaration = resolved.valueDeclaration
+                                || (resolved.declarations && resolved.declarations.length > 0 ? resolved.declarations[0] : undefined);
             if (!declaration) {
                 if (resolved.name === 'undefined') {
                     return this.returnConst(null, functionContext);
+                }
+
+                if (resolved.name === 'arguments') {
+                    return this.resolveMemberOfCurrentScope('arg', functionContext);
                 }
 
                 throw Error('Can\'t find declaration for "' + identifier.text + '"');
