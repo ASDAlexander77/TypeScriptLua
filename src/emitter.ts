@@ -1465,6 +1465,10 @@ export class Emitter {
             if (name === 'Array') {
                 return this.processArrayLiteralExpression(ts.createArrayLiteral());
             }
+
+            if (name === 'String') {
+                return this.processStringLiteral(ts.createStringLiteral(''));
+            }
         }
 
         const resultInfo = this.functionContext.useRegisterAndPush();
