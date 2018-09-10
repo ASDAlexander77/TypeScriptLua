@@ -355,6 +355,44 @@ export class Emitter {
 
         this.transpileTSNode(node);
         this.functionContext.restoreLocalScope();
+
+        // create proto object for inherited class
+        this.emitInheritance(node);
+    }
+
+    private emitInheritance(node: ts.ClassDeclaration) {
+        // TODO: rewrite it in the way of not calling constructor
+        this.processExpression(
+            ts.createObjectLiteral([
+                ts.createPropertyAssignment('__index', ts.createIdentifier(node.name.getText() + '_prototype'))
+            ]));
+        const resultInfo = this.functionContext.stack.peek();
+
+        this.processExpression(ts.createIdentifier('setmetatable'));
+        const setmetatableInfo = this.functionContext.stack.peek();
+
+        // call setmetatable(obj, obj)
+        const param1Info = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()
+        ]);
+
+        const param2Info = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.MOVE, param2Info.getRegister(), resultInfo.getRegisterOrIndex()
+        ]);
+
+        // call setmetatable
+        this.functionContext.code.push([
+            Ops.CALL, setmetatableInfo.getRegister(), 3, 1
+        ]);
+
+        // call cleanup
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+
+        // TODO: finish  Class2_prototype = this.functionContext.stack.pop() /* Class1_prototype */
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
