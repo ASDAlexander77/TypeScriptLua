@@ -9,9 +9,8 @@
             "request": "launch",
             "name": "Launch Node.js",
             "program": "${workspaceFolder}/__out/main.js",
-            "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
             "args": [
-                "tsconfig.json"
+                "tsconfig1.json"
             ]
         },
         {
