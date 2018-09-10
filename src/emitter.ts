@@ -1457,7 +1457,7 @@ export class Emitter {
     private processNewExpression(node: ts.NewExpression): void {
 
         // special cases: new Array and new Object
-        if (node.expression.kind === ts.SyntaxKind.Identifier) {
+        if (node.expression.kind === ts.SyntaxKind.Identifier && (!node.arguments || node.arguments.length === 0)) {
             const name = node.expression.getText();
             if (name === 'Object') {
                 return this.processObjectLiteralExpression(ts.createObjectLiteral());
