@@ -215,7 +215,7 @@ export class Emitter {
         this.processExpression(node.expression);
     }
 
-    private transpileTSNode(node: ts.Node) {
+    private parseTSNode(node: ts.Node, transformText?: (string) => string) {
         const result = ts.transpileModule(node.getFullText(), {
             compilerOptions: {
                 module: ts.ModuleKind.CommonJS,
@@ -225,14 +225,24 @@ export class Emitter {
             }
         });
 
+        let jsText = result.outputText;
+        if (transformText) {
+            jsText = transformText(jsText);
+        }
+
         const sourceFile = ts.createSourceFile(
             'partial',
-            result.outputText,
+            jsText,
             ts.ScriptTarget.ES5,
             /*setParentNodes */ true
         );
 
-        sourceFile.statements.forEach(s => {
+        return sourceFile.statements;
+    }
+
+    private processTSNode(node: ts.Node) {
+        const statements = this.parseTSNode(node);
+        statements.forEach(s => {
             this.processStatement(s);
         });
     }
@@ -342,7 +352,7 @@ export class Emitter {
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
         this.functionContext.newLocalScope(node);
-        this.transpileTSNode(node);
+        this.processTSNode(node);
         this.functionContext.restoreLocalScope();
     }
 
@@ -353,7 +363,27 @@ export class Emitter {
             this.emitGetOrCreateObjectExpression(node, 'exports');
         }
 
-        this.transpileTSNode(node);
+        const statements = this.parseTSNode(node, (js) => {
+            if (node.heritageClauses) {
+                // TODO: Hack, remove extra code to make code works
+                js = js.replace('__extends(' + node.name.text + ', _super);', '');
+                // TODO: Hack remove super call in constructor, implement apply on function
+                js = js.replace('return _super !== null && _super.apply(this, arguments) || this;', '');
+            }
+
+            return js;
+        });
+        if (node.heritageClauses) {
+            // skip first statement
+            statements.slice(1).forEach(statement => {
+                this.processStatement(statement);
+            });
+        } else {
+            statements.forEach(statement => {
+                this.processStatement(statement);
+            });
+        }
+
         this.functionContext.restoreLocalScope();
 
         // create proto object for inherited class
@@ -361,10 +391,22 @@ export class Emitter {
     }
 
     private emitInheritance(node: ts.ClassDeclaration) {
-        // TODO: rewrite it in the way of not calling constructor
+        if (!node.heritageClauses) {
+            return;
+        }
+
+        let extend;
+        node.heritageClauses.forEach(heritageClause => {
+            heritageClause.types.forEach(type => {
+                if (!extend) {
+                    extend = type.expression;
+                }
+            });
+        });
+
         this.processExpression(
             ts.createObjectLiteral([
-                ts.createPropertyAssignment('__index', ts.createIdentifier(node.name.getText() + '_prototype'))
+                ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText() + '_prototype'))
             ]));
         const resultInfo = this.functionContext.stack.peek();
 
@@ -392,12 +434,12 @@ export class Emitter {
         this.functionContext.stack.pop();
         this.functionContext.stack.pop();
 
-        // TODO: finish  Class2_prototype = this.functionContext.stack.pop() /* Class1_prototype */
+        this.emitStoreToEnvObjectProperty(this.functionContext.findOrCreateConst(node.name.getText() + '_prototype'));
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
         this.functionContext.newLocalScope(node);
-        this.transpileTSNode(node);
+        this.processTSNode(node);
         this.functionContext.restoreLocalScope();
     }
 
@@ -406,7 +448,7 @@ export class Emitter {
 
         this.emitGetOrCreateObjectExpression(node, 'exports');
 
-        this.transpileTSNode(node);
+        this.processTSNode(node);
         this.functionContext.restoreLocalScope();
     }
 
@@ -855,7 +897,7 @@ export class Emitter {
     }
 
     private processTemplateExpression(node: ts.TemplateExpression): void {
-        this.transpileTSNode(node);
+        this.processTSNode(node);
     }
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
