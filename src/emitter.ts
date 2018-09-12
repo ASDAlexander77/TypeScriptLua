@@ -222,7 +222,8 @@ export class Emitter {
                 module: ts.ModuleKind.CommonJS,
                 alwaysStrict: false,
                 noImplicitUseStrict: true,
-                moduleResolution: ts.ModuleResolutionKind.NodeJs
+                moduleResolution: ts.ModuleResolutionKind.NodeJs,
+                target: ts.ScriptTarget.ES5
             }
         });
 
@@ -528,6 +529,9 @@ export class Emitter {
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
+
+        this.parseTSNode(node);
+
         this.processVariableDeclarationList(node.declarationList);
     }
 

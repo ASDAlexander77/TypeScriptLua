@@ -83,4 +83,11 @@ describe('Variable Declarations', () => {
         console.log(kitty.name);                \
     '])));
 
+    it.skip('Array destructuring', () => expect('1\r\n2\r\n').to.equals(new Run().test([
+        'let input = [1, 2];                    \
+        let [first, second] = input;            \
+        console.log(first);                     \
+        console.log(second);                    \
+    '])));
+
 });
