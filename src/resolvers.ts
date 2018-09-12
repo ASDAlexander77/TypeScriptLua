@@ -239,10 +239,20 @@ export class IdentifierResolver {
 
         let resolved;
         try {
-            resolved = (<any>this.typeChecker).resolveName(
-            identifier.text,
-            functionContext.current_location_node || functionContext.function_or_file_location_node,
-            ((1 << 27) - 1)/*mask for all types*/);
+            if (functionContext.current_location_node) {
+                resolved = (<any>this.typeChecker).resolveName(
+                identifier.text,
+                functionContext.current_location_node,
+                ((1 << 27) - 1)/*mask for all types*/);
+            }
+
+            if (!resolved && functionContext.function_or_file_location_node) {
+                resolved = (<any>this.typeChecker).resolveName(
+                    identifier.text,
+                    functionContext.function_or_file_location_node,
+                    ((1 << 27) - 1)/*mask for all types*/);
+            }
+
         } catch (e) {
             console.warn('Can\'t resolve "' + identifier.text + '"');
         }

@@ -4,6 +4,26 @@ import { describe, it } from 'mocha';
 
 describe('Classes', () => {
 
+    it('Class static member', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static show() {                      \
+                console.log("Hello");                   \
+            }                                           \
+        }                                               \
+                                                        \
+        Class1.show();                                  \
+    '])));
+
+    it('Class static member with parameter', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static show(s:string) {              \
+                console.log(s);                         \
+            }                                           \
+        }                                               \
+                                                        \
+        Class1.show("Hello");                           \
+    '])));
+
     it('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             constructor(private i: number) {                \

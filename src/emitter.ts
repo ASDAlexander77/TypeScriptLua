@@ -358,6 +358,7 @@ export class Emitter {
         this.functionContext.restoreLocalScope();
     }
 
+    /*
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
 
@@ -390,6 +391,52 @@ export class Emitter {
 
         // create proto object for inherited class
         this.emitInheritance(node);
+    }
+    */
+
+    private createClassMember(node: ts.ClassElement): ts.Expression {
+        switch (node.kind) {
+            case ts.SyntaxKind.MethodDeclaration:
+
+                break;
+        }
+        return null;
+    }
+
+    private processClassDeclaration(node: ts.ClassDeclaration): void {
+        this.functionContext.newLocalScope(node);
+
+        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
+            this.emitGetOrCreateObjectExpression(node, 'exports');
+        }
+
+        const properties = node.members.map(m => ts.createPropertyAssignment(m.name, function (memberDeclaration) {
+            switch (memberDeclaration.kind) {
+                case ts.SyntaxKind.MethodDeclaration:
+                    const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
+                    const memberFunction = ts.createFunctionExpression(
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        methodDeclaration.parameters,
+                        methodDeclaration.type,
+                        methodDeclaration.body);
+                    memberFunction.parent = methodDeclaration;
+                    return memberFunction;
+            }
+
+            throw new Error('Not implemented');
+        }(m)));
+
+        const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
+        prototypeObject.parent = node;
+        this.processExpression(prototypeObject);
+
+        this.functionContext.restoreLocalScope();
+
+        // create proto object for inherited class
+        ///this.emitInheritance(node);
     }
 
     private emitInheritance(node: ts.ClassDeclaration) {
@@ -529,9 +576,6 @@ export class Emitter {
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
-
-        this.parseTSNode(node);
-
         this.processVariableDeclarationList(node.declarationList);
     }
 
@@ -1435,9 +1479,9 @@ export class Emitter {
             case ts.SyntaxKind.InKeyword:
 
                 const inExpression = ts.createBinary(
-                        ts.createElementAccess(node.right, node.left),
-                        ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                        ts.createNull());
+                    ts.createElementAccess(node.right, node.left),
+                    ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                    ts.createNull());
                 inExpression.parent = node.parent;
                 this.processExpression(inExpression);
 
@@ -1456,7 +1500,7 @@ export class Emitter {
                     ts.createTypeOf(node.right),
                     ts.SyntaxKind.EqualsEqualsToken,
                     ts.createTypeOf(node.left));
-                    instanceOfExpression.parent = node.parent;
+                instanceOfExpression.parent = node.parent;
                 this.processExpression(instanceOfExpression);
 
                 break;
@@ -1660,7 +1704,7 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        const spreadCall = ts.createCall(ts.createIdentifier('unpack'), undefined, [ node.expression ]);
+        const spreadCall = ts.createCall(ts.createIdentifier('unpack'), undefined, [node.expression]);
         spreadCall.parent = node;
         this.processExpression(spreadCall);
     }
