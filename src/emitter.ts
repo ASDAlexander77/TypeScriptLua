@@ -204,6 +204,7 @@ export class Emitter {
             case ts.SyntaxKind.RegularExpressionLiteral: this.processRegularExpressionLiteral(<ts.RegularExpressionLiteral>node); return;
             case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
             case ts.SyntaxKind.VoidExpression: this.processVoidExpression(<ts.VoidExpression>node); return;
+            case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
 
@@ -1652,6 +1653,12 @@ export class Emitter {
 
         // convert it into null
         this.processExpression(ts.createIdentifier('undefined'));
+    }
+
+    private processSpreadElement(node: ts.SpreadElement): void {
+        const spreadCall = ts.createCall(ts.createIdentifier('unpack'), undefined, [ node.expression ]);
+        spreadCall.parent = node;
+        this.processExpression(spreadCall);
     }
 
     private processIndentifier(node: ts.Identifier): void {
