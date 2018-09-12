@@ -24,7 +24,7 @@ describe('Classes', () => {
         Class1.show("Hello");                           \
     '])));
 
-    it('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
+    it.skip('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             constructor(private i: number) {                \
             }                                               \
@@ -39,7 +39,7 @@ describe('Classes', () => {
                                                             \
     '])));
 
-    it('Class inheritance', () => expect('false\r\nfalse\r\n').to.equals(new Run().test([
+    it.skip('Class inheritance', () => expect('false\r\nfalse\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             public method1(): boolean {                     \
                 return false;                               \

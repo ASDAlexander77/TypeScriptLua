@@ -422,7 +422,7 @@ export class Emitter {
                         methodDeclaration.parameters,
                         methodDeclaration.type,
                         methodDeclaration.body);
-                    memberFunction.parent = methodDeclaration;
+                    (<any>memberFunction).__origin = methodDeclaration;
                     return memberFunction;
             }
 

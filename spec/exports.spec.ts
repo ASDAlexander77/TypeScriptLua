@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Export', () => {
 
-    it('Class export', () => expect('false\r\n').to.equals(new Run().test([
+    it.skip('Class export', () => expect('false\r\n').to.equals(new Run().test([
         'export class ZipCodeValidator {            \
             isAcceptable(s: string): boolean {      \
                 return false;                       \

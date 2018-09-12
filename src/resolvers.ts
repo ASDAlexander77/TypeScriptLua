@@ -247,9 +247,14 @@ export class IdentifierResolver {
             }
 
             if (!resolved && functionContext.function_or_file_location_node) {
+                let originLocation = functionContext.function_or_file_location_node;
+                if ((<any>originLocation).__origin) {
+                    originLocation = (<any>originLocation).__origin;
+                }
+
                 resolved = (<any>this.typeChecker).resolveName(
                     identifier.text,
-                    functionContext.function_or_file_location_node,
+                    originLocation,
                     ((1 << 27) - 1)/*mask for all types*/);
             }
 
