@@ -1,12 +1,16 @@
 class Class1 {
-    public static show(s: string) {
-        console.log(s);
+
+    private value: string;
+
+    public set(s: string): Class1 {
+        this.value = s;
+        return this;
+    }
+
+    public show(): void {
+        console.log(this.value);
     }
 }
 
-Class1.show('Hello');
-
-/*
 let c = new Class1();
-c.show();
-*/
+c.set('Hello2').show();

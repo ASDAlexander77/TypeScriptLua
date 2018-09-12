@@ -410,8 +410,25 @@ export class Emitter {
             this.emitGetOrCreateObjectExpression(node, 'exports');
         }
 
-        const properties = node.members.map(m => ts.createPropertyAssignment(m.name, function (memberDeclaration) {
+        const properties = node.members.filter(m => function (memberDeclaration) {
             switch (memberDeclaration.kind) {
+
+                case ts.SyntaxKind.PropertyDeclaration:
+                    const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                    return propertyDeclaration.initializer
+                           && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+                case ts.SyntaxKind.MethodDeclaration:
+                    return true;
+            }
+
+            return false;
+        }(m)).map(m => ts.createPropertyAssignment(m.name, function (memberDeclaration) {
+            switch (memberDeclaration.kind) {
+
+                case ts.SyntaxKind.PropertyDeclaration:
+                    const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                    return propertyDeclaration.initializer;
+
                 case ts.SyntaxKind.MethodDeclaration:
                     const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
                     const memberFunction = ts.createFunctionExpression(
@@ -1604,7 +1621,7 @@ export class Emitter {
 
         this.processExpression(
             ts.createObjectLiteral([
-                ts.createPropertyAssignment('__index', ts.createIdentifier(node.expression.getText() + '_prototype'))
+                ts.createPropertyAssignment('__index', node.expression)
             ]));
         const resultInfo = this.functionContext.stack.peek();
 
@@ -1633,7 +1650,7 @@ export class Emitter {
         this.functionContext.stack.pop();
 
         // call constructor
-        this.processCallExpression(<ts.CallExpression><any>node, resultInfo);
+        //this.processCallExpression(<ts.CallExpression><any>node, resultInfo);
     }
 
     private processCallExpression(node: ts.CallExpression, _thisForNew?: ResolvedInfo): void {

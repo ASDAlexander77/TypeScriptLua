@@ -24,6 +24,16 @@ describe('Classes', () => {
         Class1.show("Hello");                           \
     '])));
 
+    it('new instance of Class with parametered member', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public show(s:string) {                     \
+                console.log(s);                         \
+            }                                           \
+        }                                               \
+                                                        \
+        new Class1().show("Hello");                     \
+    '])));
+
     it.skip('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             constructor(private i: number) {                \
