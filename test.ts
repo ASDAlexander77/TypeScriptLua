@@ -1,16 +1,14 @@
-class Class1 {
+class Class1 {                                 
+   public show() {                     
+   }                                           
+}                                               
 
-    private value: string;
+console.log(Class1);
+console.log(Class1.show);
+                          
+let c = new Class1()                            
 
-    public set(s: string): Class1 {
-        this.value = s;
-        return this;
-    }
+console.log(c);
+console.log(c.show);
 
-    public show(): void {
-        console.log(this.value);
-    }
-}
-
-let c = new Class1();
-c.set('Hello2').show();
+c.show();  

@@ -1656,6 +1656,7 @@ export class Emitter {
     private processCallExpression(node: ts.CallExpression, _thisForNew?: ResolvedInfo): void {
 
         this.resolver.methodCall = true;
+        this.resolver.thisMethodCall = null;
 
         // special cases to cast to string or number
         let processed = false;
@@ -1672,7 +1673,9 @@ export class Emitter {
             this.processExpression(node.expression);
         }
 
+        const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
         this.resolver.methodCall = false;
+        this.resolver.thisMethodCall = null;
 
         if (_thisForNew) {
             const resultInfo = this.functionContext.useRegisterAndPush();
@@ -1688,7 +1691,7 @@ export class Emitter {
             this.functionContext.stack.pop();
         });
 
-        if (_thisForNew) {
+        if (_thisForNew || selfOpCodeResolveInfoForThis) {
             this.functionContext.stack.pop();
         }
 
@@ -1704,7 +1707,10 @@ export class Emitter {
         }
 
         this.functionContext.code.push(
-            [Ops.CALL, methodResolvedInfo.getRegister(), node.arguments.length + 1 + (_thisForNew ? 1 : 0), returnCount]);
+            [Ops.CALL,
+             methodResolvedInfo.getRegister(),
+             node.arguments.length + 1 + (_thisForNew || selfOpCodeResolveInfoForThis ? 1 : 0),
+             returnCount]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
@@ -1811,6 +1817,11 @@ export class Emitter {
                 resultInfo.getRegister(),
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
+
+        if (opCode === Ops.SELF) {
+            // resolve stack slot for 'this' reference
+            this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
+        }
     }
 
     private emitGetOrCreateObjectExpression(node: ts.Node, globalVariableName: string) {

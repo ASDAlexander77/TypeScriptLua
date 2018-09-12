@@ -129,6 +129,7 @@ export class ResolvedInfo {
         // console.log(x);
 
         // TODO: finish optimization for logic operations
+        /*
         if (skip) {
             return this;
         }
@@ -157,6 +158,7 @@ export class ResolvedInfo {
             this.functionContext.code.pop();
             return this;
         }
+        */
 
         return this;
     }
@@ -227,6 +229,7 @@ export class IdentifierResolver {
     }
 
     public methodCall: boolean;
+    public thisMethodCall: ResolvedInfo;
 
     public getTypeAtLocation(location: ts.Node): any {
         return (<any>this.typeChecker).getTypeAtLocation(location);
@@ -423,7 +426,7 @@ export class IdentifierResolver {
         // HACK mapping to LUA methods
         let identifierName = identifier;
         const parentScope: any = this.Scope.peek();
-        if (parentScope && parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        if (parentScope && (parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression)) {
             // HACK
             if (parentScope.originalInfo) {
                 if (parentScope.originalInfo.kind === ResolvedKind.Upvalue) {
