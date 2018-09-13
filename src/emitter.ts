@@ -98,15 +98,20 @@ export class Emitter {
         if (createEnvironment) {
             this.resolver.returnResolvedEnv(this.functionContext);
         }
-        let createThis = false;
-        function checkThisKeyward(node: ts.Node): any {
-            if (node.kind === ts.SyntaxKind.ThisKeyword) {
-                createThis = true;
-                return true;
+        let createThis = (<any>location).__origin
+                         && (<any>location).__origin.parent
+                         && (<any>location).__origin.parent.kind === ts.SyntaxKind.ClassDeclaration;
+        if (createThis) {
+            function checkThisKeyward(node: ts.Node): any {
+                if (node.kind === ts.SyntaxKind.ThisKeyword) {
+                    createThis = true;
+                    return true;
+                }
+                ts.forEachChild(node, checkThisKeyward);
             }
-            ts.forEachChild(node, checkThisKeyward);
+            ts.forEachChild(location, checkThisKeyward);
         }
-        ts.forEachChild(location, checkThisKeyward);
+
         if (createThis) {
             this.functionContext.createLocal('this');
         }
@@ -1804,13 +1809,6 @@ export class Emitter {
             objectIdentifierInfo.register = readOpCode[2];
         }
 
-        if (this.resolver.methodCall
-            && objectIdentifierInfo.kind === ResolvedKind.Register
-            && objectIdentifierInfo.originalInfo
-            && objectIdentifierInfo.originalInfo.kind !== ResolvedKind.Upvalue) {
-            opCode = Ops.SELF;
-        }
-
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push(
             [opCode,
@@ -1818,9 +1816,17 @@ export class Emitter {
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
 
-        if (opCode === Ops.SELF) {
+        // this.<...>(this support)
+        if (this.resolver.methodCall
+            && objectIdentifierInfo.kind === ResolvedKind.Register
+            && objectIdentifierInfo.originalInfo
+            && objectIdentifierInfo.originalInfo.kind !== ResolvedKind.Upvalue) {
             // resolve stack slot for 'this' reference
             this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
+            this.functionContext.code.push(
+                [Ops.MOVE,
+                    this.resolver.thisMethodCall.getRegister(),
+                    objectIdentifierInfo.originalInfo.getRegisterOrIndex()]);
         }
     }
 

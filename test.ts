@@ -1,14 +1,16 @@
-class Class1 {                                 
-   public show() {                     
-   }                                           
-}                                               
+class Class1 {
+    public show(s: string) {
+	console.log("Hello");
+	console.log(s);
+    }
 
-console.log(Class1);
-console.log(Class1.show);
-                          
-let c = new Class1()                            
+    public static show2(s: string) {
+	console.log("Hello");
+	console.log(s);
+    }
+}
 
-console.log(c);
-console.log(c.show);
+Class1.show2('asd2');
 
-c.show();  
+let c = new Class1();
+c.show("Hello2");
