@@ -90,6 +90,41 @@ export class Emitter {
         return this.popFunctionContext();
     }
 
+    private hasMemberThis(location: ts.Node): boolean {
+        if (!location) {
+            return false;
+        }
+
+        if (location.parent && location.parent.kind !== ts.SyntaxKind.ClassDeclaration) {
+            return false;
+        }
+
+        switch (location.kind) {
+            case ts.SyntaxKind.MethodDeclaration:
+                const methodDeclaration = <ts.MethodDeclaration>location;
+                return !methodDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+            case ts.SyntaxKind.PropertyDeclaration:
+                return false;
+        }
+
+        return false;
+    }
+
+    private hasNodeUsedThis(location: ts.Node): boolean {
+        let createThis = false;
+        function checkThisKeyward(node: ts.Node): any {
+            if (node.kind === ts.SyntaxKind.ThisKeyword) {
+                createThis = true;
+                return true;
+            }
+
+            ts.forEachChild(node, checkThisKeyward);
+        }
+
+        ts.forEachChild(location, checkThisKeyward);
+        return createThis;
+    }
+
     private processFunctionWithinContext(
         location: ts.Node,
         statements: ts.NodeArray<ts.Statement>,
@@ -98,25 +133,12 @@ export class Emitter {
         if (createEnvironment) {
             this.resolver.returnResolvedEnv(this.functionContext);
         }
-        let createThis = (<any>location).__origin
-                         && (<any>location).__origin.parent
-                         && (<any>location).__origin.parent.kind === ts.SyntaxKind.ClassDeclaration;
-        if (!createThis) {
-            function checkThisKeyward(node: ts.Node): any {
-                if (node.kind === ts.SyntaxKind.ThisKeyword) {
-                    createThis = true;
-                    return true;
-                }
 
-                ts.forEachChild(node, checkThisKeyward);
-            }
-
-            ts.forEachChild(location, checkThisKeyward);
-        }
-
+        const createThis = this.hasMemberThis(<ts.Node>(<any>location).__origin) || this.hasNodeUsedThis(location);
         if (createThis) {
             this.functionContext.createLocal('this');
         }
+
         if (parameters) {
             parameters.forEach(p => {
                 this.functionContext.createLocal((<ts.Identifier>p.name).text);
@@ -400,15 +422,6 @@ export class Emitter {
         this.emitInheritance(node);
     }
     */
-
-    private createClassMember(node: ts.ClassElement): ts.Expression {
-        switch (node.kind) {
-            case ts.SyntaxKind.MethodDeclaration:
-
-                break;
-        }
-        return null;
-    }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
@@ -1818,17 +1831,21 @@ export class Emitter {
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
 
+        const objectOriginalInfo = objectIdentifierInfo.originalInfo;
+        const upvalueOrConst = objectOriginalInfo
+                                && (objectOriginalInfo.kind === ResolvedKind.Upvalue
+                                || objectOriginalInfo.kind === ResolvedKind.Const);
+
         // this.<...>(this support)
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
-            && objectIdentifierInfo.originalInfo
-            && objectIdentifierInfo.originalInfo.kind !== ResolvedKind.Upvalue) {
+            && !upvalueOrConst) {
             // resolve stack slot for 'this' reference
             this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
             this.functionContext.code.push(
                 [Ops.MOVE,
                     this.resolver.thisMethodCall.getRegister(),
-                    objectIdentifierInfo.originalInfo.getRegisterOrIndex()]);
+                    (objectIdentifierInfo.originalInfo || objectIdentifierInfo).getRegisterOrIndex()]);
         }
     }
 

@@ -41,7 +41,7 @@ describe('Classes', () => {
             }                                           \
         }                                               \
                                                         \
-        let c = new Class1()                            \
+        let c = new Class1();                           \
         c.show("Hello");                                \
     '])));
 
