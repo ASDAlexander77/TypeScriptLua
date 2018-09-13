@@ -102,7 +102,8 @@ export class Emitter {
         switch (location.kind) {
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = <ts.MethodDeclaration>location;
-                return !methodDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+                //return !methodDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+                return true;
             case ts.SyntaxKind.PropertyDeclaration:
                 return false;
         }
@@ -1833,8 +1834,8 @@ export class Emitter {
 
         const objectOriginalInfo = objectIdentifierInfo.originalInfo;
         const upvalueOrConst = objectOriginalInfo
-                                && (objectOriginalInfo.kind === ResolvedKind.Upvalue
-                                || objectOriginalInfo.kind === ResolvedKind.Const);
+                                && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
+                                /*|| objectOriginalInfo.kind === ResolvedKind.Const*/);
 
         // this.<...>(this support)
         if (this.resolver.methodCall

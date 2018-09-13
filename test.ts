@@ -1,8 +1,8 @@
-class Class1 {                                 
-            public show(s:string) {                     
-                console.log(s);                         
-            }                                           
-        }                                               
-                                                        
-        let c = new Class1()                            
-        c.show("Hello"); 
+var o = {
+    prop: 37,
+    f: function () {
+        return this.prop;
+    }
+};
+
+console.log(o.f());
