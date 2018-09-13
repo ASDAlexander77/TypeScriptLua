@@ -101,14 +101,16 @@ export class Emitter {
         let createThis = (<any>location).__origin
                          && (<any>location).__origin.parent
                          && (<any>location).__origin.parent.kind === ts.SyntaxKind.ClassDeclaration;
-        if (createThis) {
+        if (!createThis) {
             function checkThisKeyward(node: ts.Node): any {
                 if (node.kind === ts.SyntaxKind.ThisKeyword) {
                     createThis = true;
                     return true;
                 }
+
                 ts.forEachChild(node, checkThisKeyward);
             }
+
             ts.forEachChild(location, checkThisKeyward);
         }
 
