@@ -98,7 +98,7 @@ describe('Classes', () => {
         c.set("Hello").show();                          \
     '])));
 
-    it.skip('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
+    it('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             constructor(private i: number) {                \
             }                                               \
