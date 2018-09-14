@@ -1752,6 +1752,12 @@ export class Emitter {
             this.functionContext.useRegisterAndPush();
         }
 
+        // in case of empty constructor we need to skip call
+        if (_thisForNew) {
+            this.functionContext.code.push ([Ops.TEST, methodResolvedInfo.getRegister(), 0]);
+            this.functionContext.code.push ([Ops.JMP, 0, 1]);
+        }
+
         this.functionContext.code.push(
             [Ops.CALL,
             methodResolvedInfo.getRegister(),
