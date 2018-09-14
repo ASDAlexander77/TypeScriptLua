@@ -102,7 +102,7 @@ export class Emitter {
         switch (location.kind) {
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = <ts.MethodDeclaration>location;
-                //return !methodDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+                // return !methodDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
                 return true;
             case ts.SyntaxKind.PropertyDeclaration:
                 return false;
@@ -1689,9 +1689,17 @@ export class Emitter {
             resultInfo.getRegister(),
             this.resolver.returnConst('constructor', this.functionContext).getRegisterOrIndex()]);
 
+        // in case of empty constructor we need to skip call
+        this.functionContext.code.push([Ops.TEST, methodInfo.getRegister(), 0]);
+        const jmpOp = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(jmpOp);
+        const beforeBlock = this.functionContext.code.length;
+
         this.emitCallOfLoadedMethod(
             <ts.CallExpression><any>{ 'arguments': node.arguments, 'parent': node.parent },
             resultInfo);
+
+            jmpOp[2] = this.functionContext.code.length - beforeBlock;
     }
 
     private processCallExpression(node: ts.CallExpression): void {
@@ -1714,19 +1722,14 @@ export class Emitter {
             this.processExpression(node.expression);
         }
 
-        this.emitCallOfLoadedMethod(node);
-    }
-
-    private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo) {
         const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
         this.resolver.methodCall = false;
         this.resolver.thisMethodCall = null;
 
-        if (_thisForNew) {
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), _thisForNew.getRegister()]);
-        }
+        this.emitCallOfLoadedMethod(node, selfOpCodeResolveInfoForThis);
+    }
 
+    private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo) {
         node.arguments.forEach(a => {
             // pop method arguments
             this.processExpression(a);
@@ -1734,29 +1737,27 @@ export class Emitter {
         node.arguments.forEach(a => {
             this.functionContext.stack.pop();
         });
-        if (_thisForNew || selfOpCodeResolveInfoForThis) {
+        if (_thisForNew) {
             this.functionContext.stack.pop();
         }
 
         const methodResolvedInfo = this.functionContext.stack.pop();
         // TODO: temporary solution: if method called in Statement then it is not returning value
-        const isStatementCall = _thisForNew || node.parent.kind === ts.SyntaxKind.ExpressionStatement;
-        const isMethodArgumentCall = node.parent && node.parent.kind === ts.SyntaxKind.CallExpression;
+        const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement;
+        const parent = node.parent;
+        const isMethodArgumentCall = parent
+            && (parent.kind === ts.SyntaxKind.CallExpression
+                || parent.kind === ts.SyntaxKind.PropertyAccessExpression);
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
         }
 
-        // in case of empty constructor we need to skip call
-        if (_thisForNew) {
-            this.functionContext.code.push([Ops.TEST, methodResolvedInfo.getRegister(), 0]);
-            this.functionContext.code.push([Ops.JMP, 0, 1]);
-        }
-
-        this.functionContext.code.push([Ops.CALL,
-        methodResolvedInfo.getRegister(),
-        node.arguments.length + 1 + (_thisForNew || selfOpCodeResolveInfoForThis ? 1 : 0),
-            returnCount]);
+        this.functionContext.code.push(
+            [Ops.CALL,
+             methodResolvedInfo.getRegister(),
+             node.arguments.length + 1 + (_thisForNew ? 1 : 0),
+             returnCount]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
@@ -1820,16 +1821,6 @@ export class Emitter {
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
-
-        // special case: HACK, concat <function>.prototype to access prototype property
-        if (node.expression.kind === ts.SyntaxKind.Identifier
-            && node.name.kind === ts.SyntaxKind.Identifier
-            && node.name.getText() === 'prototype') {
-            this.emitGetOrCreateObjectExpression(node, (<any>node.expression).text + '_prototype');
-            return;
-        }
-
-        // end of HACK
 
         this.processExpression(node.expression);
 
