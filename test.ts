@@ -2,7 +2,7 @@ class Class1 {
     private i: number;
 
     constructor(pi: number) {
-	this.i = pi;
+        this.i = pi;
     }
 
     public show() {

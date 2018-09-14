@@ -431,41 +431,52 @@ export class Emitter {
             this.emitGetOrCreateObjectExpression(node, 'exports');
         }
 
-        const properties = node.members.filter(m => function (memberDeclaration) {
-            switch (memberDeclaration.kind) {
+        const properties = node.members.filter(m =>
+            function (memberDeclaration) {
+                switch (memberDeclaration.kind) {
+                    case ts.SyntaxKind.PropertyDeclaration:
+                        const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                        return propertyDeclaration.initializer
+                            && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+                    case ts.SyntaxKind.Constructor:
+                    case ts.SyntaxKind.MethodDeclaration:
+                        return true;
+                    default:
+                        throw new Error('Not Implemented');
+                }
+            }(m)).map(m => ts.createPropertyAssignment(
+                function (memberDeclaration) {
+                    switch (memberDeclaration.kind) {
+                        case ts.SyntaxKind.Constructor:
+                            return 'constructor';
+                        default:
+                            return memberDeclaration.name;
+                    }
+                }(m),
+                function (memberDeclaration) {
+                    switch (memberDeclaration.kind) {
 
-                case ts.SyntaxKind.PropertyDeclaration:
-                    const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                    return propertyDeclaration.initializer
-                           && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
-                case ts.SyntaxKind.MethodDeclaration:
-                    return true;
-            }
+                        case ts.SyntaxKind.PropertyDeclaration:
+                            const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                            return propertyDeclaration.initializer;
 
-            return false;
-        }(m)).map(m => ts.createPropertyAssignment(m.name, function (memberDeclaration) {
-            switch (memberDeclaration.kind) {
-
-                case ts.SyntaxKind.PropertyDeclaration:
-                    const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                    return propertyDeclaration.initializer;
-
-                case ts.SyntaxKind.MethodDeclaration:
-                    const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
-                    const memberFunction = ts.createFunctionExpression(
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        methodDeclaration.parameters,
-                        methodDeclaration.type,
-                        methodDeclaration.body);
-                    (<any>memberFunction).__origin = methodDeclaration;
-                    return memberFunction;
-            }
-
-            throw new Error('Not implemented');
-        }(m)));
+                        case ts.SyntaxKind.Constructor:
+                        case ts.SyntaxKind.MethodDeclaration:
+                            const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
+                            const memberFunction = ts.createFunctionExpression(
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                methodDeclaration.parameters,
+                                methodDeclaration.type,
+                                methodDeclaration.body);
+                            (<any>memberFunction).__origin = methodDeclaration;
+                            return memberFunction;
+                        default:
+                            throw new Error('Not Implemented');
+                    }
+                }(m)));
 
         const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
         prototypeObject.parent = node;
@@ -1693,6 +1704,19 @@ export class Emitter {
         // default case
         if (!processed) {
             this.processExpression(node.expression);
+
+            if (_thisForNew) {
+                // fix object register to get constructor from 'this'
+                const thisOpCode = this.functionContext.code[ this.functionContext.code.length - 1];
+                if (thisOpCode[0] === Ops.GETTABUP) {
+                    thisOpCode[0] = Ops.GETTABLE;
+                    thisOpCode[2] = _thisForNew.getRegister();
+                } else if (thisOpCode[0] === Ops.GETTABLE) {
+                    thisOpCode[2] = _thisForNew.getRegister();
+                } else {
+                    throw new Error('Not Implemented');
+                }
+            }
         }
 
         const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
@@ -1730,9 +1754,9 @@ export class Emitter {
 
         this.functionContext.code.push(
             [Ops.CALL,
-             methodResolvedInfo.getRegister(),
-             node.arguments.length + 1 + (_thisForNew || selfOpCodeResolveInfoForThis ? 1 : 0),
-             returnCount]);
+            methodResolvedInfo.getRegister(),
+            node.arguments.length + 1 + (_thisForNew || selfOpCodeResolveInfoForThis ? 1 : 0),
+                returnCount]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
@@ -1829,7 +1853,7 @@ export class Emitter {
 
         const objectOriginalInfo = objectIdentifierInfo.originalInfo;
         const upvalueOrConst = objectOriginalInfo
-                                && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
+            && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
                                 /*|| objectOriginalInfo.kind === ResolvedKind.Const*/);
 
         // this.<...>(this support)
