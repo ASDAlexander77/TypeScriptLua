@@ -1,8 +1,5 @@
-class Class1 {
-    public static show(s: string) {
-        console.log('Hello');
-        console.log(s);
-    }
-}
-
-Class1.show('asd');
+let a = 1;
+console.log(++a);
+console.log(--a);
+console.log(a++);
+console.log(a--);

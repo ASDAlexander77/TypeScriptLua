@@ -1163,7 +1163,7 @@ export class Emitter {
                 } else if (operandInfo.kind === ResolvedKind.Register) {
                     this.functionContext.code.push([
                         Ops.MOVE,
-                        operandInfo.getRegister(),
+                        (operandInfo.originalInfo || operandInfo).getRegister(),
                         operationResultInfo.getRegister()]);
                 }
 
