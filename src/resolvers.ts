@@ -122,6 +122,32 @@ export class ResolvedInfo {
         throw new Error('It is not Closure');
     }
 
+    public collapseConst(skip?: boolean): ResolvedInfo {
+        if (skip) {
+            return this;
+        }
+
+        if (this.kind !== ResolvedKind.Register) {
+            return this;
+        }
+
+        if (this.functionContext.code.length === 0) {
+            return this;
+        }
+
+        // we need to suppres redundant LOADK & MOVES
+        const opCodes = this.functionContext.code[this.functionContext.code.length - 1];
+        if (opCodes[0] === Ops.LOADK) {
+            this.kind = ResolvedKind.Const;
+            this.constIndex = opCodes[2];
+            // remove optimized code
+            this.functionContext.code.pop();
+            return this;
+        }
+
+        return this;
+    }
+
     public optimize(skip?: boolean): ResolvedInfo {
         // TODO: finish optimization for code
         // let x;

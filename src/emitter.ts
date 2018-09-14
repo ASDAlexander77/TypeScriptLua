@@ -1813,7 +1813,8 @@ export class Emitter {
         this.resolver.Scope.pop();
 
         // perform load
-        const memberIdentifierInfo = this.functionContext.stack.pop().optimize();
+        // we can call collapseConst becasee member is name all the time which means it is const value
+        const memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
         const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
         let opCode = Ops.GETTABLE;
@@ -1825,13 +1826,6 @@ export class Emitter {
             objectIdentifierInfo.register = readOpCode[2];
         }
 
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push(
-            [opCode,
-                resultInfo.getRegister(),
-                objectIdentifierInfo.getRegisterOrIndex(),
-                memberIdentifierInfo.getRegisterOrIndex()]);
-
         const objectOriginalInfo = objectIdentifierInfo.originalInfo;
         const upvalueOrConst = objectOriginalInfo
                                 && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
@@ -1841,12 +1835,18 @@ export class Emitter {
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
             && !upvalueOrConst) {
-            // resolve stack slot for 'this' reference
+            opCode = Ops.SELF;
+        }
+
+        const resultInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push(
+            [opCode,
+                resultInfo.getRegister(),
+                objectIdentifierInfo.getRegisterOrIndex(),
+                memberIdentifierInfo.getRegisterOrIndex()]);
+
+        if (opCode === Ops.SELF) {
             this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
-            this.functionContext.code.push(
-                [Ops.MOVE,
-                    this.resolver.thisMethodCall.getRegister(),
-                    (objectIdentifierInfo.originalInfo || objectIdentifierInfo).getRegisterOrIndex()]);
         }
     }
 

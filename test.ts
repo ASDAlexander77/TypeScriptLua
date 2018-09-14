@@ -1,16 +1,8 @@
-var o = {
-    prop: 37,
-    f: function () {
-        return this.prop;
+class Class1 {
+    public static show(s: string) {
+        console.log('Hello');
+        console.log(s);
     }
-};
+}
 
-console.log(o.f());
-
-class Class1 {                                 
-            public static show() {                      
-                console.log("Hello");                   
-            }                                           
-        }                                               
-                                                        
-        Class1.show(); 
+Class1.show('asd');
