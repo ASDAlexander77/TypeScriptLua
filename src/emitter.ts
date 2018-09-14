@@ -1682,18 +1682,26 @@ export class Emitter {
         this.functionContext.stack.pop();
 
         // call constructor
-        const constructorCall = ts.createCall(ts.createIdentifier('constructor'), undefined, node.arguments);
-        this.processCallExpression(constructorCall, resultInfo);
+        const methodInfo = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.GETTABLE,
+            methodInfo.getRegister(),
+            resultInfo.getRegister(),
+            this.resolver.returnConst('constructor', this.functionContext).getRegisterOrIndex()]);
+
+        this.emitCallOfLoadedMethod(
+            <ts.CallExpression><any>{ 'arguments': node.arguments, 'parent': node.parent },
+            resultInfo);
     }
 
-    private processCallExpression(node: ts.CallExpression, _thisForNew?: ResolvedInfo): void {
+    private processCallExpression(node: ts.CallExpression): void {
 
         this.resolver.methodCall = true;
         this.resolver.thisMethodCall = null;
 
         // special cases to cast to string or number
         let processed = false;
-        if (node.expression.kind === ts.SyntaxKind.Identifier && _thisForNew === undefined && node.arguments.length === 1) {
+        if (node.expression.kind === ts.SyntaxKind.Identifier && node.arguments.length === 1) {
             const name = node.expression.kind === ts.SyntaxKind.Identifier ? (<ts.Identifier>node.expression).text : '';
             if (name === 'String' || name === 'Number') {
                 this.processExpression(ts.createIdentifier('to' + name.toLowerCase()));
@@ -1704,21 +1712,12 @@ export class Emitter {
         // default case
         if (!processed) {
             this.processExpression(node.expression);
-
-            if (_thisForNew) {
-                // fix object register to get constructor from 'this'
-                const thisOpCode = this.functionContext.code[ this.functionContext.code.length - 1];
-                if (thisOpCode[0] === Ops.GETTABUP) {
-                    thisOpCode[0] = Ops.GETTABLE;
-                    thisOpCode[2] = _thisForNew.getRegister();
-                } else if (thisOpCode[0] === Ops.GETTABLE) {
-                    thisOpCode[2] = _thisForNew.getRegister();
-                } else {
-                    throw new Error('Not Implemented');
-                }
-            }
         }
 
+        this.emitCallOfLoadedMethod(node);
+    }
+
+    private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo) {
         const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
         this.resolver.methodCall = false;
         this.resolver.thisMethodCall = null;
@@ -1732,37 +1731,32 @@ export class Emitter {
             // pop method arguments
             this.processExpression(a);
         });
-
         node.arguments.forEach(a => {
             this.functionContext.stack.pop();
         });
-
         if (_thisForNew || selfOpCodeResolveInfoForThis) {
             this.functionContext.stack.pop();
         }
 
         const methodResolvedInfo = this.functionContext.stack.pop();
-
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const isStatementCall = _thisForNew || node.parent.kind === ts.SyntaxKind.ExpressionStatement;
         const isMethodArgumentCall = node.parent && node.parent.kind === ts.SyntaxKind.CallExpression;
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
-
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
         }
 
         // in case of empty constructor we need to skip call
         if (_thisForNew) {
-            this.functionContext.code.push ([Ops.TEST, methodResolvedInfo.getRegister(), 0]);
-            this.functionContext.code.push ([Ops.JMP, 0, 1]);
+            this.functionContext.code.push([Ops.TEST, methodResolvedInfo.getRegister(), 0]);
+            this.functionContext.code.push([Ops.JMP, 0, 1]);
         }
 
-        this.functionContext.code.push(
-            [Ops.CALL,
-            methodResolvedInfo.getRegister(),
-            node.arguments.length + 1 + (_thisForNew || selfOpCodeResolveInfoForThis ? 1 : 0),
-                returnCount]);
+        this.functionContext.code.push([Ops.CALL,
+        methodResolvedInfo.getRegister(),
+        node.arguments.length + 1 + (_thisForNew || selfOpCodeResolveInfoForThis ? 1 : 0),
+            returnCount]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
