@@ -1671,7 +1671,8 @@ export class Emitter {
         this.functionContext.stack.pop();
 
         // call constructor
-        //this.processCallExpression(<ts.CallExpression><any>node, resultInfo);
+        const constructorCall = ts.createCall(ts.createIdentifier('constructor'), undefined, node.arguments);
+        this.processCallExpression(constructorCall, resultInfo);
     }
 
     private processCallExpression(node: ts.CallExpression, _thisForNew?: ResolvedInfo): void {
@@ -1690,7 +1691,7 @@ export class Emitter {
         }
 
         // default case
-        if (!processed) {
+        if (!processed && !_thisForNew) {
             this.processExpression(node.expression);
         }
 
@@ -1719,8 +1720,8 @@ export class Emitter {
         const methodResolvedInfo = this.functionContext.stack.pop();
 
         // TODO: temporary solution: if method called in Statement then it is not returning value
-        const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement || _thisForNew;
-        const isMethodArgumentCall = node.parent.kind === ts.SyntaxKind.CallExpression;
+        const isStatementCall = _thisForNew || node.parent.kind === ts.SyntaxKind.ExpressionStatement;
+        const isMethodArgumentCall = node.parent && node.parent.kind === ts.SyntaxKind.CallExpression;
         const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
 
         if (returnCount !== 1) {

@@ -45,6 +45,59 @@ describe('Classes', () => {
         c.show("Hello");                                \
     '])));
 
+    it('new instance of Class with setting class field', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            private val: string;                        \
+                                                        \
+            public set(s: string): Class1 {             \
+                this.val = s;                           \
+                return this;                            \
+            }                                           \
+                                                        \
+            public show() {                             \
+                console.log(this.val);                  \
+            }                                           \
+        }                                               \
+                                                        \
+        new Class1().set("Hello").show();               \
+    '])));
+
+    it('new instance of Class with setting class field via local', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            private val: string;                        \
+                                                        \
+            public set(s: string): Class1 {             \
+                this.val = s;                           \
+                return this;                            \
+            }                                           \
+                                                        \
+            public show() {                             \
+                console.log(this.val);                  \
+            }                                           \
+        }                                               \
+                                                        \
+        let c = new Class1();                           \
+        c.set("Hello").show();                          \
+    '])));
+
+    it('new instance of Class with setting class field via global', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            private val: string;                        \
+                                                        \
+            public set(s: string): Class1 {             \
+                this.val = s;                           \
+                return this;                            \
+            }                                           \
+                                                        \
+            public show() {                             \
+                console.log(this.val);                  \
+            }                                           \
+        }                                               \
+                                                        \
+        var c = new Class1();                           \
+        c.set("Hello").show();                          \
+    '])));
+
     it.skip('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             constructor(private i: number) {                \
