@@ -1691,7 +1691,7 @@ export class Emitter {
         }
 
         // default case
-        if (!processed && !_thisForNew) {
+        if (!processed) {
             this.processExpression(node.expression);
         }
 
