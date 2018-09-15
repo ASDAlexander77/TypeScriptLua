@@ -485,7 +485,7 @@ export class Emitter {
         this.functionContext.restoreLocalScope();
 
         // create proto object for inherited class
-        ///this.emitInheritance(node);
+        this.emitInheritance(node);
     }
 
     private emitInheritance(node: ts.ClassDeclaration) {
@@ -504,7 +504,7 @@ export class Emitter {
 
         this.processExpression(
             ts.createObjectLiteral([
-                ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText() + '_prototype'))
+                ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText()))
             ]));
         const resultInfo = this.functionContext.stack.peek();
 
@@ -532,7 +532,7 @@ export class Emitter {
         this.functionContext.stack.pop();
         this.functionContext.stack.pop();
 
-        const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.getText() + '_prototype');
+        const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.getText());
         this.emitStoreToEnvObjectProperty(nameConstIndex);
     }
 
