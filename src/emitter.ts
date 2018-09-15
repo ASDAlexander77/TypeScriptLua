@@ -233,6 +233,7 @@ export class Emitter {
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
             case ts.SyntaxKind.RegularExpressionLiteral: this.processRegularExpressionLiteral(<ts.RegularExpressionLiteral>node); return;
             case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
+            case ts.SyntaxKind.SuperKeyword: this.processSuperExpression(<ts.ThisExpression>node); return;
             case ts.SyntaxKind.VoidExpression: this.processVoidExpression(<ts.VoidExpression>node); return;
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
@@ -1762,6 +1763,12 @@ export class Emitter {
 
     private processThisExpression(node: ts.ThisExpression): void {
         this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
+    }
+
+    private processSuperExpression(node: ts.ThisExpression): void {
+        const superExpression = ts.createPropertyAccess(
+            ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__index')), ts.createIdentifier('__index'));
+        this.processExpression(superExpression);
     }
 
     private processVoidExpression(node: ts.VoidExpression): void {
