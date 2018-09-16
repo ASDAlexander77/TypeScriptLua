@@ -52,13 +52,15 @@ export class Emitter {
 
     private lib = '                                                 \
     __instanceof = __instanceof || function(inst, type) {           \
-        if (!inst) {                                                \
+        console.log(inst);                                          \
+        if (inst === undefined) {                                   \
+            console.log(\'false\');                                 \
             return false;                                           \
         }                                                           \
                                                                     \
         let instType = inst.__index;                                \
         let mt = type;                                              \
-        while (mt) {                                                \
+        while (mt !=== undefined) {                                 \
             if (mt == instType) {                                   \
                 return true;                                        \
             }                                                       \
@@ -1867,6 +1869,13 @@ export class Emitter {
         }
 
         if (resolvedInfo.kind === ResolvedKind.Const) {
+            if (resolvedInfo.value === null) {
+                const resultInfoNull = this.functionContext.useRegisterAndPush();
+                resultInfoNull.originalInfo = resolvedInfo;
+                this.functionContext.code.push([Ops.LOADNIL, resultInfoNull.getRegister(), 1]);
+                return;
+            }
+
             const resultInfo = this.functionContext.useRegisterAndPush();
             resultInfo.originalInfo = resolvedInfo;
             this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
