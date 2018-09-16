@@ -52,20 +52,26 @@ export class Emitter {
 
     private lib = '                                                 \
     __instanceof = __instanceof || function(inst, type) {           \
-        console.log(inst);                                          \
         if (inst === undefined) {                                   \
-            console.log(\'false\');                                 \
             return false;                                           \
         }                                                           \
                                                                     \
         let instType = inst.__index;                                \
         let mt = type;                                              \
+        console.log(instType);                                      \
+        console.log(mt);                                            \
         while (mt !=== undefined) {                                 \
-            if (mt == instType) {                                   \
+            console.log("in while");                                \
+            console.log(mt);                                        \
+            if (mt === instType) {                                  \
+                console.log("return true");                         \
                 return true;                                        \
             }                                                       \
                                                                     \
-            mt = mt.__index;                                        \
+            console.log("mt next");                                 \
+            mt = mt.__index.__index;                                \
+            console.log("new mt ");                                 \
+            console.log(mt);                                        \
         }                                                           \
                                                                     \
         return false;                                               \
@@ -299,6 +305,7 @@ export class Emitter {
             /*setParentNodes */ true
         );
 
+        // nneded to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
 
         return sourceFile.statements;
