@@ -1,4 +1,7 @@
 class Class1 {
+	private show(s: string) {
+		console.log(s);
+	}
 }
 
 class Class2 extends Class1 {

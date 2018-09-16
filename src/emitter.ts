@@ -276,6 +276,7 @@ export class Emitter {
     }
 
     private parseTSCode(code: string, transformText?: (string) => string) {
+
         const result = ts.transpileModule(code, {
             compilerOptions: {
                 module: ts.ModuleKind.CommonJS,
@@ -297,6 +298,15 @@ export class Emitter {
             ts.ScriptTarget.ES5,
             /*setParentNodes */ true
         );
+
+        const __ts: any = ts;
+        __ts.bindSourceFile(sourceFile, {
+            module: ts.ModuleKind.CommonJS,
+            alwaysStrict: false,
+            noImplicitUseStrict: true,
+            moduleResolution: ts.ModuleResolutionKind.NodeJs,
+            target: ts.ScriptTarget.ES5
+        });
 
         return sourceFile.statements;
     }
