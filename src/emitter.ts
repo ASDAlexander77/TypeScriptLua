@@ -50,6 +50,25 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
     }
 
+    private lib = '                                                 \
+    __instanceof = __instanceof || function(inst, type) {           \
+        if (!inst) {                                                \
+            return false;                                           \
+        }                                                           \
+                                                                    \
+        let instType = inst.__index;                                \
+        let mt = type;                                              \
+        while (mt) {                                                \
+            if (mt == instType) {                                   \
+                return true;                                        \
+            }                                                       \
+                                                                    \
+            mt = mt.__index;                                        \
+        }                                                           \
+                                                                    \
+        return false;                                               \
+    }';
+
     public processNode(node: ts.Node): void {
         switch (node.kind) {
             case ts.SyntaxKind.SourceFile: this.processFile(<ts.SourceFile>node); return;
@@ -133,6 +152,9 @@ export class Emitter {
         createEnvironment?: boolean) {
         if (createEnvironment) {
             this.resolver.returnResolvedEnv(this.functionContext);
+
+            // we need to inject helper functions
+            this.processTSCode(this.lib);
         }
 
         const createThis = this.hasMemberThis(<ts.Node>(<any>location).__origin) || this.hasNodeUsedThis(location);
@@ -248,7 +270,11 @@ export class Emitter {
     }
 
     private parseTSNode(node: ts.Node, transformText?: (string) => string) {
-        const result = ts.transpileModule(node.getFullText(), {
+        return this.parseTSCode(node.getFullText(), transformText);
+    }
+
+    private parseTSCode(code: string, transformText?: (string) => string) {
+        const result = ts.transpileModule(code, {
             compilerOptions: {
                 module: ts.ModuleKind.CommonJS,
                 alwaysStrict: false,
@@ -275,6 +301,13 @@ export class Emitter {
 
     private processTSNode(node: ts.Node) {
         const statements = this.parseTSNode(node);
+        statements.forEach(s => {
+            this.processStatement(s);
+        });
+    }
+
+    private processTSCode(code: string) {
+        const statements = this.parseTSCode(code);
         statements.forEach(s => {
             this.processStatement(s);
         });
@@ -1567,12 +1600,18 @@ export class Emitter {
 
             case ts.SyntaxKind.InstanceOfKeyword:
                 // TODO: temporary solution, finish it
+                /*
                 const instanceOfExpression = ts.createBinary(
                     ts.createTypeOf(node.right),
                     ts.SyntaxKind.EqualsEqualsToken,
-                    ts.createTypeOf(node.left));
+                    node.left);
                 instanceOfExpression.parent = node.parent;
                 this.processExpression(instanceOfExpression);
+                */
+
+                const instanceOfCall = ts.createCall(ts.createIdentifier('__instanceof'), undefined, [node.left, node.right]);
+                instanceOfCall.parent = node.parent;
+                this.processExpression(instanceOfCall);
 
                 break;
 
