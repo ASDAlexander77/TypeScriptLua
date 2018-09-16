@@ -425,6 +425,16 @@ export class Emitter {
     }
     */
 
+    private constructorExtraStatements(constructorDeclaration: ts.ConstructorDeclaration) {
+        if (constructorDeclaration.kind !== ts.SyntaxKind.Constructor) {
+            return [];
+        }
+
+        return constructorDeclaration.parameters
+            .filter(p => p.modifiers.some(m => m.kind === ts.SyntaxKind.PrivateKeyword))
+            .map(p => ts.createAssignment(ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name), <ts.Identifier>p.name));
+    }
+
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
 
@@ -471,7 +481,18 @@ export class Emitter {
                                 undefined,
                                 methodDeclaration.parameters,
                                 methodDeclaration.type,
-                                methodDeclaration.body);
+                                <ts.Block><any>{
+                                    kind: ts.SyntaxKind.Block,
+                                    statements: [
+                                        ...methodDeclaration.parameters
+                                            .filter(p => p.modifiers && p.modifiers.some(md => md.kind === ts.SyntaxKind.PrivateKeyword))
+                                            .map(p => ts.createStatement(
+                                                ts.createAssignment(
+                                                    ts.createPropertyAccess(
+                                                        ts.createThis(),
+                                                        <ts.Identifier>p.name),
+                                                    <ts.Identifier>p.name))),
+                                        ...methodDeclaration.body.statements ] });
                             (<any>memberFunction).__origin = methodDeclaration;
                             return memberFunction;
                         default:

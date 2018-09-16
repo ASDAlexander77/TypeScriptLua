@@ -1,13 +1,11 @@
 class Class1 {
-    public method1(): boolean {
-        return false;
+    constructor(private i: number) {
     }
-}
-class Class2 extends Class1 {
-    public method1(): boolean {
-        return super.method1();
+
+    public show() {
+        console.log(this.i);
     }
 }
 
-const c1 = new Class2();
-console.log(c1.method1());
+let c = new Class1(1);
+c.show();
