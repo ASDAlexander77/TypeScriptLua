@@ -52,26 +52,17 @@ export class Emitter {
 
     private lib = '                                                 \
     __instanceof = __instanceof || function(inst, type) {           \
-        if (inst === undefined) {                                   \
+        if (inst == undefined) {                                    \
             return false;                                           \
         }                                                           \
                                                                     \
-        let instType = inst.__index;                                \
-        let mt = type;                                              \
-        console.log(instType);                                      \
-        console.log(mt);                                            \
-        while (mt !=== undefined) {                                 \
-            console.log("in while");                                \
-            console.log(mt);                                        \
-            if (mt === instType) {                                  \
-                console.log("return true");                         \
+        let mt = inst.__index;                                      \
+        while (mt != undefined) {                                   \
+            if (mt == type) {                                       \
                 return true;                                        \
             }                                                       \
                                                                     \
-            console.log("mt next");                                 \
-            mt = mt.__index.__index;                                \
-            console.log("new mt ");                                 \
-            console.log(mt);                                        \
+            mt = mt.__index;                                        \
         }                                                           \
                                                                     \
         return false;                                               \
@@ -162,7 +153,7 @@ export class Emitter {
             this.resolver.returnResolvedEnv(this.functionContext);
 
             // we need to inject helper functions
-            this.processTSCode(this.lib);
+            this.processTSCode(this.lib, true);
         }
 
         const createThis = this.hasMemberThis(<ts.Node>(<any>location).__origin) || this.hasNodeUsedThis(location);
@@ -277,11 +268,11 @@ export class Emitter {
         this.processExpression(node.expression);
     }
 
-    private parseTSNode(node: ts.Node, transformText?: (string) => string) {
-        return this.parseTSCode(node.getFullText(), transformText);
+    private transpileTSNode(node: ts.Node, transformText?: (string) => string) {
+        return this.transpileTSCode(node.getFullText(), transformText);
     }
 
-    private parseTSCode(code: string, transformText?: (string) => string) {
+    private transpileTSCode(code: string, transformText?: (string) => string) {
 
         const opts = {
             module: ts.ModuleKind.CommonJS,
@@ -298,28 +289,57 @@ export class Emitter {
             jsText = transformText(jsText);
         }
 
-        const sourceFile = ts.createSourceFile(
-            'partial',
-            jsText,
-            ts.ScriptTarget.ES5,
-            /*setParentNodes */ true
-        );
+        return this.parseJSCode(jsText);
+    }
 
+    private parseTSCode(jsText: string) {
+
+        const opts = {
+            module: ts.ModuleKind.CommonJS,
+            alwaysStrict: false,
+            noImplicitUseStrict: true,
+            moduleResolution: ts.ModuleResolutionKind.NodeJs,
+            target: ts.ScriptTarget.ES5
+        };
+
+        const sourceFile = ts.createSourceFile('partial', jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
         // nneded to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
+        return sourceFile.statements;
+    }
 
+    private parseJSCode(jsText: string) {
+
+        const opts = {
+            module: ts.ModuleKind.CommonJS,
+            alwaysStrict: false,
+            noImplicitUseStrict: true,
+            moduleResolution: ts.ModuleResolutionKind.NodeJs,
+            target: ts.ScriptTarget.ES5
+        };
+
+        const sourceFile = ts.createSourceFile('partial', jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true);
+        // nneded to make typeChecker to work properly
+        (<any>ts).bindSourceFile(sourceFile, opts);
         return sourceFile.statements;
     }
 
     private processTSNode(node: ts.Node) {
-        const statements = this.parseTSNode(node);
+        const statements = this.transpileTSNode(node);
         statements.forEach(s => {
             this.processStatement(s);
         });
     }
 
-    private processTSCode(code: string) {
-        const statements = this.parseTSCode(code);
+    private processTSCode(code: string, parse?:any) {
+        const statements = (!parse) ? this.transpileTSCode(code) : this.parseTSCode(code);
+        statements.forEach(s => {
+            this.processStatement(s);
+        });
+    }
+
+    private processJSCode(code: string) {
+        const statements = this.parseJSCode(code);
         statements.forEach(s => {
             this.processStatement(s);
         });
