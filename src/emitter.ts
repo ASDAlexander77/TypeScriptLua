@@ -277,15 +277,15 @@ export class Emitter {
 
     private parseTSCode(code: string, transformText?: (string) => string) {
 
-        const result = ts.transpileModule(code, {
-            compilerOptions: {
-                module: ts.ModuleKind.CommonJS,
-                alwaysStrict: false,
-                noImplicitUseStrict: true,
-                moduleResolution: ts.ModuleResolutionKind.NodeJs,
-                target: ts.ScriptTarget.ES5
-            }
-        });
+        const opts = {
+            module: ts.ModuleKind.CommonJS,
+            alwaysStrict: false,
+            noImplicitUseStrict: true,
+            moduleResolution: ts.ModuleResolutionKind.NodeJs,
+            target: ts.ScriptTarget.ES5
+        };
+
+        const result = ts.transpileModule(code, { compilerOptions: opts });
 
         let jsText = result.outputText;
         if (transformText) {
@@ -299,14 +299,7 @@ export class Emitter {
             /*setParentNodes */ true
         );
 
-        const __ts: any = ts;
-        __ts.bindSourceFile(sourceFile, {
-            module: ts.ModuleKind.CommonJS,
-            alwaysStrict: false,
-            noImplicitUseStrict: true,
-            moduleResolution: ts.ModuleResolutionKind.NodeJs,
-            target: ts.ScriptTarget.ES5
-        });
+        (<any>ts).bindSourceFile(sourceFile, opts);
 
         return sourceFile.statements;
     }
