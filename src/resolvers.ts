@@ -360,7 +360,9 @@ export class IdentifierResolver {
             }
         }
 
-        console.warn('Could not resolve: ' + identifier.text);
+        if (!(identifier.text in {'__instanceof': true, 'setmetatable': true, 'debug': true})) {
+            console.warn('Could not resolve: ' + identifier.text);
+        }
 
         // default
         return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
