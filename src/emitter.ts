@@ -1706,10 +1706,13 @@ export class Emitter {
         // call constructor
         const methodInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([
-            Ops.GETTABLE,
+            Ops.SELF,
             methodInfo.getRegister(),
             resultInfo.getRegister(),
             this.resolver.returnConst('constructor', this.functionContext).getRegisterOrIndex()]);
+
+        // to reserve 'this' register
+        this.functionContext.useRegisterAndPush();
 
         // in case of empty constructor we need to skip call
         this.functionContext.code.push([Ops.TEST, methodInfo.getRegister(), 0]);
@@ -1718,7 +1721,7 @@ export class Emitter {
         const beforeBlock = this.functionContext.code.length;
 
         this.emitCallOfLoadedMethod(
-            <ts.CallExpression><any>{ 'arguments': node.arguments, 'parent': node.parent },
+            <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments },
             resultInfo);
 
             jmpOp[2] = this.functionContext.code.length - beforeBlock;
@@ -1765,12 +1768,13 @@ export class Emitter {
 
         const methodResolvedInfo = this.functionContext.stack.pop();
         // TODO: temporary solution: if method called in Statement then it is not returning value
-        const isStatementCall = node.parent.kind === ts.SyntaxKind.ExpressionStatement;
         const parent = node.parent;
+        const noReturnCall = parent.kind === ts.SyntaxKind.NewExpression
+                             || parent.kind === ts.SyntaxKind.ExpressionStatement;
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
                 || parent.kind === ts.SyntaxKind.PropertyAccessExpression);
-        const returnCount = isStatementCall ? 1 : isMethodArgumentCall ? 0 : 2;
+        const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
         }
