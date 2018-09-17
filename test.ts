@@ -1,26 +1,15 @@
 class Class1 {
-	private show(s: string) {
-		console.log(s);
+	public method1(): boolean {
+		return false;
 	}
 }
-
 class Class2 extends Class1 {
+	public method2(): boolean {
+		return true;
+	}
 }
-
-class Class3 {
-}
-
-let c2 = new Class2();
-console.log(Class1);
-console.log(Class2);
-
-if (Class1 == Class2) {
-	console.log("NOT WORKING 1");
-}
-
-if (Class1 == Class1) {
-	console.log("WORKING 1");
-}
-
-console.log("instance of ========>");
-console.log(c2 instanceof Class1);
+const c1 = new Class1();
+console.log(c1.method1());
+const c2 = new Class2();
+console.log(c2.method1());
+console.log(c2.method2());

@@ -331,7 +331,7 @@ export class Emitter {
         });
     }
 
-    private processTSCode(code: string, parse?:any) {
+    private processTSCode(code: string, parse?: any) {
         const statements = (!parse) ? this.transpileTSCode(code) : this.parseTSCode(code);
         statements.forEach(s => {
             this.processStatement(s);

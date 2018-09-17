@@ -254,6 +254,8 @@ export class IdentifierResolver {
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 
+    private unresolvedFilter = {'__instanceof': true, 'setmetatable': true, 'debug': true, 'type': true, 'error': true};
+
     public methodCall: boolean;
     public thisMethodCall: ResolvedInfo;
 
@@ -360,7 +362,7 @@ export class IdentifierResolver {
             }
         }
 
-        if (!(identifier.text in {'__instanceof': true, 'setmetatable': true, 'debug': true})) {
+        if (!(identifier.text in this.unresolvedFilter)) {
             console.warn('Could not resolve: ' + identifier.text);
         }
 
