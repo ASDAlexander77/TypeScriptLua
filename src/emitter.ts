@@ -1841,8 +1841,10 @@ export class Emitter {
     }
 
     private processSuperExpression(node: ts.ThisExpression): void {
-        const superExpression = ts.createPropertyAccess(
-            ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__index')), ts.createIdentifier('__index'));
+        const propertyAccessThis = ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__index'));
+        const superExpression = ts.createPropertyAccess(propertyAccessThis, ts.createIdentifier('__index'));
+        propertyAccessThis.parent = superExpression;
+        superExpression.parent = node.parent;
         this.processExpression(superExpression);
     }
 
@@ -1939,7 +1941,8 @@ export class Emitter {
         // this.<...>(this support)
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
-            && !upvalueOrConst) {
+            && !upvalueOrConst
+            && node.parent.kind === ts.SyntaxKind.CallExpression) {
             opCode = Ops.SELF;
         }
 
