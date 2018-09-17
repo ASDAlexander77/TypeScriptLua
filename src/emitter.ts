@@ -508,27 +508,8 @@ export class Emitter {
         }
 
         const properties = node.members.filter(m =>
-            function (memberDeclaration) {
-                switch (memberDeclaration.kind) {
-                    case ts.SyntaxKind.PropertyDeclaration:
-                        const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                        return propertyDeclaration.initializer
-                            && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
-                    case ts.SyntaxKind.Constructor:
-                    case ts.SyntaxKind.MethodDeclaration:
-                        return true;
-                    default:
-                        throw new Error('Not Implemented');
-                }
-            }(m)).map(m => ts.createPropertyAssignment(
-                function (memberDeclaration) {
-                    switch (memberDeclaration.kind) {
-                        case ts.SyntaxKind.Constructor:
-                            return 'constructor';
-                        default:
-                            return memberDeclaration.name;
-                    }
-                }(m),
+            this.isClassMemberAccepted(m)).map(m => ts.createPropertyAssignment(
+                this.getClassMemberName(m),
                 function (memberDeclaration) {
                     switch (memberDeclaration.kind) {
 
@@ -537,6 +518,39 @@ export class Emitter {
                             return propertyDeclaration.initializer;
 
                         case ts.SyntaxKind.Constructor:
+                            const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
+                            const constructorFunction = ts.createFunctionExpression(
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                constructorDeclaration.parameters,
+                                constructorDeclaration.type,
+                                <ts.Block><any>{
+                                    kind: ts.SyntaxKind.Block,
+                                    statements: [
+                                        ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
+                                            .filter(cm => cm.kind === ts.SyntaxKind.PropertyDeclaration
+                                                && cm.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.ReadonlyKeyword))
+                                            .map((p => ts.createStatement(
+                                                ts.createAssignment(
+                                                    ts.createPropertyAccess(
+                                                        ts.createThis(),
+                                                        <ts.Identifier>p.name),
+                                                    (<ts.PropertyDeclaration>p).initializer)))),
+                                        ...constructorDeclaration.parameters
+                                            .filter(p => p.modifiers && p.modifiers.some(md => md.kind === ts.SyntaxKind.PrivateKeyword))
+                                            .map(p => ts.createStatement(
+                                                ts.createAssignment(
+                                                    ts.createPropertyAccess(
+                                                        ts.createThis(),
+                                                        <ts.Identifier>p.name),
+                                                    <ts.Identifier>p.name))),
+                                        ...constructorDeclaration.body.statements]
+                                });
+                            (<any>constructorFunction).__origin = constructorDeclaration;
+                            return constructorFunction;
+
                         case ts.SyntaxKind.MethodDeclaration:
                             const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
                             const memberFunction = ts.createFunctionExpression(
@@ -548,16 +562,8 @@ export class Emitter {
                                 methodDeclaration.type,
                                 <ts.Block><any>{
                                     kind: ts.SyntaxKind.Block,
-                                    statements: [
-                                        ...methodDeclaration.parameters
-                                            .filter(p => p.modifiers && p.modifiers.some(md => md.kind === ts.SyntaxKind.PrivateKeyword))
-                                            .map(p => ts.createStatement(
-                                                ts.createAssignment(
-                                                    ts.createPropertyAccess(
-                                                        ts.createThis(),
-                                                        <ts.Identifier>p.name),
-                                                    <ts.Identifier>p.name))),
-                                        ...methodDeclaration.body.statements ] });
+                                    statements: methodDeclaration.body.statements
+                                });
                             (<any>memberFunction).__origin = methodDeclaration;
                             return memberFunction;
                         default:
@@ -583,6 +589,30 @@ export class Emitter {
         }
 
         this.functionContext.restoreLocalScope();
+    }
+
+    private getClassMemberName(memberDeclaration: ts.ClassElement):
+        string | ts.Identifier | ts.StringLiteral | ts.NumericLiteral | ts.ComputedPropertyName {
+        switch (memberDeclaration.kind) {
+            case ts.SyntaxKind.Constructor:
+                return 'constructor';
+            default:
+                return memberDeclaration.name;
+        }
+    }
+
+    private isClassMemberAccepted(memberDeclaration: ts.ClassElement): any {
+        switch (memberDeclaration.kind) {
+            case ts.SyntaxKind.PropertyDeclaration:
+                const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                return propertyDeclaration.initializer
+                    && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+            case ts.SyntaxKind.Constructor:
+            case ts.SyntaxKind.MethodDeclaration:
+                return true;
+            default:
+                throw new Error('Not Implemented');
+        }
     }
 
     private getInheritanceFirst(node: ts.ClassDeclaration) {
@@ -1774,7 +1804,7 @@ export class Emitter {
             <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments },
             resultInfo);
 
-            jmpOp[2] = this.functionContext.code.length - beforeBlock;
+        jmpOp[2] = this.functionContext.code.length - beforeBlock;
     }
 
     private processCallExpression(node: ts.CallExpression): void {
@@ -1820,7 +1850,7 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = parent.kind === ts.SyntaxKind.NewExpression
-                             || parent.kind === ts.SyntaxKind.ExpressionStatement;
+            || parent.kind === ts.SyntaxKind.ExpressionStatement;
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
                 || parent.kind === ts.SyntaxKind.PropertyAccessExpression);
@@ -1831,9 +1861,9 @@ export class Emitter {
 
         this.functionContext.code.push(
             [Ops.CALL,
-             methodResolvedInfo.getRegister(),
-             node.arguments.length + 1 + (_thisForNew ? 1 : 0),
-             returnCount]);
+            methodResolvedInfo.getRegister(),
+            node.arguments.length + 1 + (_thisForNew ? 1 : 0),
+                returnCount]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
