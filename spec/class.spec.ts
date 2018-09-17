@@ -187,6 +187,15 @@ describe('Classes', () => {
         console.log(howard.getElevatorPitch());                         \
     '])));
 
+    it('Class - default ctor - readonly',  () => expect('8\r\n').to.equals(new Run().test([
+        'class Octopus {                                                \
+            readonly numberOfLegs: number = 8;                          \
+        }                                                               \
+                                                                        \
+        let dad = new Octopus();                                        \
+        console.log(dad.numberOfLegs);                                  \
+        '])));
+
     it('Class - readonly',  () => expect('8\r\n').to.equals(new Run().test([
         'class Octopus {                                                \
             readonly name: string;                                      \

@@ -507,69 +507,16 @@ export class Emitter {
             this.emitGetOrCreateObjectExpression(node, 'exports');
         }
 
-        const properties = node.members.filter(m =>
-            this.isClassMemberAccepted(m)).map(m => ts.createPropertyAssignment(
+        const properties = node.members
+            .filter(m => this.isClassMemberAccepted(m))
+            .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
-                function (memberDeclaration) {
-                    switch (memberDeclaration.kind) {
+                this.createClassMember(m)));
 
-                        case ts.SyntaxKind.PropertyDeclaration:
-                            const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                            return propertyDeclaration.initializer;
-
-                        case ts.SyntaxKind.Constructor:
-                            const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
-                            const constructorFunction = ts.createFunctionExpression(
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                constructorDeclaration.parameters,
-                                constructorDeclaration.type,
-                                <ts.Block><any>{
-                                    kind: ts.SyntaxKind.Block,
-                                    statements: [
-                                        ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
-                                            .filter(cm => cm.kind === ts.SyntaxKind.PropertyDeclaration
-                                                && cm.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.ReadonlyKeyword))
-                                            .map((p => ts.createStatement(
-                                                ts.createAssignment(
-                                                    ts.createPropertyAccess(
-                                                        ts.createThis(),
-                                                        <ts.Identifier>p.name),
-                                                    (<ts.PropertyDeclaration>p).initializer)))),
-                                        ...constructorDeclaration.parameters
-                                            .filter(p => p.modifiers && p.modifiers.some(md => md.kind === ts.SyntaxKind.PrivateKeyword))
-                                            .map(p => ts.createStatement(
-                                                ts.createAssignment(
-                                                    ts.createPropertyAccess(
-                                                        ts.createThis(),
-                                                        <ts.Identifier>p.name),
-                                                    <ts.Identifier>p.name))),
-                                        ...constructorDeclaration.body.statements]
-                                });
-                            (<any>constructorFunction).__origin = constructorDeclaration;
-                            return constructorFunction;
-
-                        case ts.SyntaxKind.MethodDeclaration:
-                            const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
-                            const memberFunction = ts.createFunctionExpression(
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                methodDeclaration.parameters,
-                                methodDeclaration.type,
-                                <ts.Block><any>{
-                                    kind: ts.SyntaxKind.Block,
-                                    statements: methodDeclaration.body.statements
-                                });
-                            (<any>memberFunction).__origin = methodDeclaration;
-                            return memberFunction;
-                        default:
-                            throw new Error('Not Implemented');
-                    }
-                }(m)));
+        if (this.isDefaultCtorRequired(node)) {
+            // create defualt Ctor to initialize readonlys
+            this.createDefaultCtor(node, properties);
+        }
 
         // emit __index of base class
         const extend = this.getInheritanceFirst(node);
@@ -589,6 +536,79 @@ export class Emitter {
         }
 
         this.functionContext.restoreLocalScope();
+    }
+
+    private createDefaultCtor(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[]) {
+        const defaultCtor = ts.createConstructor(undefined, undefined, [], <ts.Block><any>{
+            kind: ts.SyntaxKind.Block,
+            statements: []
+        });
+        defaultCtor.parent = node;
+        properties.push(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
+    }
+
+    private isDefaultCtorRequired(node: ts.ClassDeclaration) {
+        return node.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
+            && m.modifiers.some(md => md.kind === ts.SyntaxKind.ReadonlyKeyword)
+            && (<ts.PropertyDeclaration>m).initializer !== undefined)
+            && node.members.every(m => m.kind !== ts.SyntaxKind.Constructor);
+    }
+
+    private createClassMember(memberDeclaration: ts.ClassElement): ts.Expression {
+        switch (memberDeclaration.kind) {
+            case ts.SyntaxKind.PropertyDeclaration:
+                const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                return propertyDeclaration.initializer;
+            case ts.SyntaxKind.Constructor:
+                const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
+                const constructorFunction = ts.createFunctionExpression(
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    constructorDeclaration.parameters,
+                    constructorDeclaration.type, <ts.Block><any>{
+                        kind: ts.SyntaxKind.Block,
+                        statements: [
+                            ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
+                                .filter(cm => cm.kind === ts.SyntaxKind.PropertyDeclaration
+                                    && (<ts.PropertyDeclaration>cm).initializer
+                                    && cm.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.ReadonlyKeyword))
+                                .map(p => ts.createStatement(
+                                    ts.createAssignment(
+                                        ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
+                                        (<ts.PropertyDeclaration>p).initializer))),
+                            ...constructorDeclaration.parameters
+                                .filter(p => p.modifiers && p.modifiers.some(md =>
+                                    md.kind === ts.SyntaxKind.PrivateKeyword
+                                    || md.kind === ts.SyntaxKind.ProtectedKeyword
+                                    || md.kind === ts.SyntaxKind.PublicKeyword))
+                                .map(p => ts.createStatement(
+                                    ts.createAssignment(
+                                        ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
+                                        <ts.Identifier>p.name))),
+                            ...constructorDeclaration.body.statements
+                        ]
+                    });
+                (<any>constructorFunction).__origin = constructorDeclaration;
+                return constructorFunction;
+            case ts.SyntaxKind.MethodDeclaration:
+                const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
+                const memberFunction = ts.createFunctionExpression(
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    methodDeclaration.parameters,
+                    methodDeclaration.type, <ts.Block><any>{
+                        kind: ts.SyntaxKind.Block,
+                        statements: methodDeclaration.body.statements
+                    });
+                (<any>memberFunction).__origin = methodDeclaration;
+                return memberFunction;
+            default:
+                throw new Error('Not Implemented');
+        }
     }
 
     private getClassMemberName(memberDeclaration: ts.ClassElement):
