@@ -1,15 +1,20 @@
-class Class1 {
-	public method1(): boolean {
-		return false;
-	}
+class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
 }
 
-class Class2 extends Class1 {
-	public method1(): boolean {
-		return super.method1();
-	}
+class Employee extends Person {
+    private department: string;
 
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
+    }
+
+    public getElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
 }
 
-const c2 = new Class2();
-console.log(c2.method1());
+let howard = new Employee('Howard', 'Sales');
+console.log(howard.getElevatorPitch());

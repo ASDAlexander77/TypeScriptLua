@@ -254,7 +254,7 @@ export class Emitter {
             case ts.SyntaxKind.ArrayLiteralExpression: this.processArrayLiteralExpression(<ts.ArrayLiteralExpression>node); return;
             case ts.SyntaxKind.RegularExpressionLiteral: this.processRegularExpressionLiteral(<ts.RegularExpressionLiteral>node); return;
             case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
-            case ts.SyntaxKind.SuperKeyword: this.processSuperExpression(<ts.ThisExpression>node); return;
+            case ts.SyntaxKind.SuperKeyword: this.processSuperExpression(<ts.SuperExpression>node); return;
             case ts.SyntaxKind.VoidExpression: this.processVoidExpression(<ts.VoidExpression>node); return;
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
@@ -1840,12 +1840,20 @@ export class Emitter {
         this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
     }
 
-    private processSuperExpression(node: ts.ThisExpression): void {
+    private processSuperExpression(node: ts.SuperExpression): void {
         const propertyAccessThis = ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__index'));
         const superExpression = ts.createPropertyAccess(propertyAccessThis, ts.createIdentifier('__index'));
         propertyAccessThis.parent = superExpression;
         superExpression.parent = node.parent;
-        this.processExpression(superExpression);
+        if (node.parent.kind === ts.SyntaxKind.CallExpression) {
+            // this is construction call
+            const constructorCall = ts.createPropertyAccess(superExpression, ts.createIdentifier('constructor'));
+            constructorCall.parent = node.parent;
+            superExpression.parent = constructorCall;
+            this.processExpression(constructorCall);
+        } else {
+            this.processExpression(superExpression);
+        }
     }
 
     private processVoidExpression(node: ts.VoidExpression): void {
