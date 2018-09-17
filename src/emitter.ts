@@ -565,17 +565,27 @@ export class Emitter {
                     }
                 }(m)));
 
+        // emit __index of base class
+        const extend = this.getInheritanceFirst(node);
+        if (extend) {
+            properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
+        }
+
         const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
         prototypeObject.parent = node;
         this.processExpression(prototypeObject);
 
-        this.functionContext.restoreLocalScope();
+        // set metatable for derived class using __index dictionary containing base class
+        if (extend) {
+            const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
+            setmetatableCall.parent = node;
+            this.processExpression(setmetatableCall);
+        }
 
-        // create proto object for inherited class
-        this.emitInheritance(node);
+        this.functionContext.restoreLocalScope();
     }
 
-    private emitInheritance(node: ts.ClassDeclaration) {
+    private getInheritanceFirst(node: ts.ClassDeclaration) {
         if (!node.heritageClauses) {
             return;
         }
@@ -589,38 +599,7 @@ export class Emitter {
             });
         });
 
-        this.processExpression(
-            ts.createObjectLiteral([
-                ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText()))
-            ]));
-        const resultInfo = this.functionContext.stack.peek();
-
-        this.processExpression(ts.createIdentifier('setmetatable'));
-        const setmetatableInfo = this.functionContext.stack.peek();
-
-        // call setmetatable(obj, obj)
-        const param1Info = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()
-        ]);
-
-        const param2Info = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.MOVE, param2Info.getRegister(), resultInfo.getRegisterOrIndex()
-        ]);
-
-        // call setmetatable
-        this.functionContext.code.push([
-            Ops.CALL, setmetatableInfo.getRegister(), 3, 1
-        ]);
-
-        // call cleanup
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
-
-        const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.getText());
-        this.emitStoreToEnvObjectProperty(nameConstIndex);
+        return extend;
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
