@@ -186,4 +186,18 @@ describe('Classes', () => {
         let howard = new Employee("Howard", "Sales");                   \
         console.log(howard.getElevatorPitch());                         \
     '])));
+
+    it('Class - readonly',  () => expect('8\r\n').to.equals(new Run().test([
+        'class Octopus {                                                \
+            readonly name: string;                                      \
+            readonly numberOfLegs: number = 8;                          \
+            constructor (theName: string) {                             \
+                this.name = theName;                                    \
+            console.log(this.numberOfLegs);                             \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        let dad = new Octopus("Man with the 8 strong legs");            \
+    '])));
+
 });
