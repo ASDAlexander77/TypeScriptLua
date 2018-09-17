@@ -4,13 +4,23 @@ import { describe, it } from 'mocha';
 
 describe('Statements', () => {
 
-    it('simple If', () => expect('works\r\n').to.equals(new Run().test([
+    it('simple If - bool', () => expect('works\r\n').to.equals(new Run().test([
         'let a = true;                              \
         if (a) console.log("works");                \
     '])));
 
-    it('simple If/else', () => expect('works\r\n').to.equals(new Run().test([
+    it('simple If/else - bool', () => expect('works\r\n').to.equals(new Run().test([
         'let a = true;                                         \
+        if (!a) console.log("no"); else console.log("works");  \
+    '])));
+
+    it('simple If - reference', () => expect('works\r\n').to.equals(new Run().test([
+        'let a = {};                                \
+        if (a) console.log("works");                \
+    '])));
+
+    it('simple If/else - reference', () => expect('works\r\n').to.equals(new Run().test([
+        'let a = {};                                           \
         if (!a) console.log("no"); else console.log("works");  \
     '])));
 

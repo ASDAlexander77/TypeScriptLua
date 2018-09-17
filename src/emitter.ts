@@ -52,12 +52,12 @@ export class Emitter {
 
     private lib = '                                                 \
     __instanceof = __instanceof || function(inst, type) {           \
-        if (inst == undefined) {                                    \
+        if (!inst) {                                                \
             return false;                                           \
         }                                                           \
                                                                     \
         let mt = inst.__index;                                      \
-        while (mt != undefined) {                                   \
+        while (mt) {                                                \
             if (mt == type) {                                       \
                 return true;                                        \
             }                                                       \
