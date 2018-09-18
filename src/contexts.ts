@@ -4,6 +4,8 @@ import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 class LocalVarInfo {
     public name: string;
     public register: number;
+    public debugStartCode: number;
+    public debugEndCode: number;
 }
 
 export class UpvalueInfo {
@@ -30,7 +32,7 @@ export class FunctionContext {
     public is_vararg: boolean;
     public maxstacksize = 1; // register 0/1 at least
     public code: Array<Array<number>> = [];
-    public contants: Array<any> = [];
+    public constants: Array<any> = [];
     public locals: Array<LocalVarInfo> = [];
     public upvalues: Array<UpvalueInfo> = [];
     public protos: Array<FunctionContext> = [];
@@ -50,8 +52,18 @@ export class FunctionContext {
     }
 
     public restoreLocalScope() {
+        this.debugInfoMarkEndOfScopeForLocals();
+
         this.locals = this.local_scopes.pop();
         this.current_location_node = this.location_scopes.pop();
+    }
+
+    public debugInfoMarkEndOfScopeForLocals() {
+        this.locals.forEach(l => {
+            if (!l.debugEndCode) {
+                l.debugEndCode = this.code.length;
+            }
+        });
     }
 
     public findOrCreateUpvalue(name: string, instack: boolean, indexInStack?: number): number {
@@ -91,7 +103,7 @@ export class FunctionContext {
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
             const registerInfo = this.useRegister();
-            this.locals.push(<LocalVarInfo>{ name: name, register: registerInfo.getRegister() });
+            this.locals.push(<LocalVarInfo>{ name: name, register: registerInfo.getRegister(), debugStartCode: this.code.length });
             return registerInfo;
         }
 
@@ -156,10 +168,10 @@ export class FunctionContext {
 
     public findOrCreateConst(value: any): number {
         // consts start with 1
-        const index = this.contants.findIndex(e => e === value);
+        const index = this.constants.findIndex(e => e === value);
         if (index === -1) {
-            this.contants.push(value);
-            return this.contants.length;
+            this.constants.push(value);
+            return this.constants.length;
         }
 
         return index + 1;

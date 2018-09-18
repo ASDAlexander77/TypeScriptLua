@@ -144,11 +144,25 @@ export class Emitter {
         return createThis;
     }
 
+    private processDebugInfo(node: ts.Node, functionContext: FunctionContext) {
+        const file = (<any>ts).getSourceFileOfNode(node);
+        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
+        const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
+
+        functionContext.debug_location = file.fileName;
+        functionContext.linedefined = locStart.line + 1;
+        functionContext.lastlinedefined = locEnd.line + 1;
+    }
+
     private processFunctionWithinContext(
         location: ts.Node,
         statements: ts.NodeArray<ts.Statement>,
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean) {
+
+        // debug info
+        this.processDebugInfo(location, this.functionContext);
+
         if (createEnvironment) {
             this.resolver.returnResolvedEnv(this.functionContext);
 
@@ -187,6 +201,8 @@ export class Emitter {
 
         // add final 'RETURN'
         this.functionContext.code.push([Ops.RETURN, 0, 1]);
+
+        this.functionContext.debugInfoMarkEndOfScopeForLocals();
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
@@ -505,16 +521,6 @@ export class Emitter {
         this.emitInheritance(node);
     }
     */
-
-    private constructorExtraStatements(constructorDeclaration: ts.ConstructorDeclaration) {
-        if (constructorDeclaration.kind !== ts.SyntaxKind.Constructor) {
-            return [];
-        }
-
-        return constructorDeclaration.parameters
-            .filter(p => p.modifiers.some(m => m.kind === ts.SyntaxKind.PrivateKeyword))
-            .map(p => ts.createAssignment(ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name), <ts.Identifier>p.name));
-    }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
@@ -2099,9 +2105,9 @@ export class Emitter {
     }
 
     private emitConstants(functionContext: FunctionContext): void {
-        this.writer.writeInt(functionContext.contants.length);
+        this.writer.writeInt(functionContext.constants.length);
 
-        functionContext.contants.forEach(c => {
+        functionContext.constants.forEach(c => {
 
             if (c !== null) {
                 // create 4 bytes value
@@ -2157,13 +2163,21 @@ export class Emitter {
     }
 
     private emitDebug(functionContext: FunctionContext): void {
+        // line info
+        this.writer.writeInt(0);
 
-        if (functionContext.debug.length === 0) {
-            this.writer.writeInt(0);
-            this.writer.writeInt(0);
-            this.writer.writeInt(0);
-        } else {
-            throw new Error('Method not implemeneted');
-        }
+        // local vars
+        this.writer.writeInt(functionContext.locals.length);
+        functionContext.locals.forEach(l => {
+            this.writer.writeString(l.name);
+            this.writer.writeInt(l.debugStartCode);
+            this.writer.writeInt(l.debugEndCode);
+        });
+
+        // upvalues
+        this.writer.writeInt(functionContext.upvalues.length);
+        functionContext.upvalues.forEach(u => {
+            this.writer.writeString(u.name);
+        });
     }
 }
