@@ -1000,7 +1000,7 @@ export class Emitter {
 
     private resolveBreakJumps(jump?: number) {
         this.functionContext.breaks.forEach(b => {
-            this.functionContext.code[b][2] = (jump ? jump : this.functionContext.code.length) - b - 1;
+            this.functionContext.code.codeAt(b)[2] = (jump ? jump : this.functionContext.code.length) - b - 1;
         });
 
         this.functionContext.breaks = [];
@@ -1014,7 +1014,7 @@ export class Emitter {
 
     private resolveContinueJumps(jump?: number) {
         this.functionContext.continues.forEach(c => {
-            this.functionContext.code[c][2] = (jump ? jump : this.functionContext.code.length) - c - 1;
+            this.functionContext.code.codeAt(c)[2] = (jump ? jump : this.functionContext.code.length) - c - 1;
         });
 
         this.functionContext.continues = [];
@@ -1033,11 +1033,11 @@ export class Emitter {
 
             // set jump for previouse 'false' case;
             if (previousCaseJmpIndex !== -1) {
-                if (this.functionContext.code[previousCaseJmpIndex][2] !== 0) {
+                if (this.functionContext.code.codeAt(previousCaseJmpIndex)[2] !== 0) {
                     throw new Error('Jump is set already');
                 }
 
-                this.functionContext.code[previousCaseJmpIndex][2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
+                this.functionContext.code.codeAt(previousCaseJmpIndex)[2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
                 previousCaseJmpIndex = -1;
             }
 
@@ -1066,11 +1066,11 @@ export class Emitter {
 
                 // set jump to body of the case
                 lastCaseJmpIndexes.forEach(j => {
-                    if (this.functionContext.code[j][2] !== 0) {
+                    if (this.functionContext.code.codeAt(j)[2] !== 0) {
                         throw new Error('Jump is set already');
                     }
 
-                    this.functionContext.code[j][2] = this.functionContext.code.length - j - 1;
+                    this.functionContext.code.codeAt(j)[2] = this.functionContext.code.length - j - 1;
                 });
 
                 lastCaseJmpIndexes = [];
@@ -1295,7 +1295,7 @@ export class Emitter {
 
                 // save
                 const operationResultInfo = this.functionContext.stack.pop();
-                const readOpCode = this.functionContext.code[operandPosition];
+                const readOpCode = this.functionContext.code.codeAt(operandPosition);
                 if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
                     this.functionContext.code.push([
                         Ops.SETTABUP,
@@ -1361,7 +1361,7 @@ export class Emitter {
                 this.functionContext.stack.pop();
 
                 // save
-                const readOpCode = this.functionContext.code[operandPosition];
+                const readOpCode = this.functionContext.code.codeAt(operandPosition);
                 if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
                     this.functionContext.code.push([
                         Ops.SETTABUP,
@@ -1706,7 +1706,7 @@ export class Emitter {
     private emitAssignOperation(node: ts.Node) {
         const leftOperandInfo = this.functionContext.stack.pop();
         const rightOperandInfo = this.functionContext.stack.pop();
-        const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
+        const readOpCode = this.functionContext.code.latest;
 
         if (leftOperandInfo.kind === ResolvedKind.Register) {
             if (readOpCode[0] === Ops.GETTABUP) {
@@ -2007,7 +2007,7 @@ export class Emitter {
 
         let opCode = Ops.GETTABLE;
 
-        const readOpCode = this.functionContext.code[this.functionContext.code.length - 1];
+        const readOpCode = this.functionContext.code.latest;
         if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
             this.functionContext.code.pop();
             opCode = Ops.GETTABUP;

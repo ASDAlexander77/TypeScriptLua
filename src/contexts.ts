@@ -14,6 +14,41 @@ export class UpvalueInfo {
     public index: number;
 }
 
+export class CodeStorage {
+    private code: number[][] = [];
+
+    public constructor(private functionContext: FunctionContext) {
+    }
+
+    public push(opCode: number[]) {
+        this.code.push(opCode);
+    }
+
+    public pop(): number[] {
+        return this.code.pop();
+    }
+
+    public get length(): number {
+        return this.code.length;
+    }
+
+    public get latest(): number[] {
+        return this.code[this.code.length - 1];
+    }
+
+    public forEach(action: (element) => void) {
+        this.code.forEach(action);
+    }
+
+    public codeAt(index: number): number[] {
+        return this.code[index];
+    }
+
+    public setCodeAt(index: number, opCode: number[]) {
+        this.code[index] = opCode;
+    }
+}
+
 export class FunctionContext {
     public function_or_file_location_node: ts.Node;
     public current_location_node: ts.Node;
@@ -22,7 +57,9 @@ export class FunctionContext {
     // to track current register(stack)
     public availableRegister = 0;
     // stack resolver
-    public stack: StackResolver = new StackResolver(this);
+    public stack = new StackResolver(this);
+    // code stack
+    public code = new CodeStorage(this);
 
     // function information
     public debug_location: string;
@@ -31,7 +68,6 @@ export class FunctionContext {
     public numparams: number;
     public is_vararg: boolean;
     public maxstacksize = 1; // register 0/1 at least
-    public code: Array<Array<number>> = [];
     public constants: Array<any> = [];
     public locals: Array<LocalVarInfo> = [];
     public upvalues: Array<UpvalueInfo> = [];

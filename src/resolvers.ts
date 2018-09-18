@@ -136,7 +136,7 @@ export class ResolvedInfo {
         }
 
         // we need to suppres redundant LOADK & MOVES
-        const opCodes = this.functionContext.code[this.functionContext.code.length - 1];
+        const opCodes = this.functionContext.code.latest;
         if (opCodes[0] === Ops.LOADK) {
             this.kind = ResolvedKind.Const;
             this.constIndex = opCodes[2];
@@ -169,7 +169,7 @@ export class ResolvedInfo {
         }
 
         // we need to suppres redundant LOADK & MOVES
-        const opCodes = this.functionContext.code[this.functionContext.code.length - 1];
+        const opCodes = this.functionContext.code.latest;
         if (opCodes[0] === Ops.LOADK) {
             this.kind = ResolvedKind.Const;
             this.constIndex = opCodes[2];
