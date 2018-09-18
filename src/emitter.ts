@@ -166,9 +166,21 @@ export class Emitter {
                 this.functionContext.createLocal((<ts.Identifier>p.name).text);
             });
         }
+
+        // select all parameters with default values
+        parameters
+            .filter(p => p.initializer)
+            .map(p => ts.createIf(
+                ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
+                ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))))
+            .forEach(s => {
+                this.processStatement(s);
+            });
+
         statements.forEach(s => {
             this.processStatement(s);
         });
+
         // add final 'RETURN'
         this.functionContext.code.push([Ops.RETURN, 0, 1]);
     }
@@ -549,6 +561,7 @@ export class Emitter {
 
     private isDefaultCtorRequired(node: ts.ClassDeclaration) {
         return node.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
+            && m.modifiers
             && m.modifiers.some(md => md.kind === ts.SyntaxKind.ReadonlyKeyword)
             && (<ts.PropertyDeclaration>m).initializer !== undefined)
             && node.members.every(m => m.kind !== ts.SyntaxKind.Constructor);

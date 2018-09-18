@@ -209,4 +209,116 @@ describe('Classes', () => {
         let dad = new Octopus("Man with the 8 strong legs");            \
     '])));
 
+    // function is not using 'this' and thus making issue with parameters
+    it.skip('Class - generic',  () => expect('8\r\n').to.equals(new Run().test([
+        'class GenericNumber<T> {                                           \
+            zeroValue: T;                                                   \
+            add: (x: T, y: T) => T;                                         \
+        }                                                                   \
+                                                                            \
+        let stringNumeric = new GenericNumber<string>();                    \
+        stringNumeric.zeroValue = "";                                       \
+        stringNumeric.add = function(x: string, y: string) { return x + y; }; \
+                                                                            \
+        console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));    \
+    '])));
+
+    it('Class - generic 2',  () => expect('2\r\n1\r\n').to.equals(new Run().test([
+        'class Animal {                                                     \
+            protected constructor(public numLegs: number) {                 \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        class Bee extends Animal {                                          \
+            public constructor() {                                          \
+                super(1);                                                   \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        class Lion extends Animal {                                         \
+            public constructor() {                                          \
+                super(2);                                                   \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        function createInstance<A extends Animal>(c: new () => A): A {      \
+            return new c();                                                 \
+        }                                                                   \
+                                                                            \
+        console.log(createInstance(Lion).numLegs);                          \
+        console.log(createInstance(Bee).numLegs);                           \
+    '])));
+
+    it.skip('Class - Accessors',  () => expect('Bob Smith\r\n').to.equals(new Run().test([
+        'let passcode = "secret passcode";                                  \
+                                                                            \
+        class Employee {                                                    \
+            private _fullName: string;                                      \
+                                                                            \
+            get fullName(): string {                                        \
+                return this._fullName;                                      \
+            }                                                               \
+                                                                            \
+            set fullName(newName: string) {                                 \
+                if (passcode && passcode == "secret passcode") {            \
+                    this._fullName = newName;                               \
+                }                                                           \
+                else {                                                      \
+                    console.log("Error: Unauthorized update of employee!"); \
+                }                                                           \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        let employee = new Employee();                                      \
+        employee.fullName = "Bob Smith";                                    \
+        if (employee.fullName) {                                            \
+            console.log(employee.fullName);                                 \
+        }                                                                   \
+    '])));
+
+    // not implemented yet, use __newindex to set, and __index to get value from table
+    it.skip('Class - Accessors 2',  () => expect('Error: Unauthorized update of employee!\r\n').to.equals(new Run().test([
+        'let passcode = "secret passcode _";                                \
+                                                                            \
+        class Employee {                                                    \
+            private _fullName: string;                                      \
+                                                                            \
+            get fullName(): string {                                        \
+                return this._fullName;                                      \
+            }                                                               \
+                                                                            \
+            set fullName(newName: string) {                                 \
+                if (passcode && passcode == "secret passcode") {            \
+                    this._fullName = newName;                               \
+                }                                                           \
+                else {                                                      \
+                    console.log("Error: Unauthorized update of employee!"); \
+                }                                                           \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        let employee = new Employee();                                      \
+        employee.fullName = "Bob Smith";                                    \
+        if (employee.fullName) {                                            \
+            console.log(employee.fullName);                                 \
+        }                                                                   \
+    '])));
+
+    it('Class - Static Properties',  () => expect('200.0\r\n120.0\r\n').to.equals(new Run().test([
+        'class Grid {                                                       \
+            static origin = {x: 0, y: 0};                                   \
+            calculateDistanceFromOrigin(point: {x: number; y: number;}) {   \
+                let xDist = (point.x - Grid.origin.x);                      \
+                let yDist = (point.y - Grid.origin.y);                      \
+                return xDist * xDist + yDist * yDist / this.scale;          \
+            }                                                               \
+            constructor (public scale: number) { }                          \
+        }                                                                   \
+                                                                            \
+        let grid1 = new Grid(1.0);                                          \
+        let grid2 = new Grid(5.0);                                          \
+                                                                            \
+        console.log(grid1.calculateDistanceFromOrigin({x: 10, y: 10}));     \
+        console.log(grid2.calculateDistanceFromOrigin({x: 10, y: 10}));     \
+    '])));
 });

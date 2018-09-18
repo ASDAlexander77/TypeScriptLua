@@ -4,8 +4,22 @@ import { describe, it } from 'mocha';
 
 describe('Functions', () => {
 
-    it.skip('Optional and Default Parameters', () => expect('Bob Adams\r\nBob Smith\r\n').to.equals(new Run().test([
-        'function buildName(firstName: string, lastName: string= "Smith") {      \
+    it('Optional Parameters', () => expect('Bob Adams\r\nBob\r\n').to.equals(new Run().test([
+        'function buildName(firstName: string, lastName?: string) {             \
+            if (lastName)                                                       \
+                return firstName + " " + lastName;                              \
+            else                                                                \
+                return firstName;                                               \
+        }                                                                       \
+                                                                                \
+        let result1 = buildName("Bob", "Adams");                                \
+        let result2 = buildName("Bob");                                         \
+        console.log(result1);                                                   \
+        console.log(result2);                                                   \
+    '])));
+
+    it('Default Parameters', () => expect('Bob Adams\r\nBob Smith\r\n').to.equals(new Run().test([
+        'function buildName(firstName: string, lastName: string = "Smith") {     \
             return firstName + " " + lastName;                                   \
         }                                                                        \
                                                                                  \
@@ -92,6 +106,15 @@ describe('Functions', () => {
         }                                                                       \
                                                                                 \
         f();                                                                    \
+    '])));
+
+    it('test generic function', () => expect('myString\r\n').to.equals(new Run().test([
+        'function identity<T>(arg: T): T {                                      \
+            return arg;                                                         \
+        }                                                                       \
+                                                                                \
+        let output = identity<string>("myString");                              \
+        console.log(output);                                                    \
     '])));
 
 });
