@@ -51,6 +51,10 @@ export class CodeStorage {
     }
 
     public setNodeToTrackDebugInfo(node: ts.Node) {
+        if (node.pos <= 0) {
+            return;
+        }
+
         const file = (<any>ts).getSourceFileOfNode(node);
         if (!file) {
             return;

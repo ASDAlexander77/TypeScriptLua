@@ -482,10 +482,13 @@ export class Emitter {
     }
 
     private processDebuggerStatement(node: ts.DebuggerStatement): void {
+        const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('debug'), ts.createIdentifier('debug'));
         const debugCall = ts.createCall(
-            ts.createPropertyAccess(ts.createIdentifier('debug'), ts.createIdentifier('debug')),
+            propertyAccessExpression,
             undefined,
             []);
+        // HACK: to stop applying calling SELF instead of GETTABLE
+        ////propertyAccessExpression.parent = debugCall;
         debugCall.parent = node;
         this.processExpression(debugCall);
     }
@@ -2033,7 +2036,7 @@ export class Emitter {
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
             && !upvalueOrConst
-            && node.parent.kind === ts.SyntaxKind.CallExpression) {
+            && node.parent && node.parent.kind === ts.SyntaxKind.CallExpression) {
             opCode = Ops.SELF;
         }
 
@@ -2175,7 +2178,7 @@ export class Emitter {
     private emitDebug(functionContext: FunctionContext): void {
         // line info
         this.writer.writeInt(functionContext.code.length);
-        functionContext.locals.forEach(c => {
+        functionContext.code.forEach(c => {
             this.writer.writeInt(c[4]);
         });
 
