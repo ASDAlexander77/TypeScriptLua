@@ -16,12 +16,14 @@ export class UpvalueInfo {
 
 export class CodeStorage {
     private code: number[][] = [];
+    private currentDebugLine: number;
 
     public constructor(private functionContext: FunctionContext) {
     }
 
     public push(opCode: number[]) {
         this.code.push(opCode);
+        opCode[4] = this.currentDebugLine;
     }
 
     public pop(): number[] {
@@ -46,6 +48,16 @@ export class CodeStorage {
 
     public setCodeAt(index: number, opCode: number[]) {
         this.code[index] = opCode;
+    }
+
+    public setNodeToTrackDebugInfo(node: ts.Node) {
+        const file = (<any>ts).getSourceFileOfNode(node);
+        if (!file) {
+            return;
+        }
+
+        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
+        this.currentDebugLine = locStart.line + 1;
     }
 }
 

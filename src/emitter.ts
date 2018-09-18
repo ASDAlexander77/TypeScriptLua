@@ -232,6 +232,9 @@ export class Emitter {
     }
 
     private processStatement(node: ts.Statement): void {
+
+        this.functionContext.code.setNodeToTrackDebugInfo(node);
+
         switch (node.kind) {
             case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
@@ -263,6 +266,9 @@ export class Emitter {
     }
 
     private processExpression(node: ts.Expression): void {
+
+        this.functionContext.code.setNodeToTrackDebugInfo(node);
+
         switch (node.kind) {
             case ts.SyntaxKind.NewExpression: this.processNewExpression(<ts.NewExpression>node); return;
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
@@ -2168,7 +2174,10 @@ export class Emitter {
 
     private emitDebug(functionContext: FunctionContext): void {
         // line info
-        this.writer.writeInt(0);
+        this.writer.writeInt(functionContext.code.length);
+        functionContext.locals.forEach(c => {
+            this.writer.writeInt(c[4]);
+        });
 
         // local vars
         this.writer.writeInt(functionContext.locals.length);
