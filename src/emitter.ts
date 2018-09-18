@@ -146,6 +146,10 @@ export class Emitter {
 
     private processDebugInfo(node: ts.Node, functionContext: FunctionContext) {
         const file = (<any>ts).getSourceFileOfNode(node);
+        if (!file) {
+            return;
+        }
+
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
 
