@@ -28,7 +28,7 @@ export class FunctionContext {
     public lastlinedefined: number;
     public numparams: number;
     public is_vararg: boolean;
-    public maxstacksize = 2; // register 0/1 at least
+    public maxstacksize = 1; // register 0/1 at least
     public code: Array<Array<number>> = [];
     public contants: Array<any> = [];
     public locals: Array<LocalVarInfo> = [];
