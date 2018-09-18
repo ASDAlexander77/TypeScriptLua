@@ -1,11 +1,1 @@
-function buildName(firstName: string, lastName = "Smith") {
-    return firstName + " " + lastName;
-}
-
-let result1 = buildName("Bob");                  
-let result2 = buildName("Bob", undefined);       
-let result3 = buildName("Bob", "Adams");
-
-console.log(result1);
-console.log(result2);
-console.log(result3);
+function test1(a, b, c, d?, e?, f?) {	console.log ("a:", a);	console.log ("b:", b);	console.log ("c:", c);	console.log ("d:", d);	console.log ("e:", e);	console.log ("f:", f);}test1(1, 2, 3);

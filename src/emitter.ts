@@ -165,17 +165,21 @@ export class Emitter {
             parameters.forEach(p => {
                 this.functionContext.createLocal((<ts.Identifier>p.name).text);
             });
+
+            this.functionContext.numparams = parameters.length;
         }
 
         // select all parameters with default values
-        parameters
-            .filter(p => p.initializer)
-            .map(p => ts.createIf(
-                ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
-                ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))))
-            .forEach(s => {
-                this.processStatement(s);
-            });
+        if (parameters) {
+            parameters
+                .filter(p => p.initializer)
+                .map(p => ts.createIf(
+                    ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
+                    ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))))
+                .forEach(s => {
+                    this.processStatement(s);
+                });
+        }
 
         statements.forEach(s => {
             this.processStatement(s);
@@ -2080,7 +2084,7 @@ export class Emitter {
         this.writer.writeByte(functionContext.is_vararg ? 1 : 0);
 
         // f->maxstacksize
-        this.writer.writeByte(functionContext.maxstacksize);
+        this.writer.writeByte(functionContext.maxstacksize + 1);
     }
 
     private emitFunctionCode(functionContext: FunctionContext): void {
