@@ -180,11 +180,16 @@ export class Emitter {
         }
 
         if (parameters) {
+            let dotDotDotAny = false;
             parameters.forEach(p => {
                 this.functionContext.createLocal((<ts.Identifier>p.name).text);
+                if (p.dotDotDotToken) {
+                    dotDotDotAny = true;
+                }
             });
 
             this.functionContext.numparams = parameters.length;
+            this.functionContext.is_vararg = dotDotDotAny;
         }
 
         // select all parameters with default values
@@ -197,6 +202,14 @@ export class Emitter {
                 .forEach(s => {
                     this.processStatement(s);
                 });
+
+            // we need to load all '...<>' into arrays
+            parameters.filter(p => p.dotDotDotToken).forEach(p => {
+                const localVar = this.functionContext.findLocal((<ts.Identifier>p.name).text);
+                this.functionContext.code.push([Ops.NEWTABLE, localVar, 0, 0]);
+                this.functionContext.code.push([Ops.VARARG, localVar + 1, 0, 0]);
+                this.functionContext.code.push([Ops.SETLIST, localVar, 0, 1]);
+            });
         }
 
         statements.forEach(s => {
@@ -488,7 +501,7 @@ export class Emitter {
             undefined,
             []);
         // HACK: to stop applying calling SELF instead of GETTABLE
-        ////propertyAccessExpression.parent = debugCall;
+        /// propertyAccessExpression.parent = debugCall;
         debugCall.parent = node;
         this.processExpression(debugCall);
     }

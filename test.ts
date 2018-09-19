@@ -1,14 +1,9 @@
-class Event1 {
-    public message: string;
+function buildName(firstName: string, ...restOfName: string[]) {
+    console.log(firstName);
+    console.log(restOfName[1]);
+    console.log(restOfName[2]);
+    console.log(restOfName[3]);
 }
 
-class Handler {
-    info: string;
-    onClickGood = (e: Event1) => { this.info = e.message; };
-}
+buildName("Joseph", "Samuel", "Lucas", "MacKinzie");
 
-let h = new Handler();
-let m = new Event1();
-m.message = 'test';
-h.onClickGood(m);
-console.log(h.info);
