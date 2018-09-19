@@ -321,4 +321,22 @@ describe('Classes', () => {
         console.log(grid1.calculateDistanceFromOrigin({x: 10, y: 10}));     \
         console.log(grid2.calculateDistanceFromOrigin({x: 10, y: 10}));     \
     '])));
+
+    it('Class - Properties - Arrow Function',  () => expect('test\r\n').to.equals(new Run().test([
+        'class Event1 {                                                     \
+            public message: string;                                         \
+        }                                                                   \
+                                                                            \
+        class Handler {                                                     \
+            info: string;                                                   \
+            onClickGood = (e: Event1) => { this.info = e.message; };        \
+        }                                                                   \
+                                                                            \
+        let h = new Handler();                                              \
+        let m = new Event1();                                               \
+        m.message = "test";                                                 \
+        h.onClickGood(m);                                                   \
+        console.log(h.info);                                                \
+    '])));
+
 });
