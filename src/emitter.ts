@@ -662,7 +662,9 @@ export class Emitter {
             case ts.SyntaxKind.PropertyDeclaration:
                 const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
                 return propertyDeclaration.initializer
-                    && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
+                    && ((propertyDeclaration.modifiers
+                        && propertyDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword))
+                        || propertyDeclaration.initializer.kind === ts.SyntaxKind.ArrowFunction);
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
                 return true;
