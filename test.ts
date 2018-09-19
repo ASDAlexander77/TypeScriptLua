@@ -1,13 +1,15 @@
-debugger;
-let isDone1: boolean = false;
-const isDone2: boolean = false;
-var isDone3: boolean = false;
-let val1: any = null;
-const val2: any = null;
-var val3: any = null;
-console.log(isDone1);
-console.log(isDone2);
-console.log(isDone3);
-console.log(val1);
-console.log(val2);
-console.log(val3); 
+class Grid {
+    static origin = { x: 0, y: 0 };
+    calculateDistanceFromOrigin(point: { x: number; y: number; }) {
+        let xDist = (point.x - Grid.origin.x);
+        let yDist = (point.y - Grid.origin.y);
+        return Math.sqrt(xDist * xDist + yDist * yDist) / this.scale;
+    }
+    constructor(public scale: number) { }
+}
+
+let grid1 = new Grid(1.0);
+let grid2 = new Grid(5.0);
+
+console.log(grid1.calculateDistanceFromOrigin({ x: 10, y: 10 }));
+console.log(grid2.calculateDistanceFromOrigin({ x: 10, y: 10 }));

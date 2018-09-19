@@ -304,13 +304,13 @@ describe('Classes', () => {
         }                                                                   \
     '])));
 
-    it('Class - Static Properties',  () => expect('200.0\r\n120.0\r\n').to.equals(new Run().test([
+    it('Class - Static Properties',  () => expect('14.142135623731\r\n2.8284271247462\r\n').to.equals(new Run().test([
         'class Grid {                                                       \
             static origin = {x: 0, y: 0};                                   \
             calculateDistanceFromOrigin(point: {x: number; y: number;}) {   \
                 let xDist = (point.x - Grid.origin.x);                      \
                 let yDist = (point.y - Grid.origin.y);                      \
-                return xDist * xDist + yDist * yDist / this.scale;          \
+                return Math.sqrt(xDist * xDist + yDist * yDist) / this.scale;\
             }                                                               \
             constructor (public scale: number) { }                          \
         }                                                                   \

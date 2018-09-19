@@ -31,6 +31,7 @@ export class ResolvedInfo {
     public upvalueStackIndex: number;
     public root: boolean;
     public originalInfo: ResolvedInfo;
+    public isTypeReference: boolean;
 
     public constructor(private functionContext: FunctionContext) {
     }
@@ -332,7 +333,9 @@ export class IdentifierResolver {
                             case 'Console':
                                 return this.returnResolvedEnv(functionContext);
                             case 'Math':
-                                return this.resolveMemberOfCurrentScope(identifier.text.toLowerCase(), functionContext);
+                                const memberInfo = this.resolveMemberOfCurrentScope(identifier.text.toLowerCase(), functionContext);
+                                memberInfo.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
+                                return memberInfo;
                         }
                     }
 

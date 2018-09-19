@@ -1991,6 +1991,7 @@ export class Emitter {
             const resultInfo = this.functionContext.useRegisterAndPush();
             const objectIdentifierInfo = resolvedInfo.objectInfo;
             const memberIdentifierInfo = resolvedInfo.memberInfo;
+            memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
 
             resultInfo.originalInfo = memberIdentifierInfo;
 
@@ -2035,8 +2036,10 @@ export class Emitter {
         // this.<...>(this support)
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
+            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference)
             && !upvalueOrConst
-            && node.parent && node.parent.kind === ts.SyntaxKind.CallExpression) {
+            && node.parent
+            && node.parent.kind === ts.SyntaxKind.CallExpression) {
             opCode = Ops.SELF;
         }
 
