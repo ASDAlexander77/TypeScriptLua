@@ -341,6 +341,7 @@ export class Emitter {
             case ts.SyntaxKind.ArrowFunction: this.processArrowFunction(<ts.ArrowFunction>node); return;
             case ts.SyntaxKind.ElementAccessExpression: this.processElementAccessExpression(<ts.ElementAccessExpression>node); return;
             case ts.SyntaxKind.ParenthesizedExpression: this.processParenthesizedExpression(<ts.ParenthesizedExpression>node); return;
+            case ts.SyntaxKind.TypeAssertionExpression: this.processTypeAssertionExpression(<ts.TypeAssertion>node); return;
             case ts.SyntaxKind.VariableDeclarationList: this.processVariableDeclarationList(<ts.VariableDeclarationList><any>node); return;
             case ts.SyntaxKind.TrueKeyword:
             case ts.SyntaxKind.FalseKeyword: this.processBooleanLiteral(<ts.BooleanLiteral>node); return;
@@ -1305,6 +1306,10 @@ export class Emitter {
     }
 
     private processParenthesizedExpression(node: ts.ParenthesizedExpression) {
+        this.processExpression(node.expression);
+    }
+
+    private processTypeAssertionExpression(node: ts.TypeAssertion) {
         this.processExpression(node.expression);
     }
 

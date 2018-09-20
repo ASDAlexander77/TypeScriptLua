@@ -143,4 +143,19 @@ describe('Functions', () => {
         buildName("Joseph", "Samuel", "Lucas", "MacKinzie");                    \
     '])));
 
+    it('test function - union types', () => expect('4Hello world\r\n').to.equals(new Run().test([
+        'function padLeft(value: string, padding: any) {                        \
+            if (typeof padding === "number") {                                  \
+                return String(padding) + value;                                 \
+            }                                                                   \
+                                                                                \
+            if (typeof padding === "string") {                                  \
+                return padding + value;                                         \
+            }                                                                   \
+                                                                                \
+            throw new Error(`Expected string or number, got \'${padding}\'.`);  \
+        }                                                                       \
+                                                                                \
+        console.log(padLeft("Hello world", 4));                                 \
+    '])));
 });
