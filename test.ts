@@ -1,4 +1,5 @@
-class Class1 {
-}
-
-console.log(typeof Class1);
+export class ZipCodeValidator {            
+            isAcceptable(s: string): boolean {      
+                return false;                       
+            }                                       
+        } 

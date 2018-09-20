@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Export', () => {
 
-    it.skip('Class export', () => expect('false\r\n').to.equals(new Run().test([
+    it('Class export', () => expect('false\r\n').to.equals(new Run().test([
         'export class ZipCodeValidator {            \
             isAcceptable(s: string): boolean {      \
                 return false;                       \
@@ -16,8 +16,7 @@ describe('Export', () => {
     console.log(myValidator.isAcceptable("test"));  \
     '])));
 
-    // TODO: required fixing prototype naming as it should have name as alias or somehow store prototype in the same reference
-    it.skip('Class export (import as)', () => expect('false\r\n').to.equals(new Run().test([
+    it('Class export (import as)', () => expect('false\r\n').to.equals(new Run().test([
         'export class ZipCodeValidator {            \
             isAcceptable(s: string): boolean {      \
                 return false;                       \
@@ -29,8 +28,7 @@ describe('Export', () => {
     console.log(myValidator.isAcceptable("test"));          \
     '])));
 
-    // TODO: required fixing prototype naming as it should have name as alias or somehow store prototype in the same reference
-    it.skip('Class export (default)', () => expect('false\r\n').to.equals(new Run().test([
+    it('Class export (default)', () => expect('false\r\n').to.equals(new Run().test([
         'export default class ZipCodeValidator {            \
             isAcceptable(s: string): boolean {      \
                 return false;                       \

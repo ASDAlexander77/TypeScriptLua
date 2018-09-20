@@ -255,7 +255,7 @@ export class IdentifierResolver {
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 
-    private unresolvedFilter = {'__instanceof': true, 'setmetatable': true, 'debug': true, 'type': true, 'error': true};
+    private unresolvedFilter = {'__instanceof': true, 'setmetatable': true, 'debug': true, 'type': true, 'error': true, 'require': true};
 
     public methodCall: boolean;
     public thisMethodCall: ResolvedInfo;

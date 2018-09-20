@@ -597,10 +597,6 @@ export class Emitter {
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
 
-        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
-            this.emitGetOrCreateObjectExpression(node, 'exports');
-        }
-
         const properties = node.members
             .filter(m => this.isClassMemberAccepted(m))
             .map(m => ts.createPropertyAssignment(
@@ -627,6 +623,14 @@ export class Emitter {
             const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
             setmetatableCall.parent = node;
             this.processExpression(setmetatableCall);
+        }
+
+        // set export
+        const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
+        if (isExport) {
+            this.emitGetOrCreateObjectExpression(node, 'exports');
+            const setExport = ts.createAssignment(ts.createPropertyAccess(ts.createIdentifier('exports'), node.name), node.name);
+            this.processExpression(setExport);
         }
 
         this.functionContext.restoreLocalScope();
@@ -765,12 +769,6 @@ export class Emitter {
     }
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
-        /*
-        this.functionContext.newLocalScope(node);
-        this.transpileTSNode(node);
-        this.functionContext.restoreLocalScope();
-        */
-
         // 1) require './<nodule>'
         const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
         requireCall.parent = node.parent;
