@@ -154,6 +154,28 @@ export class Emitter {
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
 
         functionContext.debug_location = file.fileName;
+
+        switch (node.kind) {
+            case ts.SyntaxKind.FunctionDeclaration:
+                functionContext.debug_location +=
+                    ':' + ((<ts.FunctionDeclaration>node).name ? (<ts.FunctionDeclaration>node).name.text : 'noname');
+                break;
+            case ts.SyntaxKind.FunctionExpression:
+                functionContext.debug_location +=
+                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'noname');
+                break;
+            case ts.SyntaxKind.ArrowFunction:
+                functionContext.debug_location +=
+                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'arrow');
+                break;
+            case ts.SyntaxKind.TryStatement:
+                functionContext.debug_location += ':try';
+                break;
+            case ts.SyntaxKind.SourceFile:
+                break;
+            default: throw new Error('Not Implemented');
+        }
+
         functionContext.linedefined = locStart.line + 1;
         functionContext.lastlinedefined = locEnd.line + 1;
     }
@@ -163,6 +185,8 @@ export class Emitter {
         statements: ts.NodeArray<ts.Statement>,
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean) {
+
+        this.functionContext.isArrowFunction = location.kind === ts.SyntaxKind.ArrowFunction;
 
         // debug info
         this.processDebugInfo(location, this.functionContext);
@@ -174,9 +198,11 @@ export class Emitter {
             this.processTSCode(this.lib, true);
         }
 
-        const createThis = this.hasMemberThis(<ts.Node>(<any>location).__origin) || this.hasNodeUsedThis(location);
-        if (createThis) {
-            this.functionContext.createLocal('this');
+        if (!this.functionContext.isArrowFunction) {
+            const createThis = this.hasMemberThis(<ts.Node>(<any>location).__origin) || this.hasNodeUsedThis(location);
+            if (createThis) {
+                this.functionContext.createLocal('this');
+            }
         }
 
         if (parameters) {
@@ -1952,6 +1978,15 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
+        if (this.functionContext.isArrowFunction) {
+            const resolvedInfo = this.resolver.returnThisUpvalue(this.functionContext);
+
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            resultInfo.originalInfo = resolvedInfo;
+            this.functionContext.code.push([Ops.GETUPVAL, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+            return;
+        }
+
         this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
     }
 

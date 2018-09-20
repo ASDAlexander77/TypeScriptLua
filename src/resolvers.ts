@@ -397,6 +397,15 @@ export class IdentifierResolver {
         return resolvedInfo;
     }
 
+    public returnThisUpvalue(functionContext: FunctionContext): ResolvedInfo {
+        const resolvedInfo = new ResolvedInfo(functionContext);
+        resolvedInfo.kind = ResolvedKind.Upvalue;
+        resolvedInfo.identifierName = 'this';
+        resolvedInfo.upvalueInstack = true;
+        resolvedInfo.upvalueStackIndex = 0;
+        return resolvedInfo;
+    }
+
     public returnResolvedEnv(functionContext: FunctionContext, root?: boolean): ResolvedInfo {
         const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Upvalue;
@@ -407,16 +416,7 @@ export class IdentifierResolver {
         return resolvedInfo;
     }
 
-    public returnLocalOrUpvalueNoException(text: string, functionContext: FunctionContext): ResolvedInfo {
-        const localVarIndex = functionContext.findLocal(text, true);
-        if (localVarIndex !== -1) {
-            const resolvedInfo = new ResolvedInfo(functionContext);
-            resolvedInfo.kind = ResolvedKind.Register;
-            resolvedInfo.identifierName = text;
-            resolvedInfo.register = localVarIndex;
-            return resolvedInfo;
-        }
-
+    public returnUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {
         if (functionContext.container) {
             const localVarIndexAsUpvalue = functionContext.container.findLocal(text, true);
             if (localVarIndexAsUpvalue !== -1) {
@@ -430,6 +430,19 @@ export class IdentifierResolver {
         }
 
         return null;
+    }
+
+    public returnLocalOrUpvalueNoException(text: string, functionContext: FunctionContext): ResolvedInfo {
+        const localVarIndex = functionContext.findLocal(text, true);
+        if (localVarIndex !== -1) {
+            const resolvedInfo = new ResolvedInfo(functionContext);
+            resolvedInfo.kind = ResolvedKind.Register;
+            resolvedInfo.identifierName = text;
+            resolvedInfo.register = localVarIndex;
+            return resolvedInfo;
+        }
+
+        return this.returnUpvalue(text, functionContext);
     }
 
     public returnLocalOrUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {

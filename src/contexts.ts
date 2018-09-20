@@ -94,6 +94,7 @@ export class FunctionContext {
     // to support break, continue in loops
     public breaks: Array<number> = [];
     public continues: Array<number> = [];
+    public isArrowFunction: boolean;
 
     public newLocalScope(node: ts.Node) {
         this.location_scopes.push(this.current_location_node);

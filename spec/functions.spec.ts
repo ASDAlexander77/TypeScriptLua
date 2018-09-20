@@ -31,7 +31,6 @@ describe('Functions', () => {
 
     it('function 1', () => expect('spades\r\n').to.equals(new Run().test([
         'let deck = {                                                           \
-            suits: ["hearts", "spades", "clubs", "diamonds"],                   \
             createCardPicker: function() {                                      \
                 return function() {                                             \
                     return {suit: "spades"};                                    \
@@ -45,7 +44,7 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
-    it('this 1', () => expect('37\r\n').to.equals(new Run().test([
+    it('this in function', () => expect('37\r\n').to.equals(new Run().test([
         'var o = {                                                              \
         prop: 37,                                                               \
         f: function() {                                                         \
@@ -66,6 +65,22 @@ describe('Functions', () => {
                 }                                                               \
             }                                                                   \
         }                                                                       \
+                                                                                \
+        let cardPicker = deck.createCardPicker();                               \
+        let pickedCard = cardPicker();                                          \
+                                                                                \
+        console.log(pickedCard.suit);                                           \
+    '])));
+
+    it.skip('this - in an arrow function', () => expect('spades\r\n').to.equals(new Run().test([
+        'let deck = {                                                           \
+            suits: ["hearts"],                                                  \
+            createCardPicker: function() {                                      \
+                return () => {                                                  \
+                    return {suit: this.suits[0]};                               \
+                };                                                              \
+            }                                                                   \
+        };                                                                      \
                                                                                 \
         let cardPicker = deck.createCardPicker();                               \
         let pickedCard = cardPicker();                                          \

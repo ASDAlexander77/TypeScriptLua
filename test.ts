@@ -1,10 +1,14 @@
-function buildName(firstName: string, ...restOfName: string[]) {
-    console.log(firstName);
-    console.log(restOfName[0]);
-    console.log(restOfName[1]);
-    console.log(restOfName[2]);
-    console.log(restOfName[3]);
-}
-
-buildName("Joseph", "Samuel", "Lucas", "MacKinzie");
-
+	class Event1 {                                                     
+            public message: string;                                         
+        }                                                                   
+                                                                            
+        class Handler {                                                     
+            info: string;                                                   
+            onClickGood = (e: Event1) => { this.info = e.message; };        
+        }                                                                   
+                                                                            
+        let h = new Handler();                                              
+        let m = new Event1();                                               
+        m.message = "test";                                                 
+        h.onClickGood(m);                                                   
+        console.log(h.info);
