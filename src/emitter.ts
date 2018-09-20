@@ -206,9 +206,23 @@ export class Emitter {
             // we need to load all '...<>' into arrays
             parameters.filter(p => p.dotDotDotToken).forEach(p => {
                 const localVar = this.functionContext.findLocal((<ts.Identifier>p.name).text);
-                this.functionContext.code.push([Ops.NEWTABLE, localVar, 0, 0]);
-                this.functionContext.code.push([Ops.VARARG, localVar + 1, 0, 0]);
-                this.functionContext.code.push([Ops.SETLIST, localVar, 0, 1]);
+                this.functionContext.code.push([Ops.NEWTABLE, localVar + 1, 0, 0]);
+                this.functionContext.code.push([Ops.VARARG, localVar + 2, 0, 0]);
+                this.functionContext.code.push([Ops.SETLIST, localVar + 1, 0, 1]);
+
+                // workaround 0 element
+                const zeroIndexInfo = this.resolver.returnConst(0, this.functionContext);
+                this.functionContext.code.push(
+                    [Ops.SETTABLE,
+                    localVar + 1,
+                    zeroIndexInfo.getRegisterOrIndex(),
+                    localVar]);
+
+                this.functionContext.code.push([
+                    Ops.MOVE,
+                    localVar,
+                    localVar + 1
+                ]);
             });
         }
 
