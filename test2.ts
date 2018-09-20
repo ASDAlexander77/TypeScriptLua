@@ -1,3 +1,3 @@
-import { ZipCodeValidator } from "./test0";    
-    const myValidator = new ZipCodeValidator();     
-    console.log(myValidator.isAcceptable("test"));  
+import validator from "./test0";               
+    const myValidator = new validator();            
+    console.log(myValidator.isAcceptable("test"));

@@ -628,8 +628,10 @@ export class Emitter {
         // set export
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
         if (isExport) {
+            const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             this.emitGetOrCreateObjectExpression(node, 'exports');
-            const setExport = ts.createAssignment(ts.createPropertyAccess(ts.createIdentifier('exports'), node.name), node.name);
+            const setExport = ts.createAssignment(
+                ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? node.name : 'default'), node.name);
             this.processExpression(setExport);
         }
 
