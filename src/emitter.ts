@@ -186,7 +186,11 @@ export class Emitter {
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean) {
 
-        this.functionContext.isArrowFunction = location.kind === ts.SyntaxKind.ArrowFunction;
+        const isClassDeclaration = this.functionContext.container
+            && this.functionContext.container.current_location_node
+            && this.functionContext.container.current_location_node.kind === ts.SyntaxKind.ClassDeclaration;
+        this.functionContext.isArrowFunction =
+            location.kind === ts.SyntaxKind.ArrowFunction && !isClassDeclaration;
 
         // debug info
         this.processDebugInfo(location, this.functionContext);
@@ -198,8 +202,9 @@ export class Emitter {
             this.processTSCode(this.lib, true);
         }
 
-        if (!this.functionContext.isArrowFunction) {
-            const createThis = this.hasMemberThis(<ts.Node>(<any>location).__origin) || this.hasNodeUsedThis(location);
+        const origin = (<ts.Node>(<any>location).__origin);
+        if (origin || !this.functionContext.isArrowFunction) {
+            const createThis = this.hasMemberThis(origin) || this.hasNodeUsedThis(location);
             if (createThis) {
                 this.functionContext.createLocal('this');
             }
