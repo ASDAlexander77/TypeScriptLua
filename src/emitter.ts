@@ -10,6 +10,7 @@ export class Emitter {
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
+    private sourceFileName: string;
     private opsMap = [];
 
     public constructor(typeChecker: ts.TypeChecker) {
@@ -153,7 +154,7 @@ export class Emitter {
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
 
-        functionContext.debug_location = file.fileName;
+        functionContext.debug_location = '@' + file.fileName;
 
         switch (node.kind) {
             case ts.SyntaxKind.FunctionDeclaration:
@@ -176,8 +177,13 @@ export class Emitter {
             default: throw new Error('Not Implemented');
         }
 
-        functionContext.linedefined = locStart.line + 1;
-        functionContext.lastlinedefined = locEnd.line + 1;
+        if (node.kind !== ts.SyntaxKind.SourceFile) {
+            functionContext.linedefined = locStart.line + 1;
+            functionContext.lastlinedefined = locEnd.line + 1;
+        } else {
+            functionContext.linedefined = 0;
+            functionContext.lastlinedefined = 0;
+        }
     }
 
     private processFunctionWithinContext(
@@ -268,6 +274,8 @@ export class Emitter {
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
+
+        this.sourceFileName = sourceFile.fileName;
 
         this.emitHeader();
 
@@ -403,7 +411,7 @@ export class Emitter {
             target: ts.ScriptTarget.ES5
         };
 
-        const sourceFile = ts.createSourceFile('partial', jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
+        const sourceFile = ts.createSourceFile(this.sourceFileName, jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
         // nneded to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
         return sourceFile.statements;
