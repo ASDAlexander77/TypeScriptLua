@@ -2026,7 +2026,11 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        const spreadCall = ts.createCall(ts.createIdentifier('unpack'), undefined, [node.expression]);
+        const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('table'), ts.createIdentifier('unpack'));
+        const spreadCall = ts.createCall(
+            propertyAccessExpression,
+            undefined,
+            [node.expression]);
         spreadCall.parent = node;
         this.processExpression(spreadCall);
     }
