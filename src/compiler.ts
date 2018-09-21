@@ -35,7 +35,7 @@ export class Run {
 		console.log(result);
 		*/
 
-        this.generateBinary(this.createProgram(ts.createProgram(sources, {})), sources, outputExtention);
+        this.generateBinary(this.createProgram(ts.createProgram(sources, {})), sources, outputExtention, undefined);
     }
 
     public compileWithConfig(configPath: string, outputExtention: string): void {
@@ -53,7 +53,7 @@ export class Run {
             rootNames: parsedCommandLine.fileNames,
             options: parsedCommandLine.options
         }));
-        this.generateBinary(program, parsedCommandLine.fileNames, outputExtention);
+        this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, parsedCommandLine.options);
     }
 
     private createProgram(program: ts.Program): any {
@@ -88,13 +88,13 @@ export class Run {
         return program;
     }
 
-    private generateBinary(program: ts.Program, sources: string[], outputExtention: string, options: string[]) {
+    private generateBinary(program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions) {
         const sourceFiles = program.getSourceFiles();
         console.log('Generating binaries...');
         sourceFiles.forEach(s => {
             if (sources.some(sf => s.fileName.endsWith(sf))) {
                 console.log('File: ' + s.fileName);
-                const emitter = new Emitter(program.getTypeChecker());
+                const emitter = new Emitter(program.getTypeChecker(), options);
                 emitter.processNode(s);
                 fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
             }
@@ -135,7 +135,7 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = new Emitter(program.getTypeChecker());
+                    const emitter = new Emitter(program.getTypeChecker(), undefined);
                     emitter.processNode(s);
 
                     const luaFile = currentFile.replace(/\.ts$/, '.lua');

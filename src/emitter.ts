@@ -13,7 +13,7 @@ export class Emitter {
     private sourceFileName: string;
     private opsMap = [];
 
-    public constructor(typeChecker: ts.TypeChecker) {
+    public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions) {
         this.resolver = new IdentifierResolver(typeChecker);
 
         this.opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
@@ -411,7 +411,8 @@ export class Emitter {
             target: ts.ScriptTarget.ES5
         };
 
-        const sourceFile = ts.createSourceFile(this.sourceFileName, jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
+        const sourceFile = ts.createSourceFile(
+            this.sourceFileName, jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
         // nneded to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
         return sourceFile.statements;
