@@ -88,7 +88,7 @@ export class Run {
         return program;
     }
 
-    private generateBinary(program: ts.Program, sources: string[], outputExtention: string) {
+    private generateBinary(program: ts.Program, sources: string[], outputExtention: string, options: string[]) {
         const sourceFiles = program.getSourceFiles();
         console.log('Generating binaries...');
         sourceFiles.forEach(s => {
