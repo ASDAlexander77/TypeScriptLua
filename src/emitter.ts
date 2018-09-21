@@ -1971,20 +1971,29 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = parent.kind === ts.SyntaxKind.NewExpression
-            || parent.kind === ts.SyntaxKind.ExpressionStatement;
+                          || parent.kind === ts.SyntaxKind.ExpressionStatement;
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
-                || parent.kind === ts.SyntaxKind.PropertyAccessExpression);
+             || parent.kind === ts.SyntaxKind.PropertyAccessExpression
+             || parent.kind === ts.SyntaxKind.SpreadElement);
         const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
         }
 
+        // parameters number
+        let parametersNumber = node.arguments.length + 1 + (_thisForNew ? 1 : 0);
+        if (node.arguments.some(a => a.kind === ts.SyntaxKind.SpreadElement)) {
+            parametersNumber = 0;
+        }
+
         this.functionContext.code.push(
-            [Ops.CALL,
-            methodResolvedInfo.getRegister(),
-            node.arguments.length + 1 + (_thisForNew ? 1 : 0),
-                returnCount]);
+            [
+                Ops.CALL,
+                methodResolvedInfo.getRegister(),
+                parametersNumber,
+                returnCount
+            ]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
@@ -2026,6 +2035,11 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
+        // load first element
+        const zeroElementAccessExpression = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
+        zeroElementAccessExpression.parent = node;
+        this.processExpression(zeroElementAccessExpression);
+
         const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('table'), ts.createIdentifier('unpack'));
         const spreadCall = ts.createCall(
             propertyAccessExpression,
@@ -2033,6 +2047,13 @@ export class Emitter {
             [node.expression]);
         spreadCall.parent = node;
         this.processExpression(spreadCall);
+
+        // discard 1 element in stack
+        const spreadInfo = this.functionContext.stack.pop();
+        const zeroElementInfo = this.functionContext.stack.pop();
+
+        // store result again
+        this.functionContext.useRegisterAndPush();
     }
 
     private processIndentifier(node: ts.Identifier): void {

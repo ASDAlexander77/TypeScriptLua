@@ -143,6 +143,18 @@ describe('Functions', () => {
         buildName("Joseph", "Samuel", "Lucas", "MacKinzie");                    \
     '])));
 
+    it('test function - ... 2', () => expect('1\r\n2\r\n3\r\n').to.equals(new Run().test([
+        'function sum(x, y, z) {                                                \
+            console.log(x);                                                     \
+            console.log(y);                                                     \
+            console.log(z);                                                     \
+        }                                                                       \
+                                                                                \
+        const numbers = [1, 2, 3];                                              \
+                                                                                \
+        sum(...numbers);                                                        \
+    '])));
+
     it('test function - union types', () => expect('4Hello world\r\n').to.equals(new Run().test([
         'function padLeft(value: string, padding: any) {                        \
             if (typeof padding === "number") {                                  \
