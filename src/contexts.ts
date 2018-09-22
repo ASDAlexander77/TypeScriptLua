@@ -14,6 +14,41 @@ export class UpvalueInfo {
     public index: number;
 }
 
+class BaseStorage<T> {
+    private items: T[] = [];
+
+    public constructor(private functionContext: FunctionContext) {
+    }
+
+    public push(item: T) {
+        this.items.push(item);
+    }
+
+    public pop(): T {
+        return this.items.pop();
+    }
+
+    public get length(): number {
+        return this.items.length;
+    }
+
+    public get latest(): T {
+        return this.items[this.items.length - 1];
+    }
+
+    public forEach(action: (element) => void) {
+        this.items.forEach(action);
+    }
+
+    public at(index: number): T {
+        return this.items[index];
+    }
+
+    public setCodeAt(index: number, item: T) {
+        this.items[index] = item;
+    }
+}
+
 export class CodeStorage {
     private code: number[][] = [];
     private currentDebugLine: number;
@@ -65,6 +100,9 @@ export class CodeStorage {
     }
 }
 
+export class NamespaceStorage extends BaseStorage<ts.ModuleDeclaration> {
+}
+
 export class FunctionContext {
     public function_or_file_location_node: ts.Node;
     public current_location_node: ts.Node;
@@ -76,6 +114,8 @@ export class FunctionContext {
     public stack = new StackResolver(this);
     // code stack
     public code = new CodeStorage(this);
+    // namespace scopes
+    public namespaces = new NamespaceStorage(this);
 
     // function information
     public debug_location: string;

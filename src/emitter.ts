@@ -324,6 +324,7 @@ export class Emitter {
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
             case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
+            case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
             case ts.SyntaxKind.InterfaceDeclaration: /*nothing to do*/ return;
         }
 
@@ -634,17 +635,39 @@ export class Emitter {
             this.processExpression(setmetatableCall);
         }
 
-        // set export
+        this.emitExport(node);
+
+        this.functionContext.restoreLocalScope();
+    }
+
+    private emitExport(node: ts.ClassDeclaration) {
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
-        if (isExport) {
+        if (!isExport) {
+            return;
+        }
+
+        if (this.functionContext.namespaces.length === 0) {
             const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             this.emitGetOrCreateObjectExpression(node, 'exports');
             const setExport = ts.createAssignment(
                 ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? node.name : 'default'), node.name);
             this.processExpression(setExport);
+            return;
         }
 
-        this.functionContext.restoreLocalScope();
+        // save into module
+        let propertyAccessExpression;
+        for (let i = this.functionContext.namespaces.length - 1; i >= 0; i--) {
+            const namespaceItem = this.functionContext.namespaces.at(i);
+            if (propertyAccessExpression) {
+                propertyAccessExpression = ts.createPropertyAccess(propertyAccessExpression, <ts.Identifier>namespaceItem.name);
+            } else {
+                propertyAccessExpression = ts.createPropertyAccess(namespaceItem.name, node.name);
+            }
+        }
+
+        const setModuleExport = ts.createAssignment(propertyAccessExpression, node.name);
+        this.processExpression(setModuleExport);
     }
 
     private createDefaultCtor(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[]) {
@@ -764,10 +787,28 @@ export class Emitter {
         return extend;
     }
 
+    /*
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
         this.functionContext.newLocalScope(node);
         this.processTSNode(node);
         this.functionContext.restoreLocalScope();
+    }
+    */
+
+    private processModuleDeclaration(node: ts.ModuleDeclaration): void {
+
+        this.functionContext.namespaces.push(node);
+
+        this.emitGetOrCreateObjectExpression(node, node.name.text);
+        if (node.body) {
+            this.processBlock(<ts.Block><any>node.body);
+        }
+
+        this.functionContext.namespaces.pop();
+    }
+
+    private processNamespaceDeclaration(node: ts.NamespaceDeclaration): void {
+        this.processModuleDeclaration(node);
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
