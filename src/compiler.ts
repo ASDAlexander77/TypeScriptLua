@@ -90,15 +90,32 @@ export class Run {
 
     private generateBinary(program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions) {
         const sourceFiles = program.getSourceFiles();
-        console.log('Generating binaries...');
-        sourceFiles.forEach(s => {
-            if (sources.some(sf => s.fileName.endsWith(sf))) {
-                console.log('File: ' + s.fileName);
-                const emitter = new Emitter(program.getTypeChecker(), options);
-                emitter.processNode(s);
-                fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
-            }
-        });
+
+        const isSingleModule = options.isolatedModules !== null && options.isolatedModules === false;
+        if (!isSingleModule) {
+            console.log('Generating binaries...');
+            sourceFiles.forEach(s => {
+                if (sources.some(sf => s.fileName.endsWith(sf))) {
+                    console.log('File: ' + s.fileName);
+                    const emitter = new Emitter(program.getTypeChecker(), options);
+                    emitter.processNode(s);
+                    fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
+                }
+            });
+        } else {
+            console.log('Generating single binary...');
+            const emitter = new Emitter(program.getTypeChecker(), options);
+            sourceFiles.forEach(s => {
+                if (sources.some(sf => s.fileName.endsWith(sf))) {
+                    emitter.processNode(s);
+                    console.log('File: ' + s.fileName);
+                }
+            });
+
+            const fileName = (emitter.moduleName || 'out') + '.' + outputExtention;
+            console.log('Writing to file ' + fileName);
+            fs.writeFileSync(fileName, emitter.writer.getBytes());
+        }
     }
 
     public test(sources: string[]): string {

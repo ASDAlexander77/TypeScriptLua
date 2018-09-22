@@ -7,6 +7,7 @@ import { Helpers } from './helpers';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
+    public moduleName: string;
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
@@ -70,6 +71,8 @@ export class Emitter {
     }';
 
     public processNode(node: ts.Node): void {
+        this.emitHeader();
+
         switch (node.kind) {
             case ts.SyntaxKind.SourceFile: this.processFile(<ts.SourceFile>node); return;
             case ts.SyntaxKind.Bundle: this.processBundle(<ts.Bundle>node); return;
@@ -276,8 +279,6 @@ export class Emitter {
     private processFile(sourceFile: ts.SourceFile): void {
 
         this.sourceFileName = sourceFile.fileName;
-
-        this.emitHeader();
 
         const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements, <any>[], true);
 
@@ -798,6 +799,8 @@ export class Emitter {
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
 
         this.functionContext.namespaces.push(node);
+
+        this.moduleName = node.name.text;
 
         this.emitGetOrCreateObjectExpression(node, node.name.text);
         if (node.body) {
