@@ -71,7 +71,7 @@ describe('Statements', () => {
     '])));
 
     it('simple for/in (local) <LUA order>', () => expect('2\r\n3\r\n1\r\n').to.equals(new Run().test([
-        '    let vals = [1, 2, 3];                              \
+        'let vals = [1, 2, 3];                                  \
         let i;                                                  \
         for (i in vals) {                                       \
             console.log(vals[i]);                               \
@@ -100,7 +100,7 @@ describe('Statements', () => {
         console.log(text);                                      \
     '])));
 
-    it.skip('simple for/of (array)', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
+    it('simple for/of (array)', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
         'var someArray = [9, 2, 5];                             \
         for (var item of someArray) {                           \
             console.log(item);                                  \

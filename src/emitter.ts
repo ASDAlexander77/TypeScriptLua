@@ -1143,10 +1143,13 @@ export class Emitter {
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
-        const declIndexer = ts.createVariableDeclaration('_i', undefined, ts.createNumericLiteral('0'));
+        // Somehow #len returns 2 for 3 elements. why?????
+
+        const indexerName = 'i_';
+        const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier('_i')));
+            arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier(indexerName)));
         // to make it LET
         arrayItemInitialization.flags = 2;
         const newStatementBlock = ts.createBlock(
@@ -1155,14 +1158,17 @@ export class Emitter {
                     node.statement
             ]);
 
+        const lengthMemeber = ts.createIdentifier('length');
+        (<any>lengthMemeber).__len = true;
+
         // to make it LET
         declIndexer.flags = 2;
         const forStatement =
             ts.createFor(ts.createVariableDeclarationList([ declIndexer ]),
                 ts.createBinary(
-                    ts.createIdentifier('_i'),
-                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(node.expression, ts.createIdentifier('length'))),
-                ts.createPostfixIncrement(ts.createIdentifier('_i')),
+                    ts.createIdentifier(indexerName),
+                    ts.SyntaxKind.LessThanEqualsToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
+                ts.createPostfixIncrement(ts.createIdentifier(indexerName)),
                 newStatementBlock);
 
         // to support variable resolvation
@@ -2214,8 +2220,18 @@ export class Emitter {
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
-
         this.processExpression(node.expression);
+
+        // HACK: special case to support #len
+        if ((<any>node.name).__len) {
+            const expressionInfo = this.functionContext.stack.pop().optimize();
+            const lenResultInfo = this.functionContext.useRegisterAndPush();
+            this.functionContext.code.push(
+                [Ops.LEN,
+                    lenResultInfo.getRegister(),
+                    expressionInfo.getRegisterOrIndex()]);
+            return;
+        }
 
         this.resolver.Scope.push(this.functionContext.stack.peek());
         this.processExpression(node.name);
