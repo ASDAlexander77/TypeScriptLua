@@ -16,6 +16,7 @@ export class Emitter {
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions) {
         this.resolver = new IdentifierResolver(typeChecker);
+        this.functionContext = new FunctionContext();
 
         this.opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
         this.opsMap[ts.SyntaxKind.MinusToken] = Ops.SUB;
@@ -71,8 +72,6 @@ export class Emitter {
     }';
 
     public processNode(node: ts.Node): void {
-        this.emitHeader();
-
         switch (node.kind) {
             case ts.SyntaxKind.SourceFile: this.processFile(<ts.SourceFile>node); return;
             case ts.SyntaxKind.Bundle: this.processBundle(<ts.Bundle>node); return;
@@ -81,6 +80,13 @@ export class Emitter {
 
         // TODO: finish it
         throw new Error('Method not implemented.');
+    }
+
+    public save() {
+        this.emitHeader();
+        // f->sizeupvalues (byte)
+        this.writer.writeByte(this.functionContext.upvalues.length);
+        this.emitFunction(this.functionContext);
     }
 
     private pushFunctionContext(location: ts.Node) {
@@ -256,7 +262,7 @@ export class Emitter {
                     [Ops.SETTABLE,
                     localVar + 1,
                     zeroIndexInfo.getRegisterOrIndex(),
-                    localVar]);
+                        localVar]);
 
                 this.functionContext.code.push([
                     Ops.MOVE,
@@ -278,16 +284,12 @@ export class Emitter {
 
     private processFile(sourceFile: ts.SourceFile): void {
 
+        this.functionContext.function_or_file_location_node = sourceFile;
+        this.functionContext.is_vararg = true;
+
         this.sourceFileName = sourceFile.fileName;
-
-        const localFunctionContext = this.processFunction(sourceFile, sourceFile.statements, <any>[], true);
-
-        // this is global function
-        localFunctionContext.is_vararg = true;
-
-        // f->sizeupvalues (byte)
-        this.writer.writeByte(localFunctionContext.upvalues.length);
-        this.emitFunction(localFunctionContext);
+        this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[], !this.functionContext.environmentCreated);
+        this.functionContext.environmentCreated = true;
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -2024,11 +2026,11 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = parent.kind === ts.SyntaxKind.NewExpression
-                          || parent.kind === ts.SyntaxKind.ExpressionStatement;
+            || parent.kind === ts.SyntaxKind.ExpressionStatement;
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
-             || parent.kind === ts.SyntaxKind.PropertyAccessExpression
-             || parent.kind === ts.SyntaxKind.SpreadElement);
+                || parent.kind === ts.SyntaxKind.PropertyAccessExpression
+                || parent.kind === ts.SyntaxKind.SpreadElement);
         const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();

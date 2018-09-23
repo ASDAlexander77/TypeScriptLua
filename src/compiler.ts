@@ -99,6 +99,7 @@ export class Run {
                     console.log('File: ' + s.fileName);
                     const emitter = new Emitter(program.getTypeChecker(), options);
                     emitter.processNode(s);
+                    emitter.save();
                     fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
                 }
             });
@@ -113,7 +114,10 @@ export class Run {
             });
 
             const fileName = (emitter.moduleName || 'out') + '.' + outputExtention;
+
             console.log('Writing to file ' + fileName);
+
+            emitter.save();
             fs.writeFileSync(fileName, emitter.writer.getBytes());
         }
     }
@@ -154,6 +158,7 @@ export class Run {
                 if (currentFile) {
                     const emitter = new Emitter(program.getTypeChecker(), undefined);
                     emitter.processNode(s);
+                    emitter.save();
 
                     const luaFile = currentFile.replace(/\.ts$/, '.lua');
                     fs.writeFileSync(luaFile, emitter.writer.getBytes());
