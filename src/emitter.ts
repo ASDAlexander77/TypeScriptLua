@@ -1145,9 +1145,13 @@ export class Emitter {
     private processForOfStatement(node: ts.ForOfStatement): void {
         const declIndexer = ts.createVariableDeclaration('_i', undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
+        const arrayItemInitialization = ts.createVariableDeclaration(
+            arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier('_i')));
+        // to make it LET
+        arrayItemInitialization.flags = 2;
         const newStatementBlock = ts.createBlock(
             [
-                    ts.createStatement(ts.createAssignment(arrayItem, ts.createElementAccess(node.expression, ts.createIdentifier('_i')))),
+                    ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization])),
                     node.statement
             ]);
 
