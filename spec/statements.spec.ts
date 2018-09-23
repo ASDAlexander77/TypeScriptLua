@@ -100,6 +100,20 @@ describe('Statements', () => {
         console.log(text);                                      \
     '])));
 
+    it.skip('simple for/of (array)', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
+        'var someArray = [9, 2, 5];                             \
+        for (var item of someArray) {                           \
+            console.log(item);                                  \
+        }                                                       \
+    '])));
+
+    it.skip('simple for/of (string)', () => expect('i\r\nt\r\n').to.equals(new Run().test([
+        'var hello = "is";                                      \
+        for (var char of hello) {                               \
+            console.log(char);                                  \
+        }                                                       \
+    '])));
+
     it('switch (local) 1', () => expect('Hello!\r\nHello!\r\nHello!\r\nHello!\r\n').to.equals(new Run().test([
         'let a = 1;                                             \
         switch (a) {                                            \

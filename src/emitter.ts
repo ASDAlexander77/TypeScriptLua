@@ -313,6 +313,7 @@ export class Emitter {
             case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
             case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.ForStatement>node); return;
             case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); return;
+            case ts.SyntaxKind.ForOfStatement: this.processForOfStatement(<ts.ForOfStatement>node); return;
             case ts.SyntaxKind.BreakStatement: this.processBreakStatement(<ts.BreakStatement>node); return;
             case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); return;
             case ts.SyntaxKind.SwitchStatement: this.processSwitchStatement(<ts.SwitchStatement>node); return;
@@ -327,6 +328,7 @@ export class Emitter {
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
             case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
             case ts.SyntaxKind.InterfaceDeclaration: /*nothing to do*/ return;
+            case ts.SyntaxKind.TypeAliasDeclaration: /*nothing to do*/ return;
         }
 
         // TODO: finish it
@@ -1115,6 +1117,15 @@ export class Emitter {
         initialJmpOp[2] = loopOpsBlock - beforeBlock;
 
         this.resolveBreakJumps();
+
+        this.functionContext.restoreLocalScope();
+    }
+
+    private processForOfStatement(node: ts.ForOfStatement): void {
+        this.functionContext.newLocalScope(node);
+
+        // TODO: Not Implemented
+        //throw new Error('Not Implemented');
 
         this.functionContext.restoreLocalScope();
     }
