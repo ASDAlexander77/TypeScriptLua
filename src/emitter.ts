@@ -1143,7 +1143,7 @@ export class Emitter {
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
-        // Somehow #len returns 2 for 3 elements. why?????
+        // Somehow #len returns 2 for 3 elements. why????? - solution, skip for/of when array[0] === null
 
         const indexerName = 'i_';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
@@ -1154,8 +1154,8 @@ export class Emitter {
         arrayItemInitialization.flags = 2;
         const newStatementBlock = ts.createBlock(
             [
-                    ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization])),
-                    node.statement
+                ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization])),
+                node.statement
             ]);
 
         const lengthMemeber = ts.createIdentifier('length');
@@ -1164,10 +1164,10 @@ export class Emitter {
         // to make it LET
         declIndexer.flags = 2;
         const forStatement =
-            ts.createFor(ts.createVariableDeclarationList([ declIndexer ]),
+            ts.createFor(ts.createVariableDeclarationList([declIndexer]),
                 ts.createBinary(
                     ts.createIdentifier(indexerName),
-                    ts.SyntaxKind.LessThanEqualsToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
+                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
                 ts.createPostfixIncrement(ts.createIdentifier(indexerName)),
                 newStatementBlock);
 

@@ -107,6 +107,13 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
+    it('simple for/of (array) 2', () => expect('').to.equals(new Run().test([
+        'var someArray = [];                                    \
+        for (var item of someArray) {                           \
+            console.log(item);                                  \
+        }                                                       \
+    '])));
+
     it.skip('simple for/of (string)', () => expect('i\r\nt\r\n').to.equals(new Run().test([
         'var hello = "is";                                      \
         for (var char of hello) {                               \
