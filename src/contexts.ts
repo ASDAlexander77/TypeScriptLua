@@ -116,6 +116,7 @@ export class FunctionContext {
     public code = new CodeStorage(this);
     // namespace scopes
     public namespaces = new NamespaceStorage(this);
+    public environmentCreated: boolean;
 
     // function information
     public debug_location: string;
