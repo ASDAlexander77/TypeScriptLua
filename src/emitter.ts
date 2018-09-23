@@ -1162,8 +1162,6 @@ export class Emitter {
                 newStatementBlock);
 
         // to support variable resolvation
-        ////(<any>forStatement).locals = (<any>ts).createSymbolTable();
-
         this.bind(forStatement);
 
         forStatement.parent = node.parent;
