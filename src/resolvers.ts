@@ -277,7 +277,10 @@ export class IdentifierResolver {
                 functionContext.current_location_node,
                 ((1 << 27) - 1)/*mask for all types*/);
             }
+        } catch (e) {
+        }
 
+        try {
             if (!resolved && functionContext.function_or_file_location_node) {
                 let originLocation = functionContext.function_or_file_location_node;
                 if ((<any>originLocation).__origin) {
@@ -289,7 +292,6 @@ export class IdentifierResolver {
                     originLocation,
                     ((1 << 27) - 1)/*mask for all types*/);
             }
-
         } catch (e) {
             console.warn('Can\'t resolve "' + identifier.text + '"');
         }

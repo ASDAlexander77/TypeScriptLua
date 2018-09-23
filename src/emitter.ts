@@ -424,6 +424,25 @@ export class Emitter {
         return sourceFile.statements;
     }
 
+    private bind(node: ts.Statement) {
+
+        const opts = {
+            module: ts.ModuleKind.CommonJS,
+            alwaysStrict: false,
+            noImplicitUseStrict: true,
+            moduleResolution: ts.ModuleResolutionKind.NodeJs,
+            target: ts.ScriptTarget.ES5
+        };
+
+        const sourceFile = ts.createSourceFile(
+            this.sourceFileName, '', ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
+
+        (<any>sourceFile.statements) = [node];
+
+        (<any>ts).bindSourceFile(sourceFile, opts);
+        return sourceFile.statements;
+    }
+
     private parseJSCode(jsText: string) {
 
         const opts = {
@@ -863,7 +882,7 @@ export class Emitter {
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
         declarationList.declarations.forEach(
-            d => this.processVariableDeclarationOne(d.name.getText(), d.initializer, Helpers.isConstOrLet(declarationList)));
+            d => this.processVariableDeclarationOne((<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList)));
     }
 
     private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
@@ -1124,12 +1143,33 @@ export class Emitter {
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
-        this.functionContext.newLocalScope(node);
+        const declIndexer = ts.createVariableDeclaration('_i', undefined, ts.createNumericLiteral('0'));
+        const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
+        const newStatementBlock = ts.createBlock(
+            [
+                    ts.createStatement(ts.createAssignment(arrayItem, ts.createElementAccess(node.expression, ts.createIdentifier('_i')))),
+                    node.statement
+            ]);
 
-        // TODO: Not Implemented
-        //throw new Error('Not Implemented');
+        // to make it LET
+        declIndexer.flags = 2;
+        const forStatement =
+            ts.createFor(ts.createVariableDeclarationList([ declIndexer ]),
+                ts.createBinary(
+                    ts.createIdentifier('_i'),
+                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(node.expression, ts.createIdentifier('length'))),
+                ts.createPostfixIncrement(ts.createIdentifier('_i')),
+                newStatementBlock);
 
-        this.functionContext.restoreLocalScope();
+        // to support variable resolvation
+        ////(<any>forStatement).locals = (<any>ts).createSymbolTable();
+
+        this.bind(forStatement);
+
+        forStatement.parent = node.parent;
+        (<any>forStatement).__origin = node;
+
+        this.processStatement(forStatement);
     }
 
     private processBreakStatement(node: ts.BreakStatement) {
