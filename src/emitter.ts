@@ -672,6 +672,16 @@ export class Emitter {
             this.createDefaultCtor(node, properties);
         }
 
+        // any get accessor
+        if (node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor)) {
+            this.createAccessorsCollection(node, properties, true);
+        }
+
+        // any set accessor
+        if (node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor)) {
+            this.createAccessorsCollection(node, properties, false);
+        }
+
         // emit __index of base class
         const extend = this.getInheritanceFirst(node);
         if (extend) {
@@ -733,6 +743,26 @@ export class Emitter {
         properties.push(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
     }
 
+    private createAccessorsCollection(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[], isGet: boolean) {
+        const accessor = isGet ? ts.SyntaxKind.GetAccessor : ts.SyntaxKind.SetAccessor;
+        const memberName = isGet ? '__get__' : '__set__';
+
+        const accessorsProperties = node.members.filter(f => f.kind === accessor).map(m =>
+            ts.createPropertyAssignment(
+                node.name,
+                ts.createPropertyAccess(
+                    node.name,
+                    <string | ts.Identifier>this.getClassMemberName(m)) ));
+
+        const accessorsMember = ts.createObjectLiteral(accessorsProperties);
+        accessorsMember.parent = node;
+        properties.push(ts.createPropertyAssignment(memberName, accessorsMember));
+    }
+
+    private createSetAccessorsCollection(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[]) {
+
+    }
+
     private isDefaultCtorRequired(node: ts.ClassDeclaration) {
         return node.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
             && m.modifiers
@@ -779,6 +809,8 @@ export class Emitter {
                     });
                 (<any>constructorFunction).__origin = constructorDeclaration;
                 return constructorFunction;
+            case ts.SyntaxKind.SetAccessor:
+            case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
                 const memberFunction = ts.createFunctionExpression(
@@ -803,6 +835,10 @@ export class Emitter {
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.Constructor:
                 return 'constructor';
+            case ts.SyntaxKind.SetAccessor:
+                return 'set_' + (<ts.Identifier>memberDeclaration.name).text;
+            case ts.SyntaxKind.GetAccessor:
+                return 'get_' + (<ts.Identifier>memberDeclaration.name).text;
             default:
                 return memberDeclaration.name;
         }
@@ -818,6 +854,8 @@ export class Emitter {
                         || propertyDeclaration.initializer.kind === ts.SyntaxKind.ArrowFunction);
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
+            case ts.SyntaxKind.GetAccessor:
+            case ts.SyntaxKind.SetAccessor:
                 return true;
             default:
                 throw new Error('Not Implemented');
@@ -965,7 +1003,6 @@ export class Emitter {
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
-
         if (node.body.kind !== ts.SyntaxKind.Block) {
             throw new Error('Arrow function as expression is not implemented yet');
         }

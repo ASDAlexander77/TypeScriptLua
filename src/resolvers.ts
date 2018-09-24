@@ -257,7 +257,7 @@ export class IdentifierResolver {
 
     private unresolvedFilter = {
         '__instanceof': true, 'setmetatable': true, 'debug': true, 'type': true, 'error': true, 'require': true, 'exports': true,
-        'table': true, 'tostring': true, 'tonumber': true, 'rowset': true, 'rowget': true
+        'table': true, 'tostring': true, 'tonumber': true, 'rawset': true, 'rawget': true
     };
 
     public methodCall: boolean;
