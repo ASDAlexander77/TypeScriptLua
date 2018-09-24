@@ -184,10 +184,15 @@ export class Emitter {
         return createThis;
     }
 
-    private processDebugInfo(node: ts.Node, functionContext: FunctionContext) {
-        const file = (<any>ts).getSourceFileOfNode(node);
+    private processDebugInfo(nodeIn: ts.Node, functionContext: FunctionContext) {
+        let node = nodeIn;
+        let file = (<any>ts).getSourceFileOfNode(node);
         if (!file) {
-            return;
+            node = (<any>node).__origin;
+            file = (<any>ts).getSourceFileOfNode(node);
+            if (!file) {
+                return;
+            }
         }
 
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
@@ -211,9 +216,28 @@ export class Emitter {
             case ts.SyntaxKind.TryStatement:
                 functionContext.debug_location += ':try';
                 break;
+            case ts.SyntaxKind.Constructor:
+                functionContext.debug_location += ':' + (<ts.ClassDeclaration>node.parent).name.text + ':ctor';
+                break;
+            case ts.SyntaxKind.MethodDeclaration:
+                functionContext.debug_location +=
+                ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
+                break;
+            case ts.SyntaxKind.GetAccessor:
+                functionContext.debug_location +=
+                ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
+                break;
+            case ts.SyntaxKind.SetAccessor:
+                functionContext.debug_location +=
+                ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
+                break;
             case ts.SyntaxKind.SourceFile:
                 break;
-            default: throw new Error('Not Implemented');
+            default:
+                throw new Error('Not Implemented');
         }
 
         if (node.kind !== ts.SyntaxKind.SourceFile) {
