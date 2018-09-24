@@ -74,7 +74,7 @@ export class Emitter {
     __get_call__ = __get_call__ || function (t, k) {                \
         const getmethod = t.__proto.__get__[k];                     \
         if (getmethod) {                                            \
-            return getmethod(t, k);                                 \
+            return getmethod(t);                                    \
         }                                                           \
                                                                     \
         return rawget(t, k) || t.__proto[k];                        \
@@ -862,20 +862,32 @@ export class Emitter {
 
     private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
         const node = <ts.ClassDeclaration>memberDeclaration.parent;
-        if (!node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor)) {
+        const anyGet = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor);
+        const anySet = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor);
+        if (!anyGet && !anySet) {
             return [];
         }
 
-        return [
-            ts.createStatement(
+        const statements = [];
+        statements.push(ts.createStatement(
+            ts.createAssignment(
+                ts.createPropertyAccess(ts.createThis(), '__proto'),
+                ts.createPropertyAccess(ts.createThis(), '__index'))));
+        if (anyGet) {
+            statements.push(ts.createStatement(
                 ts.createAssignment(
-                    ts.createPropertyAccess(ts.createThis(), '__proto'),
-                    ts.createPropertyAccess(ts.createThis(), '__index'))),
-            ts.createStatement(
-                ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__index'), ts.createIdentifier('__get_call__'))),
-            ts.createStatement(
-                ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__newindex'), ts.createIdentifier('__set_call__'))),
-        ];
+                    ts.createPropertyAccess(ts.createThis(), '__index'),
+                    ts.createIdentifier('__get_call__'))));
+        }
+
+        if (anySet) {
+            statements.push(ts.createStatement(
+                ts.createAssignment(
+                    ts.createPropertyAccess(ts.createThis(), '__newindex'),
+                    ts.createIdentifier('__set_call__'))));
+        }
+
+        return statements;
     }
 
     private getInheritanceFirst(node: ts.ClassDeclaration) {
