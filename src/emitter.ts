@@ -69,7 +69,37 @@ export class Emitter {
         }                                                           \
                                                                     \
         return false;                                               \
+    }                                                               \
+                                                                    \
+    __get_call__ = __get_call__ || function (t, k) {                \
+        const getmethod = t.__proto.__get__[k];                     \
+        if (getmethod) {                                            \
+            return getmethod(t, k);                                 \
+        }                                                           \
+                                                                    \
+        return rawget(t, k) || t.__proto[k];                        \
+    }                                                               \
+                                                                    \
+    __set_call__ = __set_call__ || function (t, k, v) {             \
+        const setmethod = t.__proto.__set__[k];                     \
+        if (setmethod) {                                            \
+            setmethod(t, v);                                        \
+            return;                                                 \
+        }                                                           \
+                                                                    \
+        rawset(t, k, v);                                            \
     }';
+
+    /*
+    -- new instance
+    local a = {}
+    --a.__index = proto
+    a.__index = __get_call__
+    a.__proto = proto
+    a.__newindex = __set_call__
+
+    setmetatable(a, a)
+    */
 
     public processNode(node: ts.Node): void {
         switch (node.kind) {
