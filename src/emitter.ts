@@ -747,12 +747,9 @@ export class Emitter {
         const accessor = isGet ? ts.SyntaxKind.GetAccessor : ts.SyntaxKind.SetAccessor;
         const memberName = isGet ? '__get__' : '__set__';
 
-        const accessorsProperties = node.members.filter(f => f.kind === accessor).map(m =>
-            ts.createPropertyAssignment(
-                node.name,
-                ts.createPropertyAccess(
-                    node.name,
-                    <string | ts.Identifier>this.getClassMemberName(m)) ));
+        const accessorsProperties = node.members
+            .filter(f => f.kind === accessor)
+            .map(m => ts.createPropertyAssignment(m.name, this.createClassMember(m) ));
 
         const accessorsMember = ts.createObjectLiteral(accessorsProperties);
         accessorsMember.parent = node;
@@ -853,9 +850,10 @@ export class Emitter {
                         || propertyDeclaration.initializer.kind === ts.SyntaxKind.ArrowFunction);
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
+                return true;
             case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.SetAccessor:
-                return true;
+                return false;
             default:
                 throw new Error('Not Implemented');
         }
@@ -1437,7 +1435,6 @@ export class Emitter {
                 propertyIndexInfo.getRegisterOrIndex(),
                 propertyValueInfo.getRegisterOrIndex()]);
         });
-
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
