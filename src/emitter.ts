@@ -757,11 +757,13 @@ export class Emitter {
     }
 
     private isDefaultCtorRequired(node: ts.ClassDeclaration) {
+        if (node.members.some(m => m.kind === ts.SyntaxKind.Constructor)) {
+            return false;
+        }
+
         return node.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
-            && m.modifiers
-            && m.modifiers.some(md => md.kind === ts.SyntaxKind.ReadonlyKeyword)
+            && m.modifiers && m.modifiers.some(md => md.kind === ts.SyntaxKind.ReadonlyKeyword)
             && (<ts.PropertyDeclaration>m).initializer !== undefined)
-            && node.members.every(m => m.kind !== ts.SyntaxKind.Constructor)
             || node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
     }
 
@@ -873,6 +875,7 @@ export class Emitter {
             ts.createAssignment(
                 ts.createPropertyAccess(ts.createThis(), '__proto'),
                 ts.createPropertyAccess(ts.createThis(), '__index'))));
+
         if (anyGet) {
             statements.push(ts.createStatement(
                 ts.createAssignment(

@@ -1,12 +1,15 @@
 class Person {
-    protected name: string;
-    constructor(name: string) { this.name = name; }
+    public name: string;
+    constructor(name: string) { 
+	console.log("ctor Person");
+	this.name = name; }
 }
 
 class Employee extends Person {
-    private department: string;
+    public department: string;
 
     constructor(name: string, department: string) {
+	console.log("ctor Employee");
         super(name);
         this.department = department;
     }
@@ -17,4 +20,6 @@ class Employee extends Person {
 }
 
 let howard = new Employee('Howard', 'Sales');
-console.log(howard.ElevatorPitch);
+console.log(howard.name);
+console.log(howard.department);
+//console.log(howard.ElevatorPitch());
