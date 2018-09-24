@@ -72,7 +72,7 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
-    it.skip('this - in an arrow function', () => expect('spades\r\n').to.equals(new Run().test([
+    it('this - in an arrow function', () => expect('hearts\r\n').to.equals(new Run().test([
         'let deck = {                                                           \
             suits: ["hearts"],                                                  \
             createCardPicker: function() {                                      \
