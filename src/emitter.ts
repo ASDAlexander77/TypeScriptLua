@@ -759,10 +759,6 @@ export class Emitter {
         properties.push(ts.createPropertyAssignment(memberName, accessorsMember));
     }
 
-    private createSetAccessorsCollection(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[]) {
-
-    }
-
     private isDefaultCtorRequired(node: ts.ClassDeclaration) {
         return node.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
             && m.modifiers
@@ -787,6 +783,8 @@ export class Emitter {
                     constructorDeclaration.type, <ts.Block><any>{
                         kind: ts.SyntaxKind.Block,
                         statements: [
+                            ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
+                            // initialized members
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => cm.kind === ts.SyntaxKind.PropertyDeclaration
                                     && (<ts.PropertyDeclaration>cm).initializer
@@ -795,6 +793,7 @@ export class Emitter {
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
                                         (<ts.PropertyDeclaration>p).initializer))),
+                            // members of class provided in ctor parameters
                             ...constructorDeclaration.parameters
                                 .filter(p => p.modifiers && p.modifiers.some(md =>
                                     md.kind === ts.SyntaxKind.PrivateKeyword
@@ -860,6 +859,19 @@ export class Emitter {
             default:
                 throw new Error('Not Implemented');
         }
+    }
+
+    private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
+        const node = <ts.ClassDeclaration>memberDeclaration.parent;
+        if (!node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor)) {
+            return [];
+        }
+
+        return [
+            ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__proto'), ts.createPropertyAccess(ts.createThis(), '__index')),
+            ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__index'), ts.createIdentifier('__get_call__')),
+            ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__newindex'), ts.createIdentifier('__set_call__')),
+        ];
     }
 
     private getInheritanceFirst(node: ts.ClassDeclaration) {
