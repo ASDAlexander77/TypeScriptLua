@@ -761,7 +761,8 @@ export class Emitter {
             && m.modifiers
             && m.modifiers.some(md => md.kind === ts.SyntaxKind.ReadonlyKeyword)
             && (<ts.PropertyDeclaration>m).initializer !== undefined)
-            && node.members.every(m => m.kind !== ts.SyntaxKind.Constructor);
+            && node.members.every(m => m.kind !== ts.SyntaxKind.Constructor)
+            || node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
     }
 
     private createClassMember(memberDeclaration: ts.ClassElement): ts.Expression {
@@ -866,9 +867,14 @@ export class Emitter {
         }
 
         return [
-            ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__proto'), ts.createPropertyAccess(ts.createThis(), '__index')),
-            ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__index'), ts.createIdentifier('__get_call__')),
-            ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__newindex'), ts.createIdentifier('__set_call__')),
+            ts.createStatement(
+                ts.createAssignment(
+                    ts.createPropertyAccess(ts.createThis(), '__proto'),
+                    ts.createPropertyAccess(ts.createThis(), '__index'))),
+            ts.createStatement(
+                ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__index'), ts.createIdentifier('__get_call__'))),
+            ts.createStatement(
+                ts.createAssignment(ts.createPropertyAccess(ts.createThis(), '__newindex'), ts.createIdentifier('__set_call__'))),
         ];
     }
 

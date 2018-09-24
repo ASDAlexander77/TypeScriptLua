@@ -249,59 +249,46 @@ describe('Classes', () => {
         console.log(createInstance(Bee).numLegs);                           \
     '])));
 
-    it.skip('Class - Accessors',  () => expect('Bob Smith\r\n').to.equals(new Run().test([
-        'let passcode = "secret passcode";                                  \
-                                                                            \
-        class Employee {                                                    \
-            private _fullName: string;                                      \
+    it('Class - Accessors',  () => expect('Bob Smith\r\nBob Smith\r\n').to.equals(new Run().test([
+        'class Employee {                                                   \
+            _fullName: string;                                              \
                                                                             \
             get fullName(): string {                                        \
                 return this._fullName;                                      \
             }                                                               \
                                                                             \
             set fullName(newName: string) {                                 \
-                if (passcode && passcode == "secret passcode") {            \
-                    this._fullName = newName;                               \
-                }                                                           \
-                else {                                                      \
-                    console.log("Error: Unauthorized update of employee!"); \
-                }                                                           \
+                this._fullName = newName;                                   \
             }                                                               \
         }                                                                   \
                                                                             \
         let employee = new Employee();                                      \
         employee.fullName = "Bob Smith";                                    \
-        if (employee.fullName) {                                            \
-            console.log(employee.fullName);                                 \
-        }                                                                   \
+        console.log(employee.fullName);                                     \
+        console.log(employee._fullName);                                    \
     '])));
 
-    // not implemented yet, use __newindex to set, and __index to get value from table
-    it.skip('Class - Accessors 2',  () => expect('Error: Unauthorized update of employee!\r\n').to.equals(new Run().test([
-        'let passcode = "secret passcode _";                                \
+    it('Class - Accessors 2',  () => expect('Hello, my name is Howard and I work in Sales.\r\n').to.equals(new Run().test([
+        'class Person {                                                     \
+            protected name: string;                                         \
+            constructor(name: string) { this.name = name; }                 \
+        }                                                                   \
                                                                             \
-        class Employee {                                                    \
-            private _fullName: string;                                      \
+        class Employee extends Person {                                     \
+            private department: string;                                     \
                                                                             \
-            get fullName(): string {                                        \
-                return this._fullName;                                      \
+            constructor(name: string, department: string) {                 \
+                super(name);                                                \
+                this.department = department;                               \
             }                                                               \
                                                                             \
-            set fullName(newName: string) {                                 \
-                if (passcode && passcode == "secret passcode") {            \
-                    this._fullName = newName;                               \
-                }                                                           \
-                else {                                                      \
-                    console.log("Error: Unauthorized update of employee!"); \
-                }                                                           \
+            public get ElevatorPitch() {                                    \
+                return `Hello, my name is ${this.name} and I work in ${this.department}.`;  \
             }                                                               \
         }                                                                   \
                                                                             \
-        let employee = new Employee();                                      \
-        employee.fullName = "Bob Smith";                                    \
-        if (employee.fullName) {                                            \
-            console.log(employee.fullName);                                 \
-        }                                                                   \
+        let howard = new Employee("Howard", "Sales");                       \
+        console.log(howard.ElevatorPitch);                                  \
     '])));
 
     it('Class - Static Properties',  () => expect('14.142135623731\r\n2.8284271247462\r\n').to.equals(new Run().test([

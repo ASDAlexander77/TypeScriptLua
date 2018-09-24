@@ -1,17 +1,20 @@
-class Employee {
-    private _fullName: string;
+class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
+}
 
-    get fullName(): string {
-        return this._fullName;
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
     }
 
-    set fullName(newName: string) {
-        this._fullName = newName;
+    public get ElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
     }
 }
 
-console.log("begin");
-let employee = new Employee();
-//employee.fullName = "Bob Smith";
-//console.log(employee.fullName);
-console.log("end");
+let howard = new Employee('Howard', 'Sales');
+console.log(howard.ElevatorPitch);
