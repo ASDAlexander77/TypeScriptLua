@@ -151,6 +151,10 @@ export class FunctionContext {
         this.current_location_node = this.location_scopes.pop();
         if (this.locals.length > 0) {
             // set tp first after local variable
+            if ((this.locals[this.locals.length - 1].register - this.availableRegister) === 1) {
+                throw new Error('available register and restored register are to far (> 1) (restoreLocalScope)');
+            }
+
             this.availableRegister = this.locals[this.locals.length - 1].register + 1;
         }
     }
