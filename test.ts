@@ -2,7 +2,6 @@ function f() {
     switch (returnData.taskType) {
         case WorkerTaskType.INIT:
             this._init = true;
-            //Update the worked with ALL of the scene's current state
             this._scene.meshes.forEach((mesh) => {
                 this.onMeshAdded(mesh);
             });
@@ -29,7 +28,6 @@ function f() {
                 }
             }
 
-            //cleanup
             this._collisionsCallbackArray[returnPayload.collisionId] = null;
             break;
     }
