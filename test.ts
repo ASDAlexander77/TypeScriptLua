@@ -1,13 +1,36 @@
-function padLeft(value: string, padding: any) {
-    if (typeof padding === 'number') {
-        return String(padding) + value;
-    }
+function f() {
+    switch (returnData.taskType) {
+        case WorkerTaskType.INIT:
+            this._init = true;
+            //Update the worked with ALL of the scene's current state
+            this._scene.meshes.forEach((mesh) => {
+                this.onMeshAdded(mesh);
+            });
 
-    if (typeof padding === 'string') {
-        return padding + value;
-    }
+            this._scene.getGeometries().forEach((geometry) => {
+                this.onGeometryAdded(geometry);
+            });
 
-    throw new Error(`Expected string or number, got \'${padding}\'.`);
+            break;
+        case WorkerTaskType.UPDATE:
+            this._runningUpdated--;
+            break;
+        case WorkerTaskType.COLLIDE:
+            var returnPayload: CollisionReplyPayload = returnData.payload;
+            if (!this._collisionsCallbackArray[returnPayload.collisionId]) return;
+
+            let callback = this._collisionsCallbackArray[returnPayload.collisionId];
+
+            if (callback) {
+                let mesh = this._scene.getMeshByUniqueID(returnPayload.collidedMeshUniqueId);
+
+                if (mesh) {
+                    callback(returnPayload.collisionId, Vector3.FromArray(returnPayload.newPosition), mesh);
+                }
+            }
+
+            //cleanup
+            this._collisionsCallbackArray[returnPayload.collisionId] = null;
+            break;
+    }
 }
-
-console.log(padLeft('Hello world', 4));

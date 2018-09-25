@@ -326,7 +326,7 @@ export class IdentifierResolver {
             const kind: ts.SyntaxKind = <ts.SyntaxKind>declaration.kind;
             switch (kind) {
                 case ts.SyntaxKind.VariableDeclaration:
-                    const type = resolved.valueDeclaration.type;
+                    const type = (resolved.valueDeclaration || resolved.exportSymbol.valueDeclaration).type;
                     // can be keyward to 'string'
                     if (type && type.typeName) {
                         switch (type.typeName.text) {
@@ -346,7 +346,8 @@ export class IdentifierResolver {
                         return this.returnLocalOrUpvalueNoException(identifier.text, functionContext)
                                || this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     } else {
-                        throw new Error('Not implemented');
+                        console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
+                        this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     }
 
                     break;
