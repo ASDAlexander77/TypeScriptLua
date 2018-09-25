@@ -51,13 +51,13 @@ class Employee extends Person {
         this.department = department;
     }
 
-    public getElevatorPitch() {
+    public get ElevatorPitch() {
         return `Hello, my name is ${this.name} and I work in ${this.department}.`;
     }
 }
 
 let howard = new Employee("Howard", "Sales");
-console.log(howard.getElevatorPitch());
+console.log(howard.ElevatorPitch);
 ```
 
 ```

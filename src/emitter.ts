@@ -713,6 +713,7 @@ export class Emitter {
         // emit __index of base class
         const extend = this.getInheritanceFirst(node);
         if (extend) {
+            properties.push(ts.createPropertyAssignment('__proto', ts.createIdentifier(extend.getText())));
             properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
         }
 
@@ -891,18 +892,13 @@ export class Emitter {
     }
 
     private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
+        const statements = [];
         const node = <ts.ClassDeclaration>memberDeclaration.parent;
         const anyGet = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor);
         const anySet = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor);
         if (!anyGet && !anySet) {
-            return [];
+            return statements;
         }
-
-        const statements = [];
-        statements.push(ts.createStatement(
-            ts.createAssignment(
-                ts.createPropertyAccess(ts.createThis(), '__proto'),
-                ts.createPropertyAccess(ts.createThis(), '__index'))));
 
         if (anyGet) {
             statements.push(ts.createStatement(
@@ -2116,6 +2112,7 @@ export class Emitter {
 
         this.processExpression(
             ts.createObjectLiteral([
+                ts.createPropertyAssignment('__proto', node.expression),
                 ts.createPropertyAssignment('__index', node.expression)
             ]));
         const resultInfo = this.functionContext.stack.peek();
@@ -2250,8 +2247,8 @@ export class Emitter {
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
-        const propertyAccessThis = ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__index'));
-        const superExpression = ts.createPropertyAccess(propertyAccessThis, ts.createIdentifier('__index'));
+        const propertyAccessThis = ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__proto'));
+        const superExpression = ts.createPropertyAccess(propertyAccessThis, ts.createIdentifier('__proto'));
         propertyAccessThis.parent = superExpression;
         superExpression.parent = node.parent;
         if (node.parent.kind === ts.SyntaxKind.CallExpression) {

@@ -148,7 +148,7 @@ describe('Classes', () => {
         console.log(c2.method1());                          \
     '])));
 
-    it('Class inheritance - call super class', () => expect('true\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
+    it('Class inheritance - instance', () => expect('true\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
         'class Class1 {                                             \
         }                                                           \
                                                                     \
@@ -185,6 +185,30 @@ describe('Classes', () => {
                                                                         \
         let howard = new Employee("Howard", "Sales");                   \
         console.log(howard.getElevatorPitch());                         \
+    '])));
+
+    it('Class inheritance - complete example with property',
+    () => expect('Hello, my name is Howard and I work in Sales.\r\n').to.equals(new Run().test([
+        'class Person {                                                 \
+            protected name: string;                                     \
+            constructor(name: string) { this.name = name; }             \
+        }                                                               \
+                                                                        \
+        class Employee extends Person {                                 \
+            private department: string;                                 \
+                                                                        \
+            constructor(name: string, department: string) {             \
+                super(name);                                            \
+                this.department = department;                           \
+            }                                                           \
+                                                                        \
+            public get ElevatorPitch() {                                 \
+                return `Hello, my name is ${this.name} and I work in ${this.department}.`;  \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        let howard = new Employee("Howard", "Sales");                   \
+        console.log(howard.ElevatorPitch);                              \
     '])));
 
     it('Class - default ctor - readonly',  () => expect('8\r\n').to.equals(new Run().test([
