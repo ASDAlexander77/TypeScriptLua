@@ -195,6 +195,10 @@ export class Emitter {
             }
         }
 
+        if (node.pos === -1) {
+            return;
+        }
+
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
 
@@ -221,18 +225,18 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.MethodDeclaration:
                 functionContext.debug_location +=
-                ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
+                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                    ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
                 break;
             case ts.SyntaxKind.GetAccessor:
                 functionContext.debug_location +=
-                ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
+                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                    ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
                 break;
             case ts.SyntaxKind.SetAccessor:
                 functionContext.debug_location +=
-                ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
+                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                    ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
                 break;
             case ts.SyntaxKind.SourceFile:
                 break;
@@ -773,7 +777,7 @@ export class Emitter {
 
         const accessorsProperties = node.members
             .filter(f => f.kind === accessor)
-            .map(m => ts.createPropertyAssignment(m.name, this.createClassMember(m) ));
+            .map(m => ts.createPropertyAssignment(m.name, this.createClassMember(m)));
 
         const accessorsMember = ts.createObjectLiteral(accessorsProperties);
         accessorsMember.parent = node;
@@ -2350,8 +2354,8 @@ export class Emitter {
             const lenResultInfo = this.functionContext.useRegisterAndPush();
             this.functionContext.code.push(
                 [Ops.LEN,
-                    lenResultInfo.getRegister(),
-                    expressionInfo.getRegisterOrIndex()]);
+                lenResultInfo.getRegister(),
+                expressionInfo.getRegisterOrIndex()]);
             return;
         }
 
