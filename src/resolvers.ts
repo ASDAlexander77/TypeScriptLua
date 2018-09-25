@@ -357,7 +357,7 @@ export class IdentifierResolver {
                     break;
 
                 case ts.SyntaxKind.Parameter:
-                    return this.returnLocal(identifier.text, functionContext);
+                    return this.returnLocalOrUpvalue(identifier.text, functionContext);
 
                 case ts.SyntaxKind.FunctionDeclaration:
                     return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
