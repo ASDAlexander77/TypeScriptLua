@@ -436,6 +436,8 @@ export class Emitter {
             case ts.SyntaxKind.ThisKeyword: this.processThisExpression(<ts.ThisExpression>node); return;
             case ts.SyntaxKind.SuperKeyword: this.processSuperExpression(<ts.SuperExpression>node); return;
             case ts.SyntaxKind.VoidExpression: this.processVoidExpression(<ts.VoidExpression>node); return;
+            case ts.SyntaxKind.NonNullExpression: this.processNonNullExpression(<ts.NonNullExpression>node); return;
+            case ts.SyntaxKind.AsExpression: this.processAsExpression(<ts.AsExpression>node); return;
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
@@ -892,6 +894,7 @@ export class Emitter {
                 return true;
             case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.SetAccessor:
+            case ts.SyntaxKind.SemicolonClassElement:
                 return false;
             default:
                 throw new Error('Not Implemented');
@@ -1066,7 +1069,8 @@ export class Emitter {
 
     private processArrowFunction(node: ts.ArrowFunction): void {
         if (node.body.kind !== ts.SyntaxKind.Block) {
-            throw new Error('Arrow function as expression is not implemented yet');
+            // create body
+            node.body = ts.createBlock([ ts.createReturn(<ts.Expression>node.body) ]);
         }
 
         this.processFunctionExpression(<any>node);
@@ -2276,6 +2280,14 @@ export class Emitter {
 
         // convert it into null
         this.processExpression(ts.createIdentifier('undefined'));
+    }
+
+    private processNonNullExpression(node: ts.NonNullExpression): void {
+        this.processExpression(node.expression);
+    }
+
+    private processAsExpression(node: ts.AsExpression): void {
+        this.processExpression(node.expression);
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
