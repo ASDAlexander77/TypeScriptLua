@@ -421,6 +421,10 @@ export class IdentifierResolver {
     public returnUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {
         if (functionContext.container) {
             const identifierResolvedInfo = this.returnLocalOrUpvalueNoException(text, functionContext.container);
+            if (!identifierResolvedInfo) {
+                return identifierResolvedInfo;
+            }
+
             if (identifierResolvedInfo.kind === ResolvedKind.Register
                 && identifierResolvedInfo.isLocal) {
                 const resolvedInfo = new ResolvedInfo(functionContext);

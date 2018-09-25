@@ -48,7 +48,7 @@ describe('Variable Declarations', () => {
         console.write(f());                     \
     '])));
 
-    it('var access variables within other functions 3 (multi-level)', () => expect('2\r\n').to.equals(new Run().test([
+    it('var access variables within other functions 3 (multi-level)', () => expect('1\r\n2\r\n3\r\n').to.equals(new Run().test([
     'function f() {                             \
         const up3 = 3;                          \
         function ff() {                         \
@@ -59,7 +59,9 @@ describe('Variable Declarations', () => {
                     const l = up1;              \
                     const m = up2;              \
                     const n = up3;              \
-                    console.log(l, m, n);       \
+                    console.log(l);             \
+                    console.log(m);             \
+                    console.log(n);             \
                 }                               \
                 ffff();                         \
             }                                   \

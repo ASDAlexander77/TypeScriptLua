@@ -1,21 +1,13 @@
-function f() {
-    const up3 = 3;
-    function ff() {
-        const up2 = 2;
-        function fff() {
-            const up1 = 1;
-            function ffff() {
-                const l = up1;
-                const m = up2;
-                const n = up3;
-                console.log(l, m, n);
-            }
-            ffff();
-        }
-        fff();
+function padLeft(value: string, padding: any) {
+    if (typeof padding === 'number') {
+        return String(padding) + value;
     }
-    ff();
+
+    if (typeof padding === 'string') {
+        return padding + value;
+    }
+
+    throw new Error(`Expected string or number, got \'${padding}\'.`);
 }
 
-f();
-
+console.log(padLeft('Hello world', 4));
