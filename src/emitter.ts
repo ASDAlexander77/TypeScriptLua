@@ -264,6 +264,13 @@ export class Emitter {
             && this.functionContext.container.current_location_node.kind === ts.SyntaxKind.ClassDeclaration;
         this.functionContext.isArrowFunction =
             location.kind === ts.SyntaxKind.ArrowFunction && !isClassDeclaration;
+        const isMethod = location.kind === ts.SyntaxKind.FunctionDeclaration
+            || location.kind === ts.SyntaxKind.FunctionExpression
+            || location.kind === ts.SyntaxKind.ArrowFunction
+            || location.kind === ts.SyntaxKind.MethodDeclaration
+            || location.kind === ts.SyntaxKind.Constructor
+            || location.kind === ts.SyntaxKind.SetAccessor
+            || location.kind === ts.SyntaxKind.GetAccessor;
 
         // debug info
         this.processDebugInfo(location, this.functionContext);
@@ -276,7 +283,7 @@ export class Emitter {
         }
 
         const origin = (<ts.Node>(<any>location).__origin);
-        if (origin || !this.functionContext.isArrowFunction) {
+        if (isMethod && (origin || !this.functionContext.isArrowFunction)) {
             const createThis = this.hasMemberThis(origin) || this.hasNodeUsedThis(location);
             if (createThis) {
                 this.functionContext.createLocal('this');
