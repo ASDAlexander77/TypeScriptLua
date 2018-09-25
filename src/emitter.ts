@@ -262,8 +262,8 @@ export class Emitter {
         const isClassDeclaration = this.functionContext.container
             && this.functionContext.container.current_location_node
             && this.functionContext.container.current_location_node.kind === ts.SyntaxKind.ClassDeclaration;
-        this.functionContext.isArrowFunction =
-            location.kind === ts.SyntaxKind.ArrowFunction && !isClassDeclaration;
+        this.functionContext.thisInUpvalue =
+            location.kind === ts.SyntaxKind.ArrowFunction && !isClassDeclaration || location.kind === ts.SyntaxKind.TryStatement;
         const isMethod = location.kind === ts.SyntaxKind.FunctionDeclaration
             || location.kind === ts.SyntaxKind.FunctionExpression
             || location.kind === ts.SyntaxKind.ArrowFunction
@@ -283,7 +283,7 @@ export class Emitter {
         }
 
         const origin = (<ts.Node>(<any>location).__origin);
-        if (isMethod && (origin || !this.functionContext.isArrowFunction)) {
+        if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = this.hasMemberThis(origin) || this.hasNodeUsedThis(location);
             if (createThis) {
                 this.functionContext.createLocal('this');
@@ -2246,7 +2246,7 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        if (this.functionContext.isArrowFunction) {
+        if (this.functionContext.thisInUpvalue) {
             const resolvedInfo = this.resolver.returnThisUpvalue(this.functionContext);
 
             const resultInfo = this.functionContext.useRegisterAndPush();
