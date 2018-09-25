@@ -29,7 +29,6 @@ export class ResolvedInfo {
     public protoIndex: number;
     public upvalueInstack: boolean;
     public upvalueStackIndex: number;
-    public root: boolean;
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
 
@@ -242,10 +241,6 @@ export class ScopeContext {
     public any(): boolean {
         return this.scope.length > 0;
     }
-
-    public anyNotRoot(): boolean {
-        return this.scope.length > 1 || this.scope.length > 0 && !this.scope[this.scope.length - 1].root;
-    }
 }
 
 export class IdentifierResolver {
@@ -268,7 +263,7 @@ export class IdentifierResolver {
     }
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
-        if (this.Scope.anyNotRoot()) {
+        if (this.Scope.any()) {
             return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
         }
 
@@ -411,25 +406,38 @@ export class IdentifierResolver {
         return resolvedInfo;
     }
 
-    public returnResolvedEnv(functionContext: FunctionContext, root?: boolean): ResolvedInfo {
+    public createEnv(functionContext: FunctionContext) {
         const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.identifierName = '_ENV';
-        resolvedInfo.upvalueInstack = functionContext.container ? false : true;
-        resolvedInfo.root = root;
+        resolvedInfo.upvalueInstack = true;
         resolvedInfo.ensureUpvalueIndex();
-        return resolvedInfo;
+    }
+
+    public returnResolvedEnv(functionContext: FunctionContext): ResolvedInfo {
+        return this.returnLocalOrUpvalue('_ENV', functionContext);
     }
 
     public returnUpvalue(text: string, functionContext: FunctionContext): ResolvedInfo {
         if (functionContext.container) {
-            const localVarIndexAsUpvalue = functionContext.container.findLocal(text, true);
-            if (localVarIndexAsUpvalue !== -1) {
+            const identifierResolvedInfo = this.returnLocalOrUpvalueNoException(text, functionContext.container);
+            if (identifierResolvedInfo.kind === ResolvedKind.Register
+                && identifierResolvedInfo.isLocal) {
                 const resolvedInfo = new ResolvedInfo(functionContext);
                 resolvedInfo.kind = ResolvedKind.Upvalue;
                 resolvedInfo.identifierName = text;
                 resolvedInfo.upvalueInstack = true;
-                resolvedInfo.upvalueStackIndex = localVarIndexAsUpvalue;
+                resolvedInfo.upvalueStackIndex = identifierResolvedInfo.register;
+                return resolvedInfo;
+            }
+
+            if (identifierResolvedInfo.kind === ResolvedKind.Upvalue) {
+                identifierResolvedInfo.ensureUpvalueIndex();
+                const resolvedInfo = new ResolvedInfo(functionContext);
+                resolvedInfo.kind = ResolvedKind.Upvalue;
+                resolvedInfo.identifierName = text;
+                resolvedInfo.upvalueInstack = false;
+                resolvedInfo.upvalueStackIndex = identifierResolvedInfo.upvalueIndex;
                 return resolvedInfo;
             }
         }
@@ -447,6 +455,17 @@ export class IdentifierResolver {
             return resolvedInfo;
         }
 
+        const upvalueIndex = functionContext.findUpvalue(text, true);
+        if (upvalueIndex !== -1) {
+            const resolvedInfo = new ResolvedInfo(functionContext);
+            resolvedInfo.kind = ResolvedKind.Upvalue;
+            resolvedInfo.identifierName = text;
+            resolvedInfo.upvalueIndex = upvalueIndex;
+            resolvedInfo.upvalueStackIndex = functionContext.upvalues[upvalueIndex].index;
+            resolvedInfo.upvalueInstack = functionContext.upvalues[upvalueIndex].instack;
+            return resolvedInfo;
+        }
+
         return this.returnUpvalue(text, functionContext);
     }
 
@@ -461,7 +480,7 @@ export class IdentifierResolver {
 
     private resolveMemberOfCurrentScope(identifier: string, functionContext: FunctionContext): ResolvedInfo {
         if (!this.Scope.any()) {
-            const objectInfo = this.returnResolvedEnv(functionContext, true);
+            const objectInfo = this.returnResolvedEnv(functionContext);
             const methodInfo = new ResolvedInfo(functionContext);
             methodInfo.kind = ResolvedKind.Const;
             methodInfo.identifierName = identifier;

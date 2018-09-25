@@ -1,14 +1,21 @@
-function _initializeAudioContext() {
-    try {
-        if (this.canUseWebAudio) {
-            this._audioContext = new AudioContext();
-            this.masterGain = this._audioContext.createGain();
-            this.masterGain.gain.value = 1;
-            this.masterGain.connect(this._audioContext.destination);
-            this._audioContextInitialized = true;
+function f() {
+    const up3 = 3;
+    function ff() {
+        const up2 = 2;
+        function fff() {
+            const up1 = 1;
+            function ffff() {
+                const l = up1;
+                const m = up2;
+                const n = up3;
+                console.log(l, m, n);
+            }
+            ffff();
         }
+        fff();
     }
-    catch (e) {
-        this.canUseWebAudio = false;
-    }
+    ff();
 }
+
+f();
+

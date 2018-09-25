@@ -276,7 +276,7 @@ export class Emitter {
         this.processDebugInfo(location, this.functionContext);
 
         if (createEnvironment) {
-            this.resolver.returnResolvedEnv(this.functionContext);
+            this.resolver.createEnv(this.functionContext);
 
             // we need to inject helper functions
             this.processTSCode(this.lib, true);

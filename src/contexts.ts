@@ -129,7 +129,6 @@ export class FunctionContext {
     public locals: Array<LocalVarInfo> = [];
     public upvalues: Array<UpvalueInfo> = [];
     public protos: Array<FunctionContext> = [];
-    public debug: Array<any> = [];
     public local_scopes: Array<any> = [];
     public location_scopes: Array<any> = [];
     // to support break, continue in loops

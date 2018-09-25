@@ -48,6 +48,29 @@ describe('Variable Declarations', () => {
         console.write(f());                     \
     '])));
 
+    it('var access variables within other functions 3 (multi-level)', () => expect('2\r\n').to.equals(new Run().test([
+    'function f() {                             \
+        const up3 = 3;                          \
+        function ff() {                         \
+            const up2 = 2;                      \
+            function fff() {                    \
+                const up1 = 1;                  \
+                function ffff() {               \
+                    const l = up1;              \
+                    const m = up2;              \
+                    const n = up3;              \
+                    console.log(l, m, n);       \
+                }                               \
+                ffff();                         \
+            }                                   \
+            fff();                              \
+        }                                       \
+        ff();                                   \
+    }                                           \
+                                                \
+    f();                                        \
+    '])));
+
     it('var Re-declarations and Shadowing', () => expect('1\r\n').to.equals(new Run().test([
         'function f(x:any) {                    \
             var x:any;                          \
