@@ -1345,9 +1345,9 @@ export class Emitter {
     private processSwitchStatement(node: ts.SwitchStatement) {
         this.processExpression(node.expression);
 
-        const switchResultInfo = this.functionContext.stack.peek();
-
         this.functionContext.newLocalScope(node);
+
+        const switchResultInfo = this.functionContext.stack.peek();
 
         let previousCaseJmpIndex = -1;
         let lastCaseJmpIndexes: number[] = [];
@@ -1403,9 +1403,9 @@ export class Emitter {
         });
 
         // clearup switch result;
-        this.functionContext.stack.pop();
-
         this.functionContext.restoreLocalScope();
+
+        this.functionContext.stack.pop();
 
         this.resolveBreakJumps();
     }

@@ -149,6 +149,10 @@ export class FunctionContext {
 
         this.locals = this.local_scopes.pop();
         this.current_location_node = this.location_scopes.pop();
+        if (this.locals.length > 0) {
+            // set tp first after local variable
+            this.availableRegister = this.locals[this.locals.length - 1].register + 1;
+        }
     }
 
     public debugInfoMarkEndOfScopeForLocals() {
