@@ -295,6 +295,10 @@ export class FunctionContext {
     }
 
     public popRegister(resolvedInfo: ResolvedInfo): void {
+        if (!resolvedInfo) {
+            throw new Error('resolvedInfo is null');
+        }
+
         if (resolvedInfo.kind === ResolvedKind.Register && resolvedInfo.register !== undefined && !resolvedInfo.isLocal()) {
             if ((this.availableRegister - resolvedInfo.getRegister()) > 1) {
                 throw new Error('available register and restored register are to far (> 1)');

@@ -1,6 +1,1 @@
-function f()
-{
-	return (<any>this.effectLayers[index] as f)!;
-}
-
-f()!.test();
+var clone = new Animation(_this.name.join());

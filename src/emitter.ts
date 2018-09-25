@@ -826,7 +826,7 @@ export class Emitter {
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => cm.kind === ts.SyntaxKind.PropertyDeclaration
                                     && (<ts.PropertyDeclaration>cm).initializer
-                                    && cm.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.ReadonlyKeyword))
+                                    && cm.modifiers && cm.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.ReadonlyKeyword))
                                 .map(p => ts.createStatement(
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
@@ -2171,7 +2171,8 @@ export class Emitter {
 
         this.emitCallOfLoadedMethod(
             <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments },
-            resultInfo);
+            resultInfo,
+            true);
 
         jmpOp[2] = this.functionContext.code.length - beforeBlock;
     }
@@ -2203,7 +2204,7 @@ export class Emitter {
         this.emitCallOfLoadedMethod(node, selfOpCodeResolveInfoForThis);
     }
 
-    private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo) {
+    private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
         node.arguments.forEach(a => {
             // pop method arguments
             this.processExpression(a);
@@ -2218,7 +2219,7 @@ export class Emitter {
         const methodResolvedInfo = this.functionContext.stack.pop();
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
-        const noReturnCall = parent.kind === ts.SyntaxKind.NewExpression
+        const noReturnCall = constructorCall
             || parent.kind === ts.SyntaxKind.ExpressionStatement;
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
