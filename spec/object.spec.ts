@@ -30,4 +30,19 @@ describe('Objects', () => {
         c.sayHi();                                                          \
     '])));
 
+    it('object - spread assignment', () => expect('0\r\nfalse\r\n').to.equals(new Run().test([
+        'let options = {                                                    \
+            b1: false                                                       \
+        };                                                                  \
+                                                                            \
+        let mergedOptions = {                                               \
+            bilinearFiltering: false,                                       \
+            comparisonFunction: 0,                                          \
+            generateStencil: false,                                         \
+            ...options                                                      \
+        };                                                                  \
+                                                                            \
+        console.log(mergedOptions.comparisonFunction);                      \
+        console.log(mergedOptions.b1);                                      \
+    '])));
 });

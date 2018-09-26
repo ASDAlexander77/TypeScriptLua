@@ -1285,10 +1285,9 @@ export class Emitter {
         const arrayItemInitialization = ts.createVariableDeclaration(
             arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier(indexerName)));
         // to make it LET
-        arrayItemInitialization.flags = 2;
         const newStatementBlock = ts.createBlock(
             [
-                ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization])),
+                ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization], ts.NodeFlags.Const)),
                 node.statement
             ]);
 
@@ -1296,9 +1295,8 @@ export class Emitter {
         (<any>lengthMemeber).__len = true;
 
         // to make it LET
-        declIndexer.flags = 2;
         const forStatement =
-            ts.createFor(ts.createVariableDeclarationList([declIndexer]),
+            ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
                 ts.createBinary(
                     ts.createIdentifier(indexerName),
                     ts.SyntaxKind.LessThanEqualsToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
@@ -1510,11 +1508,10 @@ export class Emitter {
             const spreadAssignment = <ts.SpreadAssignment><any>e;
 
             const objLocal = ts.createIdentifier('obj_');
-            objLocal.flags = 2;
+            objLocal.flags = ts.NodeFlags.Const;
             const indexLocal = ts.createIdentifier('i_');
-            indexLocal.flags = 2;
             const forInSetStatement = ts.createForIn(
-                ts.createVariableDeclarationList([ts.createVariableDeclaration(indexLocal)]),
+                ts.createVariableDeclarationList([ts.createVariableDeclaration(indexLocal)], ts.NodeFlags.Const),
                 spreadAssignment.expression,
                 ts.createStatement(ts.createAssignment(
                     ts.createElementAccess(objLocal, indexLocal),

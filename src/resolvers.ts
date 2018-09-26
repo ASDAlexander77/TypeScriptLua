@@ -366,13 +366,18 @@ export class IdentifierResolver {
             }
         }
 
+        // default: local, upvalues
+        const localObj = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
+        if (localObj) {
+            return localObj;
+        }
+
         if (!(identifier.text in this.unresolvedFilter)) {
             console.warn('Could not resolve: ' + identifier.text);
         }
 
         // default
-        return this.returnLocalOrUpvalueNoException(identifier.text, functionContext)
-            || this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+        return  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
     }
 
     public returnConst(value: any, functionContext: FunctionContext): ResolvedInfo {
