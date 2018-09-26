@@ -601,22 +601,18 @@ export class Emitter {
             this.functionContext.code.push(jmpOp);
             const casesBlockBegin = this.functionContext.code.length;
 
-            // registring local var
-            let localVar = -1;
+            // scope - begin
+            this.functionContext.newLocalScope(node.catchClause);
+
             const variableDeclaration = node.catchClause.variableDeclaration;
-            if (variableDeclaration) {
-                this.functionContext.createLocal(variableDeclaration.name.getText(), errorResultInfo);
-                localVar = this.functionContext.locals.length - 1;
-            }
+            this.functionContext.createLocal((<ts.Identifier>variableDeclaration.name).text, errorResultInfo);
 
-            // catch...
-            this.processBlock(node.catchClause.block);
+            node.catchClause.block.statements.forEach(s => {
+                this.processStatement(s);
+            });
 
-            // clean up of local var
-            if (localVar !== -1) {
-                // remove catch local variable
-                this.functionContext.locals.splice(localVar, 1);
-            }
+            // scope - end
+            this.functionContext.restoreLocalScope();
 
             // end of cases block
             jmpOp[2] = this.functionContext.code.length - casesBlockBegin;

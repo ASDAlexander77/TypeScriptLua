@@ -150,7 +150,9 @@ export class FunctionContext {
 
         if (this.locals && this.locals.length > 0) {
             const minRegister = Math.min( ...this.locals.filter(l => !l.fake).map(l => l.register) );
-            this.availableRegister = minRegister;
+            if (minRegister >= 0 && minRegister < Infinity) {
+                this.availableRegister = minRegister;
+            }
         }
 
         this.locals = this.local_scopes.pop();

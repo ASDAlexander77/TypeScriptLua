@@ -1,8 +1,13 @@
-module M1.M2 {
-    export function f() {
-        console.log("Hi");
-    }
+let i = 1;
+try {
+    console.log(i);
+    throw 10;
+    i = 2;
+} catch (err) {
+    console.log("error");
+    console.log(err);
+} finally {
+    console.log(i);
 }
 
-M1.M2.f();
-
+console.log(i);
