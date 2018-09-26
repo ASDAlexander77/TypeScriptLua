@@ -201,7 +201,11 @@ export class Emitter {
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
 
-        functionContext.debug_location = '@' + file.fileName;
+        if (!functionContext.debug_location) {
+            functionContext.debug_location = '@' + file.fileName;
+        } else {
+            functionContext.debug_location = '@' + this.fileModuleName + '.lua';
+        }
 
         switch (node.kind) {
             case ts.SyntaxKind.FunctionDeclaration:
@@ -352,11 +356,11 @@ export class Emitter {
     private processFile(sourceFile: ts.SourceFile): void {
 
         this.functionContext.function_or_file_location_node = sourceFile;
-        this.functionContext.is_vararg = true;
 
         this.sourceFileName = sourceFile.fileName;
         this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[], !this.functionContext.environmentCreated);
         this.functionContext.environmentCreated = true;
+        this.functionContext.is_vararg = true;
     }
 
     private processBundle(bundle: ts.Bundle): void {
