@@ -1,17 +1,3 @@
-
-/*
-let options = {
-    b1: false
-};
-
-let mergedOptions = {
-    bilinearFiltering: false,
-    comparisonFunction: 0,
-    generateStencil: false,
-    //...options
-};
-
-for (let i in options) {
-	mergedOptions[i] = options[i];
-}
-*/
+import validator from "./test0";
+const myValidator = new validator();
+console.log(myValidator.isAcceptable("test"));

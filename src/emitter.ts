@@ -2240,7 +2240,7 @@ export class Emitter {
         const beforeBlock = this.functionContext.code.length;
 
         this.emitCallOfLoadedMethod(
-            <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments },
+            <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments || [] },
             resultInfo,
             true);
 
