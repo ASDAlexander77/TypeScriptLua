@@ -2267,7 +2267,9 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = constructorCall
-            || parent.kind === ts.SyntaxKind.ExpressionStatement;
+            || parent.kind === ts.SyntaxKind.ExpressionStatement
+            || parent.kind === ts.SyntaxKind.VoidExpression
+            || parent.kind === ts.SyntaxKind.ThrowStatement;
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
                 || parent.kind === ts.SyntaxKind.PropertyAccessExpression

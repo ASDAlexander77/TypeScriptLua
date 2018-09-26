@@ -1,19 +1,13 @@
-let options = {
-    b1: false
-};
+try {
+    var parsedData = JSON.parse(data);
+    log = "";
+    var fullDetails = SceneLoader.loggingLevel === SceneLoader.DETAILED_LOGGING;
 
-let mergedOptions = {
-    bilinearFiltering: false,
-    comparisonFunction: 0,
-    generateStencil: false,
-    ...options
-};
-
-/*
-for (let i in options) {
-	mergedOptions[i] = options[i];
+    var index: number;
+    var cache: number;
+    // Lights
+} catch (err) {
+    let msg =  log;
+        throw err;
+} finally {
 }
-*/
-
-console.log(mergedOptions.comparisonFunction);
-console.log(mergedOptions.b1);
