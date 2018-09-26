@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Objects', () => {
 
-    // TODO: javascript new object is not support for now
+    // TODO: javascript new object is not supported for now
     it.skip('new', () => expect('Doe\r\n').to.equals(new Run().test([
         'function Person(first, last, age, eyecolor) {                      \
             this.firstName = first;                                         \

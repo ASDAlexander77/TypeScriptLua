@@ -87,6 +87,10 @@ export class CodeStorage {
     }
 
     public setNodeToTrackDebugInfo(node: ts.Node) {
+        if (!node) {
+            throw new Error('Node is null');
+        }
+
         if (node.pos <= 0) {
             return;
         }

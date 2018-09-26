@@ -887,6 +887,12 @@ export class Emitter {
     }
 
     private isClassMemberAccepted(memberDeclaration: ts.ClassElement): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.modifiers &&
+            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.AbstractKeyword)) {
+                return false;
+        }
+
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.PropertyDeclaration:
                 const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
@@ -1484,14 +1490,20 @@ export class Emitter {
             node.properties.length,
             0]);
 
-        node.properties.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.PropertyAssignment, index: number) => {
+        node.properties.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
             // set 0 element
             this.resolver.Scope.push(node);
             this.processExpression(<ts.Expression><any>e.name);
             this.resolver.Scope.pop();
 
             // we need to remove scope as expression is not part of object
-            this.processExpression(e.initializer);
+            if (e.kind === ts.SyntaxKind.ShorthandPropertyAssignment) {
+                this.processExpression(<ts.Expression><any>e.name);
+            } else if (e.kind === ts.SyntaxKind.PropertyAssignment) {
+                this.processExpression(e.initializer);
+            } else {
+                throw new Error('Not Implemeneted');
+            }
 
             const propertyValueInfo = this.functionContext.stack.pop().optimize();
             const propertyIndexInfo = this.functionContext.stack.pop().optimize();
@@ -1503,9 +1515,9 @@ export class Emitter {
                 propertyValueInfo.getRegisterOrIndex()]);
         });
 
-        node.properties.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.PropertyAssignment, index: number) => {
+        node.properties.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
             // creating foreach loop for each spread object
-            const spreadAssignment = <ts.SpreadAssignment><any>e;
+            const spreadAssignment = <ts.SpreadAssignment>e;
 
             const objLocal = ts.createIdentifier('obj_');
             objLocal.flags = ts.NodeFlags.Const;
