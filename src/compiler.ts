@@ -113,7 +113,7 @@ export class Run {
                 }
             });
 
-            const fileName = (emitter.moduleName || 'out') + '.' + outputExtention;
+            const fileName = (emitter.fileModuleName || 'out') + '.' + outputExtention;
 
             console.log('Writing to file ' + fileName);
 

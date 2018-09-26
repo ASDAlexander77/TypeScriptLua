@@ -7,7 +7,7 @@ import { Helpers } from './helpers';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
-    public moduleName: string;
+    public fileModuleName: string;
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
@@ -374,6 +374,7 @@ export class Emitter {
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.Block: this.processBlock(<ts.Block>node); return;
+            case ts.SyntaxKind.ModuleBlock: this.processModuleBlock(<ts.ModuleBlock>node); return;
             case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); return;
             case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); return;
             case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); return;
@@ -737,12 +738,12 @@ export class Emitter {
             this.processExpression(setmetatableCall);
         }
 
-        this.emitExport(node);
+        this.emitExport(node.name, node);
 
         this.functionContext.restoreLocalScope();
     }
 
-    private emitExport(node: ts.ClassDeclaration) {
+    private emitExport(name: ts.Identifier, node: ts.Node, fullNamespace?: boolean) {
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
         if (!isExport) {
             return;
@@ -752,23 +753,34 @@ export class Emitter {
             const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             this.emitGetOrCreateObjectExpression(node, 'exports');
             const setExport = ts.createAssignment(
-                ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? node.name : 'default'), node.name);
+                ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? name : 'default'), name);
             this.processExpression(setExport);
             return;
         }
 
         // save into module
+        this.emitSaveToNamespace(name, fullNamespace);
+    }
+
+    private emitSaveToNamespace(name: ts.Identifier, fullNamespace?: boolean) {
+        if (this.functionContext.namespaces.length === 0) {
+            return;
+        }
+
+        // save into module
+        const end = fullNamespace ? 0 : this.functionContext.namespaces.length - 1;
+
         let propertyAccessExpression;
-        for (let i = this.functionContext.namespaces.length - 1; i >= 0; i--) {
+        for (let i = this.functionContext.namespaces.length - 1; i >= end; i--) {
             const namespaceItem = this.functionContext.namespaces.at(i);
             if (propertyAccessExpression) {
                 propertyAccessExpression = ts.createPropertyAccess(propertyAccessExpression, <ts.Identifier>namespaceItem.name);
             } else {
-                propertyAccessExpression = ts.createPropertyAccess(namespaceItem.name, node.name);
+                propertyAccessExpression = ts.createPropertyAccess(namespaceItem.name, name);
             }
         }
 
-        const setModuleExport = ts.createAssignment(propertyAccessExpression, node.name);
+        const setModuleExport = ts.createAssignment(propertyAccessExpression, name);
         this.processExpression(setModuleExport);
     }
 
@@ -944,26 +956,20 @@ export class Emitter {
         return extend;
     }
 
-    /*
-    private processModuleDeclaration(node: ts.ModuleDeclaration): void {
-        this.functionContext.newLocalScope(node);
-        this.processTSNode(node);
-        this.functionContext.restoreLocalScope();
-    }
-    */
-
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
 
         this.functionContext.namespaces.push(node);
 
-        this.moduleName = node.name.text;
+        this.fileModuleName = this.fileModuleName || node.name.text;
 
         this.emitGetOrCreateObjectExpression(node, node.name.text);
         if (node.body) {
-            this.processBlock(<ts.Block><any>node.body);
+            this.processStatement(<ts.ModuleBlock>node.body);
         }
 
         this.functionContext.namespaces.pop();
+
+        this.emitSaveToNamespace(<ts.Identifier>node.name);
     }
 
     private processNamespaceDeclaration(node: ts.NamespaceDeclaration): void {
@@ -1086,6 +1092,8 @@ export class Emitter {
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
 
         this.emitStoreToEnvObjectProperty(nameConstIndex);
+
+        this.emitExport(node.name, node);
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
@@ -1411,6 +1419,17 @@ export class Emitter {
     }
 
     private processBlock(node: ts.Block): void {
+
+        this.functionContext.newLocalScope(node);
+
+        node.statements.forEach(s => {
+            this.processStatement(s);
+        });
+
+        this.functionContext.restoreLocalScope();
+    }
+
+    private processModuleBlock(node: ts.ModuleBlock): void {
 
         this.functionContext.newLocalScope(node);
 
