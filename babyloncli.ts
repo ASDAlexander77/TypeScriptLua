@@ -1,4 +1,4 @@
-import { BABYLON } from './BABYLON';
+import './BABYLON';
 
 class Runner {
     private canvas: any;
