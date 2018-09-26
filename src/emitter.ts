@@ -605,11 +605,8 @@ export class Emitter {
             let localVar = -1;
             const variableDeclaration = node.catchClause.variableDeclaration;
             if (variableDeclaration) {
-                const localResolvedInfo = this.functionContext.createLocal(variableDeclaration.name.getText());
+                this.functionContext.createLocal(variableDeclaration.name.getText(), errorResultInfo);
                 localVar = this.functionContext.locals.length - 1;
-                const localInfo = this.functionContext.locals[localVar];
-                this.functionContext.availableRegister = localResolvedInfo.getRegister();
-                localInfo.register = errorResultInfo.getRegister();
             }
 
             // catch...

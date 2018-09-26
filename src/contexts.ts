@@ -4,6 +4,7 @@ import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 class LocalVarInfo {
     public name: string;
     public register: number;
+    public fake: boolean;
     public debugStartCode: number;
     public debugEndCode: number;
 }
@@ -147,9 +148,9 @@ export class FunctionContext {
     public restoreLocalScope() {
         this.debugInfoMarkEndOfScopeForLocals();
 
-        const availableRegisterToSet = this.locals && this.locals.length > 0 ? this.locals[0].register : undefined;
-        if (availableRegisterToSet) {
-            this.availableRegister = availableRegisterToSet;
+        if (this.locals && this.locals.length > 0) {
+            const minRegister = Math.min( ...this.locals.filter(l => !l.fake).map(l => l.register) );
+            this.availableRegister = minRegister;
         }
 
         this.locals = this.local_scopes.pop();
@@ -196,12 +197,16 @@ export class FunctionContext {
         return index;
     }
 
-    public createLocal(name: string): ResolvedInfo {
+    public createLocal(name: string, predefinedRegisterInfo?: ResolvedInfo): ResolvedInfo {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
-            const registerInfo = this.useRegister();
-            this.locals.push(<LocalVarInfo>{ name: name, register: registerInfo.getRegister(), debugStartCode: this.code.length });
+            const registerInfo = predefinedRegisterInfo ? predefinedRegisterInfo : this.useRegister();
+            this.locals.push(<LocalVarInfo>{
+                name: name,
+                register: registerInfo.getRegister(),
+                fake: predefinedRegisterInfo ? true : false,
+                debugStartCode: this.code.length });
             return registerInfo;
         }
 

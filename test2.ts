@@ -1,24 +1,17 @@
+
 /*
+let options = {
+    b1: false
+};
 
-function f() {
-    const up3 = 3;
-    function ff() {
-        const up2 = 2;
-        function fff() {
-            const up1 = 1;
-            function ffff() {
-                const l = up1;
-                const m = up2;
-                const n = up3;
-                console.log(l, m, n);
-            }
-            ffff();
-        }
-        fff();
-    }
-    ff();
+let mergedOptions = {
+    bilinearFiltering: false,
+    comparisonFunction: 0,
+    generateStencil: false,
+    //...options
+};
+
+for (let i in options) {
+	mergedOptions[i] = options[i];
 }
-
-f();
-
 */
