@@ -13,6 +13,7 @@ export class Emitter {
     private resolver: IdentifierResolver;
     private sourceFileName: string;
     private opsMap = [];
+    private extraDebugEmbed = false;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -743,6 +744,10 @@ export class Emitter {
             return;
         }
 
+        if (this.extraDebugEmbed) {
+            this.extraDebug(node, [ts.createStringLiteral('export class'), ts.createStringLiteral(name.text)]);
+        }
+
         if (this.functionContext.namespaces.length === 0) {
             const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             this.emitGetOrCreateObjectExpression(node, 'exports');
@@ -754,6 +759,12 @@ export class Emitter {
 
         // save into module
         this.emitSaveToNamespace(name, fullNamespace);
+    }
+
+    private extraDebug(node: ts.Node, args: ReadonlyArray<ts.Expression>) {
+        const extraPrint = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('console'), 'log'), undefined, args);
+        extraPrint.parent = node;
+        this.processExpression(extraPrint);
     }
 
     private emitSaveToNamespace(name: ts.Identifier, fullNamespace?: boolean) {

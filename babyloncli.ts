@@ -36,7 +36,4 @@ class Runner {
     }
 }
 
-for (const i in BABYLON) console.log(BABYLON[i]);
-
-console.log("Run");
 new Runner().run();
