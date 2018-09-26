@@ -159,8 +159,6 @@ export class Emitter {
 
         switch (location.kind) {
             case ts.SyntaxKind.MethodDeclaration:
-                const methodDeclaration = <ts.MethodDeclaration>location;
-                // return !methodDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword);
                 return true;
             case ts.SyntaxKind.PropertyDeclaration:
                 return false;
@@ -286,7 +284,10 @@ export class Emitter {
         if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = this.hasMemberThis(origin) || this.hasNodeUsedThis(location);
             if (createThis) {
-                this.functionContext.createLocal('this');
+                const thisIsInParams = parameters && parameters.some(p => (<ts.Identifier>p.name).text === 'this');
+                if (!thisIsInParams) {
+                    this.functionContext.createLocal('this');
+                }
             }
         }
 
@@ -910,6 +911,9 @@ export class Emitter {
             case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.SetAccessor:
             case ts.SyntaxKind.SemicolonClassElement:
+                return false;
+            case ts.SyntaxKind.IndexSignature:
+                // TODO: investigate implementatino of '[index: number]: T;'
                 return false;
             default:
                 throw new Error('Not Implemented');
