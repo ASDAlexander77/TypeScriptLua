@@ -55,4 +55,52 @@ describe('Modules', () => {
         M1.M2.f();                                  \
     '])));
 
+    it('Module - multi blocks', () => expect('1\r\n3\r\n').to.equals(new Run().test([
+        'module M {                                 \
+            export class C {                        \
+                static Y() { return 2; }            \
+                                                    \
+                X() { return 1; }                   \
+            }                                       \
+        }                                           \
+                                                    \
+        module M {                                  \
+            export class C2 {                       \
+                static Y() { return 4; }            \
+                                                    \
+                X() { return 3; }                   \
+            }                                       \
+        }                                           \
+                                                    \
+        const c = new M.C();                        \
+        console.log(c.X());                         \
+        const c2 = new M.C2();                      \
+        console.log(c2.X());                        \
+    '])));
+
+
+    it('Module - import only', () => expect('1\r\n3\r\n').to.equals(new Run().test([
+        'module M {                                 \
+            export class C {                        \
+                static Y() { return 2; }            \
+                                                    \
+                X() { return 1; }                   \
+            }                                       \
+        }                                           \
+                                                    \
+        module M {                                  \
+            export class C2 {                       \
+                static Y() { return 4; }            \
+                                                    \
+                X() { return 3; }                   \
+            }                                       \
+        }                                           \
+        ',
+        'import \'./test0\';                        \
+        const c = new M.C();                        \
+        console.log(c.X());                         \
+        const c2 = new M.C2();                      \
+        console.log(c2.X());                        \
+    '])));
+
 });
