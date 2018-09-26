@@ -91,7 +91,7 @@ export class Run {
     private generateBinary(program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions) {
         const sourceFiles = program.getSourceFiles();
 
-        const isSingleModule = options.isolatedModules !== null && options.isolatedModules === false;
+        const isSingleModule = options && options.isolatedModules !== null && options.isolatedModules === false;
         if (!isSingleModule) {
             console.log('Generating binaries...');
             sourceFiles.forEach(s => {

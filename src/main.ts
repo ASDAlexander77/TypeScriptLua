@@ -1,4 +1,4 @@
 import { Run } from './compiler';
 
 declare var process: any;
-new Run().run(process.argv[2], 'luabc');
+new Run().run(process.argv[2], 'lua');
