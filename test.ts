@@ -1,13 +1,10 @@
-try {
-    var parsedData = JSON.parse(data);
-    log = "";
-    var fullDetails = SceneLoader.loggingLevel === SceneLoader.DETAILED_LOGGING;
+let numRemaining = 0;
 
-    var index: number;
-    var cache: number;
-    // Lights
-} catch (err) {
-    let msg =  log;
-        throw err;
-} finally {
+function f() {
+    let c  = () => {
+        if (--numRemaining === 0) {
+        }
+    };
 }
+
+f();

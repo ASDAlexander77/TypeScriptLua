@@ -1682,6 +1682,12 @@ export class Emitter {
                         readOpCode[3],
                         operandInfo.getRegister()
                     ]);
+                } else if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
+                    this.functionContext.code.push([
+                        Ops.SETUPVAL,
+                        readOpCode[2],
+                        operandInfo.getRegister()
+                    ]);
                 } else if (operandInfo.kind === ResolvedKind.Register) {
                     this.functionContext.code.push([
                         Ops.MOVE,
