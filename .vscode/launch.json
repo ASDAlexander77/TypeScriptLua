@@ -16,6 +16,16 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Node.js (Babylon)",
+            "program": "${workspaceFolder}/__out/main.js",
+            "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
+            "args": [
+                "tsconfig.json"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch TS-Node",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node",
             "program": "${workspaceFolder}/src/main.ts",

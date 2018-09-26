@@ -2116,6 +2116,10 @@ export class Emitter {
                     rightOperandInfo.getRegisterOrIndex()
                 ]);
             } else if (readOpCode[0] === Ops.GETUPVAL) {
+                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
+                    // we need to store register in stack to reuse it in next expression
+                    this.functionContext.stack.push(rightOperandInfo);
+                }
                 const getUpValueArray = this.functionContext.code.pop();
                 // Optimization can't be used here
                 this.functionContext.code.push([

@@ -1,10 +1,9 @@
-let numRemaining = 0;
+class S
+{
+    public url: string;
 
-function f() {
-    let c  = () => {
-        if (--numRemaining === 0) {
-        }
-    };
+    static CreateFromImages(files) {
+        let rootUrlKey = '';
+        files.forEach(url => rootUrlKey += url);
+    }
 }
-
-f();
