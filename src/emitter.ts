@@ -1069,7 +1069,7 @@ export class Emitter {
     private processArrowFunction(node: ts.ArrowFunction): void {
         if (node.body.kind !== ts.SyntaxKind.Block) {
             // create body
-            node.body = ts.createBlock([ ts.createReturn(<ts.Expression>node.body) ]);
+            node.body = ts.createBlock([ts.createReturn(<ts.Expression>node.body)]);
         }
 
         this.processFunctionExpression(<any>node);
@@ -1207,13 +1207,16 @@ export class Emitter {
     }
 
     private processForInStatement(node: ts.ForInStatement): void {
-
         this.functionContext.newLocalScope(node);
+        this.processForInStatementNoScope(node);
+        this.functionContext.restoreLocalScope();
+    }
 
+    private processForInStatementNoScope(node: ts.ForInStatement): void {
         // we need to generate 3 local variables for ForEach loop
-        const generatorInfo = this.functionContext.createLocal('<generator>' + node.getStart());
-        const stateInfo = this.functionContext.createLocal('<state>' + node.getStart());
-        const controlInfo = this.functionContext.createLocal('<control>' + node.getStart());
+        const generatorInfo = this.functionContext.createLocal('<generator>');
+        const stateInfo = this.functionContext.createLocal('<state>');
+        const controlInfo = this.functionContext.createLocal('<control>');
 
         // initializer
         this.declareLoopVariables(<ts.Expression>node.initializer);
@@ -1272,8 +1275,6 @@ export class Emitter {
         initialJmpOp[2] = loopOpsBlock - beforeBlock;
 
         this.resolveBreakJumps();
-
-        this.functionContext.restoreLocalScope();
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
@@ -1485,7 +1486,7 @@ export class Emitter {
             node.properties.length,
             0]);
 
-        node.properties.forEach((e: ts.PropertyAssignment, index: number) => {
+        node.properties.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.PropertyAssignment, index: number) => {
             // set 0 element
             this.resolver.Scope.push(node);
             this.processExpression(<ts.Expression><any>e.name);
@@ -1502,6 +1503,31 @@ export class Emitter {
                 resultInfo.getRegister(),
                 propertyIndexInfo.getRegisterOrIndex(),
                 propertyValueInfo.getRegisterOrIndex()]);
+        });
+
+        node.properties.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.PropertyAssignment, index: number) => {
+            // creating foreach loop for each spread object
+            const spreadAssignment = <ts.SpreadAssignment><any>e;
+
+            const objLocal = ts.createIdentifier('obj_');
+            objLocal.flags = 2;
+            const indexLocal = ts.createIdentifier('i_');
+            indexLocal.flags = 2;
+            const forInSetStatement = ts.createForIn(
+                ts.createVariableDeclarationList([ts.createVariableDeclaration(indexLocal)]),
+                spreadAssignment.expression,
+                ts.createStatement(ts.createAssignment(
+                    ts.createElementAccess(objLocal, indexLocal),
+                    ts.createElementAccess(spreadAssignment.expression, indexLocal))));
+            forInSetStatement.parent = node;
+            // this is important call to allow to resolve local variables
+            // TODO: but it does not work here, why?
+            // this.bind(forInSetStatement);
+
+            this.functionContext.newLocalScope(forInSetStatement);
+            this.functionContext.createLocal('obj_', resultInfo);
+            this.processForInStatementNoScope(forInSetStatement);
+            this.functionContext.restoreLocalScope();
         });
     }
 

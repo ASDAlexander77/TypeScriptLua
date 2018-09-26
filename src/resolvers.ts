@@ -371,7 +371,8 @@ export class IdentifierResolver {
         }
 
         // default
-        return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+        return this.returnLocalOrUpvalueNoException(identifier.text, functionContext)
+            || this.resolveMemberOfCurrentScope(identifier.text, functionContext);
     }
 
     public returnConst(value: any, functionContext: FunctionContext): ResolvedInfo {

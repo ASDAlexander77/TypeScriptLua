@@ -1,13 +1,19 @@
-let i = 1;
-try {
-    console.log(i);
-    throw 10;
-    i = 2;
-} catch (err) {
-    console.log("error");
-    console.log(err);
-} finally {
-    console.log(i);
-}
+let options = {
+    b1: false
+};
 
-console.log(i);
+let mergedOptions = {
+    bilinearFiltering: false,
+    comparisonFunction: 0,
+    generateStencil: false,
+    ...options
+};
+
+/*
+for (let i in options) {
+	mergedOptions[i] = options[i];
+}
+*/
+
+console.log(mergedOptions.comparisonFunction);
+console.log(mergedOptions.b1);
