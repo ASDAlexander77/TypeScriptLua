@@ -817,6 +817,9 @@ export class Emitter {
                 return propertyDeclaration.initializer;
             case ts.SyntaxKind.Constructor:
                 const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
+                if (!constructorDeclaration.body) {
+                    throw 1;
+                }
                 const constructorFunction = ts.createFunctionExpression(
                     undefined,
                     undefined,
@@ -902,7 +905,8 @@ export class Emitter {
                         || propertyDeclaration.initializer.kind === ts.SyntaxKind.ArrowFunction);
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
-                return true;
+                const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
+                return methodDeclaration.body;
             case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.SetAccessor:
             case ts.SyntaxKind.SemicolonClassElement:
@@ -1066,6 +1070,11 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
+        if (!node.body) {
+            // this is declaration
+            return;
+        }
+
         const protoIndex = this.functionContext.createProto(
             this.processFunction(node, node.body.statements, node.parameters));
         const resultInfo = this.functionContext.useRegisterAndPush();

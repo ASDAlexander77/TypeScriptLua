@@ -156,7 +156,9 @@ describe('Functions', () => {
     '])));
 
     it('test function - union types', () => expect('4Hello world\r\n').to.equals(new Run().test([
-        'function padLeft(value: string, padding: any) {                        \
+        'function padLeft(value: string, padding: number)                       \
+         function padLeft(value: string, padding: string)                       \
+         function padLeft(value: string, padding: any) {                        \
             if (typeof padding === "number") {                                  \
                 return String(padding) + value;                                 \
             }                                                                   \
