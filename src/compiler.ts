@@ -78,7 +78,7 @@ export class Run {
             console.log('Emitting: ' + f);
 
             // TODO: comment it when not needed
-            ts.sys.writeFile(f, data, writeByteOrderMark);
+            // ts.sys.writeFile(f, data, writeByteOrderMark);
         });
 
         emitResult.diagnostics.forEach(d => {

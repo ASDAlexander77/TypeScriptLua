@@ -2440,6 +2440,46 @@ export class Emitter {
         this.functionContext.useRegisterAndPush();
     }
 
+    private preprocessConstAndUpvalues(resolvedInfo: ResolvedInfo, resolvedInfo2: ResolvedInfo) {
+
+        const can1 = resolvedInfo.canUseIndex();
+        const can2 = resolvedInfo2 && resolvedInfo2.canUseIndex();
+        if (can1 && !resolvedInfo2 || can1 && can2) {
+            return;
+        }
+
+        let pops = 0;
+        if (!resolvedInfo.canUseIndex()) {
+            if (resolvedInfo.kind === ResolvedKind.Const) {
+                const resultInfo = this.functionContext.useRegisterAndPush();
+                resultInfo.originalInfo = resolvedInfo.originalInfo;
+                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+                resolvedInfo = resultInfo;
+                pops++;
+            }
+        }
+
+        if (resolvedInfo2 && !resolvedInfo2.canUseIndex()) {
+            if (resolvedInfo2.kind === ResolvedKind.Const) {
+                const resultInfo = this.functionContext.useRegisterAndPush();
+                resultInfo.originalInfo = resolvedInfo2.originalInfo;
+                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo2.getRegisterOrIndex()]);
+                resolvedInfo = resolvedInfo2;
+                pops++;
+            }
+        }
+
+        if (pops > 0) {
+            this.functionContext.stack.pop();
+        }
+
+        if (pops > 1) {
+            this.functionContext.stack.pop();
+        }
+
+        throw new Error('Not Implemented');
+    }
+
     private processIndentifier(node: ts.Identifier): void {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
         if (resolvedInfo.kind === ResolvedKind.Register) {
@@ -2471,12 +2511,14 @@ export class Emitter {
         }
 
         if (resolvedInfo.kind === ResolvedKind.LoadGlobalMember) {
-            const resultInfo = this.functionContext.useRegisterAndPush();
             const objectIdentifierInfo = resolvedInfo.objectInfo;
             const memberIdentifierInfo = resolvedInfo.memberInfo;
             memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
 
+            const resultInfo = this.functionContext.useRegisterAndPush();
             resultInfo.originalInfo = memberIdentifierInfo;
+
+            this.preprocessConstAndUpvalues(objectIdentifierInfo, memberIdentifierInfo);
 
             this.functionContext.code.push(
                 [Ops.GETTABUP,

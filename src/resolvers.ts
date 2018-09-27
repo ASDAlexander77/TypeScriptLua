@@ -78,6 +78,28 @@ export class ResolvedInfo {
             this.identifierName, this.upvalueInstack, this.upvalueStackIndex);
     }
 
+    public canUseIndex(): boolean {
+        if (this.kind === ResolvedKind.Register) {
+            return true;
+        }
+
+        if (this.kind === ResolvedKind.Upvalue) {
+            this.ensureUpvalueIndex();
+            return this.upvalueIndex <= 510;
+        }
+
+        if (this.kind === ResolvedKind.Closure) {
+            return true;
+        }
+
+        if (this.kind === ResolvedKind.Const) {
+            this.ensureConstIndex();
+            return this.constIndex <= 510;
+        }
+
+        throw new Error('It is not register or const index');
+    }
+
     public getRegisterOrIndex(): number {
         if (this.kind === ResolvedKind.Register) {
             return this.register;
@@ -100,6 +122,10 @@ export class ResolvedInfo {
 
     public getRegister(): number {
         if (this.kind === ResolvedKind.Register) {
+            if (this.register > 255) {
+                throw new Error('Register is out of scope');
+            }
+
             return this.register;
         }
 

@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
-import { Ops } from './opcodes';
+import { Ops, OpMode, OpCodes } from './opcodes';
 
 class LocalVarInfo {
     public name: string;
@@ -63,7 +63,7 @@ export class CodeStorage {
         opCode[4] = this.currentDebugLine;
 
         // DEBUG
-        const latest = this.latest;
+        const latest = opCode;
         if (latest[0] === Ops.GETTABUP || latest[0] === Ops.SETTABUP || latest[0] === Ops.GETUPVAL || latest[0] === Ops.SETUPVAL) {
             if (latest[2] >= this.functionContext.upvalues.length) {
                 throw new Error('Upvalue is not exists');
@@ -89,6 +89,9 @@ export class CodeStorage {
                 throw new Error('Const is not exists');
             }
         }
+
+        const opCodeMode: OpMode = OpCodes[latest[0]];
+        const encoded = opCodeMode.encode(latest);
     }
 
     public pop(): number[] {
