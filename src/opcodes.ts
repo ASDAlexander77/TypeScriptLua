@@ -87,13 +87,22 @@ export class OpMode {
             case OpCodeMode.iABC:
                 // B(9)    Bx   C(9)         A(8)      OP(6)
                 // A
-                encoded += c[1] << (6);
+                val = c[1];
+                if (val > 255) {
+                    throw new Error('A is exceeded');
+                }
+
+                encoded += val << (6);
 
                 // C
                 val = c[3];
                 if (val < 0) {
                     val = -(val + 1);
                     val |= 1 << 8;
+                }
+
+                if (val > 510) {
+                    throw new Error('C is exceeded');
                 }
 
                 encoded += val << (8 + 6);
@@ -105,23 +114,48 @@ export class OpMode {
                     val |= 1 << 8;
                 }
 
+                if (val > 510) {
+                    throw new Error('B is exceeded');
+                }
+
                 encoded += val << (9 + 8 + 6);
 
                 break;
             case OpCodeMode.iABx:
-                encoded += c[1] << (6);
+                val = c[1];
+                if (val > 255) {
+                    throw new Error('A is exceeded');
+                }
+
+                encoded += val << (6);
+
+                // Bx
                 val = c[2];
                 if (val < 0) {
                     val = -(val + 1);
+                }
+
+                if (val > 262143) {
+                    throw new Error('Bx is exceeded');
                 }
 
                 encoded += val << (8 + 6);
 
                 break;
             case OpCodeMode.iAsBx:
-                encoded += c[1] << (6);
+                val = c[1];
+                if (val > 255) {
+                    throw new Error('A is exceeded');
+                }
 
+                encoded += val << (6);
+
+                // sBx
                 val = c[2] + 131071;
+
+                if (val > 262143) {
+                    throw new Error('sBx is exceeded');
+                }
 
                 encoded += val << (8 + 6);
 
@@ -132,6 +166,10 @@ export class OpMode {
                     val = -(val + 1);
                 } else {
                     throw new Error('Should be negative');
+                }
+
+                if (val > 67108863) {
+                    throw new Error('Ax is exceeded');
                 }
 
                 encoded += val << (6);

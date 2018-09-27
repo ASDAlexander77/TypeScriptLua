@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
+import { Ops } from './opcodes';
 
 class LocalVarInfo {
     public name: string;
@@ -60,6 +61,34 @@ export class CodeStorage {
     public push(opCode: number[]) {
         this.code.push(opCode);
         opCode[4] = this.currentDebugLine;
+
+        // DEBUG
+        const latest = this.latest;
+        if (latest[0] === Ops.GETTABUP || latest[0] === Ops.SETTABUP || latest[0] === Ops.GETUPVAL || latest[0] === Ops.SETUPVAL) {
+            if (latest[2] >= this.functionContext.upvalues.length) {
+                throw new Error('Upvalue is not exists');
+            }
+
+            if (!this.functionContext.container && latest[2] > 0) {
+                throw new Error('Upvalue is not exists');
+            }
+        }
+
+        if (latest[0] === Ops.SETTABUP) {
+            if (latest[1] >= this.functionContext.upvalues.length) {
+                throw new Error('Upvalue is not exists');
+            }
+
+            if (!this.functionContext.container && latest[1] > 0) {
+                throw new Error('Upvalue is not exists');
+            }
+        }
+
+        if (latest[0] === Ops.LOADK) {
+            if (latest[2] >= this.functionContext.constants.length) {
+                throw new Error('Const is not exists');
+            }
+        }
     }
 
     public pop(): number[] {

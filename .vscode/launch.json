@@ -31,7 +31,7 @@
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node",
             "program": "${workspaceFolder}/src/main.ts",
             "args": [
-                "tsconfig.json"
+                "tsconfig1.json"
             ],            
             "sourceMaps": true,
             "outFiles": [
@@ -96,7 +96,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}\\__build\\win64\\lua\\Debug\\luac.exe",
-            "args": ["-l", "-l", "-v", "-s", "test.lua"],
+            "args": ["-l", "-l", "-v", "-s", "BABYLON.lua"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}\\__build\\win64\\lua\\Debug",
             "environment": [],

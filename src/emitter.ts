@@ -2154,8 +2154,8 @@ export class Emitter {
                 // Optimization can't be used here
                 this.functionContext.code.push([
                     Ops.SETUPVAL,
-                    getUpValueArray[2],
-                    rightOperandInfo.getRegisterOrIndex()
+                    rightOperandInfo.getRegisterOrIndex(),
+                    getUpValueArray[2]
                 ]);
             } else if (readOpCode[0] === Ops.MOVE) {
                 if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
