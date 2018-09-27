@@ -5,40 +5,56 @@ import { Emitter } from './emitter';
 
 export class Run {
 
-    public run(sourcesOrConfigFile: string[] | string, outputExtention: string): void {
+    public static processOptions(cmdLineArgs: string[]): any {
+        const options = {};
+        for (let i = 2; i < cmdLineArgs.length; i++) {
+            const item = cmdLineArgs[i];
+            if (!item || item[0] !== '-') {
+                continue;
+            }
+
+            options[item.substring(1)] = true;
+        }
+
+        return options;
+    }
+
+    public static processFiles(cmdLineArgs: string[]): any {
+        const options = [];
+        for (let i = 2; i < cmdLineArgs.length; i++) {
+            const item = cmdLineArgs[i];
+            if (!item || item[0] === '-') {
+                continue;
+            }
+
+            options.push(item);
+        }
+
+        return options.length === 1 ? options[0] : options;
+    }
+
+    public run(sourcesOrConfigFile: string[] | string, outputExtention: string, cmdLineOptions: any): void {
         if (typeof (sourcesOrConfigFile) === 'string') {
             if (sourcesOrConfigFile.endsWith('.json')) {
                 const configPath = ts.findConfigFile('./', ts.sys.fileExists, sourcesOrConfigFile);
                 if (configPath) {
-                    this.compileWithConfig(configPath, outputExtention);
+                    this.compileWithConfig(configPath, outputExtention, cmdLineOptions);
                     return;
                 }
             }
 
-            this.compileSources([sourcesOrConfigFile], outputExtention);
+            this.compileSources([sourcesOrConfigFile], outputExtention, cmdLineOptions);
             return;
         }
 
-        this.compileSources(sourcesOrConfigFile, outputExtention);
+        this.compileSources(sourcesOrConfigFile, outputExtention, cmdLineOptions);
     }
 
-    public compileSources(sources: string[], outputExtention: string): void {
-
-        /*
-		const sourceFile = ts.createSourceFile('test.ts', fs.readFileSync('test.ts').toString(), ts.ScriptTarget.ES2018, false);
-
-		const printer = ts.createPrinter({
-			newLine: ts.NewLineKind.LineFeed,
-		});
-
-		const result = printer.printNode(ts.EmitHint.SourceFile, sourceFile, sourceFile);
-		console.log(result);
-		*/
-
-        this.generateBinary(this.createProgram(ts.createProgram(sources, {})), sources, outputExtention, undefined);
+    public compileSources(sources: string[], outputExtention: string, cmdLineOptions: any): void {
+        this.generateBinary(this.createProgram(ts.createProgram(sources, {})), sources, outputExtention, undefined, cmdLineOptions);
     }
 
-    public compileWithConfig(configPath: string, outputExtention: string): void {
+    public compileWithConfig(configPath: string, outputExtention: string, cmdLineOptions: any): void {
         const configFile = ts.readJsonConfigFile(configPath, ts.sys.readFile);
 
         const parseConfigHost: ts.ParseConfigHost = {
@@ -53,7 +69,7 @@ export class Run {
             rootNames: parsedCommandLine.fileNames,
             options: parsedCommandLine.options
         }));
-        this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, parsedCommandLine.options);
+        this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, parsedCommandLine.options, cmdLineOptions);
     }
 
     private createProgram(program: ts.Program): any {
@@ -88,7 +104,8 @@ export class Run {
         return program;
     }
 
-    private generateBinary(program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions) {
+    private generateBinary(
+        program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions, cmdLineOptions: any) {
         const sourceFiles = program.getSourceFiles();
 
         const isSingleModule = options && options.isolatedModules !== null && options.isolatedModules === false;
@@ -97,7 +114,7 @@ export class Run {
             sourceFiles.forEach(s => {
                 if (sources.some(sf => s.fileName.endsWith(sf))) {
                     console.log('File: ' + s.fileName);
-                    const emitter = new Emitter(program.getTypeChecker(), options);
+                    const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
                     emitter.processNode(s);
                     emitter.save();
                     fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
@@ -105,7 +122,7 @@ export class Run {
             });
         } else {
             console.log('Generating single binary...');
-            const emitter = new Emitter(program.getTypeChecker(), options);
+            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
             sourceFiles.forEach(s => {
                 if (sources.some(sf => s.fileName.endsWith(sf))) {
                     emitter.processNode(s);
@@ -156,7 +173,7 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = new Emitter(program.getTypeChecker(), undefined);
+                    const emitter = new Emitter(program.getTypeChecker(), undefined, {});
                     emitter.processNode(s);
                     emitter.save();
 

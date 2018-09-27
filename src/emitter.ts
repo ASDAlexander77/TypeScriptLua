@@ -15,7 +15,7 @@ export class Emitter {
     private opsMap = [];
     private extraDebugEmbed = false;
 
-    public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions) {
+    public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
         this.functionContext = new FunctionContext();
 
@@ -52,6 +52,8 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.LessThanLessThanEqualsToken] = Ops.SHL;
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = Ops.SHR;
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
+
+        this.extraDebugEmbed = cmdLineOptions.extradebug ? true : false;
     }
 
     private lib = '                                                 \
