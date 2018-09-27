@@ -2309,7 +2309,7 @@ export class Emitter {
 
     private isValueNotRequired(parent: ts.Node): boolean {
         if (!parent) {
-            return false;
+            return true;
         }
 
         return parent.kind === ts.SyntaxKind.ExpressionStatement
