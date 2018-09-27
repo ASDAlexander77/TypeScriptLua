@@ -380,6 +380,12 @@ export class Emitter {
     }
 
     private processStatement(node: ts.Statement): void {
+        const stackSize = this.markStack();
+        this.processStatementInternal(node);
+        this.rollbackUnused(stackSize);
+    }
+
+    private processStatementInternal(node: ts.Statement): void {
 
         this.functionContext.code.setNodeToTrackDebugInfo(node);
 
@@ -544,21 +550,21 @@ export class Emitter {
     private processTSNode(node: ts.Node) {
         const statements = this.transpileTSNode(node);
         statements.forEach(s => {
-            this.processStatement(s);
+            this.processStatementInternal(s);
         });
     }
 
     private processTSCode(code: string, parse?: any) {
         const statements = (!parse) ? this.transpileTSCode(code) : this.parseTSCode(code);
         statements.forEach(s => {
-            this.processStatement(s);
+            this.processStatementInternal(s);
         });
     }
 
     private processJSCode(code: string) {
         const statements = this.parseJSCode(code);
         statements.forEach(s => {
-            this.processStatement(s);
+            this.processStatementInternal(s);
         });
     }
 
@@ -1216,6 +1222,17 @@ export class Emitter {
         }
     }
 
+    private markStack(): number {
+        return this.functionContext.stack.getLength();
+    }
+
+    private rollbackUnused(stack: number) {
+        if (stack < this.functionContext.stack.getLength()) {
+            // we need to remove unused value
+            this.functionContext.stack.pop();
+        }
+    }
+
     private emitLoop(expression: ts.Expression, node: ts.IterationStatement, incrementor?: ts.Expression): number {
         const beforeBlock = this.functionContext.code.length;
 
@@ -1224,12 +1241,9 @@ export class Emitter {
         this.resolveContinueJumps();
 
         if (incrementor) {
-            const stackSize = this.functionContext.stack.getLength();
+            const stackSize = this.markStack();
             this.processExpression(incrementor);
-            if (stackSize < this.functionContext.stack.getLength()) {
-                // we need to remove unused value
-                this.functionContext.stack.pop();
-            }
+            this.rollbackUnused(stackSize);
         }
 
         const expressionBlock = this.functionContext.code.length;
