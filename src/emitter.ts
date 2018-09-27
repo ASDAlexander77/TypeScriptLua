@@ -264,6 +264,8 @@ export class Emitter {
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean) {
 
+        this.functionContext.newLocalScope((<any>location).__origin ? (<any>location).__origin : location);
+
         const isClassDeclaration = this.functionContext.container
             && this.functionContext.container.current_location_node
             && this.functionContext.container.current_location_node.kind === ts.SyntaxKind.ClassDeclaration;
@@ -352,7 +354,11 @@ export class Emitter {
         // add final 'RETURN'
         this.functionContext.code.push([Ops.RETURN, 0, 1]);
 
-        this.functionContext.debugInfoMarkEndOfScopeForLocals();
+        this.functionContext.restoreLocalScope();
+
+        if (this.functionContext.availableRegister !== 0) {
+            throw new Error('stack is not cleaned up');
+        }
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
@@ -633,7 +639,6 @@ export class Emitter {
 
     private processThrowStatement(node: ts.ThrowStatement): void {
         const errorCall = ts.createCall(ts.createIdentifier('error'), undefined, [node.expression]);
-        errorCall.parent = node;
         this.processExpression(errorCall);
     }
 
@@ -1012,7 +1017,7 @@ export class Emitter {
     private processImportDeclaration(node: ts.ImportDeclaration): void {
         // 1) require './<nodule>'
         const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
-        requireCall.parent = node.parent;
+        requireCall.parent = node;
         this.processExpression(requireCall);
 
         // copy exported references from 'exports' object
@@ -1219,7 +1224,12 @@ export class Emitter {
         this.resolveContinueJumps();
 
         if (incrementor) {
+            const stackSize = this.functionContext.stack.getLength();
             this.processExpression(incrementor);
+            if (stackSize < this.functionContext.stack.getLength()) {
+                // we need to remove unused value
+                this.functionContext.stack.pop();
+            }
         }
 
         const expressionBlock = this.functionContext.code.length;
@@ -1726,7 +1736,9 @@ export class Emitter {
                 }
 
                 // clone value
-                this.functionContext.stack.push(operationResultInfo);
+                if (!this.isValueNotRequired(node.parent)) {
+                    this.functionContext.stack.push(operationResultInfo);
+                }
 
                 break;
         }
@@ -1789,6 +1801,10 @@ export class Emitter {
                         Ops.MOVE,
                         readOpCode[2],
                         resultPlusOrMinuesInfo.getRegister()]);
+                }
+
+                if (this.isValueNotRequired(node.parent)) {
+                    this.functionContext.stack.pop();
                 }
 
                 break;
@@ -2291,6 +2307,17 @@ export class Emitter {
         this.emitCallOfLoadedMethod(node, selfOpCodeResolveInfoForThis);
     }
 
+    private isValueNotRequired(parent: ts.Node): boolean {
+        if (!parent) {
+            return false;
+        }
+
+        return parent.kind === ts.SyntaxKind.ExpressionStatement
+            || parent.kind === ts.SyntaxKind.VoidExpression
+            || parent.kind === ts.SyntaxKind.ClassDeclaration
+            || parent.kind === ts.SyntaxKind.ImportDeclaration;
+    }
+
     private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
         node.arguments.forEach(a => {
             // pop method arguments
@@ -2306,10 +2333,7 @@ export class Emitter {
         const methodResolvedInfo = this.functionContext.stack.pop();
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
-        const noReturnCall = constructorCall
-            || parent.kind === ts.SyntaxKind.ExpressionStatement
-            || parent.kind === ts.SyntaxKind.VoidExpression
-            || parent.kind === ts.SyntaxKind.ThrowStatement;
+        const noReturnCall = constructorCall || this.isValueNotRequired(parent);
         const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression
                 || parent.kind === ts.SyntaxKind.PropertyAccessExpression

@@ -329,6 +329,10 @@ export class FunctionContext {
             this.maxstacksize = ret;
         }
 
+        if (this.maxstacksize > 255) {
+            throw new Error('Registers exeeded');
+        }
+
         return resolvedInfo;
     }
 

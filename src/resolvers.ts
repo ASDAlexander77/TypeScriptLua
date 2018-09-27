@@ -213,6 +213,10 @@ export class StackResolver {
     public peek(): ResolvedInfo {
         return this.stack[this.stack.length - 1];
     }
+
+    public getLength(): any {
+        return this.stack.length;
+    }
 }
 
 export class ScopeContext {

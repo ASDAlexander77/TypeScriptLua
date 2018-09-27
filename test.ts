@@ -1,5 +1,4 @@
-export default class ZipCodeValidator {
-    isAcceptable(s: string): boolean {
-        return false;
-    }
-}
+var i;
+for (i = 0; i < 5; i++) {
+    console.log(i);
+} 
