@@ -2444,7 +2444,7 @@ export class Emitter {
 
         const can1 = resolvedInfo.canUseIndex();
         const can2 = resolvedInfo2 && resolvedInfo2.canUseIndex();
-        if (can1 && !resolvedInfo2 || can1 && can2) {
+        if (can1 && (!resolvedInfo2 || can2)) {
             return;
         }
 
@@ -2454,7 +2454,8 @@ export class Emitter {
                 const resultInfo = this.functionContext.useRegisterAndPush();
                 resultInfo.originalInfo = resolvedInfo.originalInfo;
                 this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-                resolvedInfo = resultInfo;
+                resolvedInfo.kind = resultInfo.kind;
+                resolvedInfo.register = resultInfo.register;
                 pops++;
             }
         }
@@ -2464,17 +2465,19 @@ export class Emitter {
                 const resultInfo = this.functionContext.useRegisterAndPush();
                 resultInfo.originalInfo = resolvedInfo2.originalInfo;
                 this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo2.getRegisterOrIndex()]);
-                resolvedInfo = resolvedInfo2;
+                resolvedInfo2.kind = resultInfo.kind;
+                resolvedInfo2.register = resultInfo.register;
                 pops++;
             }
         }
 
-        if (pops > 0) {
+        if (pops > 1) {
             this.functionContext.stack.pop();
         }
 
-        if (pops > 1) {
+        if (pops > 0) {
             this.functionContext.stack.pop();
+            return;
         }
 
         throw new Error('Not Implemented');

@@ -94,7 +94,7 @@ export class ResolvedInfo {
 
         if (this.kind === ResolvedKind.Const) {
             this.ensureConstIndex();
-            return this.constIndex <= 510;
+            return this.constIndex >= -511 && this.constIndex <= -1;
         }
 
         throw new Error('It is not register or const index');

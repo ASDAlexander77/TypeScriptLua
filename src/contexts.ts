@@ -66,27 +66,27 @@ export class CodeStorage {
         const latest = opCode;
         if (latest[0] === Ops.GETTABUP || latest[0] === Ops.SETTABUP || latest[0] === Ops.GETUPVAL || latest[0] === Ops.SETUPVAL) {
             if (latest[2] >= this.functionContext.upvalues.length) {
-                throw new Error('Upvalue is not exists');
+                throw new Error('Upvalue does not exist');
             }
 
             if (!this.functionContext.container && latest[2] > 0) {
-                throw new Error('Upvalue is not exists');
+                throw new Error('Upvalue does not exist');
             }
         }
 
         if (latest[0] === Ops.SETTABUP) {
             if (latest[1] >= this.functionContext.upvalues.length) {
-                throw new Error('Upvalue is not exists');
+                throw new Error('Upvalue does not exist');
             }
 
             if (!this.functionContext.container && latest[1] > 0) {
-                throw new Error('Upvalue is not exists');
+                throw new Error('Upvalue does not exist');
             }
         }
 
         if (latest[0] === Ops.LOADK) {
             if (latest[2] >= this.functionContext.constants.length) {
-                throw new Error('Const is not exists');
+                throw new Error('Const does not exist');
             }
         }
 
