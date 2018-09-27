@@ -69,7 +69,7 @@ Now you have test.luabc
 3) Run it.
 
 ```
-lua test.luabc
+lua test.lua
 ```
 
 Result:
