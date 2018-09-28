@@ -120,6 +120,10 @@ export class CodeStorage {
     }
 
     public setNodeToTrackDebugInfo(node: ts.Node) {
+        if ((<any>node).__origin) {
+            node = (<any>node).__origin;
+        }
+
         if (!node) {
             throw new Error('Node is null');
         }
@@ -179,6 +183,7 @@ export class FunctionContext {
     public breaks: Array<number> = [];
     public continues: Array<number> = [];
     public thisInUpvalue: boolean;
+    public isFinalReturnAdded: boolean;
 
     public newLocalScope(node: ts.Node) {
         this.location_scopes.push(this.current_location_node);

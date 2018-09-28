@@ -119,6 +119,12 @@ export class Emitter {
     }
 
     public save() {
+        // add final return
+        if (!this.functionContext.isFinalReturnAdded) {
+            this.functionContext.code.push([Ops.RETURN, 0, 1]);
+            this.functionContext.isFinalReturnAdded = true;
+        }
+
         this.emitHeader();
         // f->sizeupvalues (byte)
         this.writer.writeByte(this.functionContext.upvalues.length);
@@ -265,7 +271,8 @@ export class Emitter {
         location: ts.Node,
         statements: ts.NodeArray<ts.Statement>,
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
-        createEnvironment?: boolean) {
+        createEnvironment?: boolean,
+        noReturn?: boolean) {
 
         this.functionContext.newLocalScope((<any>location).__origin ? (<any>location).__origin : location);
 
@@ -354,8 +361,10 @@ export class Emitter {
             this.processStatement(s);
         });
 
-        // add final 'RETURN'
-        this.functionContext.code.push([Ops.RETURN, 0, 1]);
+        if (!noReturn) {
+            // add final 'RETURN'
+            this.functionContext.code.push([Ops.RETURN, 0, 1]);
+        }
 
         this.functionContext.restoreLocalScope();
 
@@ -369,7 +378,7 @@ export class Emitter {
         this.functionContext.function_or_file_location_node = sourceFile;
 
         this.sourceFileName = sourceFile.fileName;
-        this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[], !this.functionContext.environmentCreated);
+        this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[], !this.functionContext.environmentCreated, true);
         this.functionContext.environmentCreated = true;
         this.functionContext.is_vararg = true;
     }
@@ -388,19 +397,30 @@ export class Emitter {
         this.rollbackUnused(stackSize);
     }
 
+    private extraDebugTracePrint(node: ts.Node) {
+        let txt = '<no code> ' + ts.SyntaxKind[node.kind];
+
+        try {
+            const origin = <ts.Node>(<any>node).__origin;
+            if (origin && origin.pos >= 0) {
+                txt = origin.getText();
+            } else if (node.pos >= 0) {
+                txt = node.getText();
+            }
+        } catch (e) {
+        }
+
+        this.extraDebug([
+            ts.createStringLiteral(this.functionContext.code.getDebugLine()),
+            ts.createStringLiteral(' => '),
+            ts.createStringLiteral(txt.substring(0, 140))]);
+    }
+
     private processStatementInternal(node: ts.Statement): void {
 
         this.functionContext.code.setNodeToTrackDebugInfo(node);
         if (this.extraDebugEmbed) {
-            let txt = '<no code>';
-            if (node.pos >= 0) {
-                txt = node.getText();
-            }
-
-            this.extraDebug(node, [
-                ts.createStringLiteral(this.functionContext.code.getDebugLine()),
-                ts.createStringLiteral(' => '),
-                ts.createStringLiteral(txt.substring(0, 140))]);
+            this.extraDebugTracePrint(node);
         }
 
         switch (node.kind) {
@@ -440,7 +460,6 @@ export class Emitter {
     private processExpression(node: ts.Expression): void {
 
         this.functionContext.code.setNodeToTrackDebugInfo(node);
-
         switch (node.kind) {
             case ts.SyntaxKind.NewExpression: this.processNewExpression(<ts.NewExpression>node); return;
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
@@ -751,10 +770,6 @@ export class Emitter {
             return;
         }
 
-        if (this.extraDebugEmbed) {
-            this.extraDebug(node, [ts.createStringLiteral('export class'), ts.createStringLiteral(name.text)]);
-        }
-
         if (this.functionContext.namespaces.length === 0) {
             const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             this.emitGetOrCreateObjectExpression(node, 'exports');
@@ -768,9 +783,12 @@ export class Emitter {
         this.emitSaveToNamespace(name, fullNamespace);
     }
 
-    private extraDebug(node: ts.Node, args: ReadonlyArray<ts.Expression>) {
+    private extraDebug(args: ReadonlyArray<ts.Expression>) {
         const extraPrint = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('console'), 'log'), undefined, args);
+        const state = this.extraDebugEmbed;
+        this.extraDebugEmbed = false;
         this.processExpression(extraPrint);
+        this.extraDebugEmbed = state;
     }
 
     private emitSaveToNamespace(name: ts.Identifier, fullNamespace?: boolean) {
