@@ -15,7 +15,8 @@ export class Emitter {
     private opsMap = [];
     private extraDebugEmbed = false;
     private allowConstBigger255 = false;
-    private splitConstFromOpCode = true;
+    // can be used for testing to load const separately
+    private splitConstFromOpCode = false;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -1736,6 +1737,11 @@ export class Emitter {
                 }
 
                 break;
+            case ts.SyntaxKind.PlusToken:
+                this.processExpression(node.operand);
+                break;
+            default:
+                throw new Error('Not Implemented');
         }
     }
 
@@ -2256,11 +2262,20 @@ export class Emitter {
 
         // call constructor
         const methodInfo = this.functionContext.useRegisterAndPush();
+        let constructorInfo = this.resolver.returnConst('constructor', this.functionContext);
+
+        const reserveSpace = this.functionContext.useRegisterAndPush();
+        constructorInfo = this.preprocessConstAndUpvalues(constructorInfo);
+
         this.functionContext.code.push([
             Ops.SELF,
             methodInfo.getRegister(),
             resultInfo.getRegister(),
-            this.resolver.returnConst('constructor', this.functionContext).getRegisterOrIndex()]);
+            constructorInfo.getRegisterOrIndex()]);
+
+        this.stackCleanup(constructorInfo);
+        // cleanup of reserve
+        this.functionContext.stack.pop();
 
         // to reserve 'this' register
         this.functionContext.useRegisterAndPush();
@@ -2559,6 +2574,7 @@ export class Emitter {
         const resultInfo = this.functionContext.useRegisterAndPush();
 
         objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
+        const reservedSpace = this.functionContext.useRegisterAndPush();
         memberIdentifierInfo = this.preprocessConstAndUpvalues(memberIdentifierInfo);
 
         this.functionContext.code.push(
@@ -2572,6 +2588,8 @@ export class Emitter {
         }
 
         this.stackCleanup(memberIdentifierInfo);
+        // clear up reserved
+        this.functionContext.stack.pop();
         this.stackCleanup(objectIdentifierInfo);
     }
 

@@ -1,3 +1,1 @@
-var a = 1;
-console.log(a++);
-console.log(a--);
+this._alpha = +evt.alpha | 0;
