@@ -577,6 +577,8 @@ export class Emitter {
         const pcallMethodInfo = this.resolver.returnConst('pcall', this.functionContext);
 
         const pcallResultInfo = this.functionContext.useRegisterAndPush();
+
+        this.preprocessConstAndUpvalues(envInfo, pcallMethodInfo);
         // getting method referene
         this.functionContext.code.push(
             [Ops.GETTABUP, pcallResultInfo.getRegister(), envInfo.getRegisterOrIndex(), pcallMethodInfo.getRegisterOrIndex()]);
@@ -612,6 +614,8 @@ export class Emitter {
             // if status == true, jump over 'catch'-es.
             // create 'true' boolean
             const resolvedInfo = this.resolver.returnConst(true, this.functionContext);
+
+            this.preprocessConstAndUpvalues(statusResultInfo, resolvedInfo);
 
             const equalsTo = 1;
             this.functionContext.code.push([
@@ -1092,6 +1096,8 @@ export class Emitter {
 
     private emitStoreToEnvObjectProperty(nameConstIndex: ResolvedInfo) {
         const resolvedInfo = this.functionContext.stack.pop().optimize();
+
+        this.preprocessConstAndUpvalues(nameConstIndex, resolvedInfo);
 
         this.functionContext.code.push([
             Ops.SETTABUP,
@@ -2447,7 +2453,7 @@ export class Emitter {
         }
 
         let pops = 0;
-        if (!resolvedInfo.canUseIndex()) {
+        if (!can1) {
             if (resolvedInfo.kind === ResolvedKind.Const) {
                 const resultInfo = this.functionContext.useRegisterAndPush();
                 resultInfo.originalInfo = resolvedInfo.originalInfo;
@@ -2458,7 +2464,7 @@ export class Emitter {
             }
         }
 
-        if (resolvedInfo2 && !resolvedInfo2.canUseIndex()) {
+        if (resolvedInfo2 && !can2) {
             if (resolvedInfo2.kind === ResolvedKind.Const) {
                 const resultInfo = this.functionContext.useRegisterAndPush();
                 resultInfo.originalInfo = resolvedInfo2.originalInfo;
