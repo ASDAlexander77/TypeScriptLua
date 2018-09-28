@@ -15,7 +15,7 @@ export class Emitter {
     private opsMap = [];
     private extraDebugEmbed = false;
     private allowConstBigger255 = false;
-    private splitConstFromOpCode = false;
+    private splitConstFromOpCode = true;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -2426,12 +2426,12 @@ export class Emitter {
     }
 
     private preprocessConstAndUpvalues(resolvedInfo: ResolvedInfo): ResolvedInfo {
-        if (!this.allowConstBigger255) {
+        if (this.allowConstBigger255 && !this.splitConstFromOpCode) {
             return resolvedInfo;
         }
 
-        const can1 = !this.splitConstFromOpCode || resolvedInfo.canUseIndex();
-        if (can1) {
+        const can1 = resolvedInfo.canUseIndex();
+        if (can1 && !(this.splitConstFromOpCode && resolvedInfo.kind === ResolvedKind.Const)) {
             return resolvedInfo;
         }
 
