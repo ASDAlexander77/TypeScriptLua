@@ -392,7 +392,15 @@ export class Emitter {
 
         this.functionContext.code.setNodeToTrackDebugInfo(node);
         if (this.extraDebugEmbed) {
-            this.extraDebug(node, [ts.createStringLiteral(this.functionContext.code.getDebugLine())]);
+            let txt = '<no code>';
+            if (node.pos >= 0) {
+                txt = node.getText();
+            }
+
+            this.extraDebug(node, [
+                ts.createStringLiteral(this.functionContext.code.getDebugLine()),
+                ts.createStringLiteral(' => '),
+                ts.createStringLiteral(txt.substring(0, 140))]);
         }
 
         switch (node.kind) {
@@ -903,7 +911,7 @@ export class Emitter {
         // we do not need - abstract elements
         if (memberDeclaration.modifiers &&
             memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.AbstractKeyword)) {
-                return false;
+            return false;
         }
 
         switch (memberDeclaration.kind) {
