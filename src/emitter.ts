@@ -1079,10 +1079,9 @@ export class Emitter {
                 this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
             }
         } else {
-            const nameConstIndex = -this.functionContext.findOrCreateConst(name);
             if (initializer) {
                 this.processExpression(initializer);
-                this.emitStoreToEnvObjectProperty(nameConstIndex);
+                this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(name, this.functionContext));
             }
         }
     }
@@ -1091,13 +1090,13 @@ export class Emitter {
         this.processVariableDeclarationList(node.declarationList);
     }
 
-    private emitStoreToEnvObjectProperty(nameConstIndex: number) {
+    private emitStoreToEnvObjectProperty(nameConstIndex: ResolvedInfo) {
         const resolvedInfo = this.functionContext.stack.pop().optimize();
 
         this.functionContext.code.push([
             Ops.SETTABUP,
             this.resolver.returnResolvedEnv(this.functionContext).getRegisterOrIndex(),
-            nameConstIndex,
+            nameConstIndex.getRegisterOrIndex(),
             resolvedInfo.getRegisterOrIndex()]);
     }
 
@@ -1128,10 +1127,9 @@ export class Emitter {
             return;
         }
 
-        const nameConstIndex = -this.functionContext.findOrCreateConst(node.name.text);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
 
-        this.emitStoreToEnvObjectProperty(nameConstIndex);
+        this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(node.name.text, this.functionContext));
 
         this.emitExport(node.name, node);
     }
@@ -2582,6 +2580,9 @@ export class Emitter {
         }
 
         const resultInfo = this.functionContext.useRegisterAndPush();
+
+        this.preprocessConstAndUpvalues(objectIdentifierInfo, memberIdentifierInfo);
+
         this.functionContext.code.push(
             [opCode,
                 resultInfo.getRegister(),

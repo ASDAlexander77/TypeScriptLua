@@ -88,7 +88,7 @@ export class OpMode {
                 // B(9)    Bx   C(9)         A(8)      OP(6)
                 // A
                 val = c[1];
-                if (val > 255) {
+                if (val < 0 || val > 255) {
                     throw new Error('A is exceeded');
                 }
 
@@ -101,7 +101,7 @@ export class OpMode {
                     val |= 1 << 8;
                 }
 
-                if (val > 510) {
+                if (val < 0 || val > 510) {
                     throw new Error('C is exceeded');
                 }
 
@@ -114,7 +114,7 @@ export class OpMode {
                     val |= 1 << 8;
                 }
 
-                if (val > 510) {
+                if (val < 0 || val > 510) {
                     throw new Error('B is exceeded');
                 }
 
@@ -123,7 +123,7 @@ export class OpMode {
                 break;
             case OpCodeMode.iABx:
                 val = c[1];
-                if (val > 255) {
+                if (val < 0 || val > 255) {
                     throw new Error('A is exceeded');
                 }
 
@@ -135,7 +135,7 @@ export class OpMode {
                     val = -(val + 1);
                 }
 
-                if (val > 262143) {
+                if (val < 0 || val > 262143) {
                     throw new Error('Bx is exceeded');
                 }
 
@@ -144,7 +144,7 @@ export class OpMode {
                 break;
             case OpCodeMode.iAsBx:
                 val = c[1];
-                if (val > 255) {
+                if (val < 0 || val > 255) {
                     throw new Error('A is exceeded');
                 }
 
@@ -153,7 +153,7 @@ export class OpMode {
                 // sBx
                 val = c[2] + 131071;
 
-                if (val > 262143) {
+                if (val < 0 || val > 262143) {
                     throw new Error('sBx is exceeded');
                 }
 
@@ -168,7 +168,7 @@ export class OpMode {
                     throw new Error('Should be negative');
                 }
 
-                if (val > 67108863) {
+                if (val < 0 || val > 67108863) {
                     throw new Error('Ax is exceeded');
                 }
 

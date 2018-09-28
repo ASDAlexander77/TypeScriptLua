@@ -418,6 +418,14 @@ export class IdentifierResolver {
         return resolvedInfo;
     }
 
+    public returnIdentifier(identifier: string, functionContext: FunctionContext): ResolvedInfo {
+        const identifierInfo = new ResolvedInfo(functionContext);
+        identifierInfo.kind = ResolvedKind.Const;
+        identifierInfo.identifierName = identifier;
+        identifierInfo.ensureConstIndex();
+        return identifierInfo;
+    }
+
     public returnLocal(text: string, functionContext: FunctionContext): ResolvedInfo {
         const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Register;
@@ -522,10 +530,7 @@ export class IdentifierResolver {
     private resolveMemberOfCurrentScope(identifier: string, functionContext: FunctionContext): ResolvedInfo {
         if (!this.Scope.any()) {
             const objectInfo = this.returnResolvedEnv(functionContext);
-            const methodInfo = new ResolvedInfo(functionContext);
-            methodInfo.kind = ResolvedKind.Const;
-            methodInfo.identifierName = identifier;
-            methodInfo.ensureConstIndex();
+            const methodInfo = this.returnIdentifier(identifier, functionContext);
 
             const loadMemberInfo = new ResolvedInfo(functionContext);
             loadMemberInfo.kind = ResolvedKind.LoadGlobalMember;

@@ -64,7 +64,7 @@ export class CodeStorage {
 
         // DEBUG
         const latest = opCode;
-        if (latest[0] === Ops.GETTABUP || latest[0] === Ops.SETTABUP || latest[0] === Ops.GETUPVAL || latest[0] === Ops.SETUPVAL) {
+        if (latest[0] === Ops.GETTABUP || latest[0] === Ops.GETUPVAL || latest[0] === Ops.SETUPVAL) {
             if (latest[2] >= this.functionContext.upvalues.length) {
                 throw new Error('Upvalue does not exist');
             }
