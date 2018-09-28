@@ -14,6 +14,8 @@ export class Emitter {
     private sourceFileName: string;
     private opsMap = [];
     private extraDebugEmbed = false;
+    private allowConstBigger255 = false;
+    private splitConstFromOpCode = false;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -573,15 +575,19 @@ export class Emitter {
         // 1) get method pcall
         // prepare call for _ENV "pcall"
         // prepare consts
-        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const pcallMethodInfo = this.resolver.returnConst('pcall', this.functionContext);
+        let envInfo = this.resolver.returnResolvedEnv(this.functionContext);
+        let pcallMethodInfo = this.resolver.returnConst('pcall', this.functionContext);
 
         const pcallResultInfo = this.functionContext.useRegisterAndPush();
 
-        this.preprocessConstAndUpvalues(envInfo, pcallMethodInfo);
+        envInfo = this.preprocessConstAndUpvalues(envInfo);
+        pcallMethodInfo = this.preprocessConstAndUpvalues(pcallMethodInfo);
         // getting method referene
         this.functionContext.code.push(
             [Ops.GETTABUP, pcallResultInfo.getRegister(), envInfo.getRegisterOrIndex(), pcallMethodInfo.getRegisterOrIndex()]);
+
+        this.stackCleanup(pcallMethodInfo);
+        this.stackCleanup(envInfo);
 
         // 2) get closure
         // prepare Closure
@@ -599,7 +605,7 @@ export class Emitter {
         this.functionContext.stack.pop();
 
         // creating 2 results
-        const statusResultInfo = this.functionContext.useRegisterAndPush();
+        let statusResultInfo = this.functionContext.useRegisterAndPush();
         statusResultInfo.identifierName = 'status';
         const errorResultInfo = this.functionContext.useRegisterAndPush();
         errorResultInfo.identifierName = 'error';
@@ -613,13 +619,17 @@ export class Emitter {
         if (node.catchClause) {
             // if status == true, jump over 'catch'-es.
             // create 'true' boolean
-            const resolvedInfo = this.resolver.returnConst(true, this.functionContext);
+            let resolvedInfo = this.resolver.returnConst(true, this.functionContext);
 
-            this.preprocessConstAndUpvalues(statusResultInfo, resolvedInfo);
+            statusResultInfo = this.preprocessConstAndUpvalues(statusResultInfo);
+            resolvedInfo = this.preprocessConstAndUpvalues(resolvedInfo);
 
             const equalsTo = 1;
             this.functionContext.code.push([
                 Ops.EQ, equalsTo, statusResultInfo.getRegisterOrIndex(), resolvedInfo.getRegisterOrIndex()]);
+
+            this.stackCleanup(resolvedInfo);
+            this.stackCleanup(statusResultInfo);
 
             const jmpOp = [Ops.JMP, 0, 0];
             this.functionContext.code.push(jmpOp);
@@ -675,42 +685,6 @@ export class Emitter {
         this.processTSNode(node);
         this.functionContext.restoreLocalScope();
     }
-
-    /*
-    private processClassDeclaration(node: ts.ClassDeclaration): void {
-        this.functionContext.newLocalScope(node);
-
-        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
-            this.emitGetOrCreateObjectExpression(node, 'exports');
-        }
-
-        const statements = this.parseTSNode(node, (js) => {
-            if (node.heritageClauses) {
-                // TODO: Hack, remove extra code to make code works
-                js = js.replace('__extends(' + node.name.text + ', _super);', '');
-                // TODO: Hack remove super call in constructor, implement apply on function
-                js = js.replace('return _super !== null && _super.apply(this, arguments) || this;', '');
-            }
-
-            return js;
-        });
-        if (node.heritageClauses) {
-            // skip first statement
-            statements.slice(1).forEach(statement => {
-                this.processStatement(statement);
-            });
-        } else {
-            statements.forEach(statement => {
-                this.processStatement(statement);
-            });
-        }
-
-        this.functionContext.restoreLocalScope();
-
-        // create proto object for inherited class
-        this.emitInheritance(node);
-    }
-    */
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
@@ -1095,9 +1069,10 @@ export class Emitter {
     }
 
     private emitStoreToEnvObjectProperty(nameConstIndex: ResolvedInfo) {
-        const resolvedInfo = this.functionContext.stack.pop().optimize();
+        nameConstIndex = this.preprocessConstAndUpvalues(nameConstIndex);
+        this.stackCleanup(nameConstIndex);
 
-        this.preprocessConstAndUpvalues(nameConstIndex, resolvedInfo);
+        const resolvedInfo = this.functionContext.stack.pop().optimize();
 
         this.functionContext.code.push([
             Ops.SETTABUP,
@@ -1666,12 +1641,6 @@ export class Emitter {
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
-
-        // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where the beginning of the command
-        const operandPosition = this.functionContext.code.length;
-
-        this.processExpression(node.operand);
-
         let opCode;
         switch (node.operator) {
             case ts.SyntaxKind.MinusToken:
@@ -1688,6 +1657,8 @@ export class Emitter {
                         opCode = Ops.NOT;
                         break;
                 }
+
+                this.processExpression(node.operand);
 
                 // no optimization required as expecting only Registers
                 const rightNode = this.functionContext.stack.pop();
@@ -1712,9 +1683,15 @@ export class Emitter {
 
                 this.emitNumericConst('1');
 
+                this.processExpression(node.operand);
+
+                // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where
+                // the beginning of the command
+                const operandPosition = this.functionContext.code.length - 1;
+
                 // +/- 1
-                const value1Info = this.functionContext.stack.pop().optimize();
                 const operandInfo = this.functionContext.stack.pop().optimize();
+                const value1Info = this.functionContext.stack.pop().optimize();
                 const resultPlusOrMinusInfo = this.functionContext.useRegisterAndPush();
 
                 this.functionContext.code.push([
@@ -1731,26 +1708,26 @@ export class Emitter {
                         Ops.SETTABUP,
                         readOpCode[2],
                         readOpCode[3],
-                        operandInfo.getRegister()
+                        resultPlusOrMinusInfo.getRegister()
                     ]);
                 } else if (readOpCode && readOpCode[0] === Ops.GETTABLE) {
                     this.functionContext.code.push([
                         Ops.SETTABLE,
                         readOpCode[2],
                         readOpCode[3],
-                        operandInfo.getRegister()
+                        resultPlusOrMinusInfo.getRegister()
                     ]);
                 } else if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
                     this.functionContext.code.push([
                         Ops.SETUPVAL,
                         readOpCode[2],
-                        operandInfo.getRegister()
+                        resultPlusOrMinusInfo.getRegister()
                     ]);
                 } else if (operandInfo.kind === ResolvedKind.Register) {
                     this.functionContext.code.push([
                         Ops.MOVE,
                         (operandInfo.originalInfo || operandInfo).getRegister(),
-                        operationResultInfo.getRegister()]);
+                        resultPlusOrMinusInfo.getRegister()]);
                 }
 
                 // clone value
@@ -1763,11 +1740,6 @@ export class Emitter {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
-        // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where the beginning of the command
-        const operandPosition = this.functionContext.code.length;
-
-        this.processExpression(node.operand);
-
         let opCode;
         switch (node.operator) {
             case ts.SyntaxKind.PlusPlusToken:
@@ -1781,11 +1753,18 @@ export class Emitter {
                         break;
                 }
 
-                // clone
-                const operandInfo = this.functionContext.stack.peek();
+                this.processExpression(node.operand);
 
+                // TODO: this code can be improved by ataching Ops codes to
+                // ResolvedInfo instead of guessing where the beginning of the command
+                const operandPosition = this.functionContext.code.length - 1;
+
+                const resurveSpace = this.functionContext.useRegisterAndPush();
                 this.emitNumericConst('1');
                 const value1Info = this.functionContext.stack.pop().optimize();
+
+                // clone
+                const operandInfo = this.functionContext.stack.peekSkip(-1);
 
                 // +/- 1
                 const resultPlusOrMinuesInfo = this.functionContext.useRegisterAndPush();
@@ -1795,7 +1774,9 @@ export class Emitter {
                     operandInfo.getRegister(),
                     value1Info.getRegisterOrIndex()]);
 
-                // consumed operand. we need to pop here to maintain order of used registers
+                // consumed operand
+                this.functionContext.stack.pop();
+                // consume reserved space
                 this.functionContext.stack.pop();
 
                 // save
@@ -2444,47 +2425,32 @@ export class Emitter {
         this.functionContext.useRegisterAndPush();
     }
 
-    private preprocessConstAndUpvalues(resolvedInfo: ResolvedInfo, resolvedInfo2: ResolvedInfo) {
-
-        const can1 = resolvedInfo.canUseIndex();
-        const can2 = resolvedInfo2 && resolvedInfo2.canUseIndex();
-        if (can1 && (!resolvedInfo2 || can2)) {
-            return;
+    private preprocessConstAndUpvalues(resolvedInfo: ResolvedInfo): ResolvedInfo {
+        if (!this.allowConstBigger255) {
+            return resolvedInfo;
         }
 
-        let pops = 0;
-        if (!can1) {
-            if (resolvedInfo.kind === ResolvedKind.Const) {
-                const resultInfo = this.functionContext.useRegisterAndPush();
-                resultInfo.originalInfo = resolvedInfo.originalInfo;
-                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-                resolvedInfo.kind = resultInfo.kind;
-                resolvedInfo.register = resultInfo.register;
-                pops++;
-            }
+        const can1 = !this.splitConstFromOpCode || resolvedInfo.canUseIndex();
+        if (can1) {
+            return resolvedInfo;
         }
 
-        if (resolvedInfo2 && !can2) {
-            if (resolvedInfo2.kind === ResolvedKind.Const) {
-                const resultInfo = this.functionContext.useRegisterAndPush();
-                resultInfo.originalInfo = resolvedInfo2.originalInfo;
-                this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo2.getRegisterOrIndex()]);
-                resolvedInfo2.kind = resultInfo.kind;
-                resolvedInfo2.register = resultInfo.register;
-                pops++;
-            }
-        }
-
-        if (pops > 1) {
-            this.functionContext.stack.pop();
-        }
-
-        if (pops > 0) {
-            this.functionContext.stack.pop();
-            return;
+        if (resolvedInfo.kind === ResolvedKind.Const) {
+            const resultInfo = this.functionContext.useRegisterAndPush();
+            resultInfo.originalInfo = resolvedInfo.originalInfo;
+            resultInfo.popRequired = true;
+            this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+            return resultInfo;
         }
 
         throw new Error('Not Implemented');
+    }
+
+    private stackCleanup(resolvedInfo: ResolvedInfo) {
+        if (resolvedInfo.popRequired)
+        {
+            this.functionContext.stack.pop();
+        }
     }
 
     private processIndentifier(node: ts.Identifier): void {
@@ -2518,20 +2484,25 @@ export class Emitter {
         }
 
         if (resolvedInfo.kind === ResolvedKind.LoadGlobalMember) {
-            const objectIdentifierInfo = resolvedInfo.objectInfo;
-            const memberIdentifierInfo = resolvedInfo.memberInfo;
+            let objectIdentifierInfo = resolvedInfo.objectInfo;
+            let memberIdentifierInfo = resolvedInfo.memberInfo;
             memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
 
             const resultInfo = this.functionContext.useRegisterAndPush();
             resultInfo.originalInfo = memberIdentifierInfo;
 
-            this.preprocessConstAndUpvalues(objectIdentifierInfo, memberIdentifierInfo);
+            objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
+            memberIdentifierInfo = this.preprocessConstAndUpvalues(memberIdentifierInfo);
 
             this.functionContext.code.push(
                 [Ops.GETTABUP,
                 resultInfo.getRegister(),
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
+
+            this.stackCleanup(memberIdentifierInfo);
+            this.stackCleanup(objectIdentifierInfo);
+
             return;
         }
 
@@ -2558,8 +2529,8 @@ export class Emitter {
 
         // perform load
         // we can call collapseConst becasee member is name all the time which means it is const value
-        const memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
-        const objectIdentifierInfo = this.functionContext.stack.pop().optimize();
+        let memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
+        let objectIdentifierInfo = this.functionContext.stack.pop().optimize();
 
         let opCode = Ops.GETTABLE;
 
@@ -2587,7 +2558,8 @@ export class Emitter {
 
         const resultInfo = this.functionContext.useRegisterAndPush();
 
-        this.preprocessConstAndUpvalues(objectIdentifierInfo, memberIdentifierInfo);
+        objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
+        memberIdentifierInfo = this.preprocessConstAndUpvalues(memberIdentifierInfo);
 
         this.functionContext.code.push(
             [opCode,
@@ -2598,6 +2570,9 @@ export class Emitter {
         if (opCode === Ops.SELF) {
             this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
         }
+
+        this.stackCleanup(memberIdentifierInfo);
+        this.stackCleanup(objectIdentifierInfo);
     }
 
     private emitGetOrCreateObjectExpression(node: ts.Node, globalVariableName: string) {

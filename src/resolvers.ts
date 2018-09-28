@@ -31,6 +31,7 @@ export class ResolvedInfo {
     public upvalueStackIndex: number;
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
+    public popRequired: boolean;
 
     public constructor(private functionContext: FunctionContext) {
     }
@@ -238,6 +239,10 @@ export class StackResolver {
 
     public peek(): ResolvedInfo {
         return this.stack[this.stack.length - 1];
+    }
+
+    public peekSkip(skip: number): ResolvedInfo {
+        return this.stack[this.stack.length - 1 + skip];
     }
 
     public getLength(): any {
