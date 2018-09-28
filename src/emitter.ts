@@ -391,6 +391,9 @@ export class Emitter {
     private processStatementInternal(node: ts.Statement): void {
 
         this.functionContext.code.setNodeToTrackDebugInfo(node);
+        if (this.extraDebugEmbed) {
+            this.extraDebug(node, [ts.createStringLiteral(this.functionContext.code.getDebugLine())]);
+        }
 
         switch (node.kind) {
             case ts.SyntaxKind.EmptyStatement: return;
@@ -2462,8 +2465,7 @@ export class Emitter {
     }
 
     private stackCleanup(resolvedInfo: ResolvedInfo) {
-        if (resolvedInfo.popRequired)
-        {
+        if (resolvedInfo.popRequired) {
             this.functionContext.stack.pop();
         }
     }

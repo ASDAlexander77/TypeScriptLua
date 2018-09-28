@@ -53,6 +53,7 @@ class BaseStorage<T> {
 
 export class CodeStorage {
     private code: number[][] = [];
+    private currentDebugFileName: string;
     private currentDebugLine: number;
 
     public constructor(private functionContext: FunctionContext) {
@@ -132,8 +133,14 @@ export class CodeStorage {
             return;
         }
 
+        this.currentDebugFileName = file.fileName;
+
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
         this.currentDebugLine = locStart.line + 1;
+    }
+
+    public getDebugLine(): string {
+        return this.currentDebugFileName + ':' + this.currentDebugLine;
     }
 }
 
@@ -185,7 +192,7 @@ export class FunctionContext {
         this.debugInfoMarkEndOfScopeForLocals();
 
         if (this.locals && this.locals.length > 0) {
-            const minRegister = Math.min( ...this.locals.filter(l => !l.fake).map(l => l.register) );
+            const minRegister = Math.min(...this.locals.filter(l => !l.fake).map(l => l.register));
             if (minRegister >= 0 && minRegister < Infinity) {
                 this.availableRegister = minRegister;
             }
@@ -207,7 +214,7 @@ export class FunctionContext {
         // upvalues start with 0
         const index = this.upvalues.findIndex(e => e.name === name);
         if (index === -1) {
-            this.upvalues.push({name, instack: instack, index: indexInStack});
+            this.upvalues.push({ name, instack: instack, index: indexInStack });
             return this.upvalues.length - 1;
         }
 
@@ -218,7 +225,7 @@ export class FunctionContext {
         // upvalues start with 0
         const index = this.upvalues.findIndex(e => e.name === name);
         if (index === -1) {
-            this.upvalues.push({name, instack: false || instack, index: undefined});
+            this.upvalues.push({ name, instack: false || instack, index: undefined });
             return this.upvalues.length - 1;
         }
 
@@ -244,7 +251,8 @@ export class FunctionContext {
                 name: name,
                 register: registerInfo.getRegister(),
                 fake: predefinedRegisterInfo ? true : false,
-                debugStartCode: this.code.length });
+                debugStartCode: this.code.length
+            });
             return registerInfo;
         }
 
