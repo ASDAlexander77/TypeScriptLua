@@ -762,7 +762,6 @@ export class Emitter {
 
     private extraDebug(node: ts.Node, args: ReadonlyArray<ts.Expression>) {
         const extraPrint = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('console'), 'log'), undefined, args);
-        extraPrint.parent = node;
         this.processExpression(extraPrint);
     }
 
@@ -2670,7 +2669,7 @@ export class Emitter {
                 switch (typeof c) {
                     case 'boolean':
                         this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
-                        this.writer.writeByte(c);
+                        this.writer.writeByte(c ? 1 : 0);
                         break;
                     case 'number':
                         if (Number.isInteger(c)) {
