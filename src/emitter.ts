@@ -580,8 +580,8 @@ export class Emitter {
         return sourceFile.statements;
     }
 
-    private processTSNode(node: ts.Node) {
-        const statements = this.transpileTSNode(node);
+    private processTSNode(node: ts.Node, transformText?: (string) => string) {
+        const statements = this.transpileTSNode(node, transformText);
         statements.forEach(s => {
             this.processStatementInternal(s);
         });
@@ -713,7 +713,40 @@ export class Emitter {
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
         this.functionContext.newLocalScope(node);
-        this.processTSNode(node);
+        const properties = [];
+        let value = 0;
+        for (const member of node.members) {
+            if (member.initializer) {
+                switch (member.initializer.kind) {
+                    case ts.SyntaxKind.NumericLiteral:
+                        value = parseInt((<ts.NumericLiteral>member.initializer).text, 10);
+                        break;
+                    default:
+                        throw new Error('Not Implemented');
+                }
+            } else {
+                value++;
+            }
+
+            const namedProperty = ts.createPropertyAssignment(
+                member.name,
+                ts.createNumericLiteral(value.toString()));
+            properties.push(namedProperty);
+
+            const valueProperty = ts.createPropertyAssignment(
+                ts.createNumericLiteral(value.toString()),
+                ts.createStringLiteral((<ts.Identifier>member.name).text));
+
+            properties.push(namedProperty);
+            properties.push(valueProperty);
+        }
+
+        const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
+        prototypeObject.parent = node;
+        this.processExpression(prototypeObject);
+
+        this.emitExport(node.name, node);
+
         this.functionContext.restoreLocalScope();
     }
 
