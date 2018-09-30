@@ -57,6 +57,11 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
 
         this.extraDebugEmbed = cmdLineOptions.extradebug ? true : false;
+        if (options) {
+            if (options.outFile) {
+                this.fileModuleName = options.outFile;
+            }
+        }
     }
 
     private lib = '                                                 \

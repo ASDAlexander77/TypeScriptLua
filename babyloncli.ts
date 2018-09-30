@@ -1,4 +1,4 @@
-import './JSLib';
+import './jslib';
 import './BABYLON';
 
 class Runner {

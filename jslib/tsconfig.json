@@ -17,6 +17,7 @@
     "skipLibCheck": true,
     "noUnusedParameters": true,
     "outDir": "./__out/jslib",
+    "outFile": "jslib",
     "baseUrl": "./",
     "moduleResolution": "node",
     "module": "esnext",
