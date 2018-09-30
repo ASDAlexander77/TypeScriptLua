@@ -16,6 +16,16 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Node.js (JSLib)",
+            "program": "${workspaceFolder}/__out/main.js",
+            "cwd": "${workspaceFolder}/jslib",
+            "args": [
+                "tsconfig.json"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Node.js (Babylon)",
             "program": "${workspaceFolder}/__out/main.js",
             "cwd": "D:\\Git\\Babylon.js\\src",

@@ -1,0 +1,36 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noResolve": true,
+    "target": "es5",
+    "declaration": true,
+    "experimentalDecorators": true,
+    "isolatedModules": false,
+    "sourceMap": true,
+    "types": [],
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "skipLibCheck": true,
+    "noUnusedParameters": true,
+    "outDir": "./__out/jslib",
+    "baseUrl": "./",
+    "moduleResolution": "node",
+    "module": "esnext",
+    "emitDecoratorMetadata": false,
+    "alwaysStrict": false,
+    "noImplicitUseStrict": true,
+    "typeRoots": [],
+    "lib": [
+    ]
+  },
+  "include": [
+    "Object.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
