@@ -350,4 +350,15 @@ describe('Classes', () => {
         console.log(h.info);                                                \
     '])));
 
+    it('Class - static - method call',  () => expect('1.0\r\n').to.equals(new Run().test([
+        'export class Matrix {                                          \
+            public static _identityReadOnly = Matrix.Identity();        \
+                                                                        \
+            public static Identity(): number {                          \
+                return 1.0;                                             \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        console.log(Matrix._identityReadOnly);                          \
+    '])));
 });

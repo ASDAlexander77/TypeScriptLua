@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Node.js",
+            "name": "Launch Node.js (Test)",
             "program": "${workspaceFolder}/__out/main.js",
             "args": [
                 "tsconfig1.json"
