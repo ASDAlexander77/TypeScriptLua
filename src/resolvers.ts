@@ -165,6 +165,7 @@ export class ResolvedInfo {
         // we need to suppres redundant LOADK & MOVES
         const opCodes = this.functionContext.code.latest;
         if (opCodes[0] === Ops.LOADK) {
+            // ASD: this code is working with big const values as well
             this.kind = ResolvedKind.Const;
             this.constIndex = opCodes[2];
             // remove optimized code

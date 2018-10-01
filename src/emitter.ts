@@ -1859,7 +1859,17 @@ export class Emitter {
                         break;
                 }
 
+                // Special case to remember source of 'field'
+                if (node.operand.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                    (<any>node.operand).__prefix_postfix = true;
+                }
+
                 this.processExpression(node.operand);
+
+                // Special case: cleanup
+                if (node.operand.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                    delete (<any>node.operand).__prefix_postfix;
+                }
 
                 // TODO: this code can be improved by ataching Ops codes to
                 // ResolvedInfo instead of guessing where the beginning of the command
