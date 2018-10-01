@@ -7,30 +7,7 @@ private _partialLoadImg(url: string, index: number, loadedImages: HTMLImageEleme
     var onload = () => {
         loadedImages[index] = img;
         (<any>loadedImages)._internalCount++;
-
-        if (scene) {
-            scene._removePendingData(img);
-        }
-
-        if ((<any>loadedImages)._internalCount === 6) {
-            onfinish(loadedImages);
-        }
     };
-
-    var onerror = (message?: string, exception?: any) => {
-        if (scene) {
-            scene._removePendingData(img);
-        }
-
-        if (onErrorCallBack) {
-            onErrorCallBack(message, exception);
-        }
-    };
-
-    img = Tools.LoadImage(url, onload, onerror, scene ? scene.database : null);
-    if (scene) {
-        scene._addPendingData(img);
-    }
 }
 
 }

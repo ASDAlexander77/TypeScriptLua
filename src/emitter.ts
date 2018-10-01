@@ -2666,6 +2666,7 @@ export class Emitter {
         this.processExpression(node.name);
         this.resolver.Scope.pop();
 
+        let prefixPostfix = this.resolver.prefixPostfix;
         // perform load
         // we can call collapseConst becasee member is name all the time which means it is const value
         let memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
@@ -2677,6 +2678,11 @@ export class Emitter {
 
         const readOpCode = this.functionContext.code.latest;
         if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
+            if (prefixPostfix) {
+                prefixPostfix = false;
+                this.functionContext.stack.pop();
+            }
+
             this.functionContext.code.pop();
             opCode = Ops.GETTABUP;
             objectIdentifierInfo.register = readOpCode[2];
@@ -2698,7 +2704,7 @@ export class Emitter {
         }
 
         const resultInfo = this.functionContext.useRegisterAndPush();
-        if (this.resolver.prefixPostfix) {
+        if (prefixPostfix) {
             // to cause chain pop
             objectIdentifierInfo.chainPop = resultInfo;
             resultInfo.hasPopChain = true;
