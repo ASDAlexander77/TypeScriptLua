@@ -1,9 +1,14 @@
 export class Matrix {
-    public static _identityReadOnly = Matrix.Identity();
+    public static _updateFlagSeed = 0;
 
-    public static Identity(): number {
-        return 1.0;
+    public _markAsUpdated() {
+        Matrix._updateFlagSeed++;
+    }
+
+    public constructor() {
+        this._markAsUpdated();
     }
 }
 
-console.log(Matrix._identityReadOnly);
+new Matrix();
+console.log(Matrix._updateFlagSeed);
