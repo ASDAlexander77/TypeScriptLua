@@ -1927,9 +1927,6 @@ export class Emitter {
 
                 if (this.isValueNotRequired(node.parent)) {
                     this.functionContext.stack.pop();
-                    if (operandInfo.hasPopChain) {
-                        this.functionContext.stack.pop();
-                    }
                 } else if (operandInfo.hasPopChain) {
                     const resultNewPositionInfo = this.functionContext.stack.peekSkip(-1);
                     const clonedValue = this.functionContext.stack.pop();
