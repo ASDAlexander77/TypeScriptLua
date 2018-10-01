@@ -1784,7 +1784,18 @@ export class Emitter {
 
                 this.emitNumericConst('1');
 
+                // Special case to remember source of 'field'
+                const propertyAccess = node.operand.kind === ts.SyntaxKind.PropertyAccessExpression;
+                if (propertyAccess) {
+                    (<any>node.operand).__prefix_postfix = true;
+                }
+
                 this.processExpression(node.operand);
+
+                // Special case: cleanup
+                if (propertyAccess) {
+                    delete (<any>node.operand).__prefix_postfix;
+                }
 
                 // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where
                 // the beginning of the command
@@ -1803,6 +1814,12 @@ export class Emitter {
 
                 // save
                 const operationResultInfo = this.functionContext.stack.pop();
+
+                if (propertyAccess) {
+                    // clean up object access
+                    this.functionContext.stack.pop();
+                }
+
                 const readOpCode = this.functionContext.code.codeAt(operandPosition);
                 if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
                     this.functionContext.code.push([
@@ -1860,14 +1877,15 @@ export class Emitter {
                 }
 
                 // Special case to remember source of 'field'
-                if (node.operand.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                const propertyAccess = node.operand.kind === ts.SyntaxKind.PropertyAccessExpression;
+                if (propertyAccess) {
                     (<any>node.operand).__prefix_postfix = true;
                 }
 
                 this.processExpression(node.operand);
 
                 // Special case: cleanup
-                if (node.operand.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                if (propertyAccess) {
                     delete (<any>node.operand).__prefix_postfix;
                 }
 
@@ -1894,6 +1912,11 @@ export class Emitter {
                 this.functionContext.stack.pop();
                 // consume reserved space
                 this.functionContext.stack.pop();
+
+                if (propertyAccess) {
+                    // clean up object access
+                    this.functionContext.stack.pop();
+                }
 
                 // save
                 const readOpCode = this.functionContext.code.codeAt(operandPosition);
