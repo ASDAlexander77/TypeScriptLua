@@ -760,19 +760,10 @@ export class Emitter {
 
         // process methods first
         const properties = node.members
-            .filter(m => this.isClassMemberAccepted(m) && m.kind !== ts.SyntaxKind.PropertyDeclaration)
+            .filter(m => this.isClassMemberAccepted(m) && !this.isStaticMemberWithNonConstInitializer(m))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
                 this.createClassMember(m)));
-
-        // process properties later to allow stitic members to access method in class
-        const propertiesToAppend = node.members
-            .filter(m => this.isClassMemberAccepted(m) && m.kind === ts.SyntaxKind.PropertyDeclaration)
-            .map(m => ts.createPropertyAssignment(
-                this.getClassMemberName(m),
-                this.createClassMember(m)));
-
-        propertiesToAppend.forEach(p => properties.push(p));
 
         if (this.isDefaultCtorRequired(node)) {
             // create defualt Ctor to initialize readonlys
@@ -806,6 +797,17 @@ export class Emitter {
             setmetatableCall.parent = node;
             this.processExpression(setmetatableCall);
         }
+
+        // process static members
+        // process properties later to allow stitic members to access method in class
+        node.members
+            .filter(m => this.isClassMemberAccepted(m) && this.isStaticMemberWithNonConstInitializer(m))
+            .map(m => ts.createAssignment(
+                ts.createPropertyAccess(node.name, this.getClassMemberName(m)),
+                this.createClassMember(m))).forEach(p => {
+                    p.parent = node;
+                    this.processExpression(p);
+                });
 
         this.emitExport(node.name, node);
 
@@ -959,8 +961,7 @@ export class Emitter {
         }
     }
 
-    private getClassMemberName(memberDeclaration: ts.ClassElement):
-        string | ts.Identifier | ts.StringLiteral | ts.NumericLiteral | ts.ComputedPropertyName {
+    private getClassMemberName(memberDeclaration: ts.ClassElement): string {
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.Constructor:
                 return 'constructor';
@@ -969,8 +970,34 @@ export class Emitter {
             case ts.SyntaxKind.GetAccessor:
                 return 'get_' + (<ts.Identifier>memberDeclaration.name).text;
             default:
-                return memberDeclaration.name;
+                return (<ts.Identifier>memberDeclaration.name).text;
         }
+    }
+
+    private isStaticMemberWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
+            memberDeclaration.modifiers &&
+            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword) &&
+            (<ts.PropertyDeclaration>memberDeclaration).initializer &&
+            !this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isConstExpression(expression: ts.Expression): any {
+        // we do not need - abstract elements
+        switch (expression.kind) {
+            case ts.SyntaxKind.TrueKeyword:
+            case ts.SyntaxKind.FalseKeyword:
+            case ts.SyntaxKind.NumericLiteral:
+            case ts.SyntaxKind.StringLiteral:
+                return true;
+        }
+
+        return false;
     }
 
     private isClassMemberAccepted(memberDeclaration: ts.ClassElement): any {
@@ -1612,7 +1639,7 @@ export class Emitter {
             } else if (e.kind === ts.SyntaxKind.PropertyAssignment) {
                 this.processExpression(e.initializer);
             } else {
-                throw new Error('Not Implemeneted');
+                throw new Error('Not Implemented');
             }
 
             const propertyValueInfo = this.functionContext.stack.pop().optimize();
