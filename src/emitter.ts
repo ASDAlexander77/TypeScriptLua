@@ -804,10 +804,7 @@ export class Emitter {
             .filter(m => this.isClassMemberAccepted(m) && this.isStaticMemberWithNonConstInitializer(m))
             .map(m => ts.createAssignment(
                 ts.createPropertyAccess(node.name, this.getClassMemberName(m)),
-                this.createClassMember(m))).forEach(p => {
-                    p.parent = node;
-                    this.processExpression(p);
-                });
+                this.createClassMember(m))).forEach(p => this.processExpression(p));
 
         this.emitExport(node.name, node);
 
