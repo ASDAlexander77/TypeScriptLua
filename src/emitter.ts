@@ -2647,6 +2647,8 @@ export class Emitter {
             return;
         }
 
+        const propertyAccessInPrefixPostfixOp = (<any>node).__prefix_postfix ? true : false;
+
         this.resolver.Scope.push(this.functionContext.stack.peek());
         this.processExpression(node.name);
         this.resolver.Scope.pop();
@@ -2654,7 +2656,9 @@ export class Emitter {
         // perform load
         // we can call collapseConst becasee member is name all the time which means it is const value
         let memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
-        let objectIdentifierInfo = this.functionContext.stack.pop().optimize();
+        let objectIdentifierInfo = propertyAccessInPrefixPostfixOp
+            ? this.functionContext.stack.peek()
+            : this.functionContext.stack.pop().optimize();
 
         let opCode = Ops.GETTABLE;
 
