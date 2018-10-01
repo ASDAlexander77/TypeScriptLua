@@ -361,21 +361,4 @@ describe('Classes', () => {
                                                                         \
         console.log(Matrix._identityReadOnly);                          \
     '])));
-
-    it('Class - constructor - methd - static call',  () => expect('1\r\n').to.equals(new Run().test([
-        'export class Matrix {                                          \
-            public static _updateFlagSeed = 0;                          \
-                                                                        \
-            public _markAsUpdated() {                                   \
-                Matrix._updateFlagSeed++;                               \
-            }                                                           \
-                                                                        \
-            public constructor() {                                      \
-                this._markAsUpdated();                                  \
-            }                                                           \
-        }                                                               \
-                                                                        \
-        new Matrix();                                                   \
-        console.log(Matrix._updateFlagSeed);                            \
-    '])));
 });

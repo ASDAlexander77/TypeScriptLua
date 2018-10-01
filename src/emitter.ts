@@ -1785,19 +1785,11 @@ export class Emitter {
                 this.emitNumericConst('1');
 
                 // Special case to remember source of 'field'
-                const propertyAccess = node.operand.kind === ts.SyntaxKind.PropertyAccessExpression;
-                if (propertyAccess) {
-                    (<any>node.operand).__prefix_postfix = true;
-                }
-
+                this.resolver.prefixPostfix = true;
                 this.processExpression(node.operand);
+                this.resolver.prefixPostfix = false;
 
-                // Special case: cleanup
-                if (propertyAccess) {
-                    delete (<any>node.operand).__prefix_postfix;
-                }
-
-                // TODO: this code can be improved by ataching Ops codes to ResolvedInfo instead of guessing where
+                // TODO: this code can be improved by attaching Ops codes to ResolvedInfo instead of guessing where
                 // the beginning of the command
                 const operandPosition = this.functionContext.code.length - 1;
 
@@ -1814,11 +1806,6 @@ export class Emitter {
 
                 // save
                 const operationResultInfo = this.functionContext.stack.pop();
-
-                if (propertyAccess) {
-                    // clean up object access
-                    this.functionContext.stack.pop();
-                }
 
                 const readOpCode = this.functionContext.code.codeAt(operandPosition);
                 if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
@@ -1877,17 +1864,9 @@ export class Emitter {
                 }
 
                 // Special case to remember source of 'field'
-                const propertyAccess = node.operand.kind === ts.SyntaxKind.PropertyAccessExpression;
-                if (propertyAccess) {
-                    (<any>node.operand).__prefix_postfix = true;
-                }
-
+                this.resolver.prefixPostfix = true;
                 this.processExpression(node.operand);
-
-                // Special case: cleanup
-                if (propertyAccess) {
-                    delete (<any>node.operand).__prefix_postfix;
-                }
+                this.resolver.prefixPostfix = false;
 
                 // TODO: this code can be improved by ataching Ops codes to
                 // ResolvedInfo instead of guessing where the beginning of the command
@@ -1913,11 +1892,6 @@ export class Emitter {
                 // consume reserved space
                 this.functionContext.stack.pop();
 
-                if (propertyAccess) {
-                    // clean up object access
-                    this.functionContext.stack.pop();
-                }
-
                 // save
                 const readOpCode = this.functionContext.code.codeAt(operandPosition);
                 if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
@@ -1927,6 +1901,16 @@ export class Emitter {
                         readOpCode[3],
                         resultPlusOrMinuesInfo.getRegister()
                     ]);
+
+                    if (operandInfo.hasPopChain) {
+                        this.functionContext.stack.pop();
+                        const resultNewPositionInfo = this.functionContext.useRegisterAndPush();
+                        this.functionContext.code.push([
+                            Ops.MOVE,
+                            resultNewPositionInfo.getRegister(),
+                            resultPlusOrMinuesInfo.getRegister()]);
+                    }
+
                 } else if (readOpCode && readOpCode[0] === Ops.GETTABLE) {
                     this.functionContext.code.push([
                         Ops.SETTABLE,
@@ -1943,6 +1927,17 @@ export class Emitter {
 
                 if (this.isValueNotRequired(node.parent)) {
                     this.functionContext.stack.pop();
+                    if (operandInfo.hasPopChain) {
+                        this.functionContext.stack.pop();
+                    }
+                } else if (operandInfo.hasPopChain) {
+                    const resultNewPositionInfo = this.functionContext.stack.peekSkip(-1);
+                    const clonedValue = this.functionContext.stack.pop();
+                    this.functionContext.stack.push(resultNewPositionInfo);
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        resultNewPositionInfo.getRegister(),
+                        clonedValue.getRegister()]);
                 }
 
                 break;
@@ -2670,8 +2665,6 @@ export class Emitter {
             return;
         }
 
-        const propertyAccessInPrefixPostfixOp = (<any>node).__prefix_postfix ? true : false;
-
         this.resolver.Scope.push(this.functionContext.stack.peek());
         this.processExpression(node.name);
         this.resolver.Scope.pop();
@@ -2679,7 +2672,7 @@ export class Emitter {
         // perform load
         // we can call collapseConst becasee member is name all the time which means it is const value
         let memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
-        let objectIdentifierInfo = propertyAccessInPrefixPostfixOp
+        let objectIdentifierInfo = this.resolver.prefixPostfix
             ? this.functionContext.stack.peek()
             : this.functionContext.stack.pop().optimize();
 
@@ -2708,6 +2701,11 @@ export class Emitter {
         }
 
         const resultInfo = this.functionContext.useRegisterAndPush();
+        if (this.resolver.prefixPostfix) {
+            // to cause chain pop
+            objectIdentifierInfo.chainPop = resultInfo;
+            resultInfo.hasPopChain = true;
+        }
 
         objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
         const reservedSpace = this.functionContext.useRegisterAndPush();

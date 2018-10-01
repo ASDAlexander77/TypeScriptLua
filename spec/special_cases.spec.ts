@@ -84,6 +84,22 @@ describe('Special cases', () => {
         console.log(a--);                       \
     '])));
 
+    it('++/-- prefix/suffix (field)', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
+        'var a = { value: 1 };                  \
+        console.log(++a.value);                 \
+        console.log(--a.value);                 \
+        console.log(a.value++);                 \
+        console.log(a.value--);                 \
+    '])));
+
+    it('++/-- prefix/suffix (field and cast)', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
+        'var a = { value: 1 };                  \
+        console.log(++((<any>a).value));        \
+        console.log(--((<any>a).value));        \
+        console.log(((<any>a).value)++);        \
+        console.log(((<any>a).value)--);        \
+    '])));
+
     it('chain of = (local)', () => expect('1\r\n1\r\n1\r\n').to.equals(new Run().test([
         'let a, b, c;                         \
         a = b = c = 1;                        \

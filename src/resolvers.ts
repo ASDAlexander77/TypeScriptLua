@@ -31,7 +31,11 @@ export class ResolvedInfo {
     public upvalueStackIndex: number;
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
+    // TODO: use chainPop instead
     public popRequired: boolean;
+    public chainPop: ResolvedInfo;
+    public hasPopChain: boolean;
+    public poppedValues: number;
 
     public constructor(private functionContext: FunctionContext) {
     }
@@ -235,6 +239,13 @@ export class StackResolver {
     public pop(): ResolvedInfo {
         const stackItem = this.stack.pop();
         this.functionContext.popRegister(stackItem);
+
+        stackItem.poppedValues = 1;
+        while (this.stack.length > 0 && stackItem === this.peek().chainPop) {
+            this.pop();
+            stackItem.poppedValues++;
+        }
+
         return stackItem;
     }
 
@@ -293,6 +304,7 @@ export class IdentifierResolver {
 
     public methodCall: boolean;
     public thisMethodCall: ResolvedInfo;
+    public prefixPostfix: boolean;
 
     public getTypeAtLocation(location: ts.Node): any {
         return (<any>this.typeChecker).getTypeAtLocation(location);
