@@ -758,11 +758,21 @@ export class Emitter {
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
 
+        // process methods first
         const properties = node.members
-            .filter(m => this.isClassMemberAccepted(m))
+            .filter(m => this.isClassMemberAccepted(m) && m.kind !== ts.SyntaxKind.PropertyDeclaration)
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
                 this.createClassMember(m)));
+
+        // process properties later to allow stitic members to access method in class
+        const propertiesToAppend = node.members
+            .filter(m => this.isClassMemberAccepted(m) && m.kind === ts.SyntaxKind.PropertyDeclaration)
+            .map(m => ts.createPropertyAssignment(
+                this.getClassMemberName(m),
+                this.createClassMember(m)));
+
+        propertiesToAppend.forEach(p => properties.push(p));
 
         if (this.isDefaultCtorRequired(node)) {
             // create defualt Ctor to initialize readonlys
