@@ -108,7 +108,7 @@ export class Run {
         program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions, cmdLineOptions: any) {
         const sourceFiles = program.getSourceFiles();
 
-        const isSingleModule = options && options.isolatedModules !== null && options.isolatedModules === false;
+        const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
         if (!isSingleModule) {
             console.log('Generating binaries...');
             sourceFiles.forEach(s => {
@@ -117,7 +117,13 @@ export class Run {
                     const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
                     emitter.processNode(s);
                     emitter.save();
-                    fs.writeFileSync(s.fileName.split('.')[0].concat('.', outputExtention), emitter.writer.getBytes());
+
+                    const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
+                    const fileName = fileNamnNoExt.replace('.', '_').concat('.', outputExtention);
+
+                    console.log('Writing to file ' + fileName);
+
+                    fs.writeFileSync(fileName, emitter.writer.getBytes());
                 }
             });
         } else {
@@ -130,7 +136,7 @@ export class Run {
                 }
             });
 
-            const fileName = (emitter.fileModuleName || 'out') + '.' + outputExtention;
+            const fileName = (emitter.fileModuleName || 'out').replace('.', '_') + '.' + outputExtention;
 
             console.log('Writing to file ' + fileName);
 

@@ -1,0 +1,32 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+      "module": "commonjs",
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "outDir": "./__out",
+      "baseUrl": "./",
+      "sourceMap": true,
+      "declaration": false,
+      "moduleResolution": "node",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "target": "es5",
+      "alwaysStrict": false,
+      "noImplicitUseStrict": true,
+      "typeRoots": [
+      ],
+      "types": [],
+      "lib": [
+        "es2017",
+        "dom"
+      ]
+    },
+    "include": [
+      "babyloncli.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }
+  

@@ -1,4 +1,4 @@
-declare function setmetadata(obj: any, meta: any): any;
+declare function setmetatable(obj: any, meta: any): any;
 
 class Object {
     public freeze(obj: any) {
@@ -6,6 +6,6 @@ class Object {
             throw 'Object is read-only';
         };
 
-        setmetadata(obj, obj);
+        setmetatable(obj, obj);
     }
 }
