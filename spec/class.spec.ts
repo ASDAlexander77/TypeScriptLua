@@ -361,4 +361,15 @@ describe('Classes', () => {
                                                                         \
         console.log(Matrix._identityReadOnly);                          \
     '])));
+
+    it('Class - initializing property without constructor',  () => expect('10\r\n').to.equals(new Run().test([
+        'class Matrix {                                                 \
+            public m = [];                                              \
+        }                                                               \
+                                                                        \
+        var result = new Matrix();                                      \
+        result.m[0] = 10;                                               \
+        console.log(result.m[0]);                                       \
+    '])));
+
 });
