@@ -119,7 +119,7 @@ export class Run {
                     emitter.save();
 
                     const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
-                    const fileName = fileNamnNoExt.replace('.', '_').concat('.', outputExtention);
+                    const fileName = fileNamnNoExt.replace(/\./g, '_').concat('.', outputExtention);
 
                     console.log('Writing to file ' + fileName);
 
@@ -136,7 +136,7 @@ export class Run {
                 }
             });
 
-            const fileName = (emitter.fileModuleName.replace('.', '_') || 'out').replace('.', '_') + '.' + outputExtention;
+            const fileName = (emitter.fileModuleName || 'out').replace(/\./g, '_') + '.' + outputExtention;
 
             console.log('Writing to file ' + fileName);
 
