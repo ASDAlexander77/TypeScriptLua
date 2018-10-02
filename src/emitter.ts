@@ -2355,6 +2355,8 @@ export class Emitter {
     private processNewExpression(node: ts.NewExpression): void {
 
         // special cases: new Array and new Object
+        /*
+        // disabled as JSLib should be used
         if (node.expression.kind === ts.SyntaxKind.Identifier && (!node.arguments || node.arguments.length === 0)) {
             const name = node.expression.getText();
             if (name === 'Object') {
@@ -2369,6 +2371,7 @@ export class Emitter {
                 return this.processStringLiteral(ts.createStringLiteral(''));
             }
         }
+        */
 
         this.processExpression(
             ts.createObjectLiteral([

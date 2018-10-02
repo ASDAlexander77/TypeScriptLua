@@ -24,6 +24,7 @@
   },
   "files": [
     "Object.ts",
+    "Array.ts",
     "TypedArrayBase.ts",
     "Float32Array.ts"
   ],

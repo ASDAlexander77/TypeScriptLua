@@ -1,7 +1,8 @@
-export class Matrix {
-    public _identityReadOnly = this._value;
+const a = [];
+const b = new Array<number>();
 
-    public _value = 1;
-}
+console.log(a);
+console.log(b);
 
-console.log(new Matrix()._identityReadOnly);
+console.log(a.push);
+console.log(b.push);
