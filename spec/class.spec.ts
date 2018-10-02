@@ -379,6 +379,6 @@ describe('Classes', () => {
             public _value = 1;                                          \
         }                                                               \
                                                                         \
-        console.log(Matrix._identityReadOnly);                          \
+        console.log(new Matrix()._identityReadOnly);                    \
     '])));
 });
