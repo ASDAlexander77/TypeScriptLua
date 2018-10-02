@@ -136,7 +136,7 @@ export class Run {
                 }
             });
 
-            const fileName = (emitter.fileModuleName || 'out').replace('.', '_') + '.' + outputExtention;
+            const fileName = (emitter.fileModuleName.replace('.', '_') || 'out').replace('.', '_') + '.' + outputExtention;
 
             console.log('Writing to file ' + fileName);
 
