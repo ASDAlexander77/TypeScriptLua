@@ -1,4 +1,4 @@
-import './jslib';
+import './JS';
 
 import './BABYLON/Materials/babylon_effect';
 import './BABYLON/babylon_types';
