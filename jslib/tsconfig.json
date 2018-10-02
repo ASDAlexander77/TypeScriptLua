@@ -1,5 +1,5 @@
 {
-  "compileOnSave": false,
+  "compileOnSave": true,
   "compilerOptions": {
     "noResolve": true,
     "target": "es5",
@@ -16,22 +16,18 @@
     "strictFunctionTypes": true,
     "skipLibCheck": true,
     "noUnusedParameters": true,
-    "outDir": "./__out/jslib",
-    "outFile": "jslib",
-    "baseUrl": "./",
-    "moduleResolution": "node",
     "module": "esnext",
-    "emitDecoratorMetadata": false,
-    "alwaysStrict": false,
-    "noImplicitUseStrict": true,
-    "typeRoots": [],
+    "outDir": "./__out/jslib",
+    "baseUrl": "./",    
     "lib": [
-    ]
-  },
-  "include": [
-    "Object.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    ],
+    "include": [
+      "Object.ts",
+      "TypedArrayBase.ts",
+      "Float32Array.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ]    
+  }
 }
