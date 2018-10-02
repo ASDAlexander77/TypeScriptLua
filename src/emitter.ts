@@ -916,7 +916,7 @@ export class Emitter {
                             ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
-                                .filter(cm => this.isPropertyWithNonConstInitializer(cm))
+                                .filter(cm => !this.isStaticProperty(cm) && this.isPropertyWithNonConstInitializer(cm))
                                 .map(p => ts.createStatement(
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
