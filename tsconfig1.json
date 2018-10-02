@@ -22,7 +22,7 @@
         "dom"
       ]
     },
-    "include": [
+    "files": [
       "test.ts",
       "test2.ts"
     ],

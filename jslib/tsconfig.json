@@ -21,13 +21,13 @@
     "baseUrl": "./",    
     "lib": [
     ],
-    "include": [
-      "Object.ts",
-      "TypedArrayBase.ts",
-      "Float32Array.ts"
-    ],
-    "exclude": [
-      "node_modules"
-    ]    
-  }
+  },
+  "files": [
+    "Object.ts",
+    "TypedArrayBase.ts",
+    "Float32Array.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]    
 }
