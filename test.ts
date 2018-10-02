@@ -1,7 +1,14 @@
-class Matrix {
-    public m = [];
+class Event1 {
+    public message: string;
 }
 
-var result = new Matrix();
-result.m[0] = 10;
-console.log(result.m[0]);
+class Handler {
+    info: string;
+    onClickGood = (e: Event1) => { this.info = e.message; };
+}
+
+let h = new Handler();
+let m = new Event1();
+m.message = 'test';
+h.onClickGood(m);
+console.log(h.info);

@@ -372,4 +372,13 @@ describe('Classes', () => {
         console.log(result.m[0]);                                       \
     '])));
 
+    it('Class - this in property initialization',  () => expect('1\r\n').to.equals(new Run().test([
+        'export class Matrix {                                          \
+            public _identityReadOnly = this._value;                     \
+                                                                        \
+            public _value = 1;                                          \
+        }                                                               \
+                                                                        \
+        console.log(Matrix._identityReadOnly);                          \
+    '])));
 });

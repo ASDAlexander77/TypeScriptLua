@@ -760,7 +760,8 @@ export class Emitter {
 
         // process methods first
         const properties = node.members
-            .filter(m => this.isClassMemberAccepted(m) && !this.isStaticMemberWithNonConstInitializer(m))
+            .filter(m => this.isClassMemberAccepted(m)
+                    && (!this.isPropertyWithNonConstInitializer(m) || this.isPropertyWithArrowFunctionInitializer(m)))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
                 this.createClassMember(m)));
@@ -801,7 +802,7 @@ export class Emitter {
         // process static members
         // process properties later to allow stitic members to access method in class
         node.members
-            .filter(m => this.isClassMemberAccepted(m) && this.isStaticMemberWithNonConstInitializer(m))
+            .filter(m => this.isClassMemberAccepted(m) && this.isStaticProperty(m) && this.isPropertyWithNonConstInitializer(m))
             .map(m => ts.createAssignment(
                 ts.createPropertyAccess(node.name, this.getClassMemberName(m)),
                 this.createClassMember(m))).forEach(p => this.processExpression(p));
@@ -887,10 +888,10 @@ export class Emitter {
             return false;
         }
 
-        return node.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
-            && m.modifiers && m.modifiers.some(md => md.kind === ts.SyntaxKind.ReadonlyKeyword)
-            && (<ts.PropertyDeclaration>m).initializer !== undefined)
-            || node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
+        return node.members.some(m => !this.isStaticProperty(m)
+                                      && this.isPropertyWithNonConstInitializer(m)
+                                      && !this.isPropertyWithArrowFunctionInitializer(m)) ||
+               node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
     }
 
     private createClassMember(memberDeclaration: ts.ClassElement): ts.Expression {
@@ -915,9 +916,7 @@ export class Emitter {
                             ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
-                                .filter(cm => cm.kind === ts.SyntaxKind.PropertyDeclaration
-                                    && (<ts.PropertyDeclaration>cm).initializer
-                                    && cm.modifiers && cm.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.ReadonlyKeyword))
+                                .filter(cm => this.isPropertyWithNonConstInitializer(cm))
                                 .map(p => ts.createStatement(
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
@@ -971,13 +970,33 @@ export class Emitter {
         }
     }
 
-    private isStaticMemberWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
+    private isPropertyWithArrowFunctionInitializer(memberDeclaration: ts.ClassElement): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
+            (<ts.PropertyDeclaration>memberDeclaration).initializer &&
+            (<ts.PropertyDeclaration>memberDeclaration).initializer.kind === ts.SyntaxKind.ArrowFunction) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isPropertyWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
+            (<ts.PropertyDeclaration>memberDeclaration).initializer &&
+            !this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isStaticProperty(memberDeclaration: ts.ClassElement): any {
         // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
             memberDeclaration.modifiers &&
-            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword) &&
-            (<ts.PropertyDeclaration>memberDeclaration).initializer &&
-            !this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
+            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword)) {
             return true;
         }
 
