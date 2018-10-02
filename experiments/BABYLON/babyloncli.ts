@@ -1,5 +1,7 @@
 import './JS';
 
+var window = {};
+
 import './BABYLON/Materials/babylon_effect';
 import './BABYLON/babylon_types';
 import './BABYLON/Events/babylon_keyboardEvents';
