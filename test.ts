@@ -1,53 +1,16 @@
-export interface IBehaviorAware<T> {
-    init(): void;
-}
-
-class Node implements IBehaviorAware<Node> {
-    public metadata: any = null;
-
-    public animations = new Array<Animation>();
-
-    constructor(scene: any = null) {
-        console.log("Node");
-    }
-
-    public init() {
-    }
-
-    public set x(v) {
-    }
-
-    public get x() {
-        return 0;
+export class Base {
+    constructor(public number: number) {
     }
 }
 
-class TargetCamera extends Node {
-    constructor() {
-        console.log("TargetCamera");
-        super();
-    }
-
-    public set x1(v) {
-    }
-
-    public get x1() {
-        return 1;
+export class Derived extends Base {
+    constructor(number: number) {
+        super(number);
     }
 }
 
-class ArcCamera extends TargetCamera {
-    constructor() {
-        console.log("ArcCamera");
-        super();
-    }
+const d1 = new Derived(1);
+const d2 = new Derived(2);
 
-    public set x2(v) {
-    }
-
-    public get x2() {
-        return 2;
-    }
-}
-
-console.log(new ArcCamera());
+console.log(d1.number);
+console.log(d2.number);

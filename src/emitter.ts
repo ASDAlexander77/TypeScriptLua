@@ -487,7 +487,7 @@ export class Emitter {
                     memberAccess = lastPropertyAccess.expression;
                 }
 
-                if (memberAccess.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>memberAccess).text === 'super') {
+                if (memberAccess.kind === ts.SyntaxKind.SuperKeyword) {
                     // add 'this' parameter
                     callExpression.arguments = <ts.NodeArray<ts.Expression>> <any> [ts.createThis(), ...callExpression.arguments];
                 }
@@ -2571,21 +2571,6 @@ export class Emitter {
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
-        /*
-        const propertyAccessThis = ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__proto'));
-        const superExpression = ts.createPropertyAccess(propertyAccessThis, ts.createIdentifier('__proto'));
-        propertyAccessThis.parent = superExpression;
-        superExpression.parent = node.parent;
-        if (node.parent.kind === ts.SyntaxKind.CallExpression) {
-            // this is construction call
-            const constructorCall = ts.createPropertyAccess(superExpression, ts.createIdentifier('constructor'));
-            constructorCall.parent = node.parent;
-            superExpression.parent = constructorCall;
-            this.processExpression(constructorCall);
-        } else {
-            this.processExpression(superExpression);
-        }*/
-
         if (node.parent.kind === ts.SyntaxKind.CallExpression) {
             // this is construction call
             const constructorCall = ts.createPropertyAccess(this.resolver.superClass, ts.createIdentifier('constructor'));

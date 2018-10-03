@@ -422,10 +422,14 @@ export class IdentifierResolver {
                     return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
 
                 case ts.SyntaxKind.EnumDeclaration:
-                    return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    const enumInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    enumInfo.isTypeReference = true;
+                    return enumInfo;
 
                 case ts.SyntaxKind.ClassDeclaration:
-                    return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    const classInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    classInfo.isTypeReference = true;
+                    return classInfo;
             }
         }
 
