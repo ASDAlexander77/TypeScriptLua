@@ -1,6 +1,7 @@
 import './JS';
 
 var window = {};
+var navigator = {};
 
 import './BABYLON/Materials/babylon_effect';
 import './BABYLON/babylon_types';
