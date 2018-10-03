@@ -473,10 +473,23 @@ export class Emitter {
 
                 const callExpression = <ts.CallExpression>node;
                 // check if end propertyaccess is 'bind'
-                const memberAccess = callExpression.expression;
+                let memberAccess = callExpression.expression;
                 if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
                     && (<ts.PropertyAccessExpression>memberAccess).name.text === 'bind') {
                         return (<ts.PropertyAccessExpression>memberAccess).expression;
+                }
+
+                // SUPER
+                // convert super.xxx(...) into <Type>.xxx(this, ...);
+                let lastPropertyAccess: ts.PropertyAccessExpression;
+                while (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                    lastPropertyAccess = <ts.PropertyAccessExpression>memberAccess;
+                    memberAccess = lastPropertyAccess.expression;
+                }
+
+                if (memberAccess.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>memberAccess).text === 'super') {
+                    // add 'this' parameter
+                    callExpression.arguments = <ts.NodeArray<ts.Expression>> <any> [ts.createThis(), ...callExpression.arguments];
                 }
 
                 break;
@@ -812,6 +825,8 @@ export class Emitter {
             properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
         }
 
+        this.resolver.superClass = extend;
+
         const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
         prototypeObject.parent = node;
         this.processExpression(prototypeObject);
@@ -1094,16 +1109,16 @@ export class Emitter {
         return statements;
     }
 
-    private getInheritanceFirst(node: ts.ClassDeclaration) {
+    private getInheritanceFirst(node: ts.ClassDeclaration): ts.Identifier {
         if (!node.heritageClauses) {
             return;
         }
 
-        let extend;
+        let extend: ts.Identifier;
         node.heritageClauses.filter(hc => hc.token === ts.SyntaxKind.ExtendsKeyword).forEach(heritageClause => {
             heritageClause.types.forEach(type => {
                 if (!extend) {
-                    extend = type.expression;
+                    extend = <ts.Identifier>type.expression;
                 }
             });
         });
@@ -2556,6 +2571,7 @@ export class Emitter {
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
+        /*
         const propertyAccessThis = ts.createPropertyAccess(ts.createThis(), ts.createIdentifier('__proto'));
         const superExpression = ts.createPropertyAccess(propertyAccessThis, ts.createIdentifier('__proto'));
         propertyAccessThis.parent = superExpression;
@@ -2568,6 +2584,15 @@ export class Emitter {
             this.processExpression(constructorCall);
         } else {
             this.processExpression(superExpression);
+        }*/
+
+        if (node.parent.kind === ts.SyntaxKind.CallExpression) {
+            // this is construction call
+            const constructorCall = ts.createPropertyAccess(this.resolver.superClass, ts.createIdentifier('constructor'));
+            constructorCall.parent = node.parent;
+            this.processExpression(constructorCall);
+        } else {
+            this.processExpression(this.resolver.superClass);
         }
     }
 

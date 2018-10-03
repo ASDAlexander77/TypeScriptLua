@@ -8,6 +8,7 @@ class Node implements IBehaviorAware<Node> {
     public animations = new Array<Animation>();
 
     constructor(scene: any = null) {
+        console.log("Node");
     }
 
     public init() {
@@ -23,6 +24,7 @@ class Node implements IBehaviorAware<Node> {
 
 class TargetCamera extends Node {
     constructor() {
+        console.log("TargetCamera");
         super();
     }
 
@@ -36,6 +38,7 @@ class TargetCamera extends Node {
 
 class ArcCamera extends TargetCamera {
     constructor() {
+        console.log("ArcCamera");
         super();
     }
 
