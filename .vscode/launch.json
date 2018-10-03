@@ -29,7 +29,7 @@
             "request": "launch",
             "name": "Launch Node.js (Babylon)",
             "program": "${workspaceFolder}/__out/main.js",
-            "cwd": "D:\\Developing\\Babylon.js\\src",
+            "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
             "args": [
                 "-extradebug",
                 "tsconfig.json"

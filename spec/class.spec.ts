@@ -381,4 +381,60 @@ describe('Classes', () => {
                                                                         \
         console.log(new Matrix()._identityReadOnly);                    \
     '])));
+
+    it('Class - constructor with Parameters',  () => expect('1\r\n2\r\n3\r\n').to.equals(new Run().test([
+        'export class Test {                                                \
+            constructor(t1: any, t2: any: t3: any) {                        \
+                console.log(t1);                                            \
+                console.log(t2);                                            \
+                console.log(t3);                                            \
+            }                                                               \
+        }                                                                   \
+        new Test(1, 2, 3);                                                  \
+    '])));
+
+    it('Class - constructor with Optional Parameters - 1',  () => expect('1\r\n2\r\n3\r\n').to.equals(new Run().test([
+        'export class Test {                                                \
+            constructor(t1?: any, t2?: any: t3?: any) {                     \
+                console.log(t1);                                            \
+                console.log(t2);                                            \
+                console.log(t3);                                            \
+            }                                                               \
+        }                                                                   \
+        new Test(1, 2, 3);                                                  \
+    '])));
+
+    it('Class - constructor with Optional Parameters - 2',  () => expect('1\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+        'export class Test {                                                \
+            constructor(t1?: any, t2?: any: t3?: any) {                     \
+                console.log(t1);                                            \
+                console.log(t2);                                            \
+                console.log(t3);                                            \
+            }                                                               \
+        }                                                                   \
+        new Test(1);                                                        \
+    '])));
+
+    it('Class - constructor with Optional Parameters - 3',  () => expect('nil\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+        'export class Test {                                                \
+            constructor(t1?: any, t2?: any: t3?: any) {                     \
+                console.log(t1);                                            \
+                console.log(t2);                                            \
+                console.log(t3);                                            \
+            }                                                               \
+        }                                                                   \
+        new Test();                                                         \
+    '])));
+
+    it('Class - constructor with Optional Parameters (4)',  () => expect('Run\r\n').to.equals(new Run().test([
+        'export class Observable<T> {                                       \
+            constructor(onObserverAdded?: (observer: any) => void) {        \
+                console.log("Run");                                         \
+                if (onObserverAdded) {                                      \
+                    console.log("Error");                                   \
+                }                                                           \
+            }                                                               \
+        }                                                                   \
+        new Observable();                                                   \
+    '])));
 });

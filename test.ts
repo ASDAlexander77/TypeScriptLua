@@ -1,8 +1,10 @@
-const a = [];
-const b = new Array<number>();
-
-console.log(a);
-console.log(b);
-
-console.log(a.push);
-console.log(b.push);
+export class Observable<T> {                                       
+    constructor(onObserverAdded?: (observer: any) => void) {        
+        console.log("Run");                                         
+        console.log(onObserverAdded);                                   
+        if (onObserverAdded) {                                      
+            console.log("Error");                                   
+        }                                                           
+    }                                                               
+}                                                                   
+new Observable();

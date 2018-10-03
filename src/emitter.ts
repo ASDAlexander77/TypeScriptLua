@@ -175,6 +175,7 @@ export class Emitter {
         }
 
         switch (location.kind) {
+            case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
                 return true;
             case ts.SyntaxKind.PropertyDeclaration:
@@ -304,6 +305,7 @@ export class Emitter {
             this.processTSCode(this.lib, true);
         }
 
+        let addThisAsParameter = false;
         const origin = (<ts.Node>(<any>location).__origin);
         if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = this.hasMemberThis(origin) || this.hasNodeUsedThis(location);
@@ -311,6 +313,7 @@ export class Emitter {
                 const thisIsInParams = parameters && parameters.some(p => (<ts.Identifier>p.name).text === 'this');
                 if (!thisIsInParams) {
                     this.functionContext.createLocal('this');
+                    addThisAsParameter = true;
                 }
             }
         }
@@ -324,7 +327,7 @@ export class Emitter {
                 }
             });
 
-            this.functionContext.numparams = parameters.length;
+            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0);
             this.functionContext.is_vararg = dotDotDotAny;
         }
 
@@ -2526,7 +2529,9 @@ export class Emitter {
             return;
         }
 
-        this.functionContext.stack.push(this.resolver.returnThis(this.functionContext));
+        const resultThisInfo = this.functionContext.useRegisterAndPush();
+        resultThisInfo.originalInfo = this.resolver.returnThis(this.functionContext);
+        this.functionContext.code.push([Ops.MOVE, resultThisInfo.getRegister(), resultThisInfo.originalInfo.getRegisterOrIndex()]);
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
