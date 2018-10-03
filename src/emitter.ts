@@ -1100,7 +1100,7 @@ export class Emitter {
         }
 
         let extend;
-        node.heritageClauses.forEach(heritageClause => {
+        node.heritageClauses.filter(hc => hc.token === ts.SyntaxKind.ExtendsKeyword).forEach(heritageClause => {
             heritageClause.types.forEach(type => {
                 if (!extend) {
                     extend = type.expression;
