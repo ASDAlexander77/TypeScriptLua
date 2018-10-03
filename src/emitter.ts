@@ -465,7 +465,28 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
-    private processExpression(node: ts.Expression): void {
+    private preprocess(node: ts.Expression): ts.Expression {
+        switch (node.kind) {
+            case ts.SyntaxKind.CallExpression:
+                // BIND
+                // convert <xxx>.bind(this) into <xxx>(...);
+
+                const callExpression = <ts.CallExpression>node;
+                // check if end propertyaccess is 'bind'
+                const memberAccess = callExpression.expression;
+                if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
+                    && (<ts.PropertyAccessExpression>memberAccess).name.text === 'bind') {
+                        return (<ts.PropertyAccessExpression>memberAccess).expression;
+                }
+
+                break;
+        }
+
+        return node;
+    }
+
+    private processExpression(nodeIn: ts.Expression): void {
+        const node = this.preprocess(nodeIn);
 
         this.functionContext.code.setNodeToTrackDebugInfo(node);
         switch (node.kind) {
