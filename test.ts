@@ -1,16 +1,7 @@
-export class Base {
-    constructor(public number: number) {
+class Class1 {
+    public static show(s: string) {
+        console.log(s);
     }
 }
 
-export class Derived extends Base {
-    constructor(number: number) {
-        super(number);
-    }
-}
-
-const d1 = new Derived(1);
-const d2 = new Derived(2);
-
-console.log(d1.number);
-console.log(d2.number);
+Class1.show("Hello");

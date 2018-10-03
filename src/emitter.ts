@@ -176,8 +176,12 @@ export class Emitter {
 
         switch (location.kind) {
             case ts.SyntaxKind.Constructor:
-            case ts.SyntaxKind.MethodDeclaration:
                 return true;
+            case ts.SyntaxKind.MethodDeclaration:
+            case ts.SyntaxKind.SetAccessor:
+            case ts.SyntaxKind.GetAccessor:
+                const isStatic = location.modifiers && location.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
+                return !isStatic;
             case ts.SyntaxKind.PropertyDeclaration:
                 return false;
         }
