@@ -3,6 +3,7 @@ import './JS';
 var window = {};
 var navigator = {};
 
+// Core
 import './BABYLON/Materials/babylon_effect';
 import './BABYLON/babylon_types';
 import './BABYLON/Events/babylon_keyboardEvents';
@@ -53,6 +54,10 @@ import './BABYLON/Tools/babylon_performanceMonitor';
 import './BABYLON/Materials/babylon_materialHelper';
 import './BABYLON/Materials/babylon_pushMaterial';
 import './BABYLON/Materials/babylon_standardMaterial';
+
+// extra
+import './BABYLON/Cameras/babylon_targetCamera';
+import './BABYLON/Cameras/babylon_arcRotateCamera';
 
 // xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
 
