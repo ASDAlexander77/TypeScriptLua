@@ -1,10 +1,14 @@
-export class Observable<T> {                                       
-    constructor(onObserverAdded?: (observer: any) => void) {        
-        console.log("Run");                                         
-        console.log(onObserverAdded);                                   
-        if (onObserverAdded) {                                      
-            console.log("Error");                                   
-        }                                                           
-    }                                                               
-}                                                                   
-new Observable();
+class Class1 {
+    private val: string;
+
+    public set(s: string): Class1 {
+        this.val = s;
+        return this;
+    }
+
+    public show() {
+        console.log(this.val);
+    }
+}
+
+new Class1().set("Hello").show();

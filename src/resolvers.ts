@@ -306,6 +306,20 @@ export class IdentifierResolver {
     public thisMethodCall: ResolvedInfo;
     public prefixPostfix: boolean;
 
+    private methodCalls: Array<any> = [];
+
+    public pushAndSetMethodCallInfo() {
+        this.methodCalls.push({ methodCall: this.methodCall, thisMethodCall: this.thisMethodCall });
+        this.methodCall = true;
+        this.thisMethodCall =  null;
+    }
+
+    public popMethodCallInfo() {
+        const state = this.methodCalls.pop();
+        this.methodCall = state.methodCall;
+        this.thisMethodCall =  state.thisMethodCall;
+    }
+
     public getTypeAtLocation(location: ts.Node): any {
         return (<any>this.typeChecker).getTypeAtLocation(location);
     }

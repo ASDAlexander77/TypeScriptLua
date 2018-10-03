@@ -2443,8 +2443,7 @@ export class Emitter {
 
     private processCallExpression(node: ts.CallExpression): void {
 
-        this.resolver.methodCall = true;
-        this.resolver.thisMethodCall = null;
+        this.resolver.pushAndSetMethodCallInfo();
 
         // special cases to cast to string or number
         let processed = false;
@@ -2462,8 +2461,8 @@ export class Emitter {
         }
 
         const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
-        this.resolver.methodCall = false;
-        this.resolver.thisMethodCall = null;
+
+        this.resolver.popMethodCallInfo();
 
         this.emitCallOfLoadedMethod(node, selfOpCodeResolveInfoForThis);
     }
