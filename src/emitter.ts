@@ -2579,6 +2579,7 @@ export class Emitter {
 
         if (this.functionContext.isStatic) {
             this.processExpression(this.resolver.thisClass);
+            return;
         }
 
         const resultThisInfo = this.functionContext.useRegisterAndPush();

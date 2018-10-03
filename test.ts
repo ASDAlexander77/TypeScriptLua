@@ -1,7 +1,11 @@
-class Class1 {
-    public static show(s: string) {
-        console.log(s);
+class Node1 {
+    private static _NodeConstructors: { [key: string]: any } = {};
+
+    public static AddNodeConstructor(type: string, constructorFunc: any) {
+        this._NodeConstructors[type] = constructorFunc;
     }
 }
 
-Class1.show('Hello');
+Node1.AddNodeConstructor("asd", {});
+
+console.log("Run");
