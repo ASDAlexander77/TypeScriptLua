@@ -1034,6 +1034,7 @@ export class Emitter {
             case ts.SyntaxKind.FalseKeyword:
             case ts.SyntaxKind.NumericLiteral:
             case ts.SyntaxKind.StringLiteral:
+            case ts.SyntaxKind.NullKeyword:
                 return true;
         }
 

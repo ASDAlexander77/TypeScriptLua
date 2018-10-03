@@ -1,17 +1,30 @@
-class Node {
-    constructor() {
-    }
+export interface IBehaviorAware<T> {
+    init(): void;
 }
 
-class Test extends Node {
+class Node implements IBehaviorAware<Node> {
     public metadata: any = null;
 
-    constructor() {
-        super();
+    public animations = new Array<Animation>();
+
+    constructor(scene: any = null) {
+    }
+
+    public init() {
     }
 
     public get x() {
         return 1;
+    }
+}
+
+class Test extends Node {
+    constructor() {
+        super();
+    }
+
+    public get x2() {
+        return 2;
     }
 }
 
