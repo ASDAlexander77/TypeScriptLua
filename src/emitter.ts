@@ -284,13 +284,19 @@ export class Emitter {
         createEnvironment?: boolean,
         noReturn?: boolean) {
 
-        this.functionContext.newLocalScope((<any>location).__origin ? (<any>location).__origin : location);
+        const effectiveLocation = (<any>location).__origin ? (<any>location).__origin : location;
+
+        this.functionContext.newLocalScope(effectiveLocation);
+
+        this.functionContext.isStatic =
+            effectiveLocation.modifiers && effectiveLocation.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
 
         const isClassDeclaration = this.functionContext.container
             && this.functionContext.container.current_location_node
             && this.functionContext.container.current_location_node.kind === ts.SyntaxKind.ClassDeclaration;
         this.functionContext.thisInUpvalue =
-            location.kind === ts.SyntaxKind.ArrowFunction && !isClassDeclaration || location.kind === ts.SyntaxKind.TryStatement;
+            location.kind === ts.SyntaxKind.ArrowFunction
+            && !isClassDeclaration || location.kind === ts.SyntaxKind.TryStatement;
         const isMethod = location.kind === ts.SyntaxKind.FunctionDeclaration
             || location.kind === ts.SyntaxKind.FunctionExpression
             || location.kind === ts.SyntaxKind.ArrowFunction
@@ -480,7 +486,7 @@ export class Emitter {
                 let memberAccess = callExpression.expression;
                 if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
                     && (<ts.PropertyAccessExpression>memberAccess).name.text === 'bind') {
-                        return (<ts.PropertyAccessExpression>memberAccess).expression;
+                    return (<ts.PropertyAccessExpression>memberAccess).expression;
                 }
 
                 // SUPER
@@ -493,7 +499,7 @@ export class Emitter {
 
                 if (memberAccess.kind === ts.SyntaxKind.SuperKeyword) {
                     // add 'this' parameter
-                    callExpression.arguments = <ts.NodeArray<ts.Expression>> <any> [ts.createThis(), ...callExpression.arguments];
+                    callExpression.arguments = <ts.NodeArray<ts.Expression>><any>[ts.createThis(), ...callExpression.arguments];
                 }
 
                 break;
@@ -799,10 +805,12 @@ export class Emitter {
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
 
+        this.resolver.thisClass = node.name;
+
         // process methods first
         const properties = node.members
             .filter(m => this.isClassMemberAccepted(m)
-                    && (!this.isPropertyWithNonConstInitializer(m) || this.isPropertyWithArrowFunctionInitializer(m)))
+                && (!this.isPropertyWithNonConstInitializer(m) || this.isPropertyWithArrowFunctionInitializer(m)))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
                 this.createClassMember(m)));
@@ -932,9 +940,9 @@ export class Emitter {
         }
 
         return node.members.some(m => !this.isStaticProperty(m)
-                                      && this.isPropertyWithNonConstInitializer(m)
-                                      && !this.isPropertyWithArrowFunctionInitializer(m)) ||
-               node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
+            && this.isPropertyWithNonConstInitializer(m)
+            && !this.isPropertyWithArrowFunctionInitializer(m)) ||
+            node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
     }
 
     private createClassMember(memberDeclaration: ts.ClassElement): ts.Expression {
@@ -2567,6 +2575,10 @@ export class Emitter {
             resultInfo.originalInfo = resolvedInfo;
             this.functionContext.code.push([Ops.GETUPVAL, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
             return;
+        }
+
+        if (this.functionContext.isStatic) {
+            this.processExpression(this.resolver.thisClass);
         }
 
         const resultThisInfo = this.functionContext.useRegisterAndPush();

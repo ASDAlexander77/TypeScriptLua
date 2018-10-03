@@ -18,7 +18,7 @@
             "request": "launch",
             "name": "Launch Node.js (JSLib)",
             "program": "${workspaceFolder}/__out/main.js",
-            "cwd": "${workspaceFolder}/jslib",
+            "cwd": "${workspaceFolder}/experiments/jslib",
             "args": [
                 "-singleModule",
                 "tsconfig.json"
@@ -29,7 +29,7 @@
             "request": "launch",
             "name": "Launch Node.js (Babylon)",
             "program": "${workspaceFolder}/__out/main.js",
-            "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
+            "cwd": "D:\\Git\\Babylon.js\\src",
             "args": [
                 "-extradebug",
                 "tsconfig.json"

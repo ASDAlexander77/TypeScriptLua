@@ -183,6 +183,7 @@ export class FunctionContext {
     public breaks: Array<number> = [];
     public continues: Array<number> = [];
     public thisInUpvalue: boolean;
+    public isStatic: boolean;
     public isFinalReturnAdded: boolean;
 
     public newLocalScope(node: ts.Node) {

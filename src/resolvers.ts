@@ -305,6 +305,8 @@ export class IdentifierResolver {
     public methodCall: boolean;
     public thisMethodCall: ResolvedInfo;
     public prefixPostfix: boolean;
+
+    public thisClass: ts.Identifier;
     public superClass: ts.Identifier;
 
     private methodCalls: Array<any> = [];

@@ -4,4 +4,4 @@ class Class1 {
     }
 }
 
-Class1.show("Hello");
+Class1.show('Hello');
