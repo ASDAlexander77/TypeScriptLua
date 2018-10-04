@@ -394,20 +394,28 @@ export class IdentifierResolver {
                 case ts.SyntaxKind.VariableDeclaration:
                     const type = (resolved.valueDeclaration || resolved.exportSymbol.valueDeclaration).type;
                     // can be keyward to 'string'
-                    if (type && type.typeName) {
-                        switch (type.typeName.text) {
-                            case 'Console':
-                                return this.returnResolvedEnv(functionContext);
-                            case 'Math':
-                                const memberInfo = this.resolveMemberOfCurrentScope(identifier.text.toLowerCase(), functionContext);
-                                memberInfo.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
-                                return memberInfo;
+                    let isAny = false;
+                    if (type) {
+                        isAny = type.kind === ts.SyntaxKind.AnyKeyword;
+                        if (type.typeName) {
+                            switch (type.typeName.text) {
+                                case 'Console':
+                                    const memberInfo = this.returnResolvedEnv(functionContext);
+                                    memberInfo.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
+                                    return memberInfo;
+                                case 'Math':
+                                    const memberInfo2 = this.resolveMemberOfCurrentScope(identifier.text.toLowerCase(), functionContext);
+                                    memberInfo2.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
+                                    return memberInfo2;
+                            }
                         }
                     }
 
                     // values are not the same as Node.Flags
                     if ((resolved.flags & 1) === 1) {
-                        return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        const varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
+                        return varInfo;
                     } else if ((resolved.flags & 2) === 2) {
                         return this.returnLocalOrUpvalueNoException(identifier.text, functionContext)
                                || this.resolveMemberOfCurrentScope(identifier.text, functionContext);

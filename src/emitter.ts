@@ -296,14 +296,30 @@ export class Emitter {
         }
     }
 
+    private getBodyByDecorators(statementsIn: ts.NodeArray<ts.Statement>, location: ts.Node): ts.NodeArray<ts.Statement> {
+        const len = location.decorators
+            && location.decorators.some(
+                m => m.expression.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>m.expression).text === 'len');
+
+        if (len) {
+            const lengthMemeber = ts.createIdentifier('length');
+            (<any>lengthMemeber).__len = true;
+            return <ts.NodeArray<ts.Statement>> <any>
+                [ <ts.Statement>ts.createReturn(ts.createPropertyAccess(ts.createThis(), lengthMemeber)) ];
+        }
+
+        return statementsIn;
+    }
+
     private processFunctionWithinContext(
         location: ts.Node,
-        statements: ts.NodeArray<ts.Statement>,
+        statementsIn: ts.NodeArray<ts.Statement>,
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean,
         noReturn?: boolean) {
 
         const effectiveLocation = (<any>location).__origin ? (<any>location).__origin : location;
+        const statements = this.getBodyByDecorators(statementsIn, effectiveLocation);
 
         this.functionContext.newLocalScope(effectiveLocation);
 
@@ -313,9 +329,11 @@ export class Emitter {
         const isClassDeclaration = this.functionContext.container
             && this.functionContext.container.current_location_node
             && this.functionContext.container.current_location_node.kind === ts.SyntaxKind.ClassDeclaration;
+
         this.functionContext.thisInUpvalue =
             location.kind === ts.SyntaxKind.ArrowFunction
             && !isClassDeclaration || location.kind === ts.SyntaxKind.TryStatement;
+
         const isMethod = location.kind === ts.SyntaxKind.FunctionDeclaration
             || location.kind === ts.SyntaxKind.FunctionExpression
             || location.kind === ts.SyntaxKind.ArrowFunction
