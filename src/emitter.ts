@@ -83,16 +83,16 @@ export class Emitter {
     }                                                               \
                                                                     \
     __get_call__ = __get_call__ || function (t, k) {                \
-        const getmethod = t.__proto.__get__[k];                     \
+        const getmethod = rawget(t, "__get__")[k];                  \
         if (getmethod) {                                            \
             return getmethod(t);                                    \
         }                                                           \
                                                                     \
-        return rawget(t, k) || t.__proto[k];                        \
+        return rawget(t, k)                                         \
     }                                                               \
                                                                     \
     __set_call__ = __set_call__ || function (t, k, v) {             \
-        const setmethod = t.__proto.__set__[k];                     \
+        const setmethod = rawget(t, "__set__")[k];                  \
         if (setmethod) {                                            \
             setmethod(t, v);                                        \
             return;                                                 \
@@ -821,12 +821,14 @@ export class Emitter {
         }
 
         // any get accessor
-        if (node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor)) {
+        const anyGetAccessor = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor);
+        if (anyGetAccessor) {
             this.createAccessorsCollection(node, properties, true);
         }
 
         // any set accessor
-        if (node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor)) {
+        const anySetAccessor = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor);
+        if (anySetAccessor) {
             this.createAccessorsCollection(node, properties, false);
         }
 
@@ -834,7 +836,17 @@ export class Emitter {
         const extend = this.getInheritanceFirst(node);
         if (extend) {
             properties.push(ts.createPropertyAssignment('__proto', ts.createIdentifier(extend.getText())));
-            properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
+            if (!anyGetAccessor && !anySetAccessor) {
+                properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
+            }
+        }
+
+        if (anyGetAccessor) {
+            properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call__')));
+        }
+
+        if (anySetAccessor) {
+            properties.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call__')));
         }
 
         this.resolver.superClass = extend;
@@ -844,7 +856,7 @@ export class Emitter {
         this.processExpression(prototypeObject);
 
         // set metatable for derived class using __index dictionary containing base class
-        if (extend) {
+        if (extend || anyGetAccessor || anySetAccessor) {
             const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
             setmetatableCall.parent = node;
             this.processExpression(setmetatableCall);
@@ -964,7 +976,6 @@ export class Emitter {
                     constructorDeclaration.type, <ts.Block><any>{
                         kind: ts.SyntaxKind.Block,
                         statements: [
-                            ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => !this.isStaticProperty(cm) && this.isPropertyWithNonConstInitializer(cm))
@@ -1093,32 +1104,6 @@ export class Emitter {
             default:
                 throw new Error('Not Implemented');
         }
-    }
-
-    private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
-        const statements = [];
-        const node = <ts.ClassDeclaration>memberDeclaration.parent;
-        const anyGet = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor);
-        const anySet = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor);
-        if (!anyGet && !anySet) {
-            return statements;
-        }
-
-        if (anyGet) {
-            statements.push(ts.createStatement(
-                ts.createAssignment(
-                    ts.createPropertyAccess(ts.createThis(), '__index'),
-                    ts.createIdentifier('__get_call__'))));
-        }
-
-        if (anySet) {
-            statements.push(ts.createStatement(
-                ts.createAssignment(
-                    ts.createPropertyAccess(ts.createThis(), '__newindex'),
-                    ts.createIdentifier('__set_call__'))));
-        }
-
-        return statements;
     }
 
     private getInheritanceFirst(node: ts.ClassDeclaration): ts.Identifier {

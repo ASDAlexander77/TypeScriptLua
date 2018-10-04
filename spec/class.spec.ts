@@ -315,13 +315,30 @@ describe('Classes', () => {
         console.log(howard.ElevatorPitch);                                  \
     '])));
 
-    it('Class - Static Accessors',  () => expect('1\r\n').to.equals(new Run().test([
+    it('Class - Static Get Accessors',  () => expect('1\r\n').to.equals(new Run().test([
         'class Engine {                                                     \
             public static get Last(): number {                              \
                 return 1;                                                   \
             }                                                               \
         }                                                                   \
                                                                             \
+        console.log(Engine.Last);                                           \
+    '])));
+
+    it('Class - Static Get/Set Accessors',  () => expect('1\r\n').to.equals(new Run().test([
+        'class Engine {                                                     \
+            private _last: number;                                          \
+                                                                            \
+            public static get Last(): number {                              \
+                return this._last;                                          \
+            }                                                               \
+                                                                            \
+            public static set Last(v: number) {                             \
+                this._last = v;                                             \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        Engine.Last = 1;                                                    \
         console.log(Engine.Last);                                           \
     '])));
 
