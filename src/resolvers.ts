@@ -298,8 +298,9 @@ export class IdentifierResolver {
     }
 
     private unresolvedFilter = {
-        '__instanceof': true, '__get_call__': true, '__set_call__': true, 'setmetatable': true, 'debug': true, 'type': true, 'error': true,
-        'require': true, 'exports': true, 'table': true, 'tostring': true, 'tonumber': true, 'rawset': true, 'rawget': true
+        '__instanceof': true, '__get_call__': true, '__set_call__': true, '__get_static_call__': true, '__set_static_call__': true,
+        'setmetatable': true, 'debug': true, 'type': true, 'error': true, 'require': true, 'exports': true, 'table': true,
+        'tostring': true, 'tonumber': true, 'rawset': true, 'rawget': true
     };
 
     public methodCall: boolean;

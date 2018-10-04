@@ -82,7 +82,7 @@ export class Emitter {
         return false;                                               \
     }                                                               \
                                                                     \
-    __get_call__ = __get_call__ || function (t, k) {                \
+    __get_static_call__ = __get_static_call__ || function (t, k) {  \
         const getmethod = rawget(t, "__get__")[k];                  \
         if (getmethod) {                                            \
             return getmethod(t);                                    \
@@ -91,8 +91,27 @@ export class Emitter {
         return rawget(t, k)                                         \
     }                                                               \
                                                                     \
-    __set_call__ = __set_call__ || function (t, k, v) {             \
+    __set_static_call__ = __set_static_call__ || function (t, k, v) {\
         const setmethod = rawget(t, "__set__")[k];                  \
+        if (setmethod) {                                            \
+            setmethod(t, v);                                        \
+            return;                                                 \
+        }                                                           \
+                                                                    \
+        rawset(t, k, v);                                            \
+    }                                                               \
+                                                                    \
+    __get_call__ = __get_call__ || function (t, k) {                \
+        const getmethod = t.__proto.__get__[k];                     \
+        if (getmethod) {                                            \
+            return getmethod(t);                                    \
+        }                                                           \
+                                                                    \
+        return rawget(t, k) || t.__proto[k];                        \
+    }                                                               \
+                                                                    \
+    __set_call__ = __set_call__ || function (t, k, v) {             \
+        const setmethod = t.__proto.__set__[k];                     \
         if (setmethod) {                                            \
             setmethod(t, v);                                        \
             return;                                                 \
@@ -821,32 +840,32 @@ export class Emitter {
         }
 
         // any get accessor
-        const anyGetAccessor = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor);
-        if (anyGetAccessor) {
+        if (node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor)) {
             this.createAccessorsCollection(node, properties, true);
         }
 
         // any set accessor
-        const anySetAccessor = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor);
-        if (anySetAccessor) {
+        if (node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor)) {
             this.createAccessorsCollection(node, properties, false);
         }
 
         // emit __index of base class
+        const anyGetStaticAccessor = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor && this.isStatic(m));
+        const anySetStaticAccessor = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor && this.isStatic(m));
         const extend = this.getInheritanceFirst(node);
         if (extend) {
             properties.push(ts.createPropertyAssignment('__proto', ts.createIdentifier(extend.getText())));
-            if (!anyGetAccessor && !anySetAccessor) {
+            if (!anyGetStaticAccessor && !anySetStaticAccessor) {
                 properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
             }
         }
 
-        if (anyGetAccessor) {
-            properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call__')));
+        if (anyGetStaticAccessor) {
+            properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_static_call__')));
         }
 
-        if (anySetAccessor) {
-            properties.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call__')));
+        if (anySetStaticAccessor) {
+            properties.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_static_call__')));
         }
 
         this.resolver.superClass = extend;
@@ -856,7 +875,7 @@ export class Emitter {
         this.processExpression(prototypeObject);
 
         // set metatable for derived class using __index dictionary containing base class
-        if (extend || anyGetAccessor || anySetAccessor) {
+        if (extend || anyGetStaticAccessor || anySetStaticAccessor) {
             const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
             setmetatableCall.parent = node;
             this.processExpression(setmetatableCall);
@@ -976,6 +995,7 @@ export class Emitter {
                     constructorDeclaration.type, <ts.Block><any>{
                         kind: ts.SyntaxKind.Block,
                         statements: [
+                            ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => !this.isStaticProperty(cm) && this.isPropertyWithNonConstInitializer(cm))
@@ -1054,6 +1074,16 @@ export class Emitter {
         return false;
     }
 
+    private isStatic(memberDeclaration: ts.Node): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.modifiers &&
+            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword)) {
+            return true;
+        }
+
+        return false;
+    }
+
     private isStaticProperty(memberDeclaration: ts.ClassElement): any {
         // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
@@ -1104,6 +1134,32 @@ export class Emitter {
             default:
                 throw new Error('Not Implemented');
         }
+    }
+
+    private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
+        const statements = [];
+        const node = <ts.ClassDeclaration>memberDeclaration.parent;
+        const anyGet = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor && !this.isStatic(m));
+        const anySet = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor && !this.isStatic(m));
+        if (!anyGet && !anySet) {
+            return statements;
+        }
+
+        if (anyGet) {
+            statements.push(ts.createStatement(
+                ts.createAssignment(
+                    ts.createPropertyAccess(ts.createThis(), '__index'),
+                    ts.createIdentifier('__get_call__'))));
+        }
+
+        if (anySet) {
+            statements.push(ts.createStatement(
+                ts.createAssignment(
+                    ts.createPropertyAccess(ts.createThis(), '__newindex'),
+                    ts.createIdentifier('__set_call__'))));
+        }
+
+        return statements;
     }
 
     private getInheritanceFirst(node: ts.ClassDeclaration): ts.Identifier {
