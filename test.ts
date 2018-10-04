@@ -1,11 +1,7 @@
-class Node1 {
-    private static _NodeConstructors: { [key: string]: any } = {};
-
-    public static AddNodeConstructor(type: string, constructorFunc: any) {
-        this._NodeConstructors[type] = constructorFunc;
+class Engine {
+    public static get Last(): number {
+        return 1;
     }
 }
 
-Node1.AddNodeConstructor("asd", {});
-
-console.log("Run");
+console.log(Engine.Last);

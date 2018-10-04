@@ -315,6 +315,16 @@ describe('Classes', () => {
         console.log(howard.ElevatorPitch);                                  \
     '])));
 
+    it('Class - Static Accessors',  () => expect('1\r\n').to.equals(new Run().test([
+        'class Engine {                                                     \
+            public static get Last(): number {                              \
+                return 1;                                                   \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        console.log(Engine.Last);                                           \
+    '])));
+
     it('Class - Static Properties',  () => expect('14.142135623731\r\n2.8284271247462\r\n').to.equals(new Run().test([
         'class Grid {                                                       \
             static origin = {x: 0, y: 0};                                   \
