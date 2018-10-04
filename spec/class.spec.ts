@@ -342,6 +342,27 @@ describe('Classes', () => {
         console.log(Engine.Last);                                           \
     '])));
 
+    it('Class - Get/Set Accessors on base class',  () => expect('1\r\n').to.equals(new Run().test([
+        'class Base {                                                       \
+            private _last: number;                                          \
+                                                                            \
+            public get Last(): number {                                     \
+                return this._last;                                          \
+            }                                                               \
+                                                                            \
+            public set Last(v: number) {                                    \
+                this._last = v;                                             \
+            }                                                               \
+        }                                                                   \
+                                                                            \
+        class Engine extends Base {                                         \
+        }                                                                   \
+                                                                            \
+        let e = new Engine();                                               \
+        e.Last = 1;                                                         \
+        console.log(e.Last);                                                \
+    '])));
+
     it('Class - Static Properties',  () => expect('14.142135623731\r\n2.8284271247462\r\n').to.equals(new Run().test([
         'class Grid {                                                       \
             static origin = {x: 0, y: 0};                                   \
