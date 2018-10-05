@@ -100,6 +100,17 @@ describe('Statements', () => {
         console.log(text);                                      \
     '])));
 
+    it.skip('simple for/in (local) empty dictionary', () => expect('\r\n').to.equals(new Run().test([
+        'let person = {};                                       \
+                                                                \
+        let text = "";                                          \
+        let x;                                                  \
+        for (x in person) {                                     \
+            text += person[x] + " ";                            \
+        }                                                       \
+        console.log(text);                                      \
+    '])));
+
     it('simple for/of (array)', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
         'var someArray = [9, 2, 5];                             \
         for (var item of someArray) {                           \

@@ -1,36 +1,16 @@
-class Vector3 {
-    constructor(
-        public x: number = 0,
-        public y: number = 0,
-        public z: number = 0
-    ) {
+class Grid {
+    static origin = { x: 0, y: 0 };
+    calculateDistanceFromOrigin(point: { x: number; y: number; }) {
+        let xDist = (point.x - Grid.origin.x);
+        let yDist = (point.y - Grid.origin.y);
+        return (xDist * xDist + yDist * yDist) / this.scale;
     }
 
-    public static Zero(): Vector3 {
-        return new Vector3(0.0, 0.0, 0.0);
-    }
+    constructor(public scale: number) { }
 }
 
-class Matrix {
-    public static LookAtLHToRef(eye: Vector3, target: Vector3, up: Vector3, view: Matrix): void {
-        console.log(up.x);
-        console.log(up.y);
-        console.log(up.z);
+let grid1 = new Grid(1.0);
+let grid2 = new Grid(5.0);
 
-        const t = this;
-    }
-}
-
-class Camera {
-    protected _globalPosition = Vector3.Zero();
-    protected _globalCurrentTarget = Vector3.Zero();
-    protected _globalCurrentUpVector = Vector3.Zero();
-    protected _view = new Matrix();
-
-    public _computeViewMatrix(): void {
-        Matrix.LookAtLHToRef(this._globalPosition, this._globalCurrentTarget, this._globalCurrentUpVector, this._view);
-    }
-}
-
-let c = new Camera();
-c._computeViewMatrix();
+console.log(grid1.calculateDistanceFromOrigin({ x: 10, y: 10 }));
+console.log(grid2.calculateDistanceFromOrigin({ x: 10, y: 10 }));
