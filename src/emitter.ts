@@ -350,6 +350,9 @@ export class Emitter {
             || location.kind === ts.SyntaxKind.SetAccessor
             || location.kind === ts.SyntaxKind.GetAccessor;
 
+        const isAccessor = effectiveLocation.kind === ts.SyntaxKind.SetAccessor
+            || effectiveLocation.kind === ts.SyntaxKind.GetAccessor;
+
         // debug info
         this.processDebugInfo(location, this.functionContext);
 
@@ -363,7 +366,8 @@ export class Emitter {
         let addThisAsParameter = false;
         const origin = (<ts.Node>(<any>location).__origin);
         if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
-            const createThis = this.hasMemberThis(origin) || this.hasNodeUsedThis(location);
+            const createThis = (this.hasMemberThis(origin) || this.hasNodeUsedThis(location))
+                               && !(isClassDeclaration && this.functionContext.isStatic && !isAccessor);
             if (createThis) {
                 const thisIsInParams = parameters && parameters.some(p => (<ts.Identifier>p.name).text === 'this');
                 if (!thisIsInParams) {

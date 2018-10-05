@@ -588,4 +588,97 @@ describe('Classes', () => {
         console.log("Run");                                                             \
     '])));
 
+    it('Class - BUG (count of method return vars)',  () => expect('Run\r\n').to.equals(new Run().test([
+        'class Node1 {                                      \
+        public _scene: Scene;                               \
+                                                            \
+        constructor(scene: Scene) {                         \
+            this._scene = scene;                            \
+        }                                                   \
+                                                            \
+        public getScene(): Scene {                          \
+            return this._scene;                             \
+        }                                                   \
+                                                            \
+        public get parent(): any {                          \
+            return 1;                                       \
+        }                                                   \
+                                                            \
+        public set parent(v) {                              \
+        }                                                   \
+    }                                                       \
+                                                            \
+    abstract class AbstractScene {                          \
+    }                                                       \
+                                                            \
+    class Scene extends AbstractScene {                     \
+        private cameras = new Array<Camera>();              \
+                                                            \
+        public addCamera(newCamera: Camera): void {         \
+            this.cameras[1] = newCamera;                    \
+        }                                                   \
+                                                            \
+        public get parent(): any {                          \
+            return 1;                                       \
+        }                                                   \
+                                                            \
+        public set parent(v) {                              \
+        }                                                   \
+    }                                                       \
+                                                            \
+    class Camera extends Node1 {                            \
+        constructor(scene: Scene) {                         \
+            super(scene);                                   \
+            this.getScene().addCamera(this);                \
+        }                                                   \
+                                                            \
+        public get parent(): any {                          \
+            return 1;                                       \
+        }                                                   \
+    }                                                       \
+                                                            \
+    let s = new Scene();                                    \
+    let c = new Camera(s);                                  \
+    console.log("Run");                                     \
+    '])));
+
+    it('Class - BUG (class static method should not have "this" as in param)',  () => expect('0\r\n0\r\n0\r\n').to.equals(new Run().test([
+        'class Vector3 {                                    \
+            constructor(                                    \
+                public x: number = 0,                       \
+                public y: number = 0,                       \
+                public z: number = 0                        \
+            ) {                                             \
+            }                                               \
+                                                            \
+            public static Zero(): Vector3 {                 \
+                return new Vector3(0.0, 0.0, 0.0);          \
+            }                                               \
+        }                                                   \
+                                                            \
+        class Matrix {                                      \
+            public static LookAtLHToRef(eye: Vector3, target: Vector3, up: Vector3, view: Matrix): void {\
+                console.log(up.x);                          \
+                console.log(up.y);                          \
+                console.log(up.z);                          \
+                                                            \
+                const t = this;                             \
+            }                                               \
+        }                                                   \
+                                                            \
+        class Camera {                                      \
+            protected _globalPosition = Vector3.Zero();     \
+            protected _globalCurrentTarget = Vector3.Zero();\
+            protected _globalCurrentUpVector = Vector3.Zero();\
+            protected _view = new Matrix();                 \
+                                                            \
+            public _computeViewMatrix(): void {             \
+                Matrix.LookAtLHToRef(this._globalPosition, this._globalCurrentTarget, this._globalCurrentUpVector, this._view);\
+            }                                               \
+        }                                                   \
+                                                            \
+        let c = new Camera();                               \
+        c._computeViewMatrix();                             \
+    '])));
+
 });
