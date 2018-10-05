@@ -175,6 +175,7 @@ export class FunctionContext {
     public maxstacksize = 1; // register 0/1 at least
     public constants: Array<any> = [];
     public locals: Array<LocalVarInfo> = [];
+    public debug_locals: Array<LocalVarInfo> = [];
     public upvalues: Array<UpvalueInfo> = [];
     public protos: Array<FunctionContext> = [];
     public local_scopes: Array<any> = [];
@@ -214,6 +215,8 @@ export class FunctionContext {
                 l.debugEndCode = this.code.length;
             }
         });
+
+        this.debug_locals = this.debug_locals.concat(this.locals);
     }
 
     public findOrCreateUpvalue(name: string, instack: boolean, indexInStack?: number): number {
