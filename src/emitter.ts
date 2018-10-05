@@ -305,7 +305,15 @@ export class Emitter {
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
             return <ts.NodeArray<ts.Statement>> <any>
-                [ <ts.Statement>ts.createReturn(ts.createPropertyAccess(ts.createThis(), lengthMemeber)) ];
+            [ <ts.Statement>ts.createReturn(
+                ts.createBinary(
+                    ts.createPropertyAccess(ts.createThis(), lengthMemeber),
+                    ts.SyntaxKind.PlusToken,
+                    ts.createConditional(
+                        ts.createElementAccess(ts.createThis(), ts.createNumericLiteral('0')),
+                        ts.createNumericLiteral('1'),
+                        ts.createNumericLiteral('0'))))
+            ];
         }
 
         return statementsIn;
@@ -2603,9 +2611,8 @@ export class Emitter {
         const parent = node.parent;
         const noReturnCall = constructorCall || this.isValueNotRequired(parent);
         const isMethodArgumentCall = parent
-            && (parent.kind === ts.SyntaxKind.CallExpression
-                || parent.kind === ts.SyntaxKind.PropertyAccessExpression
-                || parent.kind === ts.SyntaxKind.SpreadElement);
+            && (parent.kind === ts.SyntaxKind.CallExpression ||
+                parent.kind === ts.SyntaxKind.SpreadElement);
         const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
