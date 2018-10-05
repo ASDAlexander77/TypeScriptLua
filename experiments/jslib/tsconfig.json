@@ -22,12 +22,8 @@
     "lib": [
     ],
   },
-  "files": [
-    "Object.ts",
-    "Number.ts",
-    "Array.ts",
-    "TypedArrayBase.ts",
-    "Float32Array.ts"
+  "include": [
+    "**/*.ts",
   ],
   "exclude": [
     "node_modules"

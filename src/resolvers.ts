@@ -403,10 +403,6 @@ export class IdentifierResolver {
                                     const memberInfo = this.returnResolvedEnv(functionContext);
                                     memberInfo.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
                                     return memberInfo;
-                                case 'Math':
-                                    const memberInfo2 = this.resolveMemberOfCurrentScope(identifier.text.toLowerCase(), functionContext);
-                                    memberInfo2.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
-                                    return memberInfo2;
                             }
                         }
                     }

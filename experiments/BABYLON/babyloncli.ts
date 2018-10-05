@@ -58,6 +58,11 @@ import './BABYLON/Materials/babylon_standardMaterial';
 
 // extra
 import './BABYLON/Cameras/babylon_targetCamera';
+import './BABYLON/Cameras/babylon_cameraInputsManager';
+import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraKeyboardMoveInput';
+import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraMouseWheelInput';
+import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraPointersInput';
+import './BABYLON/Cameras/babylon_arcRotateCameraInputsManager';
 import './BABYLON/Cameras/babylon_arcRotateCamera';
 
 // xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
