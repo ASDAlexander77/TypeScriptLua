@@ -98,6 +98,20 @@ describe('Classes', () => {
         c.set("Hello").show();                          \
     '])));
 
+    it('new instance of Class with setting class default fields', () => expect('0\r\n0\r\n0\r\n').to.equals(new Run().test([
+        'class Vector3 {                                \
+            constructor(                                \
+                public x: number = 0,                   \
+                public y: number = 0,                   \
+                public z: number = 0                    \
+            ) {}                                        \
+        }                                               \
+        var v = new Vector3();                          \
+        console.log(v.x);                               \
+        console.log(v.y);                               \
+        console.log(v.z);                               \
+    '])));
+
     it('Class private member in constructor', () => expect('1\r\n').to.equals(new Run().test([
         'class Class1 {                                     \
             constructor(private i: number) {                \
