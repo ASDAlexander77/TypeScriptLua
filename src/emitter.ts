@@ -3004,7 +3004,7 @@ export class Emitter {
 
         // local vars
         this.writer.writeInt(functionContext.debug_locals.length);
-        functionContext.debug_locals.reverse().forEach(l => {
+        functionContext.debug_locals.forEach(l => {
             this.writer.writeString(l.name);
             this.writer.writeInt(l.debugStartCode + 1);
             this.writer.writeInt(l.debugEndCode + 1);

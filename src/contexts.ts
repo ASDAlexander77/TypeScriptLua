@@ -216,7 +216,9 @@ export class FunctionContext {
             }
         });
 
-        this.debug_locals = this.debug_locals.concat(this.locals);
+        for (const item of this.locals) {
+            this.debug_locals.unshift(item);
+        }
     }
 
     public findOrCreateUpvalue(name: string, instack: boolean, indexInStack?: number): number {
