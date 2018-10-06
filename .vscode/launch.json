@@ -9,8 +9,9 @@
             "request": "launch",
             "name": "Launch Node.js (Test)",
             "program": "${workspaceFolder}/__out/main.js",
+            "cwd": "${workspaceFolder}/test",
             "args": [
-                "tsconfig1.json"
+                "tsconfig.json"
             ]
         },  
         {
@@ -52,7 +53,7 @@
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node",
             "program": "${workspaceFolder}/src/main.ts",
             "args": [
-                "tsconfig1.json"
+                "tsconfig.json"
             ],            
             "sourceMaps": true,
             "outFiles": [
