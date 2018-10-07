@@ -5,7 +5,7 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 
-export interface MockBreakpoint {
+export interface LuaBreakpoint {
 	id: number;
 	line: number;
 	verified: boolean;
@@ -14,7 +14,7 @@ export interface MockBreakpoint {
 /**
  * A Mock runtime with minimal debugger functionality.
  */
-export class MockRuntime extends EventEmitter {
+export class LuaRuntime extends EventEmitter {
 
 	// the initial (and one and only) file we are 'debugging'
 	private _sourceFile: string;
@@ -29,7 +29,7 @@ export class MockRuntime extends EventEmitter {
 	private _currentLine = 0;
 
 	// maps from sourceFile to array of Mock breakpoints
-	private _breakPoints = new Map<string, MockBreakpoint[]>();
+	private _breakPoints = new Map<string, LuaBreakpoint[]>();
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
@@ -100,12 +100,12 @@ export class MockRuntime extends EventEmitter {
 	/*
 	 * Set breakpoint in file with given line.
 	 */
-	public setBreakPoint(path: string, line: number) : MockBreakpoint {
+	public setBreakPoint(path: string, line: number) : LuaBreakpoint {
 
-		const bp = <MockBreakpoint> { verified: false, line, id: this._breakpointId++ };
+		const bp = <LuaBreakpoint> { verified: false, line, id: this._breakpointId++ };
 		let bps = this._breakPoints.get(path);
 		if (!bps) {
-			bps = new Array<MockBreakpoint>();
+			bps = new Array<LuaBreakpoint>();
 			this._breakPoints.set(path, bps);
 		}
 		bps.push(bp);
@@ -118,7 +118,7 @@ export class MockRuntime extends EventEmitter {
 	/*
 	 * Clear breakpoint in file with given line.
 	 */
-	public clearBreakPoint(path: string, line: number) : MockBreakpoint | undefined {
+	public clearBreakPoint(path: string, line: number) : LuaBreakpoint | undefined {
 		let bps = this._breakPoints.get(path);
 		if (bps) {
 			const index = bps.findIndex(bp => bp.line === line);
