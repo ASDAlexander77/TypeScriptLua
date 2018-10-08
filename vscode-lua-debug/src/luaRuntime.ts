@@ -4,7 +4,8 @@
 
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
+import { Readable, PassThrough } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -16,6 +17,8 @@ class LuaSpawnedDebugProcess {
 
 	private _version: boolean;
 	private _enter: boolean;
+	private _commands = new PassThrough();
+	private luaExe: ChildProcess;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
 	}
@@ -23,7 +26,7 @@ class LuaSpawnedDebugProcess {
 	public spawn(): void {
 		// const luaExe = spawn(luaExecutable, [program]);
 		// const luaExe = spawn(this.luaExecutable, ['-e "require \'./debugger\'; ' + (this.stopOnEntry ? 'pause();' : '') + ' dofile(\'' + this.program + '\')"'])
-		const luaExe = spawn(this.luaExecutable, ['-i'])
+		const luaExe = spawn(this.luaExecutable, ['-i']);
 
 		luaExe.stdout.on('data', (data) => {
 			const text = data.toString();
@@ -46,9 +49,15 @@ class LuaSpawnedDebugProcess {
 			console.log(`Lua Debug process exited with code ${code}`);
 		});
 
-		luaExe.stdin.on('writable', () => {
-			luaExe.stdin.write('print (\'hello\')');
-		});
+		this._commands.pipe(luaExe.stdin);
+
+		this.writeProcess();
+	}
+
+	private writeProcess() {
+		this._commands.write('print(\'Hello!\')');
+		this._commands.end();
+		setTimeout(this.writeProcess, 1000);
 	}
 }
 
