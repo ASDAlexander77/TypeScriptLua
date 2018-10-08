@@ -1,7 +1,3 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
 'use strict';
 
 import * as vscode from 'vscode';
@@ -26,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	// register a configuration provider for 'mock' debug type
-	const provider = new MockConfigurationProvider()
+	const provider = new LuaDebugConfigurationProvider()
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('lua', provider));
 	context.subscriptions.push(provider);
 }
@@ -35,7 +31,7 @@ export function deactivate() {
 	// nothing to do
 }
 
-class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
+class LuaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
 	private _server?: Net.Server;
 
