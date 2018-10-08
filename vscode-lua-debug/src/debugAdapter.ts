@@ -1,7 +1,3 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
+ import { LuaDebugSession } from './luaDebug';
 
- import { MockDebugSession } from './mockDebug';
-
- MockDebugSession.run(MockDebugSession);
+ LuaDebugSession.run(LuaDebugSession);

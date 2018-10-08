@@ -6,7 +6,7 @@
 
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
-import { MockDebugSession } from './mockDebug';
+import { LuaDebugSession } from './luaDebug';
 import * as Net from 'net';
 
 /*
@@ -69,7 +69,7 @@ class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
 
 				// start listening on a random port
 				this._server = Net.createServer(socket => {
-					const session = new MockDebugSession();
+					const session = new LuaDebugSession();
 					session.setRunAsServer(true);
 					session.start(<NodeJS.ReadableStream>socket, socket);
 				}).listen(0);

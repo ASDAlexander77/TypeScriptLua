@@ -1,12 +1,11 @@
 {
-	"name": "mock-debug",
-	"displayName": "Mock Debug",
-	"version": "0.27.0",
-	"publisher": "andreweinand",
-	"description": "Starter extension for developing debug adapters for VS Code.",
+	"name": "lua-debug",
+	"displayName": "Lua Debug",
+	"version": "0.0.0",
+	"publisher": "alexd",
+	"description": "LUA debugger extension for VS Code.",
 	"author": {
-		"name": "Microsoft Corporation",
-		"email": "aweinand@microsoft.com"
+		"name": "Alex D."
 	},
 	"license": "MIT",
 	"keywords": [
@@ -16,18 +15,10 @@
 		"vscode": "^1.18.0",
 		"node": "^7.9.0"
 	},
-	"icon": "images/mock-debug-icon.png",
 	"categories": [
 		"Debuggers"
 	],
 	"private": true,
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-mock-debug.git"
-	},
-	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-mock-debug/issues"
-	},
 	"scripts": {
 		"prepublish": "tsc -p ./src",
 		"compile": "tsc -p ./src",
@@ -56,18 +47,18 @@
 	"main": "./out/extension",
 	"activationEvents": [
 		"onDebug",
-		"onCommand:extension.mock-debug.getProgramName"
+		"onCommand:extension.lua-debug.getProgramName"
 	],
 	"contributes": {
 		"breakpoints": [
 			{
-				"language": "markdown"
+				"language": "luafile"
 			}
 		],
 		"debuggers": [
 			{
-				"type": "mock",
-				"label": "Mock Debug",
+				"type": "lua",
+				"label": "Lua Debug",
 				"program": "./out/debugAdapter.js",
 				"runtime": "node",
 				"configurationAttributes": {
@@ -96,7 +87,7 @@
 				},
 				"initialConfigurations": [
 					{
-						"type": "mock",
+						"type": "lua",
 						"request": "launch",
 						"name": "Ask for file name",
 						"program": "${workspaceFolder}/${command:AskForProgramName}",
@@ -105,10 +96,10 @@
 				],
 				"configurationSnippets": [
 					{
-						"label": "Mock Debug: Launch",
-						"description": "A new configuration for 'debugging' a user selected markdown file.",
+						"label": "Lua Debug: Launch",
+						"description": "A new configuration for 'lua-debugging' a user selected lua file.",
 						"body": {
-							"type": "mock",
+							"type": "lua",
 							"request": "launch",
 							"name": "Ask for file name",
 							"program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
@@ -117,7 +108,7 @@
 					}
 				],
 				"variables": {
-					"AskForProgramName": "extension.mock-debug.getProgramName"
+					"AskForProgramName": "extension.lua-debug.getProgramName"
 				}
 			}
 		]
