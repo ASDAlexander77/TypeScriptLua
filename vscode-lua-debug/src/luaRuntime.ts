@@ -43,7 +43,7 @@ export class LuaRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public start(program: string, stopOnEntry: boolean) {
+	public start(program: string, stopOnEntry: boolean, luaExecutable: string) {
 
 		this.loadSource(program);
 		this._currentLine = -1;

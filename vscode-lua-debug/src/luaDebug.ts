@@ -1,7 +1,3 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
 import {
 	Logger, logger,
 	LoggingDebugSession,
@@ -27,6 +23,8 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	stopOnEntry?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
+	/** An absolute path to the lua "executable" to launch. */
+	luaExecutable: string;
 }
 
 export class LuaDebugSession extends LoggingDebugSession {
@@ -128,7 +126,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 		await this._configurationDone.wait(1000);
 
 		// start the program in the runtime
-		this._runtime.start(args.program, !!args.stopOnEntry);
+		this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable);
 
 		this.sendResponse(response);
 	}

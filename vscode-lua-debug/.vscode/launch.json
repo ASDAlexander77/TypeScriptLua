@@ -39,8 +39,10 @@
 		{
 			"type": "lua",
 			"request": "launch",
-			"name": "Lua Debug Sample",
-			"program": "${workspaceFolder}/${command:AskForProgramName}",
+			"name": "Lua Debugger",
+			//"program": "${workspaceFolder}/${command:AskForProgramName}",
+			"program": "${workspaceFolder}/test/file.lua",
+			"luaExecutable": "lua",
 			"stopOnEntry": true
 		}
 	],

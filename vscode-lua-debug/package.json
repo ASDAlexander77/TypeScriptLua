@@ -81,6 +81,11 @@
 								"type": "boolean",
 								"description": "Enable logging of the Debug Adapter Protocol.",
 								"default": true
+							},
+							"luaExecutable": {
+								"type": "string",
+								"description": "Absolute path to a lua executable.",
+								"default": "lua"
 							}
 						}
 					}
@@ -91,6 +96,7 @@
 						"request": "launch",
 						"name": "Ask for file name",
 						"program": "${workspaceFolder}/${command:AskForProgramName}",
+						"luaExecutable": "lua",
 						"stopOnEntry": true
 					}
 				],
@@ -103,6 +109,7 @@
 							"request": "launch",
 							"name": "Ask for file name",
 							"program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+							"luaExecutable": "lua",
 							"stopOnEntry": true
 						}
 					}

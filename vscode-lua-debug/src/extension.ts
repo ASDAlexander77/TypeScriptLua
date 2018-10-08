@@ -16,8 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.lua-debug.getProgramName', config => {
 		return vscode.window.showInputBox({
-			placeHolder: "Please enter the name of a markdown file in the workspace folder",
-			value: "readme.md"
+			placeHolder: "Please enter the name of a lua file in the workspace folder",
+			value: "file.lua"
 		});
 	}));
 
@@ -50,6 +50,7 @@ class LuaDebugConfigurationProvider implements vscode.DebugConfigurationProvider
 				config.request = 'launch';
 				config.program = '${file}';
 				config.stopOnEntry = true;
+				config.luaExecutable = "lua";
 			}
 		}
 
