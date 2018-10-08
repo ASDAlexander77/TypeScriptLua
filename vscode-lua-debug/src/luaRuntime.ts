@@ -4,6 +4,7 @@
 
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
+import { spawn } from 'child_process';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -11,8 +12,48 @@ export interface LuaBreakpoint {
 	verified: boolean;
 }
 
+class LuaSpawnedDebugProcess {
+
+	private _version: boolean;
+	private _enter: boolean;
+
+	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
+	}
+
+	public spawn(): void {
+		// const luaExe = spawn(luaExecutable, [program]);
+		// const luaExe = spawn(this.luaExecutable, ['-e "require \'./debugger\'; ' + (this.stopOnEntry ? 'pause();' : '') + ' dofile(\'' + this.program + '\')"'])
+		const luaExe = spawn(this.luaExecutable, ['-i'])
+
+		luaExe.stdout.on('data', (data) => {
+			const text = data.toString();
+			console.log(text);
+
+			if (text.startsWith('Lua 5.3.')) {
+				this._version = true;
+			}
+
+			if (text.startsWith('>')) {
+				this._enter = true;
+			}
+		});
+
+		luaExe.stderr.on('data', (data) => {
+			console.log(data.toString());
+		});
+
+		luaExe.on('exit', (code) => {
+			console.log(`Lua Debug process exited with code ${code}`);
+		});
+
+		luaExe.stdin.on('writable', () => {
+			luaExe.stdin.write('print (\'hello\')');
+		});
+	}
+}
+
 /**
- * A Mock runtime with minimal debugger functionality.
+ * A lua runtime with minimal debugger functionality.
  */
 export class LuaRuntime extends EventEmitter {
 
@@ -35,6 +76,7 @@ export class LuaRuntime extends EventEmitter {
 	// so that the frontend can match events with breakpoints.
 	private _breakpointId = 1;
 
+	private _luaExe: LuaSpawnedDebugProcess;
 
 	constructor() {
 		super();
@@ -44,9 +86,11 @@ export class LuaRuntime extends EventEmitter {
 	 * Start executing the given program.
 	 */
 	public start(program: string, stopOnEntry: boolean, luaExecutable: string) {
-
 		this.loadSource(program);
 		this._currentLine = -1;
+
+		this._luaExe = new LuaSpawnedDebugProcess(program, stopOnEntry, luaExecutable);
+		this._luaExe.spawn();
 
 		this.verifyBreakpoints(this._sourceFile);
 
@@ -100,9 +144,9 @@ export class LuaRuntime extends EventEmitter {
 	/*
 	 * Set breakpoint in file with given line.
 	 */
-	public setBreakPoint(path: string, line: number) : LuaBreakpoint {
+	public setBreakPoint(path: string, line: number): LuaBreakpoint {
 
-		const bp = <LuaBreakpoint> { verified: false, line, id: this._breakpointId++ };
+		const bp = <LuaBreakpoint>{ verified: false, line, id: this._breakpointId++ };
 		let bps = this._breakPoints.get(path);
 		if (!bps) {
 			bps = new Array<LuaBreakpoint>();
@@ -118,7 +162,7 @@ export class LuaRuntime extends EventEmitter {
 	/*
 	 * Clear breakpoint in file with given line.
 	 */
-	public clearBreakPoint(path: string, line: number) : LuaBreakpoint | undefined {
+	public clearBreakPoint(path: string, line: number): LuaBreakpoint | undefined {
 		let bps = this._breakPoints.get(path);
 		if (bps) {
 			const index = bps.findIndex(bp => bp.line === line);
@@ -153,7 +197,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
 	private run(reverse = false, stepEvent?: string) {
 		if (reverse) {
-			for (let ln = this._currentLine-1; ln >= 0; ln--) {
+			for (let ln = this._currentLine - 1; ln >= 0; ln--) {
 				if (this.fireEventsForLine(ln, stepEvent)) {
 					this._currentLine = ln;
 					return;
@@ -163,7 +207,7 @@ export class LuaRuntime extends EventEmitter {
 			this._currentLine = 0;
 			this.sendEvent('stopOnEntry');
 		} else {
-			for (let ln = this._currentLine+1; ln < this._sourceLines.length; ln++) {
+			for (let ln = this._currentLine + 1; ln < this._sourceLines.length; ln++) {
 				if (this.fireEventsForLine(ln, stepEvent)) {
 					this._currentLine = ln;
 					return true;
@@ -174,7 +218,7 @@ export class LuaRuntime extends EventEmitter {
 		}
 	}
 
-	private verifyBreakpoints(path: string) : void {
+	private verifyBreakpoints(path: string): void {
 		let bps = this._breakPoints.get(path);
 		if (bps) {
 			this.loadSource(path);
@@ -250,7 +294,7 @@ export class LuaRuntime extends EventEmitter {
 		return false;
 	}
 
-	private sendEvent(event: string, ... args: any[]) {
+	private sendEvent(event: string, ...args: any[]) {
 		setImmediate(_ => {
 			this.emit(event, ...args);
 		});
