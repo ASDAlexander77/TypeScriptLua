@@ -5,7 +5,7 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
-import { Readable, PassThrough } from 'stream';
+import { Readable, PassThrough, Stream } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -17,7 +17,7 @@ class LuaSpawnedDebugProcess {
 
 	private _version: boolean;
 	private _enter: boolean;
-	private _commands = new PassThrough();
+	private _commands = new Stream();
 	private luaExe: ChildProcess;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
@@ -55,8 +55,8 @@ class LuaSpawnedDebugProcess {
 	}
 
 	private writeProcess() {
-		this._commands.write('print(\'Hello!\')');
-		this._commands.end();
+		this._commands.emit('data', 'print(\'Hello!\')');
+		// this._commands.stream.emit('end');
 		setTimeout(this.writeProcess, 1000);
 	}
 }
