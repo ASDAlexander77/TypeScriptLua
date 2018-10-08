@@ -52,7 +52,7 @@
 	"contributes": {
 		"breakpoints": [
 			{
-				"language": "luafile"
+				"language": "lua"
 			}
 		],
 		"debuggers": [

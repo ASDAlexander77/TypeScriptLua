@@ -10,7 +10,7 @@ import * as Net from 'net';
  * debug adapter should run inside the extension host.
  * Please note: the test suite does no longer work in this mode.
  */
-const EMBED_DEBUG_ADAPTER = false;
+const EMBED_DEBUG_ADAPTER = true;
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -44,7 +44,7 @@ class LuaDebugConfigurationProvider implements vscode.DebugConfigurationProvider
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'luafile' ) {
+			if (editor && editor.document.languageId === 'lua' ) {
 				config.type = 'lua';
 				config.name = 'Launch';
 				config.request = 'launch';
