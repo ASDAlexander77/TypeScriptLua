@@ -37,9 +37,9 @@
 			"internalConsoleOptions": "openOnSessionStart"
 		},
 		{
-			"type": "mock",
+			"type": "lua",
 			"request": "launch",
-			"name": "Mock Sample",
+			"name": "Lua Debug Sample",
 			"program": "${workspaceFolder}/${command:AskForProgramName}",
 			"stopOnEntry": true
 		}

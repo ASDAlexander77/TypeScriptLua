@@ -18,7 +18,7 @@ const EMBED_DEBUG_ADAPTER = false;
 
 export function activate(context: vscode.ExtensionContext) {
 
-	context.subscriptions.push(vscode.commands.registerCommand('extension.mock-debug.getProgramName', config => {
+	context.subscriptions.push(vscode.commands.registerCommand('extension.lua-debug.getProgramName', config => {
 		return vscode.window.showInputBox({
 			placeHolder: "Please enter the name of a markdown file in the workspace folder",
 			value: "readme.md"
@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// register a configuration provider for 'mock' debug type
 	const provider = new MockConfigurationProvider()
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('mock', provider));
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('luadebug', provider));
 	context.subscriptions.push(provider);
 }
 
@@ -49,7 +49,7 @@ class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && editor.document.languageId === 'markdown' ) {
-				config.type = 'mock';
+				config.type = 'lua';
 				config.name = 'Launch';
 				config.request = 'launch';
 				config.program = '${file}';
