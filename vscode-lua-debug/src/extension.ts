@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// register a configuration provider for 'mock' debug type
 	const provider = new MockConfigurationProvider()
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('luadebug', provider));
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('lua', provider));
 	context.subscriptions.push(provider);
 }
 
@@ -48,7 +48,7 @@ class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'markdown' ) {
+			if (editor && editor.document.languageId === 'luafile' ) {
 				config.type = 'lua';
 				config.name = 'Launch';
 				config.request = 'launch';
