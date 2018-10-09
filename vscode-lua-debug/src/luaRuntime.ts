@@ -5,7 +5,7 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
-//import { Readable, PassThrough, Stream } from 'stream';
+import { Writable } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -13,11 +13,38 @@ export interface LuaBreakpoint {
 	verified: boolean;
 }
 
+class LuaCommands {
+	constructor(private stdin: Writable) {
+	}
+
+	public commandLine(cmd: string): void {
+		this.stdin.write(cmd + '\r\n', () => {
+			console.log(cmd + ' sent.');
+		});
+	}
+
+	public loadDebuggerSource(path: string = '.'): void {
+		const debuggerLuaFilePath = `${path}/debugger.lua`.replace(/\\/, '/');
+		this.stdin.write(`dofile('${debuggerLuaFilePath}')\n`, () => {
+			console.log('...');
+		});
+	}
+
+	public loadDebuggerSourceAsRequire(): void {
+		this.stdin.write(`require('./debugger')\n`, () => {
+			console.log('require(\'./debugger\') sent.');
+		});
+	}
+}
+
 class LuaSpawnedDebugProcess {
 
 	private _version: boolean;
 	private _enter: boolean;
+	private _debuggerLoading: boolean;
+	private _debuggerLoaded: boolean;
 	private luaExe: ChildProcess;
+	private _commands: LuaCommands;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
 	}
@@ -25,7 +52,9 @@ class LuaSpawnedDebugProcess {
 	public spawn(): void {
 		// const luaExe = spawn(luaExecutable, [program]);
 		// const luaExe = spawn(this.luaExecutable, ['-e "require \'./debugger\'; ' + (this.stopOnEntry ? 'pause();' : '') + ' dofile(\'' + this.program + '\')"'])
-		const luaExe = spawn(this.luaExecutable, ['-i']);
+		const luaExe = this.luaExe = spawn(this.luaExecutable, ['-i']);
+
+		this._commands = new LuaCommands(luaExe.stdin);
 
 		luaExe.stdout.on('data', (data) => {
 			const text = data.toString();
@@ -37,6 +66,15 @@ class LuaSpawnedDebugProcess {
 
 			if (text.startsWith('>')) {
 				this._enter = true;
+				if (!this._debuggerLoading && !this._debuggerLoaded) {
+					this._debuggerLoading = true;
+					this._commands.loadDebuggerSourceAsRequire();
+				}
+			}
+
+			if (this._debuggerLoading && text.startsWith('true')) {
+				this._debuggerLoaded = true;
+				this._debuggerLoading = false;
 			}
 		});
 
@@ -44,20 +82,13 @@ class LuaSpawnedDebugProcess {
 			console.log(data.toString());
 		});
 
+		luaExe.stdin.on('data', (data) => {
+			this._enter = false;
+		});
+
 		luaExe.on('exit', (code) => {
 			console.log(`Lua Debug process exited with code ${code}`);
 		});
-
-		luaExe.stdin.write('print (\'Hello\')\r\n', () => {
-			console.log('flushed');
-		});
-
-		this.pingProcess();
-	}
-
-	private pingProcess() {
-		console.log('tick.');
-		setTimeout(this.pingProcess, 1000);
 	}
 }
 

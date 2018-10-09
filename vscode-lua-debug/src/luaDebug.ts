@@ -7,7 +7,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { LuaRuntime, LuaBreakpoint } from './luaRuntime';
-const { Subject } = require('await-notify');
+import { Subject } from 'await-notify';
 
 
 /**
