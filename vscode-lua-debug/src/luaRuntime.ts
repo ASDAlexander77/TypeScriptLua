@@ -25,10 +25,10 @@ class LuaCommands {
 		this.commandLine('step\r\n');
 	}
 
-	public loadDebuggerSource(path: string = '.'): void {
-		const debuggerLuaFilePath = `${path}/debugger.lua`.replace(/\\/, '/');
+	public loadFile(path: string): void {
+		const debuggerLuaFilePath = path.replace(/\\/g, '/');
 		this.stdin.write(`dofile('${debuggerLuaFilePath}')\n`, () => {
-			console.log('...');
+			console.log(' loaded file: ' + path);
 		});
 	}
 
@@ -47,24 +47,23 @@ class LuaCommands {
 
 class LuaSpawnedDebugProcess {
 	private _version: boolean;
-	private _enter: boolean;
-	private _debuggerLoading: boolean;
-	private _debuggerLoaded: boolean;
-	private _pauseCalling: boolean;
-	private _pauseCalled: boolean;
-	private _pauseFailed: boolean;
-	private luaExe: ChildProcess;
 	private _commands: LuaCommands;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
 	}
 
 	public spawn(): void {
-		// const luaExe = spawn(luaExecutable, [program]);
-		// const luaExe = spawn(this.luaExecutable, ['-e "require \'./debugger\'; ' + (this.stopOnEntry ? 'pause();' : '') + ' dofile(\'' + this.program + '\')"'])
-		const luaExe = this.luaExe = spawn(this.luaExecutable, ['-i']);
+		const luaExe = spawn(this.luaExecutable, ['-i']);
 
 		this._commands = new LuaCommands(luaExe.stdin);
+
+		/*
+		let data;
+		luaExe.stdout.pause();
+		while (data = luaExe.stdout.read()) {
+			console.log(data);
+		}
+		*/
 
 		luaExe.stdout.on('data', (data) => {
 			const text = data.toString();
@@ -75,35 +74,13 @@ class LuaSpawnedDebugProcess {
 			}
 
 			if (text.startsWith('>')) {
-				this._enter = true;
-
-				if (!this._debuggerLoading && !this._debuggerLoaded) {
-					this._debuggerLoading = true;
-					this._commands.loadDebuggerSourceAsRequire();
-				}
-			}
-
-			if (text.startsWith('Message: start debugging')) {
-				this._pauseCalling = false;
-				this._pauseCalled = false;
-			}
-
-			if (this._debuggerLoading && text.startsWith('true')) {
-				this._debuggerLoaded = true;
-				this._debuggerLoading = false;
-
-				// calling pause()
-				this._pauseCalling = true;
-				this._commands.pause();
+				this._commands.loadDebuggerSourceAsRequire();
+				this._commands.loadFile(this.program);
 			}
 		});
 
 		luaExe.stderr.on('data', (data) => {
 			console.log(data.toString());
-		});
-
-		luaExe.stdin.on('data', (data) => {
-			this._enter = false;
 		});
 
 		luaExe.on('exit', (code) => {

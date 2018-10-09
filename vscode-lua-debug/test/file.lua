@@ -1,3 +1,4 @@
+pause()
 local a = {}
 if a then
 	local b = {}
