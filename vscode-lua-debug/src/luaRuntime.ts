@@ -5,7 +5,7 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
-import { Readable, PassThrough, Stream } from 'stream';
+//import { Readable, PassThrough, Stream } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -17,7 +17,6 @@ class LuaSpawnedDebugProcess {
 
 	private _version: boolean;
 	private _enter: boolean;
-	private _commands = new Stream();
 	private luaExe: ChildProcess;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
@@ -49,15 +48,16 @@ class LuaSpawnedDebugProcess {
 			console.log(`Lua Debug process exited with code ${code}`);
 		});
 
-		this._commands.pipe(luaExe.stdin);
+		luaExe.stdin.write('print (\'Hello\')\r\n', () => {
+			console.log('flushed');
+		});
 
-		this.writeProcess();
+		this.pingProcess();
 	}
 
-	private writeProcess() {
-		this._commands.emit('data', 'print(\'Hello!\')');
-		// this._commands.stream.emit('end');
-		setTimeout(this.writeProcess, 1000);
+	private pingProcess() {
+		console.log('tick.');
+		setTimeout(this.pingProcess, 1000);
 	}
 }
 
