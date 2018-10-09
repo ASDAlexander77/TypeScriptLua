@@ -5,4 +5,6 @@
 package-lock.json
 *.out
 *.luabc
-*.lua
+/test/*.lua
+/experiments/BABYLON/*.lua
+/experiments/jslib/*.lua
