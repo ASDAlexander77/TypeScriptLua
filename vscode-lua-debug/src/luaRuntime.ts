@@ -17,10 +17,12 @@ class LuaCommands {
 	constructor(private stdin: Writable) {
 	}
 
-	public commandLine(cmd: string): void {
-		this.stdin.write(cmd + '\r\n', () => {
-			console.log(cmd + ' sent.');
-		});
+	public pause(): void {
+		this.commandLine('pause(\'start debugging\', 1, true)\r\n');
+	}
+
+	public step(): void {
+		this.commandLine('step\r\n');
 	}
 
 	public loadDebuggerSource(path: string = '.'): void {
@@ -35,14 +37,22 @@ class LuaCommands {
 			console.log('require(\'./debugger\') sent.');
 		});
 	}
+
+	public commandLine(cmd: string): void {
+		this.stdin.write(cmd + '\r\n', () => {
+			console.log(cmd + ' sent.');
+		});
+	}
 }
 
 class LuaSpawnedDebugProcess {
-
 	private _version: boolean;
 	private _enter: boolean;
 	private _debuggerLoading: boolean;
 	private _debuggerLoaded: boolean;
+	private _pauseCalling: boolean;
+	private _pauseCalled: boolean;
+	private _pauseFailed: boolean;
 	private luaExe: ChildProcess;
 	private _commands: LuaCommands;
 
@@ -66,15 +76,25 @@ class LuaSpawnedDebugProcess {
 
 			if (text.startsWith('>')) {
 				this._enter = true;
+
 				if (!this._debuggerLoading && !this._debuggerLoaded) {
 					this._debuggerLoading = true;
 					this._commands.loadDebuggerSourceAsRequire();
 				}
 			}
 
+			if (text.startsWith('Message: start debugging')) {
+				this._pauseCalling = false;
+				this._pauseCalled = false;
+			}
+
 			if (this._debuggerLoading && text.startsWith('true')) {
 				this._debuggerLoaded = true;
 				this._debuggerLoading = false;
+
+				// calling pause()
+				this._pauseCalling = true;
+				this._commands.pause();
 			}
 		});
 
@@ -89,6 +109,10 @@ class LuaSpawnedDebugProcess {
 		luaExe.on('exit', (code) => {
 			console.log(`Lua Debug process exited with code ${code}`);
 		});
+	}
+
+	step(reverse: boolean, event: string): any {
+		this._commands.step();
 	}
 }
 
@@ -155,6 +179,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
 	public step(reverse = false, event = 'stopOnStep') {
 		this.run(reverse, event);
+		this._luaExe.step(reverse, event);
 	}
 
 	/**
