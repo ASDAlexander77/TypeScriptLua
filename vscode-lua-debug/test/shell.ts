@@ -1,7 +1,5 @@
-import { readFileSync } from 'fs';
-import { EventEmitter } from 'events';
-import { spawn, ChildProcess } from 'child_process';
-import { Writable, Readable } from 'stream';
+import { spawn } from 'child_process';
+import { Readable } from 'stream';
 
 async function f() {
     console.log('start...');
