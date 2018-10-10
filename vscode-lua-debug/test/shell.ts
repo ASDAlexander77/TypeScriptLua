@@ -9,6 +9,8 @@ async function f() {
     const exe = spawn('lua', ['-i']);
     // const exe = spawn('dir', ['*.*'], { shell: true });
 
+    exe.stdout.setEncoding('utf8');
+
     let line;
     while (line = await readOutput(exe.stdout)) {
         console.log(line);
@@ -36,7 +38,7 @@ async function f() {
 async function readOutput(output: Readable) {
     return new Promise((resolve, reject) => {
         output.on('data', (data) => resolve(data));
-        output.on('error', (data) => resolve(undefined));
+        output.on('error', () => resolve(undefined));
     });
 }
 
