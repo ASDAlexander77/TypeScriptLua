@@ -91,6 +91,8 @@ class LuaSpawnedDebugProcess {
                 break;
             }
         }
+
+        console.log(">>> exit start program");
 	}
 
 	step(reverse: boolean, event?: string): any {
