@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { Writable, Readable } from 'stream';
 
 export interface LuaBreakpoint {
@@ -47,13 +47,14 @@ class LuaSpawnedDebugProcess {
 	private _loadingDebugger: boolean;
 	private _loadedDebugger: boolean;
 	private _loadedFile: boolean;
-	private _commands: LuaCommands;
+    private _commands: LuaCommands;
+    private luaExe: ChildProcess;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
 	}
 
 	public async spawn() {
-		const luaExe = spawn(this.luaExecutable, ['-i']);
+		const luaExe = this.luaExe = spawn(this.luaExecutable, ['-i']);
 
 		this._commands = new LuaCommands(luaExe.stdin);
 
@@ -67,7 +68,7 @@ class LuaSpawnedDebugProcess {
 
         luaExe.stdout.setEncoding('utf8');
         let line;
-        while (line = await this.readOutput(luaExe.stdout, 3000)) {
+        while (line = await this.readOutput(3000)) {
             if (line === null) {
                 console.log('end of input');
                 break;
@@ -86,7 +87,9 @@ class LuaSpawnedDebugProcess {
 
             if (line.startsWith('true')) {
                 this._loadedDebugger = true;
-                this._commands.loadFile(this.program);
+                ////this._commands.loadFile(this.program);
+                this._commands.pause();
+                this._commands.pause();
                 this._loadedFile = false;
                 break;
             }
@@ -95,14 +98,22 @@ class LuaSpawnedDebugProcess {
         console.log(">>> exit start program");
 	}
 
-	step(reverse: boolean, event?: string): any {
-		this._commands.step();
+	public async step(reverse: boolean, event?: string) {
+        this._commands.step();
+
+        let line;
+        while (line = await this.readOutput(3000)) {
+            if (line === null) {
+                console.log('end of input');
+                break;
+            }
+        }
     }
 
-    private async readOutput(output: Readable, timeout?: number) {
+    private async readOutput(timeout?: number) {
         return new Promise((resolve, reject) => {
             let timerId;
-            output.on('data', (data) => {
+            this.luaExe.stdout.on('data', (data) => {
                 if (timerId) {
                     clearTimeout(timerId);
                 }
@@ -110,7 +121,7 @@ class LuaSpawnedDebugProcess {
                 resolve(data);
             });
 
-            output.on('error', () => {
+            this.luaExe.stdout.on('error', () => {
                 if (timerId) {
                     clearTimeout(timerId);
                 }
