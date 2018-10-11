@@ -1,11 +1,7 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
-
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
-import { spawn, ChildProcess } from 'child_process';
-import { Writable } from 'stream';
+import { spawn } from 'child_process';
+import { Writable, Readable } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -18,79 +14,113 @@ class LuaCommands {
 	}
 
 	public pause(): void {
-		this.commandLine('pause(\'start debugging\', 1, true)\r\n');
+		this.commandLine('pause(\'start debugging\', 1, true)');
 	}
 
 	public step(): void {
-		this.commandLine('step\r\n');
+		this.commandLine('step');
+		this.commandLine('vars');
 	}
 
 	public loadFile(path: string): void {
 		const debuggerLuaFilePath = path.replace(/\\/g, '/');
 		this.stdin.write(`dofile('${debuggerLuaFilePath}')\n`, () => {
-			console.log(' loaded file: ' + path);
+			console.log('<<< done: loaded file: ' + debuggerLuaFilePath);
 		});
 	}
 
 	public loadDebuggerSourceAsRequire(): void {
 		this.stdin.write(`require('./debugger')\n`, () => {
-			console.log('require(\'./debugger\') sent.');
+			console.log('<<< done: loaded debugger');
 		});
 	}
 
 	public commandLine(cmd: string): void {
-		this.stdin.write(cmd + '\r\n', () => {
-			console.log(cmd + ' sent.');
+		this.stdin.write(cmd + '\n', () => {
+			console.log('<<< done: ' + cmd);
 		});
 	}
 }
 
 class LuaSpawnedDebugProcess {
 	private _version: boolean;
+	private _loadingDebugger: boolean;
+	private _loadedDebugger: boolean;
+	private _loadedFile: boolean;
 	private _commands: LuaCommands;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
 	}
 
-	public spawn(): void {
+	public async spawn() {
 		const luaExe = spawn(this.luaExecutable, ['-i']);
 
 		this._commands = new LuaCommands(luaExe.stdin);
 
-		/*
-		let data;
-		luaExe.stdout.pause();
-		while (data = luaExe.stdout.read()) {
-			console.log(data);
-		}
-		*/
-
-		luaExe.stdout.on('data', (data) => {
-			const text = data.toString();
-			console.log(text);
-
-			if (text.startsWith('Lua 5.3.')) {
-				this._version = true;
-			}
-
-			if (text.startsWith('>')) {
-				this._commands.loadDebuggerSourceAsRequire();
-				this._commands.loadFile(this.program);
-			}
-		});
-
 		luaExe.stderr.on('data', (data) => {
-			console.log(data.toString());
+			console.error(data.toString());
 		});
 
 		luaExe.on('exit', (code) => {
 			console.log(`Lua Debug process exited with code ${code}`);
-		});
+        });
+
+        luaExe.stdout.setEncoding('utf8');
+        let line;
+        while (line = await this.readOutput(luaExe.stdout, 3000)) {
+            if (line === null) {
+                console.log('end of input');
+                break;
+            }
+
+            console.log(">>> output: " + line);
+
+			if (line.startsWith('Lua 5.3.')) {
+				this._version = true;
+			}
+
+			if (line.startsWith('>')) {
+				this._commands.loadDebuggerSourceAsRequire();
+                this._loadingDebugger = true;
+            }
+
+            if (line.startsWith('true')) {
+                this._loadedDebugger = true;
+                this._commands.loadFile(this.program);
+                this._loadedFile = false;
+                break;
+            }
+        }
 	}
 
-	step(reverse: boolean, event: string): any {
+	step(reverse: boolean, event?: string): any {
 		this._commands.step();
-	}
+    }
+
+    private async readOutput(output: Readable, timeout?: number) {
+        return new Promise((resolve, reject) => {
+            let timerId;
+            output.on('data', (data) => {
+                if (timerId) {
+                    clearTimeout(timerId);
+                }
+
+                resolve(data);
+            });
+
+            output.on('error', () => {
+                if (timerId) {
+                    clearTimeout(timerId);
+                }
+
+                resolve(undefined);
+            });
+
+            if (timeout) {
+                timerId = setTimeout(() => resolve(undefined), timeout);
+            }
+        });
+    }
 }
 
 /**
@@ -126,37 +156,36 @@ export class LuaRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public start(program: string, stopOnEntry: boolean, luaExecutable: string) {
+	public async start(program: string, stopOnEntry: boolean, luaExecutable: string) {
 		this.loadSource(program);
 		this._currentLine = -1;
 
 		this._luaExe = new LuaSpawnedDebugProcess(program, stopOnEntry, luaExecutable);
-		this._luaExe.spawn();
+		await this._luaExe.spawn();
 
 		this.verifyBreakpoints(this._sourceFile);
 
 		if (stopOnEntry) {
 			// we step once
-			this.step(false, 'stopOnEntry');
+			await this.step(false, 'stopOnEntry');
 		} else {
 			// we just start to run until we hit a breakpoint or an exception
-			this.continue();
+			await this.continue();
 		}
 	}
 
 	/**
 	 * Continue execution to the end/beginning.
 	 */
-	public continue(reverse = false) {
-		this.run(reverse, undefined);
+	public async continue(reverse = false) {
+		await this.run(reverse, undefined);
 	}
 
 	/**
 	 * Step to the next/previous non empty line.
 	 */
-	public step(reverse = false, event = 'stopOnStep') {
-		this.run(reverse, event);
-		this._luaExe.step(reverse, event);
+	public async step(reverse = false, event = 'stopOnStep') {
+		await this.run(reverse, event);
 	}
 
 	/**
@@ -237,14 +266,17 @@ export class LuaRuntime extends EventEmitter {
 	 * Run through the file.
 	 * If stepEvent is specified only run a single step and emit the stepEvent.
 	 */
-	private run(reverse = false, stepEvent?: string) {
-		if (reverse) {
+	private async run(reverse = false, stepEvent?: string) {
+        await this._luaExe.step(reverse, stepEvent);
+
+        if (reverse) {
 			for (let ln = this._currentLine - 1; ln >= 0; ln--) {
 				if (this.fireEventsForLine(ln, stepEvent)) {
 					this._currentLine = ln;
 					return;
 				}
-			}
+            }
+
 			// no more lines: stop at first line
 			this._currentLine = 0;
 			this.sendEvent('stopOnEntry');

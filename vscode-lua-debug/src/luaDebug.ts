@@ -126,7 +126,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 		await this._configurationDone.wait(1000);
 
 		// start the program in the runtime
-		this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable);
+		await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable);
 
 		this.sendResponse(response);
 	}
@@ -240,8 +240,8 @@ export class LuaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
  	}
 
-	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
-		this._runtime.step();
+	protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments) {
+		await this._runtime.step();
 		this.sendResponse(response);
 	}
 

@@ -15,13 +15,9 @@ async function f() {
     });
 
     exe.stdout.setEncoding('utf8');
-    try {
-        let line;
-        while (line = await readOutput(exe.stdout, 3000)) {
-            console.log(line);
-        }
-    } catch (e) {
-        console.error(e);
+    let line;
+    while (line = await readOutput(exe.stdout, 3000)) {
+        console.log(line);
     }
 
     exe.kill();
@@ -31,10 +27,25 @@ async function f() {
 
 async function readOutput(output: Readable, timeout?: number) {
     return new Promise((resolve, reject) => {
-        output.on('data', (data) => resolve(data));
-        output.on('error', () => resolve(undefined));
+        let timerId;
+        output.on('data', (data) => {
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+
+            resolve(data);
+        });
+
+        output.on('error', () => {
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+
+            resolve(undefined);
+        });
+
         if (timeout) {
-            setTimeout(() => reject(new Error('timeout')), timeout);
+            timerId = setTimeout(() => resolve(undefined), timeout);
         }
     });
 }
