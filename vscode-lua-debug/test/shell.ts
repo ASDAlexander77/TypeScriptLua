@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { Readable } from 'stream';
 
 async function f() {
@@ -15,42 +15,44 @@ async function f() {
     });
 
     exe.stdout.setEncoding('utf8');
-    let line;
-    let debuggerloading: boolean;
-    let debuggerloaded: boolean;
-    let fileloading: boolean;
-    let fileloaded: boolean;
-    while (line = await readOutput(exe.stdout, 3000)) {
-        console.log(line);
-        line.split('\n').forEach(newLine => {
-            if ((!debuggerloading && !debuggerloaded) && newLine === '> ') {
-                debuggerloading = true;
-                exe.stdin.write(`require('./debugger')\n`);
-            }
 
-            if (debuggerloading && newLine.startsWith('true')) {
-                debuggerloaded = true;
-
-                exe.stdin.write(`pause()\n`);
-                exe.stdin.write(`\n`);
-            }
-
-            if (debuggerloaded && newLine.startsWith('[DEBUG]>')) {
-                exe.stdin.write(`setb 1\n`);
-                exe.stdin.write(`run\n`);
-            }
-
-            if (debuggerloaded && !fileloading && !fileloaded) {
-                fileloading = true;
-                exe.stdin.write(`dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')\n`);
-                fileloaded = true;
-            }
+    try {
+        await processStage(exe, '> ', () => {
+            exe.stdin.write(`require('./debugger')\n`);
         });
+
+        await processStage(exe, 'true', () => {
+            exe.stdin.write(`pause()\n`);
+            exe.stdin.write(`\n`);
+        });
+
+        await processStage(exe, '[DEBUG]>', () => {
+            exe.stdin.write(`setb 1\n`);
+            exe.stdin.write(`run\n`);
+        });
+
+        await processStage(exe, '> ', () => {
+            exe.stdin.write(`dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')\n`);
+        });
+    } catch (e) {
+        console.error(e);
     }
 
     exe.kill();
 
     console.log('end...');
+}
+
+async function processStage(exe: ChildProcess, expecting: string, action: Function) {
+    let line;
+    while (line = await readOutput(exe.stdout, 3000)) {
+        console.log(line);
+        line.split('\n').forEach(newLine => {
+            if (newLine.trim() === expecting) {
+                action();
+            }
+        });
+    }
 }
 
 async function readOutput(output: Readable, timeout?: number) {
@@ -64,16 +66,16 @@ async function readOutput(output: Readable, timeout?: number) {
             resolve(data);
         });
 
-        output.on('error', () => {
+        output.on('error', (e) => {
             if (timerId) {
                 clearTimeout(timerId);
             }
 
-            resolve(undefined);
+            reject(e);
         });
 
         if (timeout) {
-            timerId = setTimeout(() => resolve(undefined), timeout);
+            timerId = setTimeout(() => reject('timeout'), timeout);
         }
     });
 }
