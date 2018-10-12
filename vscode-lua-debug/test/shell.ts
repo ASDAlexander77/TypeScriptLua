@@ -4,7 +4,11 @@ import { Readable, Writable } from 'stream';
 async function f() {
     console.log('start...');
 
-    const exe = spawn('lua', ['-i']);
+    const exe = spawn('lua', [
+        '-e', 'require(\'./debugger\')',
+        '-e', 'pause()',
+        '-e', 'dofile(\'C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua\')'
+    ]);
 
     exe.on('close', (code) => {
         console.log(`process exited with code ${code}`);
@@ -17,6 +21,7 @@ async function f() {
     exe.stdout.setEncoding('utf8');
 
     try {
+        /*
         await processStagesAsync(exe.stdout, [
             {
                 text: '>', action: async () => {
@@ -41,6 +46,14 @@ async function f() {
                 }
             }
         ]);
+        */
+
+       await processStagesAsync(exe.stdout, [
+        {
+            text: '>', action: async () => {
+            }
+        }
+    ]);
     } catch (e) {
         console.error(e);
     }

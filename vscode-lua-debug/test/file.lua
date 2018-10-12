@@ -1,9 +1,4 @@
-print('aaa')
-if pause then
-    --pause()
-end
-
-print('bbb')
+print ('start.')
 
 local a = {}
 if a then
