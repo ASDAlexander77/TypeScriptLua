@@ -11,7 +11,7 @@ async function f() {
     });
 
     exe.stderr.on('data', (data) => {
-        console.log(data.toString());
+        console.error(data.toString());
     });
 
     exe.stdout.setEncoding('utf8');
@@ -20,24 +20,24 @@ async function f() {
         await processStagesAsync(exe.stdout, [
             {
                 text: '>', action: async () => {
-                    await writeLineAsync(exe.stdin, `require('./debugger'`);
+                    await writeLineAsync(exe.stdin, `require('./debugger')`);
                 }
             },
             {
                 text: 'true', action: async () => {
-                    await writeLineAsync(exe.stdin, `pause()\n`);
-                    await writeLineAsync(exe.stdin, `\n`);
+                    await writeLineAsync(exe.stdin, `pause()`);
+                    await writeLineAsync(exe.stdin, ``);
                 }
             },
             {
                 text: '[DEBUG]>', action: async () => {
-                    await writeLineAsync(exe.stdin, `setb 1\n`);
-                    await writeLineAsync(exe.stdin, `run\n`);
+                    await writeLineAsync(exe.stdin, `setb 1`);
+                    await writeLineAsync(exe.stdin, `run`);
                 }
             },
             {
                 text: '>', action: async () => {
-                    await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')\n`, 1000);
+                    await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
                 }
             }
         ]);
@@ -56,14 +56,15 @@ async function processStagesAsync(output: Readable, stages: { text: string, acti
 
     let line;
     while (line = await readAsync(output)) {
-        console.log(line);
         for (const newLine of line.split('\n')) {
-            if (newLine.trim() === stage.text) {
-                console.log('match... acting..');
+            const data = newLine.trim();
+            console.log('>: ' + data);
+            if (data === stage.text) {
+                console.log('#: match [' + data + '] acting...');
                 await stage.action();
                 stage = stages[++stageNumber];
                 if (!stage) {
-                    console.log('no more actions...');
+                    console.log('#: no more actions...');
                     return;
                 }
             }
