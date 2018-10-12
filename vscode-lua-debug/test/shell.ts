@@ -53,34 +53,17 @@ async function f() {
             {
                 text: '>', action: async () => {
                     await writeLineAsync(exe.stdin, `require('./debugger')`);
-                    await writeLineAsync(exe.stdin, `print(1)`);
                 }
             },
             {
                 text: 'true', action: async () => {
-                    await writeLineAsync(exe.stdin, `print(1)`);
-                }
-            },
-            {
-                text: '1', action: async () => {
-                    await writeLineAsync(exe.stdin, `print(2)`);
-                }
-            },
-            {
-                text: '2', action: async () => {
                     await writeLineAsync(exe.stdin, `pause()`);
                     await writeLineAsync(exe.stdin, ``);
-                    await writeLineAsync(exe.stdin, `print(3)`);
+                    await writeLineAsync(exe.stdin, `print()`);
                 }
             },
             {
-                text: '3', action: async () => {
-                    await writeLineAsync(exe.stdin, `print(4)`);
-                }
-            },
-            {
-                text: '', action: async () => {
-                    await writeLineAsync(exe.stdin, `print(5)`);
+                text: 'end', action: async () => {
                 }
             }
         ]);
@@ -108,7 +91,7 @@ async function processStagesAsync(output: Readable, stages: { text: string, acti
                 stage = stages[++stageNumber];
                 if (!stage) {
                     console.log('#: no more actions...');
-                    return;
+                    break;
                 }
             }
         }
