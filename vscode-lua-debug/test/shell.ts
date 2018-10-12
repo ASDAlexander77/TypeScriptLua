@@ -16,8 +16,36 @@ async function f() {
 
     exe.stdout.setEncoding('utf8');
     let line;
+    let debuggerloading: boolean;
+    let debuggerloaded: boolean;
+    let fileloading: boolean;
+    let fileloaded: boolean;
     while (line = await readOutput(exe.stdout, 3000)) {
         console.log(line);
+        line.split('\n').forEach(newLine => {
+            if ((!debuggerloading && !debuggerloaded) && newLine === '> ') {
+                debuggerloading = true;
+                exe.stdin.write(`require('./debugger')\n`);
+            }
+
+            if (debuggerloading && newLine.startsWith('true')) {
+                debuggerloaded = true;
+
+                exe.stdin.write(`pause()\n`);
+                exe.stdin.write(`\n`);
+            }
+
+            if (debuggerloaded && newLine.startsWith('[DEBUG]>')) {
+                exe.stdin.write(`setb 1\n`);
+                exe.stdin.write(`run\n`);
+            }
+
+            if (debuggerloaded && !fileloading && !fileloaded) {
+                fileloading = true;
+                exe.stdin.write(`dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')\n`);
+                fileloaded = true;
+            }
+        });
     }
 
     exe.kill();
