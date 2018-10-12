@@ -77,7 +77,9 @@ async function f() {
             },
             {
                 text: '', action: async () => {
-                    await writeLineAsync(exe.stdin, `dofile('D:/Developing/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
+                    await writeLineAsync(exe.stdin, `dofile('D:/Dev/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
+                    // await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
+                    // await writeLineAsync(exe.stdin, `dofile('D:/Developing/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
                     await writeLineAsync(exe.stdin, `print()`);
                 }
             },
