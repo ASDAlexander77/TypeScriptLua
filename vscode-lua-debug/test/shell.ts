@@ -63,6 +63,17 @@ async function f() {
                 }
             },
             {
+                text: '[DEBUG]>', action: async () => {
+                    await writeLineAsync(exe.stdin, `setb 1`);
+                    await writeLineAsync(exe.stdin, `run`);
+                }
+            },
+            {
+                text: '[DEBUG]>', action: async () => {
+                    await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
+                }
+            },
+            {
                 text: 'end', action: async () => {
                 }
             }
