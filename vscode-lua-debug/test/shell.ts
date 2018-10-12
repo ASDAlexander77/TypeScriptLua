@@ -1,5 +1,5 @@
-import { spawn, ChildProcess } from 'child_process';
-import { Readable } from 'stream';
+import { spawn } from 'child_process';
+import { Readable, Writable } from 'stream';
 
 async function f() {
     console.log('start...');
@@ -17,23 +17,30 @@ async function f() {
     exe.stdout.setEncoding('utf8');
 
     try {
-        await processStage(exe, '> ', () => {
-            exe.stdin.write(`require('./debugger')\n`);
-        });
-
-        await processStage(exe, 'true', () => {
-            exe.stdin.write(`pause()\n`);
-            exe.stdin.write(`\n`);
-        });
-
-        await processStage(exe, '[DEBUG]>', () => {
-            exe.stdin.write(`setb 1\n`);
-            exe.stdin.write(`run\n`);
-        });
-
-        await processStage(exe, '> ', () => {
-            exe.stdin.write(`dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')\n`);
-        });
+        await processStagesAsync(exe.stdout, [
+            {
+                text: '>', action: async () => {
+                    await writeLineAsync(exe.stdin, `require('./debugger'`);
+                }
+            },
+            {
+                text: 'true', action: async () => {
+                    await writeLineAsync(exe.stdin, `pause()\n`);
+                    await writeLineAsync(exe.stdin, `\n`);
+                }
+            },
+            {
+                text: '[DEBUG]>', action: async () => {
+                    await writeLineAsync(exe.stdin, `setb 1\n`);
+                    await writeLineAsync(exe.stdin, `run\n`);
+                }
+            },
+            {
+                text: '>', action: async () => {
+                    await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')\n`, 1000);
+                }
+            }
+        ]);
     } catch (e) {
         console.error(e);
     }
@@ -43,19 +50,28 @@ async function f() {
     console.log('end...');
 }
 
-async function processStage(exe: ChildProcess, expecting: string, action: Function) {
+async function processStagesAsync(output: Readable, stages: { text: string, action: () => Promise<void> }[]) {
+    let stageNumber;
+    let stage = stages[stageNumber = 0];
+
     let line;
-    while (line = await readOutput(exe.stdout, 3000)) {
+    while (line = await readAsync(output)) {
         console.log(line);
-        line.split('\n').forEach(newLine => {
-            if (newLine.trim() === expecting) {
-                action();
+        for (const newLine of line.split('\n')) {
+            if (newLine.trim() === stage.text) {
+                console.log('match... acting..');
+                await stage.action();
+                stage = stages[++stageNumber];
+                if (!stage) {
+                    console.log('no more actions...');
+                    return;
+                }
             }
-        });
+        }
     }
 }
 
-async function readOutput(output: Readable, timeout?: number) {
+async function readAsync(output: Readable, timeout: number = 3000) {
     return new Promise((resolve, reject) => {
         let timerId;
         output.on('data', (data) => {
@@ -75,7 +91,25 @@ async function readOutput(output: Readable, timeout?: number) {
         });
 
         if (timeout) {
-            timerId = setTimeout(() => reject('timeout'), timeout);
+            timerId = setTimeout(() => reject('read timeout'), timeout);
+        }
+    });
+}
+
+async function writeLineAsync(instream: Writable, text: string, timeout: number = 1000) {
+    return new Promise((resolve, reject) => {
+        let timerId;
+
+        instream.write(text + '\n', () => {
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+
+            resolve();
+        });
+
+        if (timeout) {
+            timerId = setTimeout(() => reject('write timeout'), timeout);
         }
     });
 }

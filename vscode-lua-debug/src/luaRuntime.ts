@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
-import { Writable, Readable } from 'stream';
+import { Writable } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
