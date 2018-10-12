@@ -5,9 +5,11 @@ async function f() {
     console.log('start...');
 
     const exe = spawn('lua', [
-        //'-e', 'require(\'./debugger\')',
-        //'-e', 'pause()',
-        //'-e', 'dofile(\'C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua\')',
+        /*
+        '-e', 'require(\'./debugger\')',
+        '-e', 'pause()',
+        '-e', 'dofile(\'C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua\')',
+        */
         '-i'
     ]);
 
@@ -57,20 +59,37 @@ async function f() {
             },
             {
                 text: 'true', action: async () => {
-                    await writeLineAsync(exe.stdin, `pause()`);
-                    await writeLineAsync(exe.stdin, ``);
+                    await writeLineAsync(exe.stdin, `pause('start', nil, true)\n`);
                     await writeLineAsync(exe.stdin, `print()`);
                 }
             },
             {
                 text: '[DEBUG]>', action: async () => {
                     await writeLineAsync(exe.stdin, `setb 1`);
-                    await writeLineAsync(exe.stdin, `run`);
+                    await writeLineAsync(exe.stdin, `print()`);
                 }
             },
             {
                 text: '[DEBUG]>', action: async () => {
-                    await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
+                    await writeLineAsync(exe.stdin, `run`);
+                }
+            },
+            {
+                text: '', action: async () => {
+                    await writeLineAsync(exe.stdin, `dofile('D:/Developing/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
+                    await writeLineAsync(exe.stdin, `print()`);
+                }
+            },
+            {
+                text: '[DEBUG]>', action: async () => {
+                    await writeLineAsync(exe.stdin, `step`);
+                    await writeLineAsync(exe.stdin, `print()`);
+                }
+            },
+            {
+                text: '[DEBUG]>', action: async () => {
+                    await writeLineAsync(exe.stdin, `show`);
+                    await writeLineAsync(exe.stdin, `print()`);
                 }
             },
             {
