@@ -59,7 +59,8 @@ async function f() {
             },
             {
                 text: 'true', action: async () => {
-                    await writeLineAsync(exe.stdin, `pause('start', nil, true)\n`);
+                    await writeLineAsync(exe.stdin, `pause('start', nil, true)`);
+                    await writeLineAsync(exe.stdin, ``);
                     await writeLineAsync(exe.stdin, `print()`);
                 }
             },
@@ -153,11 +154,11 @@ async function readAsync(output: Readable, timeout: number = 3000) {
     });
 }
 
-async function writeLineAsync(instream: Writable, text: string, timeout: number = 1000) {
+async function writeLineAsync(instream: Writable, text: string, newLine: string = '\r\n', timeout: number = 1000) {
     return new Promise((resolve, reject) => {
         let timerId;
 
-        instream.write(text + '\n', () => {
+        instream.write(text + newLine, () => {
             if (timerId) {
                 clearTimeout(timerId);
             }
