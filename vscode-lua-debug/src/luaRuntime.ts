@@ -45,6 +45,7 @@ class LuaCommands {
 
 	public async step() {
 		await this.writeLineAsync(this.stdin, `step`);
+		await this.writeLineAsync(this.stdin, `show`);
 		await this.writeLineAsync(this.stdin, `print()`);
 	}
 
@@ -74,13 +75,13 @@ class LuaCommands {
 
 class LuaSpawnedDebugProcess {
 	private _commands: LuaCommands;
-	private luaExe: ChildProcess;
+	private exe: ChildProcess;
 
 	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
 	}
 
 	public async spawn() {
-		const exe = spawn('lua', [
+		const exe = this.exe = spawn(this.luaExecutable, [
 			/*
 			'-e', 'require(\'./debugger\')',
 			'-e', 'pause()',
@@ -128,6 +129,7 @@ class LuaSpawnedDebugProcess {
 						await this._commands.loadFile(this.program);
 					}
 				},
+				/*
 				{
 					text: '[DEBUG]>', action: async () => {
 						await this._commands.step();
@@ -138,24 +140,55 @@ class LuaSpawnedDebugProcess {
 						await this._commands.showSourceCode();
 					}
 				},
+				*/
 				{
-					text: 'end', action: async () => {
-					}
+					text: '[DEBUG]>', action: undefined
 				}
 			]);
 		} catch (e) {
 			console.error(e);
 		}
 
-
-		console.log(">>> exit start program");
+		console.log(">>> the app is spawed");
 	}
 
 	public async step(reverse: boolean, event?: string) {
-		await this._commands.step();
+		this._commands.step();
+		await this.defaultDebugProcessStage();
 	}
 
-	async processStagesAsync(output: Readable, stages: { text: string, action: () => Promise<void> }[]) {
+	private async defaultDebugProcessStage() {
+		try {
+			await this.processStagesAsync(this.exe.stdout, [
+				{
+					text: '[DEBUG]>', action: undefined
+				}
+			]);
+		}
+		catch (e) {
+			console.error(e);
+		}
+	}
+
+	private async defaultProcessStage() {
+		try {
+			await this.processStagesAsync(this.exe.stdout, [
+				{
+					text: '>', action: undefined
+				}
+			]);
+		}
+		catch (e) {
+			console.error(e);
+		}
+	}
+
+	public async run() {
+		this._commands.run();
+		await this.defaultProcessStage();
+	}
+
+	async processStagesAsync(output: Readable, stages: { text: string, action: (() => Promise<void>) | undefined }[]) {
 		let stageNumber;
 		let stage = stages[stageNumber = 0];
 
@@ -166,11 +199,14 @@ class LuaSpawnedDebugProcess {
 				console.log('>: ' + data);
 				if (data === stage.text) {
 					console.log('#: match [' + data + '] acting...');
-					await stage.action();
+					if (stage.action) {
+						await stage.action();
+					}
+
 					stage = stages[++stageNumber];
 					if (!stage) {
 						console.log('#: no more actions...');
-						break;
+						return;
 					}
 				}
 			}
@@ -369,6 +405,7 @@ export class LuaRuntime extends EventEmitter {
 			}
 			// no more lines: run to end
 			this.sendEvent('end');
+			await this._luaExe.run();
 		}
 	}
 
