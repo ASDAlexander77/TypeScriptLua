@@ -24,33 +24,6 @@ async function f() {
     exe.stdout.setEncoding('utf8');
 
     try {
-        /*
-        await processStagesAsync(exe.stdout, [
-            {
-                text: '>', action: async () => {
-                    await writeLineAsync(exe.stdin, `require('./debugger')`);
-                }
-            },
-            {
-                text: 'true', action: async () => {
-                    await writeLineAsync(exe.stdin, `pause()`);
-                    await writeLineAsync(exe.stdin, ``);
-                }
-            },
-            {
-                text: '[DEBUG]>', action: async () => {
-                    await writeLineAsync(exe.stdin, `setb 1`);
-                    await writeLineAsync(exe.stdin, `run`);
-                }
-            },
-            {
-                text: '>', action: async () => {
-                    await writeLineAsync(exe.stdin, `dofile('C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua')`);
-                }
-            }
-        ]);
-        */
-
         await processStagesAsync(exe.stdout, [
             {
                 text: '>', action: async () => {
