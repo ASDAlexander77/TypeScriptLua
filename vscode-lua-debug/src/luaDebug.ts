@@ -183,9 +183,15 @@ export class LuaDebugSession extends LoggingDebugSession {
 	protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
 
 		const frameReference = args.frameId;
-		const scopes = new Array<Scope>();
+        const scopes = new Array<Scope>();
+        /*
 		scopes.push(new Scope("Local", this._variableHandles.create("local_" + frameReference), false));
-		scopes.push(new Scope("Global", this._variableHandles.create("global_" + frameReference), true));
+        scopes.push(new Scope("Global", this._variableHandles.create("global_" + frameReference), true));
+        */
+
+       scopes.push(new Scope("Locals", this._variableHandles.create("local_" + frameReference), false));
+       scopes.push(new Scope("Ups", this._variableHandles.create("up_" + frameReference), false));
+       scopes.push(new Scope("Globals", this._variableHandles.create("global_" + frameReference), true));
 
 		response.body = {
 			scopes: scopes
