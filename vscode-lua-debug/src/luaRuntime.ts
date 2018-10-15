@@ -52,6 +52,11 @@ class LuaCommands {
 	public async showSourceCode() {
 		await this.writeLineAsync(this.stdin, `show`);
 		await this.writeLineAsync(this.stdin, `print()`);
+    }
+
+	public async stack() {
+		await this.writeLineAsync(this.stdin, `trace`);
+		await this.writeLineAsync(this.stdin, `print()`);
 	}
 
 	async writeLineAsync(instream: Writable, text: string, newLine: string = '\r\n', timeout: number = 1000) {
@@ -155,6 +160,16 @@ class LuaSpawnedDebugProcess {
 	public async step(reverse: boolean, event?: string) {
 		this._commands.step();
 		await this.defaultDebugProcessStage();
+    }
+
+	public async stack(startFrame: number, endFrame: number) {
+		this._commands.stack();
+		await this.defaultDebugProcessStage();
+	}
+
+	public async run() {
+		this._commands.run();
+		await this.defaultProcessStage();
 	}
 
 	private async defaultDebugProcessStage() {
@@ -181,11 +196,6 @@ class LuaSpawnedDebugProcess {
 		catch (e) {
 			console.error(e);
 		}
-	}
-
-	public async run() {
-		this._commands.run();
-		await this.defaultProcessStage();
 	}
 
 	async processStagesAsync(output: Readable, stages: { text: string, action: (() => Promise<void>) | undefined }[]) {
@@ -307,7 +317,9 @@ export class LuaRuntime extends EventEmitter {
 	/**
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
 	 */
-	public stack(startFrame: number, endFrame: number): any {
+	public async stack(startFrame: number, endFrame: number) {
+
+        await this._luaExe.stack(startFrame, endFrame);
 
 		const words = this._sourceLines[this._currentLine].trim().split(/\s+/);
 
@@ -322,7 +334,8 @@ export class LuaRuntime extends EventEmitter {
 				line: this._currentLine
 			});
 		}
-		return {
+
+        return {
 			frames: frames,
 			count: words.length
 		};

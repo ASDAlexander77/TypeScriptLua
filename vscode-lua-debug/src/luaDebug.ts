@@ -165,13 +165,13 @@ export class LuaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
+	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments) {
 
 		const startFrame = typeof args.startFrame === 'number' ? args.startFrame : 0;
 		const maxLevels = typeof args.levels === 'number' ? args.levels : 1000;
 		const endFrame = startFrame + maxLevels;
 
-		const stk = this._runtime.stack(startFrame, endFrame);
+		const stk = await this._runtime.stack(startFrame, endFrame);
 
 		response.body = {
 			stackFrames: stk.frames.map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
