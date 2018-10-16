@@ -163,8 +163,13 @@ class LuaSpawnedDebugProcess {
     }
 
 	public async stack(startFrame: number, endFrame: number) {
+        const parseLine = /(\[DEBUG\]\>\s)?\[(\d+)\](\*\*\*)?\s([^\s]*)\sin\s(.*)/;
+        const parseFileNameAndLine = /(([^:]*)\:)*(-?\d+)/;
 		this._commands.stack();
-		await this.defaultDebugProcessStage();
+		await this.defaultDebugProcessStage((line) => {
+            // parse output
+            const values = parseLine.exec(line);
+        });
 	}
 
 	public async run() {
@@ -172,13 +177,14 @@ class LuaSpawnedDebugProcess {
 		await this.defaultProcessStage();
 	}
 
-	private async defaultDebugProcessStage() {
+	private async defaultDebugProcessStage(defaultAction?: Function) {
 		try {
 			await this.processStagesAsync(this.exe.stdout, [
 				{
 					text: '[DEBUG]>', action: undefined
 				}
-			]);
+            ],
+            defaultAction);
 		}
 		catch (e) {
 			console.error(e);
@@ -198,7 +204,7 @@ class LuaSpawnedDebugProcess {
 		}
 	}
 
-	async processStagesAsync(output: Readable, stages: { text: string, action: (() => Promise<void>) | undefined }[]) {
+	async processStagesAsync(output: Readable, stages: { text: string, action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
 		let stageNumber;
 		let stage = stages[stageNumber = 0];
 
@@ -218,7 +224,10 @@ class LuaSpawnedDebugProcess {
 						console.log('#: no more actions...');
 						return;
 					}
-				}
+                }
+                else if (defaultAction) {
+                    defaultAction(data);
+                }
 			}
 		}
 	}
