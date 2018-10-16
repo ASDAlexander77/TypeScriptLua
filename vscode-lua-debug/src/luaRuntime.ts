@@ -168,7 +168,14 @@ class LuaSpawnedDebugProcess {
 		this._commands.stack();
 		await this.defaultDebugProcessStage((line) => {
             // parse output
-            const values = parseLine.exec(line);
+			const values = parseLine.exec(line);
+			if (values) {
+				const line = values[2];
+				const isActive = values[3];
+				const functionName = values[4];
+				const location = values[5];
+
+			}
         });
 	}
 
