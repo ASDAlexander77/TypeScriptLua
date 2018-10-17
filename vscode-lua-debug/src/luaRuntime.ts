@@ -1,4 +1,3 @@
-import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import { Readable, Writable } from 'stream';
@@ -29,8 +28,14 @@ class LuaCommands {
 		await this.writeLineAsync(this.stdin, `print()`);
 	}
 
-	public async setBreakpoint(line: number, fileName?: string) {
-		await this.writeLineAsync(this.stdin, `setb ${line}`);
+	public async setBreakpoint(line: number, column?: number, fileName?: string) {
+        if (fileName) {
+            await this.writeLineAsync(this.stdin, `setb ${line} '${fileName}'`);
+        }
+        else {
+            await this.writeLineAsync(this.stdin, `setb ${line}`);
+        }
+
 		await this.writeLineAsync(this.stdin, `print()`);
 	}
 
@@ -45,7 +50,7 @@ class LuaCommands {
 
 	public async step() {
 		await this.writeLineAsync(this.stdin, `step`);
-		await this.writeLineAsync(this.stdin, `show`);
+		////await this.writeLineAsync(this.stdin, `show`);
 		await this.writeLineAsync(this.stdin, `print()`);
 	}
 
@@ -211,7 +216,17 @@ class LuaSpawnedDebugProcess {
 	public async run() {
 		this._commands.run();
 		await this.defaultProcessStage();
-	}
+    }
+
+    public async setBreakpoint(path: string, line: number, column?: number) {
+        let success;
+        await this._commands.setBreakpoint(line, column, path);
+		await this.defaultDebugProcessStage((line) => {
+            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile\s'[^']*'\sline\s\d+/.test(line);
+        });
+
+        return success;
+    }
 
 	private async defaultDebugProcessStage(defaultAction?: Function) {
 		try {
@@ -305,12 +320,6 @@ export class LuaRuntime extends EventEmitter {
 		return this._sourceFile;
 	}
 
-	// the contents (= lines) of the one and only file
-	private _sourceLines: string[];
-
-	// This is the next line that will be 'executed'
-	private _currentLine = 0;
-
 	// maps from sourceFile to array of Mock breakpoints
 	private _breakPoints = new Map<string, LuaBreakpoint[]>();
 
@@ -328,13 +337,19 @@ export class LuaRuntime extends EventEmitter {
 	 * Start executing the given program.
 	 */
 	public async start(program: string, stopOnEntry: boolean, luaExecutable: string) {
-		this.loadSource(program);
-		this._currentLine = -1;
 
-		this._luaExe = new LuaSpawnedDebugProcess(program, stopOnEntry, luaExecutable);
+        this._sourceFile = this.cleanUpFile(program);
+
+		this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, stopOnEntry, luaExecutable);
 		await this._luaExe.spawn();
 
-		this.verifyBreakpoints(this._sourceFile);
+        // TODO: finish it, dummy verification of breakpoints
+        const bps = this._breakPoints.get(this._sourceFile);
+        if (bps) {
+            for (const bp of bps) {
+                await this._luaExe.setBreakpoint(this._sourceFile, bp.line);
+            }
+        }
 
 		if (stopOnEntry) {
 			// we step once
@@ -369,20 +384,32 @@ export class LuaRuntime extends EventEmitter {
 	/*
 	 * Set breakpoint in file with given line.
 	 */
-	public setBreakPoint(path: string, line: number): LuaBreakpoint {
+	public async setBreakPoint(filePath: string, line: number) {
+
+        const path = this.cleanUpFile(filePath);
 
 		const bp = <LuaBreakpoint>{ verified: false, line, id: this._breakpointId++ };
 		let bps = this._breakPoints.get(path);
 		if (!bps) {
 			bps = new Array<LuaBreakpoint>();
 			this._breakPoints.set(path, bps);
-		}
+        }
+
 		bps.push(bp);
 
-		this.verifyBreakpoints(path);
+        // verify breakpoint
+        this.verifyBreakpoint(bp, path);
+        if (this._luaExe) {
+            await this._luaExe.setBreakpoint(path, bp.line);
+        }
 
 		return bp;
 	}
+
+    private verifyBreakpoint(bp: LuaBreakpoint, path: string) {
+        bp.verified = true;
+        this.sendEvent('breakpointValidated', bp);
+    }
 
 	/*
 	 * Clear breakpoint in file with given line.
@@ -407,120 +434,23 @@ export class LuaRuntime extends EventEmitter {
 		this._breakPoints.delete(path);
 	}
 
-	// private methods
-
-	private loadSource(file: string) {
-		if (this._sourceFile !== file) {
-			this._sourceFile = file;
-			this._sourceLines = readFileSync(this._sourceFile).toString().split('\n');
-		}
-	}
+    private cleanUpFile(path: string) {
+        return path.replace(/\\/g, '/');
+    }
 
 	/**
 	 * Run through the file.
 	 * If stepEvent is specified only run a single step and emit the stepEvent.
 	 */
 	private async run(reverse = false, stepEvent?: string) {
-		await this._luaExe.step(reverse, stepEvent);
+        await this._luaExe.step(reverse, stepEvent);
+        if (stepEvent && !reverse) {
+            this.sendEvent(stepEvent);
+            return;
+        }
 
-		if (reverse) {
-			for (let ln = this._currentLine - 1; ln >= 0; ln--) {
-				if (this.fireEventsForLine(ln, stepEvent)) {
-					this._currentLine = ln;
-					return;
-				}
-			}
-
-			// no more lines: stop at first line
-			this._currentLine = 0;
-			this.sendEvent('stopOnEntry');
-		} else {
-			for (let ln = this._currentLine + 1; ln < this._sourceLines.length; ln++) {
-				if (this.fireEventsForLine(ln, stepEvent)) {
-					this._currentLine = ln;
-					return true;
-				}
-			}
-			// no more lines: run to end
-			this.sendEvent('end');
-			await this._luaExe.run();
-		}
-	}
-
-	private verifyBreakpoints(path: string): void {
-		let bps = this._breakPoints.get(path);
-		if (bps) {
-			this.loadSource(path);
-			bps.forEach(bp => {
-				if (!bp.verified && bp.line < this._sourceLines.length) {
-					const srcLine = this._sourceLines[bp.line].trim();
-
-					// if a line is empty or starts with '+' we don't allow to set a breakpoint but move the breakpoint down
-					if (srcLine.length === 0 || srcLine.indexOf('+') === 0) {
-						bp.line++;
-					}
-					// if a line starts with '-' we don't allow to set a breakpoint but move the breakpoint up
-					if (srcLine.indexOf('-') === 0) {
-						bp.line--;
-					}
-					// don't set 'verified' to true if the line contains the word 'lazy'
-					// in this case the breakpoint will be verified 'lazy' after hitting it once.
-					if (srcLine.indexOf('lazy') < 0) {
-						bp.verified = true;
-						this.sendEvent('breakpointValidated', bp);
-					}
-				}
-			});
-		}
-	}
-
-	/**
-	 * Fire events if line has a breakpoint or the word 'exception' is found.
-	 * Returns true is execution needs to stop.
-	 */
-	private fireEventsForLine(ln: number, stepEvent?: string): boolean {
-
-		const line = this._sourceLines[ln].trim();
-
-		// if 'log(...)' found in source -> send argument to debug console
-		const matches = /log\((.*)\)/.exec(line);
-		if (matches && matches.length === 2) {
-			this.sendEvent('output', matches[1], this._sourceFile, ln, matches.index)
-		}
-
-		// if word 'exception' found in source -> throw exception
-		if (line.indexOf('exception') >= 0) {
-			this.sendEvent('stopOnException');
-			return true;
-		}
-
-		// is there a breakpoint?
-		const breakpoints = this._breakPoints.get(this._sourceFile);
-		if (breakpoints) {
-			const bps = breakpoints.filter(bp => bp.line === ln);
-			if (bps.length > 0) {
-
-				// send 'stopped' event
-				this.sendEvent('stopOnBreakpoint');
-
-				// the following shows the use of 'breakpoint' events to update properties of a breakpoint in the UI
-				// if breakpoint is not yet verified, verify it now and send a 'breakpoint' update event
-				if (!bps[0].verified) {
-					bps[0].verified = true;
-					this.sendEvent('breakpointValidated', bps[0]);
-				}
-				return true;
-			}
-		}
-
-		// non-empty line
-		if (stepEvent && line.length > 0) {
-			this.sendEvent(stepEvent);
-			return true;
-		}
-
-		// nothing interesting found -> continue
-		return false;
+        this.sendEvent('end');
+        await this._luaExe.run();
 	}
 
 	private sendEvent(event: string, ...args: any[]) {

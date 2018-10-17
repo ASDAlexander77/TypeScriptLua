@@ -131,7 +131,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
+    protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) {
 
         const path = <string>args.source.path;
         const clientLines = args.lines || [];
@@ -140,12 +140,13 @@ export class LuaDebugSession extends LoggingDebugSession {
         this._runtime.clearBreakpoints(path);
 
         // set and verify breakpoint locations
-        const actualBreakpoints = clientLines.map(l => {
-            let { verified, line, id } = this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(l));
+        const actualBreakpoints = new Array<DebugProtocol.Breakpoint>();
+        for(const element of clientLines) {
+            let { verified, line, id } = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(element));
             const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(line));
             bp.id = id;
-            return bp;
-        });
+            actualBreakpoints.push(bp);
+        }
 
         // send back the actual breakpoint positions
         response.body = {
@@ -252,7 +253,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
+    protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 
         let reply: string | undefined = undefined;
 
@@ -260,7 +261,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             // 'evaluate' supports to create and delete breakpoints from the 'repl':
             const matches = /new +([0-9]+)/.exec(args.expression);
             if (matches && matches.length === 2) {
-                const mbp = this._runtime.setBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
+                const mbp = await this._runtime.setBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
                 const bp = <DebugProtocol.Breakpoint>new Breakpoint(mbp.verified, this.convertDebuggerLineToClient(mbp.line), undefined, this.createSource(this._runtime.sourceFile));
                 bp.id = mbp.id;
                 this.sendEvent(new BreakpointEvent('new', bp));
