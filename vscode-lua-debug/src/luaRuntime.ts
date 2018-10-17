@@ -30,7 +30,8 @@ class LuaCommands {
 
 	public async setBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            await this.writeLineAsync(this.stdin, `setb ${line} ${fileName}`);
+            const fileNameLowerCase = fileName.toLowerCase();
+            await this.writeLineAsync(this.stdin, `setb ${line} ${fileNameLowerCase}`);
         }
         else {
             await this.writeLineAsync(this.stdin, `setb ${line}`);
@@ -41,7 +42,8 @@ class LuaCommands {
 
 	public async deleteBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            await this.writeLineAsync(this.stdin, `delb ${line} ${fileName}`);
+            const fileNameLowerCase = fileName.toLowerCase();
+            await this.writeLineAsync(this.stdin, `delb ${line} ${fileNameLowerCase}`);
         }
         else {
             await this.writeLineAsync(this.stdin, `delb ${line}`);
