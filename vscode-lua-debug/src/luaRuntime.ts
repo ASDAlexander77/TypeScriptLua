@@ -37,6 +37,17 @@ class LuaCommands {
         }
 
 		await this.writeLineAsync(this.stdin, `print()`);
+    }
+
+	public async deleteBreakpoint(line: number, column?: number, fileName?: string) {
+        if (fileName) {
+            await this.writeLineAsync(this.stdin, `delb ${line} '${fileName}'`);
+        }
+        else {
+            await this.writeLineAsync(this.stdin, `delb ${line}`);
+        }
+
+		await this.writeLineAsync(this.stdin, `print()`);
 	}
 
 	public async run() {
@@ -221,6 +232,16 @@ class LuaSpawnedDebugProcess {
     public async setBreakpoint(path: string, line: number, column?: number) {
         let success;
         await this._commands.setBreakpoint(line, column, path);
+		await this.defaultDebugProcessStage((line) => {
+            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile\s'[^']*'\sline\s\d+/.test(line);
+        });
+
+        return success;
+    }
+
+    public async deleteBreakpoint(path: string, line: number, column?: number) {
+        let success;
+        await this._commands.deleteBreakpoint(line, column, path);
 		await this.defaultDebugProcessStage((line) => {
             success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile\s'[^']*'\sline\s\d+/.test(line);
         });
@@ -414,16 +435,25 @@ export class LuaRuntime extends EventEmitter {
 	/*
 	 * Clear breakpoint in file with given line.
 	 */
-	public clearBreakPoint(path: string, line: number): LuaBreakpoint | undefined {
+	public async clearBreakPoint(filePath: string, line: number) {
+
+        const path = this.cleanUpFile(filePath);
+
 		let bps = this._breakPoints.get(path);
 		if (bps) {
 			const index = bps.findIndex(bp => bp.line === line);
 			if (index >= 0) {
 				const bp = bps[index];
-				bps.splice(index, 1);
+                bps.splice(index, 1);
+
+                if (this._luaExe) {
+                    await this._luaExe.deleteBreakpoint(path, bp.line);
+                }
+
 				return bp;
 			}
-		}
+        }
+
 		return undefined;
 	}
 

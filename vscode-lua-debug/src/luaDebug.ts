@@ -269,7 +269,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             } else {
                 const matches = /del +([0-9]+)/.exec(args.expression);
                 if (matches && matches.length === 2) {
-                    const mbp = this._runtime.clearBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
+                    const mbp = await this._runtime.clearBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
                     if (mbp) {
                         const bp = <DebugProtocol.Breakpoint>new Breakpoint(false);
                         bp.id = mbp.id;
