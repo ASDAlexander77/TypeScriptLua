@@ -30,7 +30,7 @@ class LuaCommands {
 
 	public async setBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            const fileNameLowerCase = fileName.toLowerCase();
+            const fileNameLowerCase = fileName.replace(/\\/g, '/').toLowerCase();
             await this.writeLineAsync(this.stdin, `setb ${line} ${fileNameLowerCase}`);
         }
         else {
@@ -42,7 +42,7 @@ class LuaCommands {
 
 	public async deleteBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            const fileNameLowerCase = fileName.toLowerCase();
+            const fileNameLowerCase = fileName.replace(/\\/g, '/').toLowerCase();
             await this.writeLineAsync(this.stdin, `delb ${line} ${fileNameLowerCase}`);
         }
         else {
@@ -176,7 +176,7 @@ class LuaSpawnedDebugProcess {
 	}
 
 	public async step() {
-		this._commands.step();
+		await this._commands.step();
 		await this.defaultDebugProcessStage();
     }
 
@@ -227,7 +227,7 @@ class LuaSpawnedDebugProcess {
 	}
 
 	public async run() {
-		this._commands.run();
+		await this._commands.run();
 		await this.defaultProcessStage();
     }
 
