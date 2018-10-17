@@ -233,7 +233,7 @@ class LuaSpawnedDebugProcess {
         let success;
         await this._commands.setBreakpoint(line, column, path);
 		await this.defaultDebugProcessStage((line) => {
-            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile\s'[^']*'\sline\s\d+/.test(line);
+            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile.*/.test(line);
         });
 
         return success;
@@ -243,7 +243,7 @@ class LuaSpawnedDebugProcess {
         let success;
         await this._commands.deleteBreakpoint(line, column, path);
 		await this.defaultDebugProcessStage((line) => {
-            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile\s'[^']*'\sline\s\d+/.test(line);
+            success = /\[DEBUG\]>\sBreakpoint\sdeleted\sfrom\sfile.*/.test(line);
         });
 
         return success;
