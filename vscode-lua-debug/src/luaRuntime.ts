@@ -164,19 +164,48 @@ class LuaSpawnedDebugProcess {
 
 	public async stack(startFrame: number, endFrame: number) {
         const parseLine = /(\[DEBUG\]\>\s)?\[(\d+)\](\*\*\*)?\s([^\s]*)\sin\s(.*)/;
-        const parseFileNameAndLine = /(([^:]*)\:)*(-?\d+)/;
-		this._commands.stack();
+        const parseFileNameAndLine = /(.*):(\d+)$/;
+
+        await this._commands.stack();
+
+		const frames = new Array<any>();
+		// every word of the current line becomes a stack frame.
+
 		await this.defaultDebugProcessStage((line) => {
             // parse output
 			const values = parseLine.exec(line);
 			if (values) {
-				const line = values[2];
+				const index = values[2];
 				const isActive = values[3];
 				const functionName = values[4];
-				const location = values[5];
+                const location = values[5];
 
-			}
+                const locationValues = parseFileNameAndLine.exec(location);
+                if (locationValues) {
+                    const locationWithoutLine = locationValues[1];
+                    const startIndex =
+                            (locationWithoutLine.length > 2 && locationWithoutLine[1] === ':' && (locationWithoutLine[2] === '\\' || locationWithoutLine[2] === '/'))
+                                ? 3
+                                : 0;
+                    const fileIndex = locationWithoutLine.indexOf(':', startIndex);
+                    const fileName = fileIndex === -1 ? locationWithoutLine : locationWithoutLine.substring(0, fileIndex);
+
+                    if (fileName !== "stdin" && fileName !== "C") {
+                        frames.push({
+                            index: frames.length,
+                            name: `${functionName}(${index})`,
+                            file: fileName,
+                            line: parseInt(locationValues[2])
+                        });
+                    }
+                }
+            }
         });
+
+        return {
+			frames: frames,
+			count: frames.length
+		};
 	}
 
 	public async run() {
@@ -334,27 +363,7 @@ export class LuaRuntime extends EventEmitter {
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
 	 */
 	public async stack(startFrame: number, endFrame: number) {
-
-        await this._luaExe.stack(startFrame, endFrame);
-
-		const words = this._sourceLines[this._currentLine].trim().split(/\s+/);
-
-		const frames = new Array<any>();
-		// every word of the current line becomes a stack frame.
-		for (let i = startFrame; i < Math.min(endFrame, words.length); i++) {
-			const name = words[i];	// use a word of the line as the stackframe name
-			frames.push({
-				index: i,
-				name: `${name}(${i})`,
-				file: this._sourceFile,
-				line: this._currentLine
-			});
-		}
-
-        return {
-			frames: frames,
-			count: words.length
-		};
+        return await this._luaExe.stack(startFrame, endFrame);
 	}
 
 	/*
