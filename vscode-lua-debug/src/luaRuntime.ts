@@ -30,7 +30,7 @@ class LuaCommands {
 
 	public async setBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            await this.writeLineAsync(this.stdin, `setb ${line} '${fileName}'`);
+            await this.writeLineAsync(this.stdin, `setb ${line} ${fileName}`);
         }
         else {
             await this.writeLineAsync(this.stdin, `setb ${line}`);
@@ -41,7 +41,7 @@ class LuaCommands {
 
 	public async deleteBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            await this.writeLineAsync(this.stdin, `delb ${line} '${fileName}'`);
+            await this.writeLineAsync(this.stdin, `delb ${line} ${fileName}`);
         }
         else {
             await this.writeLineAsync(this.stdin, `delb ${line}`);
@@ -173,7 +173,7 @@ class LuaSpawnedDebugProcess {
 		console.log(">>> the app is spawed");
 	}
 
-	public async step(reverse: boolean, event?: string) {
+	public async step() {
 		this._commands.step();
 		await this.defaultDebugProcessStage();
     }
@@ -385,14 +385,14 @@ export class LuaRuntime extends EventEmitter {
 	 * Continue execution to the end/beginning.
 	 */
 	public async continue(reverse = false) {
-		await this.run(reverse, undefined);
+		await this.runInternal(reverse, undefined);
 	}
 
 	/**
 	 * Step to the next/previous non empty line.
 	 */
 	public async step(reverse = false, event = 'stopOnStep') {
-		await this.run(reverse, event);
+		await this.stepInternal(reverse, event);
 	}
 
 	/**
@@ -468,19 +468,24 @@ export class LuaRuntime extends EventEmitter {
         return path.replace(/\\/g, '/');
     }
 
+	private async stepInternal(reverse: boolean, stepEvent?: string) {
+        await this._luaExe.step();
+        if (stepEvent) {
+            this.sendEvent(stepEvent);
+        }
+    }
+
 	/**
 	 * Run through the file.
 	 * If stepEvent is specified only run a single step and emit the stepEvent.
 	 */
-	private async run(reverse = false, stepEvent?: string) {
-        await this._luaExe.step(reverse, stepEvent);
-        if (stepEvent && !reverse) {
-            this.sendEvent(stepEvent);
-            return;
+	private async runInternal(reverse: boolean, runEvent?: string) {
+        await this._luaExe.run();
+        if (runEvent) {
+            this.sendEvent(runEvent);
         }
 
-        this.sendEvent('end');
-        await this._luaExe.run();
+        ////this.sendEvent('end');
 	}
 
 	private sendEvent(event: string, ...args: any[]) {
