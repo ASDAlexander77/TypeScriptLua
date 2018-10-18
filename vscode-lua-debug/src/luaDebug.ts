@@ -198,17 +198,21 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
 
-        const variables = new Array<DebugProtocol.Variable>();
         const id = this._variableHandles.get(args.variablesReference);
 
+        let variableType = VariableTypes.All;
         if (id.startsWith("local_")) {
-            await this._runtime.dumpVariables(VariableTypes.Local);
+            variableType = VariableTypes.Local;
         } else if (id.startsWith("up_")) {
-            await this._runtime.dumpVariables(VariableTypes.Up);
+            variableType = VariableTypes.Up;
         } else if (id.startsWith("global_")) {
-            await this._runtime.dumpVariables(VariableTypes.Global);
+            variableType = VariableTypes.Global;
         }
 
+        const variables = await this._runtime.dumpVariables(variableType);
+
+        /*
+        const variables = new Array<DebugProtocol.Variable>();
         if (id !== null) {
             variables.push({
                 name: id + "_i",
@@ -235,6 +239,7 @@ export class LuaDebugSession extends LoggingDebugSession {
                 variablesReference: this._variableHandles.create("object_")
             });
         }
+        */
 
         response.body = {
             variables: variables

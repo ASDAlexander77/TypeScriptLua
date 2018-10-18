@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import { Writable } from 'stream';
+import { DebugProtocol } from 'vscode-debugprotocol';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -280,13 +281,54 @@ class LuaSpawnedDebugProcess {
 	public async dumpVariables(variableType: VariableTypes) {
         await this._commands.dumpVariables(variableType);
 
+        const variableDeclatation = /(\s*)([A-Za-z_]+)\s*=\s*(.*)/;
+        const endOfObject = /(\s*)}(;)?.*/;
+
+        const variables = new Array<DebugProtocol.Variable>();
+
+        let objects = new Array<any>();
+        let currentObject = {};
 		await this.defaultDebugProcessStage((line) => {
             // parse output
+			const values = variableDeclatation.exec(line);
+			if (values) {
+                const level = values[1].length;
+                const name = values[2];
+                const value = values[3];
+                const beginOfObject = value.startsWith('{');
+
+                if (beginOfObject) {
+                    currentObject[name] = {
+                        level,
+                        value: {}
+                    };
+
+                    objects.push(currentObject);
+
+                    currentObject = currentObject[name].value;
+                } else {
+                    currentObject[name] = {
+                        level,
+                        value
+                    };
+                }
+            } else {
+                const end = endOfObject.exec(line);
+                if (end) {
+                    // end of object '};'
+                    currentObject = objects.pop();
+                }
+            }
         });
 
-        return {
-			count: 0
-		};
+        variables.push({
+            name: "test",
+            type: "object",
+            value: "1",
+            variablesReference: 0
+        });
+
+        return variables;
 	}
 
 	private async defaultDebugProcessStage(defaultAction?: Function) {
