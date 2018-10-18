@@ -228,7 +228,7 @@ class LuaSpawnedDebugProcess {
 
 	public async run() {
 		await this._commands.run();
-		await this.defaultProcessStage();
+		await this.defaultDebugProcessStage();
     }
 
     public async setBreakpoint(path: string, line: number, column?: number) {
@@ -259,19 +259,6 @@ class LuaSpawnedDebugProcess {
 				}
             ],
             defaultAction);
-		}
-		catch (e) {
-			console.error(e);
-		}
-	}
-
-	private async defaultProcessStage() {
-		try {
-			await this.processStagesAsync(this.exe.stdout, [
-				{
-					text: '>', action: undefined
-				}
-			]);
 		}
 		catch (e) {
 			console.error(e);
@@ -386,8 +373,8 @@ export class LuaRuntime extends EventEmitter {
 	/**
 	 * Continue execution to the end/beginning.
 	 */
-	public async continue(reverse = false) {
-		await this.runInternal(reverse, undefined);
+	public async continue(reverse = false, event = 'stopOnBreakpoint') {
+		await this.runInternal(reverse, event);
 	}
 
 	/**
