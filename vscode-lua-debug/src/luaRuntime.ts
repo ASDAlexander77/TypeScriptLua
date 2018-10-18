@@ -228,7 +228,7 @@ class LuaSpawnedDebugProcess {
 
 	public async run() {
 		await this._commands.run();
-		await this.defaultDebugProcessStage();
+		await this.defaultProcessStage();
     }
 
     public async setBreakpoint(path: string, line: number, column?: number) {
@@ -254,9 +254,23 @@ class LuaSpawnedDebugProcess {
 	private async defaultDebugProcessStage(defaultAction?: Function) {
 		try {
 			await this.processStagesAsync(this.exe.stdout, [
-				{
-					text: '[DEBUG]>', action: undefined
-				}
+                {
+                    text: '[DEBUG]>', action: undefined
+                }
+            ],
+            defaultAction);
+		}
+		catch (e) {
+			console.error(e);
+		}
+    }
+
+	private async defaultProcessStage(defaultAction?: Function) {
+		try {
+			await this.processStagesAsync(this.exe.stdout, [
+                {
+                    text: ['[DEBUG]>', '>'], action: undefined
+                }
             ],
             defaultAction);
 		}
@@ -265,16 +279,20 @@ class LuaSpawnedDebugProcess {
 		}
 	}
 
-	async processStagesAsync(output: Readable, stages: { text: string, action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
+	async processStagesAsync(output: Readable, stages: { text: string | string[], action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
 		let stageNumber;
 		let stage = stages[stageNumber = 0];
+
+        const isArray = stage.text instanceof Array;
 
 		let line;
 		while (line = await this.readAsync(output)) {
 			for (const newLine of line.split('\n')) {
 				const data = newLine.trim();
-				console.log('>: ' + data);
-				if (data === stage.text) {
+                console.log('>: ' + data);
+
+                const process = isArray ? data in <string[]>stage.text : data === stage.text;
+                if (process) {
 					console.log('#: match [' + data + '] acting...');
 					if (stage.action) {
 						await stage.action();
