@@ -295,7 +295,7 @@ class LuaSpawnedDebugProcess {
                     defaultAction(data);
                 }
 
-                const process = isArray ? data in <string[]>stage.text : data === stage.text;
+                const process = isArray ? (<string[]>stage.text).some(v => v === data) : data === stage.text;
                 if (process) {
 					console.log('#: match [' + data + '] acting...');
 					if (stage.action) {
