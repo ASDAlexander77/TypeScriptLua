@@ -119,6 +119,10 @@ class LuaSpawnedDebugProcess {
 			console.log(`process exited with code ${code}`);
 		});
 
+		exe.on('exit', (code) => {
+			console.log(`process exited with code ${code}`);
+		});
+
 		exe.stderr.on('data', (data) => {
 			console.error(data.toString());
 		});
@@ -177,7 +181,8 @@ class LuaSpawnedDebugProcess {
 
 	public async step() {
 		await this._commands.step();
-		await this.defaultDebugProcessStage();
+        const lastLine = await this.defaultProcessStage();
+        return lastLine === ">";
     }
 
 	public async stack(startFrame: number, endFrame: number) {
@@ -228,7 +233,8 @@ class LuaSpawnedDebugProcess {
 
 	public async run() {
 		await this._commands.run();
-        await this.defaultProcessStage();
+        const lastLine = await this.defaultProcessStage();
+        return lastLine === ">";
     }
 
     public async setBreakpoint(path: string, line: number, column?: number) {
@@ -253,7 +259,7 @@ class LuaSpawnedDebugProcess {
 
 	private async defaultDebugProcessStage(defaultAction?: Function) {
 		try {
-			await this.processStagesAsync([
+			return await this.processStagesAsync([
                 {
                     text: '[DEBUG]>', action: undefined
                 }
@@ -267,7 +273,7 @@ class LuaSpawnedDebugProcess {
 
 	private async defaultProcessStage(defaultAction?: Function) {
 		try {
-			await this.processStagesAsync([
+			return await this.processStagesAsync([
                 {
                     text: ['[DEBUG]>', '>'], action: undefined
                 }
@@ -305,7 +311,7 @@ class LuaSpawnedDebugProcess {
 					stage = stages[++stageNumber];
 					if (!stage) {
 						console.log('#: no more actions...');
-						return;
+						return data;
 					}
                 }
 			}
@@ -477,7 +483,11 @@ export class LuaRuntime extends EventEmitter {
     }
 
 	private async stepInternal(reverse: boolean, stepEvent?: string) {
-        await this._luaExe.step();
+        if (await this._luaExe.step()) {
+            this.sendEvent('end');
+            return;
+        }
+
         if (stepEvent) {
             this.sendEvent(stepEvent);
         }
@@ -488,7 +498,11 @@ export class LuaRuntime extends EventEmitter {
 	 * If stepEvent is specified only run a single step and emit the stepEvent.
 	 */
 	private async runInternal(reverse: boolean, runEvent?: string) {
-        await this._luaExe.run();
+        if (await this._luaExe.run()) {
+            this.sendEvent('end');
+            return;
+        }
+
         if (runEvent) {
             this.sendEvent(runEvent);
         }
