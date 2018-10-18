@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
-import { Readable, Writable } from 'stream';
+import { Writable } from 'stream';
 
 export interface LuaBreakpoint {
 	id: number;
@@ -126,7 +126,7 @@ class LuaSpawnedDebugProcess {
 		exe.stdout.setEncoding('utf8');
 
 		try {
-			await this.processStagesAsync(exe.stdout, [
+			await this.processStagesAsync([
 				{
 					text: '>', action: async () => {
 						await this._commands.loadDebuggerSourceAsRequire();
@@ -228,7 +228,7 @@ class LuaSpawnedDebugProcess {
 
 	public async run() {
 		await this._commands.run();
-		await this.defaultProcessStage();
+        await this.defaultProcessStage();
     }
 
     public async setBreakpoint(path: string, line: number, column?: number) {
@@ -253,7 +253,7 @@ class LuaSpawnedDebugProcess {
 
 	private async defaultDebugProcessStage(defaultAction?: Function) {
 		try {
-			await this.processStagesAsync(this.exe.stdout, [
+			await this.processStagesAsync([
                 {
                     text: '[DEBUG]>', action: undefined
                 }
@@ -267,7 +267,7 @@ class LuaSpawnedDebugProcess {
 
 	private async defaultProcessStage(defaultAction?: Function) {
 		try {
-			await this.processStagesAsync(this.exe.stdout, [
+			await this.processStagesAsync([
                 {
                     text: ['[DEBUG]>', '>'], action: undefined
                 }
@@ -279,17 +279,21 @@ class LuaSpawnedDebugProcess {
 		}
 	}
 
-	async processStagesAsync(output: Readable, stages: { text: string | string[], action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
+	async processStagesAsync(stages: { text: string | string[], action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
 		let stageNumber;
 		let stage = stages[stageNumber = 0];
 
         const isArray = stage.text instanceof Array;
 
 		let line;
-		while (line = await this.readAsync(output)) {
+		while (line = await this.readAsync()) {
 			for (const newLine of line.split('\n')) {
 				const data = newLine.trim();
                 console.log('>: ' + data);
+
+                if (defaultAction) {
+                    defaultAction(data);
+                }
 
                 const process = isArray ? data in <string[]>stage.text : data === stage.text;
                 if (process) {
@@ -304,17 +308,14 @@ class LuaSpawnedDebugProcess {
 						return;
 					}
                 }
-                else if (defaultAction) {
-                    defaultAction(data);
-                }
 			}
 		}
 	}
 
-	async readAsync(output: Readable, timeout: number = 3000) {
+	async readAsync(timeout: number = 3000) {
 		return new Promise((resolve, reject) => {
 			let timerId;
-			output.on('data', (data) => {
+			this.exe.stdout.on('data', (data) => {
 				if (timerId) {
 					clearTimeout(timerId);
 				}
@@ -322,7 +323,7 @@ class LuaSpawnedDebugProcess {
 				resolve(data);
 			});
 
-			output.on('error', (e) => {
+			this.exe.stdout.on('error', (e) => {
 				if (timerId) {
 					clearTimeout(timerId);
 				}
@@ -491,8 +492,6 @@ export class LuaRuntime extends EventEmitter {
         if (runEvent) {
             this.sendEvent(runEvent);
         }
-
-        ////this.sendEvent('end');
 	}
 
 	private sendEvent(event: string, ...args: any[]) {
