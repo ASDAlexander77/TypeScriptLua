@@ -8,6 +8,13 @@ export interface LuaBreakpoint {
 	verified: boolean;
 }
 
+export enum VariableTypes {
+    Local,
+    Up,
+    Global,
+    All
+}
+
 class LuaCommands {
 	constructor(private stdin: Writable) {
 	}
@@ -75,7 +82,20 @@ class LuaCommands {
 	public async stack() {
 		await this.writeLineAsync(this.stdin, `trace`);
 		await this.writeLineAsync(this.stdin, `print()`);
-	}
+    }
+
+    public async dumpVariables(variableType: VariableTypes) {
+        let vars = 'vars'
+        switch (variableType) {
+            case VariableTypes.Local: vars = 'locs'; break;
+            case VariableTypes.Up: vars = 'ups'; break;
+            case VariableTypes.Global: vars = 'glob'; break;
+            case VariableTypes.Local: break;
+        }
+
+		await this.writeLineAsync(this.stdin, vars);
+		await this.writeLineAsync(this.stdin, `print()`);
+    }
 
 	async writeLineAsync(instream: Writable, text: string, newLine: string = '\r\n', timeout: number = 1000) {
 		return new Promise((resolve, reject) => {
@@ -185,6 +205,32 @@ class LuaSpawnedDebugProcess {
         return lastLine === ">";
     }
 
+	public async run() {
+		await this._commands.run();
+        const lastLine = await this.defaultProcessStage();
+        return lastLine === ">";
+    }
+
+    public async setBreakpoint(path: string, line: number, column?: number) {
+        let success;
+        await this._commands.setBreakpoint(line, column, path);
+		await this.defaultDebugProcessStage((line) => {
+            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile.*/.test(line);
+        });
+
+        return success;
+    }
+
+    public async deleteBreakpoint(path: string, line: number, column?: number) {
+        let success;
+        await this._commands.deleteBreakpoint(line, column, path);
+		await this.defaultDebugProcessStage((line) => {
+            success = /\[DEBUG\]>\sBreakpoint\sdeleted\sfrom\sfile.*/.test(line);
+        });
+
+        return success;
+    }
+
 	public async stack(startFrame: number, endFrame: number) {
         const parseLine = /(\[DEBUG\]\>\s)?\[(\d+)\](\*\*\*)?\s([^\s]*)\sin\s(.*)/;
         const parseFileNameAndLine = /(.*):(\d+)$/;
@@ -231,31 +277,17 @@ class LuaSpawnedDebugProcess {
 		};
 	}
 
-	public async run() {
-		await this._commands.run();
-        const lastLine = await this.defaultProcessStage();
-        return lastLine === ">";
-    }
+	public async dumpVariables(variableType: VariableTypes) {
+        await this._commands.dumpVariables(variableType);
 
-    public async setBreakpoint(path: string, line: number, column?: number) {
-        let success;
-        await this._commands.setBreakpoint(line, column, path);
 		await this.defaultDebugProcessStage((line) => {
-            success = /\[DEBUG\]>\sBreakpoint\sset\sin\sfile.*/.test(line);
+            // parse output
         });
 
-        return success;
-    }
-
-    public async deleteBreakpoint(path: string, line: number, column?: number) {
-        let success;
-        await this._commands.deleteBreakpoint(line, column, path);
-		await this.defaultDebugProcessStage((line) => {
-            success = /\[DEBUG\]>\sBreakpoint\sdeleted\sfrom\sfile.*/.test(line);
-        });
-
-        return success;
-    }
+        return {
+			count: 0
+		};
+	}
 
 	private async defaultDebugProcessStage(defaultAction?: Function) {
 		try {
@@ -415,6 +447,10 @@ export class LuaRuntime extends EventEmitter {
 	public async stack(startFrame: number, endFrame: number) {
         return await this._luaExe.stack(startFrame, endFrame);
 	}
+
+    public async dumpVariables(variableType: VariableTypes) {
+        return await this._luaExe.dumpVariables(variableType);
+    }
 
 	/*
 	 * Set breakpoint in file with given line.

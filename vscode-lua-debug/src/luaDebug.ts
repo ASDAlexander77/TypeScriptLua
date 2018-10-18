@@ -6,7 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { LuaRuntime, LuaBreakpoint } from './luaRuntime';
+import { LuaRuntime, LuaBreakpoint, VariableTypes } from './luaRuntime';
 import { Subject } from 'await-notify';
 
 
@@ -141,7 +141,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         // set and verify breakpoint locations
         const actualBreakpoints = new Array<DebugProtocol.Breakpoint>();
-        for(const element of clientLines) {
+        for (const element of clientLines) {
             let { verified, line, id } = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(element));
             const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(line));
             bp.id = id;
@@ -196,10 +196,19 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments): void {
+    protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
 
         const variables = new Array<DebugProtocol.Variable>();
         const id = this._variableHandles.get(args.variablesReference);
+
+        if (id.startsWith("local_")) {
+            await this._runtime.dumpVariables(VariableTypes.Local);
+        } else if (id.startsWith("up_")) {
+            await this._runtime.dumpVariables(VariableTypes.Up);
+        } else if (id.startsWith("global_")) {
+            await this._runtime.dumpVariables(VariableTypes.Global);
+        }
+
         if (id !== null) {
             variables.push({
                 name: id + "_i",
