@@ -22,80 +22,79 @@ class LuaCommands {
 	}
 
 	public async loadDebuggerSourceAsRequire() {
-		await this.writeLineAsync(this.stdin, `require('./debugger')`);
+		await this.writeLineAsync(`require('./debugger')`);
 	}
 
 	public async loadFile(path: string) {
 		const debuggerLuaFilePath = path.replace(/\\/g, '/');
-		await this.writeLineAsync(this.stdin, 'dofile(\'' + debuggerLuaFilePath + '\')');
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync('dofile(\'' + debuggerLuaFilePath + '\')');
+		await this.flush();
 	}
 
 	public async pause() {
-		await this.writeLineAsync(this.stdin, `pause('start', nil, true)`);
-		await this.writeLineAsync(this.stdin, ``);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`pause('start', nil, true)`);
+		await this.writeLineAsync(``);
+		await this.flush();
 	}
 
 	public async setBreakpoint(line: number, column?: number, fileName?: string) {
 		if (fileName) {
 			const fileNameLowerCase = fileName.replace(/\\/g, '/').toLowerCase();
-			await this.writeLineAsync(this.stdin, `setb ${line} ${fileNameLowerCase}`);
+			await this.writeLineAsync(`setb ${line} ${fileNameLowerCase}`);
 		}
 		else {
-			await this.writeLineAsync(this.stdin, `setb ${line}`);
+			await this.writeLineAsync(`setb ${line}`);
 		}
 
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.flush();
 	}
 
 	public async deleteBreakpoint(line: number, column?: number, fileName?: string) {
 		if (fileName) {
 			const fileNameLowerCase = fileName.replace(/\\/g, '/').toLowerCase();
-			await this.writeLineAsync(this.stdin, `delb ${line} ${fileNameLowerCase}`);
+			await this.writeLineAsync(`delb ${line} ${fileNameLowerCase}`);
 		}
 		else {
-			await this.writeLineAsync(this.stdin, `delb ${line}`);
+			await this.writeLineAsync(`delb ${line}`);
 		}
 
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.flush();
 	}
 
 	public async run() {
-		await this.writeLineAsync(this.stdin, `run`);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`run`);
+		await this.flush();
 	}
 
 	public async runWithoutPrint() {
-		await this.writeLineAsync(this.stdin, `run`);
+		await this.writeLineAsync(`run`);
 	}
 
 	public async stepIn() {
-		await this.writeLineAsync(this.stdin, `step`);
-		////await this.writeLineAsync(this.stdin, `show`);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`step`);
+		await this.flush();
 	}
 
 	public async stepOut() {
-		await this.writeLineAsync(this.stdin, `out`);
-		////await this.writeLineAsync(this.stdin, `show`);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`out`);
+		////await this.writeLineAsync(`show`);
+		await this.flush();
 	}
 
 	public async stepOver() {
-		await this.writeLineAsync(this.stdin, `over`);
-		////await this.writeLineAsync(this.stdin, `show`);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`over`);
+		////await this.writeLineAsync(`show`);
+		await this.flush();
 	}
 
 	public async showSourceCode() {
-		await this.writeLineAsync(this.stdin, `show`);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`show`);
+		await this.flush();
 	}
 
 	public async stack() {
-		await this.writeLineAsync(this.stdin, `trace`);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(`trace`);
+		await this.flush();
 	}
 
 	public async dumpVariables(variableType: VariableTypes, variableName: string | undefined) {
@@ -109,15 +108,19 @@ class LuaCommands {
 
 		console.log("#: dump of " + vars);
 
-		await this.writeLineAsync(this.stdin, vars);
-		await this.writeLineAsync(this.stdin, `print()`);
+		await this.writeLineAsync(vars);
+		await this.flush();
 	}
 
-	async writeLineAsync(instream: Writable, text: string, newLine: string = '\r\n', timeout: number = 1000) {
+	private async flush() {
+		await this.writeLineAsync(`print()`);
+	}
+
+	private async writeLineAsync(text: string, newLine: string = '\r\n', timeout: number = 1000) {
 		return new Promise((resolve, reject) => {
 			let timerId;
 
-			instream.write(text + newLine, () => {
+			this.stdin.write(text + newLine, () => {
 				if (timerId) {
 					clearTimeout(timerId);
 				}
