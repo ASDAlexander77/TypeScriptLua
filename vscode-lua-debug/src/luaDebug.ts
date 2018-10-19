@@ -188,9 +188,9 @@ export class LuaDebugSession extends LoggingDebugSession {
         const frameReference = args.frameId;
         const scopes = new Array<Scope>();
 
-        scopes.push(new Scope("Locals", this._variableHandles.create("local_" + frameReference), false));
-        scopes.push(new Scope("Globals", this._variableHandles.create("global_" + frameReference), true));
-        scopes.push(new Scope("Environment", this._variableHandles.create("environment_" + frameReference), true));
+        scopes.push(new Scope("Locals", this._variableHandles.create("::local:" + frameReference), false));
+        scopes.push(new Scope("Globals", this._variableHandles.create("::global:" + frameReference), true));
+        scopes.push(new Scope("Environment", this._variableHandles.create("::environment:" + frameReference), true));
 
         response.body = {
             scopes: scopes
@@ -209,16 +209,20 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         const id = this._variableHandles.get(args.variablesReference);
 
+        let variableName;
         let variableType = VariableTypes.Local;
-        if (id.startsWith("local_")) {
+        if (id.startsWith("::local")) {
             variableType = VariableTypes.Local;
-        } else if (id.startsWith("global_")) {
+        } else if (id.startsWith("::global")) {
             variableType = VariableTypes.Global;
-        } else if (id.startsWith("environment_")) {
+        } else if (id.startsWith("::environment")) {
             variableType = VariableTypes.Environment;
+        } else {
+            variableType = VariableTypes.SingleVariable;
+            variableName = id;
         }
 
-        const variables = await this._runtime.dumpVariables(variableType);
+        const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
 
         /*
         const variables = new Array<DebugProtocol.Variable>();

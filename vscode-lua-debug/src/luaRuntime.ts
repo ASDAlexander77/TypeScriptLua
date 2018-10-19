@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import { Writable } from 'stream';
+import { Handles } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 
 export interface LuaBreakpoint {
@@ -12,7 +13,8 @@ export interface LuaBreakpoint {
 export enum VariableTypes {
     Local,
     Global,
-    Environment
+    Environment,
+    SingleVariable
 }
 
 class LuaCommands {
@@ -84,15 +86,16 @@ class LuaCommands {
         await this.writeLineAsync(this.stdin, `print()`);
     }
 
-    public async dumpVariables(variableType: VariableTypes) {
-        let vars = 'vars'
+    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined) {
+        let vars;
         switch (variableType) {
             case VariableTypes.Local: vars = 'vars'; break;
             case VariableTypes.Global: vars = 'glob'; break;
             case VariableTypes.Environment: vars = 'fenv'; break;
+            case VariableTypes.SingleVariable: vars = 'dump ' + variableName; break;
         }
 
-        console.log("#: dump " + vars);
+        console.log("#: dump of " + vars);
 
         await this.writeLineAsync(this.stdin, vars);
         await this.writeLineAsync(this.stdin, `print()`);
@@ -278,47 +281,99 @@ class LuaSpawnedDebugProcess {
         };
     }
 
-    public async dumpVariables(variableType: VariableTypes) {
-        let rootName;
+    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>) {
+        let rootName = variableName;
         switch (variableType) {
             case VariableTypes.Local: rootName = "variables"; break;
             case VariableTypes.Global: rootName = "globals"; break;
             case VariableTypes.Environment: rootName = "environment"; break;
         }
 
-        const variableDeclatation = /(\s*)([A-Za-z_]+)\s*=\s*(.*)/;
+        await this._commands.dumpVariables(variableType, rootName);
+
+        const variableDeclatation = /(\s*)([A-Za-z0-9_]+)\s*=\s*(.*)/;
+        const arrayIndexValueDeclatation = /(\s*)\[([^\]]+)\]\s*=\s*(.*)/;
         const endOfObject = /(\s*)}(;)?.*/;
 
         const variables = new Array<DebugProtocol.Variable>();
 
-        await this._commands.dumpVariables(variableType);
-
         let objects = new Array<any>();
+        let paths = new Array<any>();
         let currentObject: any = {};
+        let isArrayValue = false;
         await this.defaultDebugProcessStage((line) => {
             // parse output
-            const values = variableDeclatation.exec(line);
+            let values = variableDeclatation.exec(line);
+            if (!values) {
+                values = arrayIndexValueDeclatation.exec(line);
+                isArrayValue = true;
+            }
+
             if (values) {
                 const level = values[1].length;
                 const name = values[2];
-                const value = values[3];
+                let path = name;
+                let value = values[3];
+                const originalValue = value;
                 const beginOfObject = value.startsWith('{');
+                const nestedObject = !value.endsWith(';');
+                const isRef = value.startsWith('ref\"');
+
+                if (nestedObject) {
+                    value = value.substr(0, value.length - 1);
+                }
+
+                if (isRef) {
+                    value = value.substr(4, value.length - 5);
+                }
+
+                const isString = value.startsWith('\"');
+                if (isString) {
+                    value = value.substr(1, value.length - 2);
+                }
+
+                if (variableType === VariableTypes.SingleVariable && paths.length > 0) {
+                    path = paths[paths.length - 1] + '.' + name;
+                }
 
                 if (beginOfObject) {
                     currentObject[name] = {
+                        name,
                         level,
+                        path,
                         value: {},
-                        type: "object"
+                        type: "object",
                     };
 
                     objects.push(currentObject);
+                    paths.push(path);
 
                     currentObject = currentObject[name].value;
                 } else {
+                    let type = "any";
+                    if (isString) {
+                        type = "string";
+                    } else {
+                        // check if it is int or float
+                        if (value.startsWith('table: ')) {
+                            type = "object";
+                        } else if (parseFloat(value) && value.indexOf('.') !== -1) {
+                            type = "float";
+                        }
+                        else if (value === "0" || parseInt(value)) {
+                            type = "int";
+                        }
+                        else if (value.startsWith('function: ')) {
+                            type = "function";
+                        }
+                    }
+
                     currentObject[name] = {
+                        name,
                         level,
+                        path,
                         value,
-                        type: "object"
+                        type
                     };
                 }
             } else {
@@ -326,6 +381,7 @@ class LuaSpawnedDebugProcess {
                 if (end) {
                     // end of object '};'
                     currentObject = objects.pop();
+                    paths.pop();
                 }
             }
         });
@@ -338,8 +394,11 @@ class LuaSpawnedDebugProcess {
                     variables.push({
                         name: name,
                         type: value.type,
-                        value: value.value,
-                        variablesReference: 0
+                        value: value.type === "object" ? "" : value.value,
+                        variablesReference: value.type !== "object" ? 0 : variableHandles.create(
+                            variableType === VariableTypes.SingleVariable
+                                ? value.path
+                                : name)
                     });
                 }
             }
@@ -507,8 +566,8 @@ export class LuaRuntime extends EventEmitter {
         return await this._luaExe.stack(startFrame, endFrame);
     }
 
-    public async dumpVariables(variableType: VariableTypes) {
-        return await this._luaExe.dumpVariables(variableType);
+    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>) {
+        return await this._luaExe.dumpVariables(variableType, variableName, variableHandles);
     }
 
 	/*
