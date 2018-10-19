@@ -291,8 +291,7 @@ class LuaSpawnedDebugProcess {
 
         await this._commands.dumpVariables(variableType, rootName);
 
-        const variableDeclatation = /(\s*)([A-Za-z0-9_]+)\s*=\s*(.*)/;
-        const arrayIndexValueDeclatation = /(\s*)\[([^\]]+)\]\s*=\s*(.*)/;
+        const variableDeclatation = /(\s*)((([A-Za-z_0-9]+)|\.|\[[^\]]+\])+)\s*=\s*(.*)/;
         const endOfObject = /(\s*)}(;)?.*/;
 
         const variables = new Array<DebugProtocol.Variable>();
@@ -304,27 +303,28 @@ class LuaSpawnedDebugProcess {
         await this.defaultDebugProcessStage((line) => {
             // parse output
             let values = variableDeclatation.exec(line);
-            if (!values) {
-                values = arrayIndexValueDeclatation.exec(line);
-                isArrayValue = true;
-            }
-
             if (values) {
                 const level = values[1].length;
-                const name = values[2];
+                let name = values[2];
                 let path = name;
-                let value = values[3];
+                let value = values[5];
+                let isArrayIndex = false;
                 const originalValue = value;
                 const beginOfObject = value.startsWith('{');
                 const nestedObject = !value.endsWith(';');
                 const isRef = value.startsWith('ref\"');
 
-                if (nestedObject) {
-                    value = value.substr(0, value.length - 1);
+                if (name.startsWith('[') && name.endsWith(']')) {
+                    isArrayIndex = true;
+                    name = name.substr(1, name.length - 2);
                 }
 
                 if (isRef) {
-                    value = value.substr(4, value.length - 5);
+                    value = value.substr(4, value.length - 6);
+                }
+
+                if (!nestedObject) {
+                    value = value.substr(0, value.length - 1);
                 }
 
                 const isString = value.startsWith('\"');
