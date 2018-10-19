@@ -224,36 +224,6 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
 
-        /*
-        const variables = new Array<DebugProtocol.Variable>();
-        if (id !== null) {
-            variables.push({
-                name: id + "_i",
-                type: "integer",
-                value: "123",
-                variablesReference: 0
-            });
-            variables.push({
-                name: id + "_f",
-                type: "float",
-                value: "3.14",
-                variablesReference: 0
-            });
-            variables.push({
-                name: id + "_s",
-                type: "string",
-                value: "hello world",
-                variablesReference: 0
-            });
-            variables.push({
-                name: id + "_o",
-                type: "object",
-                value: "Object",
-                variablesReference: this._variableHandles.create("object_")
-            });
-        }
-        */
-
         response.body = {
             variables: variables
         };
@@ -269,18 +239,18 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected async reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) {
-        await this._runtime.continue(true);
-        this.sendResponse(response);
-    }
-
     protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments) {
-        await this._runtime.step();
+        await this._runtime.stepOver();
         this.sendResponse(response);
     }
 
-    protected stepBackRequest(response: DebugProtocol.StepBackResponse, args: DebugProtocol.StepBackArguments): void {
-        this._runtime.step(true);
+    protected async stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments) {
+        await this._runtime.stepIn();
+        this.sendResponse(response);
+    }
+
+    protected async stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
+        await this._runtime.stepOut();
         this.sendResponse(response);
     }
 
