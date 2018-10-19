@@ -1,3 +1,9 @@
+function f(d)
+	d[0] = 1
+	d[1] = 2
+	d["end"] = "hi"
+end
+
 print ('start.')
 
 local s = "Hello String";
@@ -17,6 +23,8 @@ if a then
 	b["end"] = "hi"
 
 	a["end"] = "end"
+
+	f(a)
 end
 
 if a then
