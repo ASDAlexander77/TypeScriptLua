@@ -189,7 +189,6 @@ export class LuaDebugSession extends LoggingDebugSession {
         const scopes = new Array<Scope>();
 
         scopes.push(new Scope("Locals", this._variableHandles.create("local_" + frameReference), false));
-        scopes.push(new Scope("Ups", this._variableHandles.create("up_" + frameReference), false));
         scopes.push(new Scope("Globals", this._variableHandles.create("global_" + frameReference), true));
 
         response.body = {
@@ -209,11 +208,9 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         const id = this._variableHandles.get(args.variablesReference);
 
-        let variableType = VariableTypes.All;
+        let variableType = VariableTypes.Local;
         if (id.startsWith("local_")) {
             variableType = VariableTypes.Local;
-        } else if (id.startsWith("up_")) {
-            variableType = VariableTypes.Up;
         } else if (id.startsWith("global_")) {
             variableType = VariableTypes.Global;
         }
