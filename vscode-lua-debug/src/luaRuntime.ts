@@ -139,7 +139,7 @@ class LuaSpawnedDebugProcess {
 	private _commands: LuaCommands;
 	private exe: ChildProcess;
 
-	constructor(private program: string, private stopOnEntry: boolean, private luaExecutable: string) {
+	constructor(private program: string, private luaExecutable: string) {
 	}
 
 	public async spawn() {
@@ -272,7 +272,7 @@ class LuaSpawnedDebugProcess {
 			const values = parseLine.exec(line);
 			if (values) {
 				const index = values[2];
-				const isActive = values[3];
+				//const isActive = values[3];
 				const functionName = values[4];
 				const location = values[5];
 
@@ -322,7 +322,6 @@ class LuaSpawnedDebugProcess {
 		let objects = new Array<any>();
 		let paths = new Array<any>();
 		let currentObject: any = {};
-		let isArrayValue = false;
 		await this.defaultDebugProcessStage((line) => {
 			// parse output
 			let values = variableDeclatation.exec(line);
@@ -331,14 +330,11 @@ class LuaSpawnedDebugProcess {
 				let name = values[2];
 				let path = name;
 				let value = values[5];
-				let isArrayIndex = false;
-				const originalValue = value;
 				const beginOfObject = value.startsWith('{');
 				const nestedObject = !value.endsWith(';');
 				const isRef = value.startsWith('ref\"');
 
 				if (name.startsWith('[') && name.endsWith(']')) {
-					isArrayIndex = true;
 					name = name.substr(1, name.length - 2);
 				}
 
@@ -555,7 +551,7 @@ export class LuaRuntime extends EventEmitter {
 
 		this._sourceFile = this.cleanUpFile(program);
 
-		this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, stopOnEntry, luaExecutable);
+		this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable);
 		await this._luaExe.spawn();
 
 		// TODO: finish it, dummy verification of breakpoints
