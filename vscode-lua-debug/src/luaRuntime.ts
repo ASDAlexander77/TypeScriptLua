@@ -94,6 +94,8 @@ class LuaCommands {
             case VariableTypes.Local: break;
         }
 
+        console.log("#: dump " + vars);
+
 		await this.writeLineAsync(this.stdin, vars);
 		await this.writeLineAsync(this.stdin, `print()`);
     }
@@ -279,8 +281,6 @@ class LuaSpawnedDebugProcess {
 	}
 
 	public async dumpVariables(variableType: VariableTypes) {
-        await this._commands.dumpVariables(variableType);
-
         let rootName = "variables";
         switch (variableType) {
             case VariableTypes.Local: rootName = "upvalues"; break;
@@ -292,6 +292,8 @@ class LuaSpawnedDebugProcess {
         const endOfObject = /(\s*)}(;)?.*/;
 
         const variables = new Array<DebugProtocol.Variable>();
+
+        await this._commands.dumpVariables(variableType);
 
         let objects = new Array<any>();
         let currentObject: any = {};

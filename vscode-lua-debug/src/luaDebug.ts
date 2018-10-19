@@ -196,7 +196,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
+    protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
 
         const id = this._variableHandles.get(args.variablesReference);
 
@@ -209,7 +209,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             variableType = VariableTypes.Global;
         }
 
-        const variables = await this._runtime.dumpVariables(variableType);
+        const variables = this._runtime.dumpVariables(variableType);
 
         /*
         const variables = new Array<DebugProtocol.Variable>();
