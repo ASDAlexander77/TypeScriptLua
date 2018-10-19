@@ -281,13 +281,20 @@ class LuaSpawnedDebugProcess {
 	public async dumpVariables(variableType: VariableTypes) {
         await this._commands.dumpVariables(variableType);
 
+        let rootName = "variables";
+        switch (variableType) {
+            case VariableTypes.Local: rootName = "upvalues"; break;
+            case VariableTypes.Up: rootName = "upvalues"; break;
+            case VariableTypes.Global: rootName = "globals"; break;
+        }
+
         const variableDeclatation = /(\s*)([A-Za-z_]+)\s*=\s*(.*)/;
         const endOfObject = /(\s*)}(;)?.*/;
 
         const variables = new Array<DebugProtocol.Variable>();
 
         let objects = new Array<any>();
-        let currentObject = {};
+        let currentObject: any = {};
 		await this.defaultDebugProcessStage((line) => {
             // parse output
 			const values = variableDeclatation.exec(line);
@@ -300,7 +307,8 @@ class LuaSpawnedDebugProcess {
                 if (beginOfObject) {
                     currentObject[name] = {
                         level,
-                        value: {}
+                        value: {},
+                        type: "object"
                     };
 
                     objects.push(currentObject);
@@ -309,7 +317,8 @@ class LuaSpawnedDebugProcess {
                 } else {
                     currentObject[name] = {
                         level,
-                        value
+                        value,
+                        type: "object"
                     };
                 }
             } else {
@@ -321,12 +330,18 @@ class LuaSpawnedDebugProcess {
             }
         });
 
-        variables.push({
-            name: "test",
-            type: "object",
-            value: "1",
-            variablesReference: 0
-        });
+        const values = currentObject[rootName].value;
+        if (values) {
+            for (let name in values) {
+                const value = values[name];
+                variables.push({
+                    name: name,
+                    type: value.type,
+                    value: value.value,
+                    variablesReference: 0
+                });
+            }
+        }
 
         return variables;
 	}
