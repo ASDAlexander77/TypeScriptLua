@@ -13,7 +13,7 @@ suite('Node Debug Adapter', () => {
 	const DEBUG_ADAPTER = './out/debugAdapter.js';
 
 	const PROJECT_ROOT = Path.join(__dirname, '../../');
-	const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/tests/data/');
+	const DATA_ROOT = Path.join(PROJECT_ROOT, 'src/test');
 
 
 	let dc: DebugClient;
@@ -65,7 +65,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should run program to the end', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'file.lua');
 
 			return Promise.all([
 				dc.configurationSequence(),
@@ -76,7 +76,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should stop on entry', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'file.lua');
 			const ENTRY_LINE = 1;
 
 			return Promise.all([
@@ -91,7 +91,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should stop on a breakpoint', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'test.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'file.lua');
 			const BREAKPOINT_LINE = 2;
 
 			return dc.hitBreakpoint({ program: PROGRAM }, { path: PROGRAM, line: BREAKPOINT_LINE } );
@@ -99,7 +99,7 @@ suite('Node Debug Adapter', () => {
 
 		test('hitting a lazy breakpoint should send a breakpoint event', () => {
 
-			const PROGRAM = Path.join(DATA_ROOT, 'testLazyBreakpoint.md');
+			const PROGRAM = Path.join(DATA_ROOT, 'file.lua');
 			const BREAKPOINT_LINE = 3;
 
 			return Promise.all([
@@ -117,7 +117,7 @@ suite('Node Debug Adapter', () => {
 
 		test('should stop on an exception', () => {
 
-			const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'testWithException.md');
+			const PROGRAM_WITH_EXCEPTION = Path.join(DATA_ROOT, 'file.lua');
 			const EXCEPTION_LINE = 4;
 
 			return Promise.all([

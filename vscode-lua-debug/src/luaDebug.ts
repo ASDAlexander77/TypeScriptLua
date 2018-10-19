@@ -190,6 +190,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         scopes.push(new Scope("Locals", this._variableHandles.create("local_" + frameReference), false));
         scopes.push(new Scope("Globals", this._variableHandles.create("global_" + frameReference), true));
+        scopes.push(new Scope("Environment", this._variableHandles.create("environment_" + frameReference), true));
 
         response.body = {
             scopes: scopes
@@ -213,6 +214,8 @@ export class LuaDebugSession extends LoggingDebugSession {
             variableType = VariableTypes.Local;
         } else if (id.startsWith("global_")) {
             variableType = VariableTypes.Global;
+        } else if (id.startsWith("environment_")) {
+            variableType = VariableTypes.Environment;
         }
 
         const variables = await this._runtime.dumpVariables(variableType);

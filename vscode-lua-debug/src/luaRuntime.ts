@@ -11,7 +11,8 @@ export interface LuaBreakpoint {
 
 export enum VariableTypes {
     Local,
-    Global
+    Global,
+    Environment
 }
 
 class LuaCommands {
@@ -88,6 +89,7 @@ class LuaCommands {
         switch (variableType) {
             case VariableTypes.Local: vars = 'vars'; break;
             case VariableTypes.Global: vars = 'glob'; break;
+            case VariableTypes.Environment: vars = 'fenv'; break;
         }
 
         console.log("#: dump " + vars);
@@ -281,6 +283,7 @@ class LuaSpawnedDebugProcess {
         switch (variableType) {
             case VariableTypes.Local: rootName = "variables"; break;
             case VariableTypes.Global: rootName = "globals"; break;
+            case VariableTypes.Environment: rootName = "environment"; break;
         }
 
         const variableDeclatation = /(\s*)([A-Za-z_]+)\s*=\s*(.*)/;
