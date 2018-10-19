@@ -39,6 +39,8 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     private _configurationDone = new Subject();
 
+    private _dumpInProgress: Subject;
+
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
 	 * We configure the default implementation of a debug adapter here.
@@ -196,7 +198,14 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
+    protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
+
+        if (this._dumpInProgress) {
+            await this._dumpInProgress.wait(3000);
+            this._dumpInProgress = null;
+        }
+
+        const dumpInProgress = this._dumpInProgress = new Subject();
 
         const id = this._variableHandles.get(args.variablesReference);
 
@@ -209,7 +218,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             variableType = VariableTypes.Global;
         }
 
-        const variables = this._runtime.dumpVariables(variableType);
+        const variables = await this._runtime.dumpVariables(variableType);
 
         /*
         const variables = new Array<DebugProtocol.Variable>();
@@ -244,6 +253,10 @@ export class LuaDebugSession extends LoggingDebugSession {
         response.body = {
             variables: variables
         };
+
+        dumpInProgress.notify();
+        this._dumpInProgress = null;
+
         this.sendResponse(response);
     }
 
