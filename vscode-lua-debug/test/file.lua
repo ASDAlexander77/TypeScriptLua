@@ -1,4 +1,4 @@
-function f(d)
+function fnc(d)
 	d[0] = 1
 	d[1] = 2
 	d["end"] = "hi"
@@ -24,7 +24,7 @@ if a then
 
 	a["end"] = "end"
 
-	f(a)
+	fnc(a)
 end
 
 if a then
