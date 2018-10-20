@@ -77,7 +77,7 @@
                 "${workspaceFolder}/../spec/**/*.spec.ts"
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/../"
         }
     ]
 }

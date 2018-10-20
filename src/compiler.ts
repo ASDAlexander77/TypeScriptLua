@@ -193,7 +193,11 @@ export class Run {
 
             // start program and test it to
             const result: any = spawn.sync('__build/win64/lua/Debug/lua.exe', [lastLuaFile]);
-            actualOutput = (<Uint8Array>result.stdout).toString();
+            if (result.error) {
+                actualOutput = result.error.stack;
+            } else {
+                actualOutput = (<Uint8Array>result.stdout).toString();
+            }
         } catch (e) {
             // clean up
             tempSourceFiles.forEach(f => {
