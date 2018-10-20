@@ -10,8 +10,8 @@ describe('Delete', () => {
         console.log(a.obj);                         \
     '])));
 
-    it('Remove item', () => expect('\r\n').to.equals(new Run().test([
-        'let a = { obj: "asd" };                    \
+    it('Remove item', () => expect('obj2\r\nvalue\r\n').to.equals(new Run().test([
+        'let a = { obj: "asd", obj2: "value" };     \
         delete a.obj;                               \
         for (let i in a)                            \
         {                                           \
