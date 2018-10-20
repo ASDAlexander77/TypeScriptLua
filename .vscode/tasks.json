@@ -94,6 +94,18 @@
             ],
             "problemMatcher": []
         },
+		{
+			"type": "npm",
+			"script": "watch",
+			"problemMatcher": [
+				"$tsc-watch"
+			],
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},        
         {
             "type": "npm",
             "script": "lint",

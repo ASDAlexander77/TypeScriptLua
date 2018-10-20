@@ -10,4 +10,14 @@ describe('Delete', () => {
         console.log(a.obj);                         \
     '])));
 
+    it('Remove item', () => expect('\r\n').to.equals(new Run().test([
+        'let a = { obj: "asd" };                    \
+        delete a.obj;                               \
+        for (let i in a)                            \
+        {                                           \
+            console.log(i);                         \
+            console.log(a[i]);                      \
+        }                                           \
+    '])));
+
 });
