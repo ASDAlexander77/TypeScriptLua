@@ -172,6 +172,8 @@ class LuaSpawnedDebugProcess {
                 const values = fileParse.exec(line);
                 if (values) {
                     if (!fs.existsSync('./debugger/_debugger.lua')) {
+                        console.error('!!! can\'t find file ./debugger/_debugger.lua');
+                        console.error('Folder: ' + process.cwd());
                         break;
                     }
 
