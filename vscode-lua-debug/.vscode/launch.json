@@ -44,18 +44,7 @@
 			"program": "${workspaceFolder}/test/file.lua",
 			"luaExecutable": "lua",
 			"stopOnEntry": true
-        },
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Single test app",
-			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/out/shell.js",
-			"args": [
-			],
-			"outFiles": [ "${workspaceFolder}/out/**/*.js" ],
-			"internalConsoleOptions": "openOnSessionStart"
-		},
+        }
 	],
 	"compounds": [
 		{
