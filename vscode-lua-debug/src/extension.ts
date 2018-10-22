@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { LuaDebugSession } from './luaDebug';
 import * as Net from 'net';
+import * as path from 'path';
 
 /*
  * Set the following compile time flag to true if the
@@ -14,6 +15,8 @@ const EMBED_DEBUG_ADAPTER = false;
 
 export function activate(context: vscode.ExtensionContext) {
 
+    let luaDebuggerFilePath = context.asAbsolutePath(path.join('debugger', '_debugger.lua'));
+
     context.subscriptions.push(vscode.commands.registerCommand('extension.lua-debug.getProgramName', config => {
         return vscode.window.showInputBox({
             placeHolder: "Please enter the name of a lua file in the workspace folder",
@@ -22,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     // register a configuration provider for 'mock' debug type
-    const provider = new LuaDebugConfigurationProvider()
+    const provider = new LuaDebugConfigurationProvider(luaDebuggerFilePath)
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('lua', provider));
     context.subscriptions.push(provider);
 }
@@ -34,6 +37,9 @@ export function deactivate() {
 class LuaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
     private _server?: Net.Server;
+
+    constructor(private _luaDebuggerFilePath: string) {
+    }
 
 	/**
 	 * Massage a debug configuration just before a debug session is being launched,
@@ -75,6 +81,8 @@ class LuaDebugConfigurationProvider implements vscode.DebugConfigurationProvider
             // make VS Code connect to debug server instead of launching debug adapter
             config.debugServer = this._server.address().port;
         }
+
+        config.luaDebuggerFilePath = this._luaDebuggerFilePath;
 
         return config;
     }

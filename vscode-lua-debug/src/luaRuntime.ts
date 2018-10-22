@@ -4,6 +4,7 @@ import { Writable } from 'stream';
 import { Handles } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 
 export interface LuaBreakpoint {
     id: number;
@@ -140,7 +141,7 @@ class LuaSpawnedDebugProcess {
     private _commands: LuaCommands;
     private exe: ChildProcess;
 
-    constructor(private program: string, private luaExecutable: string) {
+    constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
     }
 
     public async spawn() {
@@ -171,7 +172,7 @@ class LuaSpawnedDebugProcess {
             for (const line of data.split('\n')) {
                 const values = fileParse.exec(line);
                 if (values) {
-                    if (!fs.existsSync('./debugger/_debugger.lua')) {
+                    if (!fs.existsSync(this.luaDebuggerFilePath)) {
                         console.error('!!! can\'t find file ./debugger/_debugger.lua');
                         console.error('Folder: ' + process.cwd());
                         break;
@@ -181,7 +182,7 @@ class LuaSpawnedDebugProcess {
                     if (fs.existsSync(folderPath)) {
                         // copy file
                         try {
-                            fs.copySync('./debugger/_debugger.lua', folderPath);
+                            fs.copySync(this.luaDebuggerFilePath, path.join(folderPath, '_debugger.lua'));
                             await this._commands.loadDebuggerSourceAsRequire();
                             break;
                         }
@@ -574,11 +575,11 @@ export class LuaRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-    public async start(program: string, stopOnEntry: boolean, luaExecutable: string) {
+    public async start(program: string, stopOnEntry: boolean, luaExecutable: string, luaDebuggerFilePath: string) {
 
         this._sourceFile = this.cleanUpFile(program);
 
-        this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable);
+        this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable, luaDebuggerFilePath);
         await this._luaExe.spawn();
 
         // TODO: finish it, dummy verification of breakpoints

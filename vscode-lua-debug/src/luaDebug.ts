@@ -25,6 +25,8 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
     trace?: boolean;
     /** An absolute path to the lua "executable" to launch. */
     luaExecutable: string;
+    /** An absolute path to the lua debugger (set in config) */
+    luaDebuggerFilePath: string,
 }
 
 export class LuaDebugSession extends LoggingDebugSession {
@@ -128,7 +130,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         await this._configurationDone.wait(1000);
 
         // start the program in the runtime
-        await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable);
+        await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
 
         this.sendResponse(response);
     }
