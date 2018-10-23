@@ -36,7 +36,9 @@
     "dependencies": {
         "await-notify": "1.0.1",
         "vscode-debugadapter": "1.27.0",
-        "vscode-debugprotocol": "1.27.0"
+        "vscode-debugprotocol": "1.27.0",
+	"cross-spawn": "^6.0.5",
+	"fs-extra": "^7.0.0"
     },
     "devDependencies": {
         "@types/node": "7.0.55",
