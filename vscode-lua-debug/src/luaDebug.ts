@@ -11,9 +11,9 @@ import { Subject } from 'await-notify';
 
 
 /**
- * This interface describes the mock-debug specific launch attributes
+ * This interface describes the lua debug specific launch attributes
  * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the mock-debug extension.
+ * The schema for these attributes lives in the package.json of the lua-debug extension.
  * The interface should always match this schema.
  */
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
