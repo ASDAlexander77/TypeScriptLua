@@ -2,14 +2,14 @@
 	"name": "lua-debug",
 	"displayName": "Lua Debug",
 	"version": "0.0.0",
-	"publisher": "alexd",
-	"description": "LUA debugger extension for VS Code.",
+	"publisher": "AlexD77",
+	"description": "Lua debugger extension for VS Code.",
 	"author": {
 		"name": "Alex D."
 	},
 	"license": "MIT",
 	"keywords": [
-		"multi-root ready"
+		"lua debugger"
 	],
 	"engines": {
 		"vscode": "^1.18.0",
