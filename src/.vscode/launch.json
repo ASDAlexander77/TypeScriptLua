@@ -3,7 +3,7 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [        
+    "configurations": [
         {
             "type": "node",
             "request": "launch",
@@ -13,7 +13,7 @@
             "args": [
                 "tsconfig.json"
             ]
-        },  
+        },
         {
             "type": "node",
             "request": "launch",
@@ -33,6 +33,7 @@
             "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
             "args": [
                 "-extradebug",
+                "-sourcemap",
                 "tsconfig.json"
             ]
         },
@@ -45,7 +46,7 @@
             "args": [
                 "tsconfig.json"
             ]
-        },        
+        },
         {
             "type": "node",
             "request": "launch",
@@ -54,7 +55,7 @@
             "program": "${workspaceFolder}/../src/main.ts",
             "args": [
                 "tsconfig.json"
-            ],            
+            ],
             "sourceMaps": true,
             "outFiles": [
               "${workspaceRoot}/../__out/**/*.js"

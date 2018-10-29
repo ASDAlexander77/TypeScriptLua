@@ -14,9 +14,11 @@ export class Emitter {
     private sourceFileName: string;
     private opsMap = [];
     private extraDebugEmbed = false;
+    private generateSourceMap = false;
     private allowConstBigger255 = false;
     // can be used for testing to load const separately
     private splitConstFromOpCode = false;
+    private sourceMapWriter: any;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -62,6 +64,8 @@ export class Emitter {
                 this.fileModuleName = options.outFile;
             }
         }
+
+        this.generateSourceMap = cmdLineOptions.sourcemap ? true : false;
     }
 
     private lib = '                                                 \
@@ -441,6 +445,24 @@ export class Emitter {
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
+        if (this.generateSourceMap) {
+            const filePathLua = (<any>sourceFile).path.replace(/\.ts$/, '.lua');
+            const filePathLuaMap = (<any>sourceFile).path.replace(/\.ts$/, '.lua.map');
+            const sourceMapSource = ts.createSourceMapSource(filePathLuaMap, '');
+
+            // create source map writer
+            const emitHost = {
+                writeFile:
+                    (fileName, data, writeByteOrderMark, onError, sourceFiles) =>
+                        ts.sys.writeFile(fileName, data, writeByteOrderMark)
+            };
+
+            this.sourceMapWriter = (<any>ts).createSourceMapWriter(emitHost, (<any>ts).createTextWriter(''), { sourceMap: true });
+            this.sourceMapWriter.initialize(filePathLua, filePathLuaMap, sourceFile);
+            this.sourceMapWriter.setSourceFile(sourceMapSource);
+            this.sourceMapWriter.emitPos(0);
+        }
+
 
         this.functionContext.function_or_file_location_node = sourceFile;
 
