@@ -162,7 +162,7 @@ export class Emitter {
         this.emitFunction(this.functionContext);
 
         if (this.sourceMapGenerator) {
-            ts.sys.writeFile(this.filePathLuaMap, this.sourceFileName.toString());
+            ts.sys.writeFile(this.filePathLuaMap, this.sourceMapGenerator.toString());
         }
     }
 
