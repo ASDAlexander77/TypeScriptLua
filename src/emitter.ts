@@ -446,15 +446,18 @@ export class Emitter {
 
     private processFile(sourceFile: ts.SourceFile): void {
         if (this.generateSourceMap) {
-            const filePathLua = (<any>sourceFile).path.replace(/\.ts$/, '.lua');
-            const filePathLuaMap = (<any>sourceFile).path.replace(/\.ts$/, '.lua.map');
-            const sourceMapSource = ts.createSourceMapSource(filePathLuaMap, '');
+            const filePath = (<any>sourceFile).path;
+            const filePathLua = filePath.replace(/\.ts$/, '.lua');
+            const filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
+            const sourceMapSource = ts.createSourceMapSource(filePath, '');
 
             // create source map writer
             const emitHost = {
                 writeFile:
                     (fileName, data, writeByteOrderMark, onError, sourceFiles) =>
-                        ts.sys.writeFile(fileName, data, writeByteOrderMark)
+                        ts.sys.writeFile(fileName, data, writeByteOrderMark),
+                getCurrentDirectory: ts.sys.getCurrentDirectory,
+                getCanonicalFileName: (fileName) => fileName
             };
 
             this.sourceMapWriter = (<any>ts).createSourceMapWriter(emitHost, (<any>ts).createTextWriter(''), { sourceMap: true });
