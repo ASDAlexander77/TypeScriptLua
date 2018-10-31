@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 import { Ops, OpMode, OpCodes } from './opcodes';
+import { SourceMapGenerator } from 'source-map';
 
 class LocalVarInfo {
     public name: string;
@@ -57,6 +58,7 @@ export class CodeStorage {
     private currentDebugLine: number;
 
     public constructor(private functionContext: FunctionContext) {
+        this.currentDebugLine = 0;
     }
 
     public push(opCode: number[]) {
@@ -119,7 +121,7 @@ export class CodeStorage {
         this.code[index] = opCode;
     }
 
-    public setNodeToTrackDebugInfo(node: ts.Node) {
+    public setNodeToTrackDebugInfo(node: ts.Node, sourceMapGenerator: SourceMapGenerator) {
         if ((<any>node).__origin) {
             node = (<any>node).__origin;
         }
@@ -138,9 +140,26 @@ export class CodeStorage {
         }
 
         this.currentDebugFileName = file.fileName;
-
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
-        this.currentDebugLine = locStart.line + 1;
+
+        if (sourceMapGenerator) {
+            this.currentDebugLine++;
+            sourceMapGenerator.addMapping({
+                generated: {
+                  line: this.currentDebugLine,
+                  column: 0
+                },
+                source: file.fileName,
+                original: {
+                  line: locStart.line + 1,
+                  column: locStart.column ? locStart.column + 1 : 0
+                },
+                name: undefined
+            });
+        } else {
+            // default line location
+            this.currentDebugLine = locStart.line + 1;
+        }
     }
 
     public getDebugLine(): string {

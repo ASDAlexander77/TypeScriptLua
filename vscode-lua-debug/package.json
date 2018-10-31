@@ -34,11 +34,12 @@
         "publish": "vsce publish"
     },
     "dependencies": {
-        "await-notify": "1.0.1",
         "vscode-debugadapter": "1.27.0",
         "vscode-debugprotocol": "1.27.0",
+        "await-notify": "1.0.1",
         "cross-spawn": "^6.0.5",
-        "fs-extra": "^7.0.0"
+        "fs-extra": "^7.0.0",
+	"source-map": "^0.7.3"
     },
     "devDependencies": {
         "@types/node": "7.0.55",

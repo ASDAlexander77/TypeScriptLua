@@ -1,9 +1,11 @@
 import * as ts from 'typescript';
+import * as sourceMap from 'source-map';
 import { BinaryWriter } from './binarywriter';
 import { FunctionContext, UpvalueInfo } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
+import * as path from 'path';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
@@ -18,7 +20,8 @@ export class Emitter {
     private allowConstBigger255 = false;
     // can be used for testing to load const separately
     private splitConstFromOpCode = false;
-    private sourceMapWriter: any;
+    private sourceMapGenerator: sourceMap.SourceMapGenerator;
+    private filePathLuaMap: string;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -157,6 +160,10 @@ export class Emitter {
         // f->sizeupvalues (byte)
         this.writer.writeByte(this.functionContext.upvalues.length);
         this.emitFunction(this.functionContext);
+
+        if (this.sourceMapGenerator) {
+            ts.sys.writeFile(this.filePathLuaMap, this.sourceFileName.toString());
+        }
     }
 
     private pushFunctionContext(location: ts.Node) {
@@ -308,16 +315,16 @@ export class Emitter {
         if (len) {
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
-            return <ts.NodeArray<ts.Statement>> <any>
-            [ <ts.Statement>ts.createReturn(
-                ts.createBinary(
-                    ts.createPropertyAccess(ts.createThis(), lengthMemeber),
-                    ts.SyntaxKind.PlusToken,
-                    ts.createConditional(
-                        ts.createElementAccess(ts.createThis(), ts.createNumericLiteral('0')),
-                        ts.createNumericLiteral('1'),
-                        ts.createNumericLiteral('0'))))
-            ];
+            return <ts.NodeArray<ts.Statement>><any>
+                [<ts.Statement>ts.createReturn(
+                    ts.createBinary(
+                        ts.createPropertyAccess(ts.createThis(), lengthMemeber),
+                        ts.SyntaxKind.PlusToken,
+                        ts.createConditional(
+                            ts.createElementAccess(ts.createThis(), ts.createNumericLiteral('0')),
+                            ts.createNumericLiteral('1'),
+                            ts.createNumericLiteral('0'))))
+                ];
         }
 
         return statementsIn;
@@ -371,7 +378,7 @@ export class Emitter {
         const origin = (<ts.Node>(<any>location).__origin);
         if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = (this.hasMemberThis(origin) || this.hasNodeUsedThis(location))
-                               && !(isClassDeclaration && this.functionContext.isStatic && !isAccessor);
+                && !(isClassDeclaration && this.functionContext.isStatic && !isAccessor);
             if (createThis) {
                 const thisIsInParams = parameters && parameters.some(p => (<ts.Identifier>p.name).text === 'this');
                 if (!thisIsInParams) {
@@ -448,22 +455,12 @@ export class Emitter {
         if (this.generateSourceMap) {
             const filePath = (<any>sourceFile).path;
             const filePathLua = filePath.replace(/\.ts$/, '.lua');
-            const filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
-            const sourceMapSource = ts.createSourceMapSource(filePath, '');
+            this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
-            // create source map writer
-            const emitHost = {
-                writeFile:
-                    (fileName, data, writeByteOrderMark, onError, sourceFiles) =>
-                        ts.sys.writeFile(fileName, data, writeByteOrderMark),
-                getCurrentDirectory: ts.sys.getCurrentDirectory,
-                getCanonicalFileName: (fileName) => fileName
-            };
-
-            this.sourceMapWriter = (<any>ts).createSourceMapWriter(emitHost, (<any>ts).createTextWriter(''), { sourceMap: true });
-            this.sourceMapWriter.initialize(filePathLua, filePathLuaMap, sourceFile);
-            this.sourceMapWriter.setSourceFile(sourceMapSource);
-            this.sourceMapWriter.emitPos(0);
+            this.sourceMapGenerator = new sourceMap.SourceMapGenerator({
+                file: path.basename(filePathLua),
+                sourceRoot: path.dirname(filePath)
+            });
         }
 
 
@@ -510,7 +507,7 @@ export class Emitter {
 
     private processStatementInternal(node: ts.Statement): void {
 
-        this.functionContext.code.setNodeToTrackDebugInfo(node);
+        this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
         if (this.extraDebugEmbed) {
             this.extraDebugTracePrint(node);
         }
@@ -585,7 +582,7 @@ export class Emitter {
     private processExpression(nodeIn: ts.Expression): void {
         const node = this.preprocess(nodeIn);
 
-        this.functionContext.code.setNodeToTrackDebugInfo(node);
+        this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
         switch (node.kind) {
             case ts.SyntaxKind.NewExpression: this.processNewExpression(<ts.NewExpression>node); return;
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
