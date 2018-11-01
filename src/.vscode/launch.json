@@ -22,6 +22,7 @@
             "cwd": "${workspaceFolder}/../experiments/jslib",
             "args": [
                 "-singleModule",
+                "-sourcemap",
                 "tsconfig.json"
             ]
         },
@@ -32,7 +33,6 @@
             "program": "${workspaceFolder}/../__out/main.js",
             "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
             "args": [
-                "-extradebug",
                 "-sourcemap",
                 "tsconfig.json"
             ]
@@ -44,6 +44,7 @@
             "program": "${workspaceFolder}/../__out/main.js",
             "cwd": "${workspaceFolder}/../experiments/BABYLON",
             "args": [
+                "-sourcemap",
                 "tsconfig.json"
             ]
         },
