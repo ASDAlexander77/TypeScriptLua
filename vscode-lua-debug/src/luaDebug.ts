@@ -8,7 +8,8 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { LuaRuntime, LuaBreakpoint, VariableTypes } from './luaRuntime';
 import { Subject } from 'await-notify';
-
+import * as sourceMap from 'source-map';
+import { readJson } from 'fs-extra';
 
 /**
  * This interface describes the lua debug specific launch attributes
@@ -42,6 +43,8 @@ export class LuaDebugSession extends LoggingDebugSession {
     private _configurationDone = new Subject();
 
     private _dumpInProgress: Subject;
+
+    private _sourceMapCache = new Map<string, sourceMap.SourceMapConsumer>();
 
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
@@ -176,13 +179,28 @@ export class LuaDebugSession extends LoggingDebugSession {
         const maxLevels = typeof args.levels === 'number' ? args.levels : 1000;
         const endFrame = startFrame + maxLevels;
 
-        const stk = await this._runtime.stack(startFrame, endFrame);
+        const stk = await this.getStackTrace(startFrame, endFrame);
 
         response.body = {
-            stackFrames: stk.frames.map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
+            stackFrames: stk.frames.map(f => this.convertFrameFromMap(f)).map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
             totalFrames: stk.count
         };
         this.sendResponse(response);
+    }
+
+    protected async getStackTrace(startFrame, endFrame) {
+        const stk = await this._runtime.stack(startFrame, endFrame);
+
+        // creating cache of map files
+        for (const frame of stk.frames) {
+            if (frame.filename.endsWith('.map')) {
+                if (!this._sourceMapCache[frame.filename]) {
+                     this._sourceMapCache[frame.filename] = await new sourceMap.SourceMapConsumer(await readJson(frame.filename));
+                }
+            }
+        }
+
+        return stk;
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
@@ -291,8 +309,28 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     //---- helpers
-
     private createSource(filePath: string): Source {
+        // default response
         return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'lua-file-adapter-data');
+    }
+
+    private convertFrameFromMap(frame: any) {
+        if (frame.filename.endsWith('.map')) {
+            const originalPosition = this.getOriginalPositionFor(frame.filename, 1, 0);
+            frame.filename = originalPosition.source;
+            frame.filename = originalPosition.line;
+            frame.filename = originalPosition.column;
+        }
+
+        return frame;
+    }
+
+    private async getOriginalPositionFor(filePath: string, line: number, column: number): any {
+        // check if filename is map file
+        const consumer = this._sourceMapCache[filePath];
+
+        // TODO: do not forget to call destroy
+        ////consumer.destroy();
+        return consumer.originalPositionFor({ line: 1, column: 0 });
     }
 }
