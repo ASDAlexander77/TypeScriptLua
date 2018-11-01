@@ -252,12 +252,6 @@ export class Emitter {
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
 
-        if (!functionContext.debug_location) {
-            functionContext.debug_location = '@' + file.fileName;
-        } else {
-            functionContext.debug_location = '@' + this.fileModuleName + '.lua';
-        }
-
         if (this.sourceMapGenerator) {
             const rootPath = (<any>this.sourceMapGenerator)._sourceRoot;
             const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
@@ -265,54 +259,60 @@ export class Emitter {
                 ? this.filePathLuaMap.substring(positionFrom)
                 : this.filePathLuaMap;
             functionContext.debug_location = '@' + fileSubPath;
-        }
-
-        switch (node.kind) {
-            case ts.SyntaxKind.FunctionDeclaration:
-                functionContext.debug_location +=
-                    ':' + ((<ts.FunctionDeclaration>node).name ? (<ts.FunctionDeclaration>node).name.text : 'noname');
-                break;
-            case ts.SyntaxKind.FunctionExpression:
-                functionContext.debug_location +=
-                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'noname');
-                break;
-            case ts.SyntaxKind.ArrowFunction:
-                functionContext.debug_location +=
-                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'arrow');
-                break;
-            case ts.SyntaxKind.TryStatement:
-                functionContext.debug_location += ':try';
-                break;
-            case ts.SyntaxKind.Constructor:
-                functionContext.debug_location += ':' + (<ts.ClassDeclaration>node.parent).name.text + ':ctor';
-                break;
-            case ts.SyntaxKind.MethodDeclaration:
-                functionContext.debug_location +=
-                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                    ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
-                break;
-            case ts.SyntaxKind.GetAccessor:
-                functionContext.debug_location +=
-                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                    ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
-                break;
-            case ts.SyntaxKind.SetAccessor:
-                functionContext.debug_location +=
-                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                    ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
-                break;
-            case ts.SyntaxKind.SourceFile:
-                break;
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        if (node.kind !== ts.SyntaxKind.SourceFile) {
-            functionContext.linedefined = locStart.line + 1;
-            functionContext.lastlinedefined = locEnd.line + 1;
         } else {
-            functionContext.linedefined = 0;
-            functionContext.lastlinedefined = 0;
+            if (!functionContext.debug_location) {
+                functionContext.debug_location = '@' + file.fileName;
+            } else {
+                functionContext.debug_location = '@' + this.fileModuleName + '.lua';
+            }
+
+            switch (node.kind) {
+                case ts.SyntaxKind.FunctionDeclaration:
+                    functionContext.debug_location +=
+                        ':' + ((<ts.FunctionDeclaration>node).name ? (<ts.FunctionDeclaration>node).name.text : 'noname');
+                    break;
+                case ts.SyntaxKind.FunctionExpression:
+                    functionContext.debug_location +=
+                        ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'noname');
+                    break;
+                case ts.SyntaxKind.ArrowFunction:
+                    functionContext.debug_location +=
+                        ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'arrow');
+                    break;
+                case ts.SyntaxKind.TryStatement:
+                    functionContext.debug_location += ':try';
+                    break;
+                case ts.SyntaxKind.Constructor:
+                    functionContext.debug_location += ':' + (<ts.ClassDeclaration>node.parent).name.text + ':ctor';
+                    break;
+                case ts.SyntaxKind.MethodDeclaration:
+                    functionContext.debug_location +=
+                        ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                        ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
+                    break;
+                case ts.SyntaxKind.GetAccessor:
+                    functionContext.debug_location +=
+                        ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                        ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
+                    break;
+                case ts.SyntaxKind.SetAccessor:
+                    functionContext.debug_location +=
+                        ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                        ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
+                    break;
+                case ts.SyntaxKind.SourceFile:
+                    break;
+                default:
+                    throw new Error('Not Implemented');
+            }
+
+            if (node.kind !== ts.SyntaxKind.SourceFile) {
+                functionContext.linedefined = locStart.line + 1;
+                functionContext.lastlinedefined = locEnd.line + 1;
+            } else {
+                functionContext.linedefined = 0;
+                functionContext.lastlinedefined = 0;
+            }
         }
     }
 
