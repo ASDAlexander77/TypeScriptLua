@@ -9,7 +9,7 @@ import { basename } from 'path';
 import { LuaRuntime, LuaBreakpoint, VariableTypes } from './luaRuntime';
 import { Subject } from 'await-notify';
 import * as sourceMap from 'source-map';
-import { readJson } from 'fs-extra';
+import * as fs from 'fs-extra';
 
 /**
  * This interface describes the lua debug specific launch attributes
@@ -18,6 +18,8 @@ import { readJson } from 'fs-extra';
  * The interface should always match this schema.
  */
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+    /** Absolute path to the working directory of the program being debugged. */
+    cwd: string;
     /** An absolute path to the "program" to debug. */
     program: string;
     /** Automatically stop target after launch. If not specified, target does not stop. */
@@ -135,6 +137,11 @@ export class LuaDebugSession extends LoggingDebugSession {
         // start the program in the runtime
         await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
 
+        // set current folder
+        if (args.cwd) {
+            process.chdir(args.cwd);
+        }
+
         this.sendResponse(response);
     }
 
@@ -182,7 +189,9 @@ export class LuaDebugSession extends LoggingDebugSession {
         const stk = await this.getStackTrace(startFrame, endFrame);
 
         response.body = {
-            stackFrames: stk.frames.map(f => this.convertFrameFromMap(f)).map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
+            stackFrames: stk.frames
+                .map(f => this.convertFrameFromMap(f))
+                .map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
             totalFrames: stk.count
         };
         this.sendResponse(response);
@@ -193,9 +202,21 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         // creating cache of map files
         for (const frame of stk.frames) {
-            if (frame.filename.endsWith('.map')) {
-                if (!this._sourceMapCache[frame.filename]) {
-                     this._sourceMapCache[frame.filename] = await new sourceMap.SourceMapConsumer(await readJson(frame.filename));
+            if (frame.file.endsWith('.map')) {
+                if (!this._sourceMapCache[frame.file]) {
+                    const exists = await new Promise((resolve, reject) => {
+                        fs.exists(frame.file, (exists) => {
+                            resolve(exists);
+                        }
+                    )});
+
+                    if (exists) {
+                        const json = await fs.readJson(frame.file);
+                        this._sourceMapCache[frame.file] = await new sourceMap.SourceMapConsumer(json);
+                    } else {
+                        console.error(`Could not load file ${frame.file}, current folder: ${process.cwd()}`);
+                    }
+
                 }
             }
         }
@@ -315,22 +336,27 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     private convertFrameFromMap(frame: any) {
-        if (frame.filename.endsWith('.map')) {
-            const originalPosition = this.getOriginalPositionFor(frame.filename, 1, 0);
-            frame.filename = originalPosition.source;
-            frame.filename = originalPosition.line;
-            frame.filename = originalPosition.column;
+        if (frame.file.endsWith('.map')) {
+            const originalPosition = this.getOriginalPositionFor(frame.file, 1, 0);
+            if (originalPosition) {
+                frame.source = originalPosition.source;
+                frame.line = originalPosition.line;
+                frame.column = originalPosition.column;
+            }
         }
 
         return frame;
     }
 
-    private async getOriginalPositionFor(filePath: string, line: number, column: number): any {
+    private getOriginalPositionFor(filePath: string, line: number, column: number): any {
         // check if filename is map file
         const consumer = this._sourceMapCache[filePath];
+        if (!consumer) {
+            return undefined;
+        }
 
         // TODO: do not forget to call destroy
         ////consumer.destroy();
-        return consumer.originalPositionFor({ line: 1, column: 0 });
+        return consumer.originalPositionFor({ line, column });
     }
 }

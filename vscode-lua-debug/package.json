@@ -74,6 +74,11 @@
                             "program"
                         ],
                         "properties": {
+                            "cwd": {
+                                "type": "string",
+                                "description": "Absolute path to the working directory of the program being debugged.",
+                                "default": "${workspaceFolder}"
+                            },
                             "program": {
                                 "type": "string",
                                 "description": "Absolute path to a text file.",
@@ -102,6 +107,7 @@
                         "type": "lua",
                         "request": "launch",
                         "name": "Ask for file name",
+                        "cwd": "${workspaceFolder}",
                         "program": "${workspaceFolder}/${command:AskForProgramName}",
                         "luaExecutable": "lua",
                         "stopOnEntry": true
@@ -115,6 +121,7 @@
                             "type": "lua",
                             "request": "launch",
                             "name": "Ask for file name",
+                            "cwd": "${workspaceFolder}",
                             "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
                             "luaExecutable": "lua",
                             "stopOnEntry": true
