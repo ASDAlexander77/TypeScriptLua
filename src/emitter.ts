@@ -258,6 +258,15 @@ export class Emitter {
             functionContext.debug_location = '@' + this.fileModuleName + '.lua';
         }
 
+        if (this.sourceMapGenerator) {
+            const rootPath = (<any>this.sourceMapGenerator)._sourceRoot;
+            const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
+            const fileSubPath = this.filePathLuaMap.startsWith(rootPath)
+                ? this.filePathLuaMap.substring(positionFrom)
+                : this.filePathLuaMap;
+            functionContext.debug_location = '@' + fileSubPath;
+        }
+
         switch (node.kind) {
             case ts.SyntaxKind.FunctionDeclaration:
                 functionContext.debug_location +=
