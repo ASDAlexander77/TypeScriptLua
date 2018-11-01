@@ -339,7 +339,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         if (frame.file.endsWith('.map')) {
             const originalPosition = this.getOriginalPositionFor(frame.file, 1, 0);
             if (originalPosition) {
-                frame.source = originalPosition.source;
+                frame.file = originalPosition.source;
                 frame.line = originalPosition.line;
                 frame.column = originalPosition.column;
             }
