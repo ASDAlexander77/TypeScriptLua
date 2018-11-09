@@ -69,7 +69,7 @@ export class Emitter {
             }
         }
 
-        this.generateSourceMap = cmdLineOptions.sourcemap ? true : false;
+        this.generateSourceMap = (options.sourceMap || false) || (cmdLineOptions.sourcemap ? true : false);
     }
 
     private lib = '                                                 \
@@ -237,10 +237,10 @@ export class Emitter {
 
     private processDebugInfo(nodeIn: ts.Node, functionContext: FunctionContext) {
         let node = nodeIn;
-        let file = (<any>ts).getSourceFileOfNode(node);
+        let file = node.getSourceFile();
         if (!file) {
             node = (<any>node).__origin;
-            file = (<any>ts).getSourceFileOfNode(node);
+            file = node.getSourceFile();
             if (!file) {
                 return;
             }
@@ -250,8 +250,8 @@ export class Emitter {
             return;
         }
 
-        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
-        const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.end);
+        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.getStart(node.getSourceFile()));
+        const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.getEnd());
 
         if (this.sourceMapGenerator) {
             const rootPath = (<any>this.sourceMapGenerator)._sourceRoot;

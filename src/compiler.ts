@@ -65,6 +65,7 @@ export class Run {
         };
 
         const parsedCommandLine = ts.parseJsonSourceFileConfigFileContent(configFile, parseConfigHost, './');
+
         const program = this.createProgram(ts.createProgram({
             rootNames: parsedCommandLine.fileNames,
             options: parsedCommandLine.options
@@ -115,6 +116,7 @@ export class Run {
                 if (sources.some(sf => s.fileName.endsWith(sf))) {
                     console.log('File: ' + s.fileName);
                     const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
+
                     emitter.processNode(s);
                     emitter.save();
 

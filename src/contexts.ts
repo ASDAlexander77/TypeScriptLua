@@ -134,13 +134,13 @@ export class CodeStorage {
             return;
         }
 
-        const file = (<any>ts).getSourceFileOfNode(node);
+        const file = node.getSourceFile();
         if (!file) {
             return;
         }
 
         this.currentDebugFileName = file.fileName;
-        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.pos);
+        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.getStart(node.getSourceFile()));
 
         if (sourceMapGenerator) {
             this.currentDebugLine++;
