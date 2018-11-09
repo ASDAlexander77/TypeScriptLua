@@ -336,8 +336,8 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     private convertFrameFromMap(frame: any) {
-        if (frame.file.endsWith('.map')) {
-            const originalPosition = this.getOriginalPositionFor(frame.file, frame.line, frame.column);
+        if (frame.file.endsWith('.map') && frame.line > 0) {
+            const originalPosition = this.getOriginalPositionFor(frame.file, frame.line, frame.column || 0);
             if (originalPosition) {
                 frame.file = originalPosition.source;
                 frame.line = originalPosition.line;
