@@ -22,6 +22,7 @@ export class Emitter {
     private splitConstFromOpCode = false;
     private sourceMapGenerator: sourceMap.SourceMapGenerator;
     private filePathLuaMap: string;
+    private ignoreDebugInfo: boolean;
 
     public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
         this.resolver = new IdentifierResolver(typeChecker);
@@ -516,7 +517,10 @@ export class Emitter {
 
     private processStatementInternal(node: ts.Statement): void {
 
-        this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
+        if (!this.ignoreDebugInfo) {
+            this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
+        }
+
         if (this.extraDebugEmbed) {
             this.extraDebugTracePrint(node);
         }
@@ -591,7 +595,9 @@ export class Emitter {
     private processExpression(nodeIn: ts.Expression): void {
         const node = this.preprocess(nodeIn);
 
-        this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
+        // we need to process it for statements only
+        //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
+
         switch (node.kind) {
             case ts.SyntaxKind.NewExpression: this.processNewExpression(<ts.NewExpression>node); return;
             case ts.SyntaxKind.CallExpression: this.processCallExpression(<ts.CallExpression>node); return;
@@ -715,21 +721,28 @@ export class Emitter {
     private processTSNode(node: ts.Node, transformText?: (string) => string) {
         const statements = this.transpileTSNode(node, transformText);
         statements.forEach(s => {
+            this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
+            this.ignoreDebugInfo = true;
             this.processStatementInternal(s);
+            this.ignoreDebugInfo = false;
         });
     }
 
     private processTSCode(code: string, parse?: any) {
         const statements = (!parse) ? this.transpileTSCode(code) : this.parseTSCode(code);
         statements.forEach(s => {
+            this.ignoreDebugInfo = true;
             this.processStatementInternal(s);
+            this.ignoreDebugInfo = false;
         });
     }
 
     private processJSCode(code: string) {
         const statements = this.parseJSCode(code);
         statements.forEach(s => {
+            this.ignoreDebugInfo = true;
             this.processStatementInternal(s);
+            this.ignoreDebugInfo = false;
         });
     }
 
