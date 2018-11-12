@@ -471,6 +471,8 @@ export class Emitter {
                 file: path.basename(filePathLua),
                 sourceRoot: path.dirname(filePath)
             });
+
+            (<any>this.sourceMapGenerator).__lastDebugLine = 0;
         }
 
 
