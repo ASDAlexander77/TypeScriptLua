@@ -336,12 +336,18 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     private convertFrameFromMap(frame: any) {
-        if (frame.file.endsWith('.map') && frame.line > 0) {
-            const originalPosition = this.getOriginalPositionFor(frame.file, frame.line, frame.column || 0);
+        if (frame.file.endsWith('.map')) {
+            const originalPosition = this.getOriginalPositionFor(frame.file, frame.line || 1, frame.column || 0);
             if (originalPosition) {
                 frame.file = originalPosition.source;
-                frame.line = originalPosition.line;
-                frame.column = originalPosition.column;
+
+                if (frame.line > 0) {
+                    frame.line = originalPosition.line;
+                    frame.column = originalPosition.column;
+                } else {
+                    frame.line = 1;
+                    frame.column = 0;
+                }
             }
         }
 

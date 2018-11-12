@@ -143,7 +143,7 @@ export class CodeStorage {
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.getStart(node.getSourceFile()));
 
         if (sourceMapGenerator) {
-            const debugLine = ++((<any>sourceMapGenerator).__lastDebugLine);
+            const debugLine = this.currentDebugLine = ++((<any>sourceMapGenerator).__lastDebugLine);
             sourceMapGenerator.addMapping({
                 generated: {
                   line: debugLine,
