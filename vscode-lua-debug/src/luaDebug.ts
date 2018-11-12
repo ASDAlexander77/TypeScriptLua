@@ -144,8 +144,6 @@ export class LuaDebugSession extends LoggingDebugSession {
             process.chdir(args.cwd);
         }
 
-        await this.readAllMapFile(process.cwd());
-
         this.sendResponse(response);
     }
 
@@ -204,18 +202,17 @@ export class LuaDebugSession extends LoggingDebugSession {
     protected async getStackTrace(startFrame, endFrame) {
         const stk = await this._runtime.stack(startFrame, endFrame);
 
+        if (this._mapFiles === undefined) {
+            await this.readAllMapFile(process.cwd());
+        }
+
         // creating cache of map files
         for (const frame of stk.frames) {
             if (frame.file && !this._sourceMapCache[frame.file]) {
                 const mapFile = frame.file.endsWith('.map') ? frame.file : frame.file + ".map";
-                const exists = await new Promise((resolve, reject) => {
-                    fs.exists(mapFile, (exists) => {
-                        resolve(exists);
-                    }
-                )});
-
-                if (exists) {
-                    const json = await fs.readJson(mapFile);
+                const filePath = this.getFilePathOfMapFile(mapFile);
+                if (filePath) {
+                    const json = await fs.readJson(filePath);
                     this._sourceMapCache[frame.file] = await new sourceMap.SourceMapConsumer(json);
                 } else {
                     console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
@@ -360,6 +357,34 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
 
         return false;
+    }
+
+    private getFilePathOfMapFile(fileMapName: string): string | undefined {
+        if (!this._mapFiles) {
+            return undefined;
+        }
+
+        return this.getFilePathOfMapFileInternal(fileMapName, <Map<string, any>>this._mapFiles, '');
+    }
+
+    private getFilePathOfMapFileInternal(fileMapName: string, mapFiles: Map<string, any>, path: string): string | undefined {
+        if (!this._mapFiles) {
+            return undefined;
+        }
+
+        for (const item in mapFiles) {
+            if (item === fileMapName) {
+                return join(path, item);
+            }
+
+            const value = mapFiles[item];
+            if (value !== true) {
+                const subPath = this.getFilePathOfMapFileInternal(fileMapName, <Map<string, any>>value, item);
+                if (subPath && subPath.endsWith('.map')) {
+                    return join(path, subPath);
+                }
+            }
+        }
     }
 
     private createSource(filePath: string): Source {
