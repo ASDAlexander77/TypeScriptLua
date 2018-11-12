@@ -21,6 +21,7 @@ export class Emitter {
     // can be used for testing to load const separately
     private splitConstFromOpCode = false;
     private sourceMapGenerator: sourceMap.SourceMapGenerator;
+    private filePathLua: string;
     private filePathLuaMap: string;
     private ignoreDebugInfo: boolean;
 
@@ -256,9 +257,9 @@ export class Emitter {
         if (this.sourceMapGenerator) {
             const rootPath = (<any>this.sourceMapGenerator)._sourceRoot;
             const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
-            const fileSubPath = this.filePathLuaMap.startsWith(rootPath)
-                ? this.filePathLuaMap.substring(positionFrom)
-                : this.filePathLuaMap;
+            const fileSubPath = this.filePathLua.startsWith(rootPath)
+                ? this.filePathLua.substring(positionFrom)
+                : this.filePathLua;
             functionContext.debug_location = '@' + fileSubPath;
         } else {
             if (!functionContext.debug_location) {
@@ -463,12 +464,12 @@ export class Emitter {
 
     private processFile(sourceFile: ts.SourceFile): void {
         if (this.generateSourceMap) {
-            const filePath = (<any>sourceFile).path;
-            const filePathLua = filePath.replace(/\.ts$/, '.lua');
+            const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).path);
+            this.filePathLua = filePath.replace(/\.ts$/, '.lua');
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
             this.sourceMapGenerator = new sourceMap.SourceMapGenerator({
-                file: path.basename(filePathLua),
+                file: path.basename(this.filePathLua),
                 sourceRoot: path.dirname(filePath)
             });
 

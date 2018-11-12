@@ -202,21 +202,19 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         // creating cache of map files
         for (const frame of stk.frames) {
-            if (frame.file.endsWith('.map')) {
-                if (!this._sourceMapCache[frame.file]) {
-                    const exists = await new Promise((resolve, reject) => {
-                        fs.exists(frame.file, (exists) => {
-                            resolve(exists);
-                        }
-                    )});
-
-                    if (exists) {
-                        const json = await fs.readJson(frame.file);
-                        this._sourceMapCache[frame.file] = await new sourceMap.SourceMapConsumer(json);
-                    } else {
-                        console.error(`Could not load file ${frame.file}, current folder: ${process.cwd()}`);
+            if (frame.file && !this._sourceMapCache[frame.file]) {
+                const mapFile = frame.file.endsWith('.map') ? frame.file : frame.file + ".map";
+                const exists = await new Promise((resolve, reject) => {
+                    fs.exists(mapFile, (exists) => {
+                        resolve(exists);
                     }
+                )});
 
+                if (exists) {
+                    const json = await fs.readJson(mapFile);
+                    this._sourceMapCache[frame.file] = await new sourceMap.SourceMapConsumer(json);
+                } else {
+                    console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
                 }
             }
         }
@@ -336,7 +334,7 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     private convertFrameFromMap(frame: any) {
-        if (frame.file.endsWith('.map')) {
+        if (frame.file in this._sourceMapCache) {
             const originalPosition = this.getOriginalPositionFor(frame.file, frame.line || 1, frame.column || 0);
             if (originalPosition) {
                 frame.file = originalPosition.source;
