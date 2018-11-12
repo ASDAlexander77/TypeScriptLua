@@ -5,7 +5,7 @@ import {
     Thread, StackFrame, Scope, Source, Handles, Breakpoint
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { basename } from 'path';
+import { basename, join } from 'path';
 import { LuaRuntime, LuaBreakpoint, VariableTypes } from './luaRuntime';
 import { Subject } from 'await-notify';
 import * as sourceMap from 'source-map';
@@ -47,6 +47,8 @@ export class LuaDebugSession extends LoggingDebugSession {
     private _dumpInProgress: Subject;
 
     private _sourceMapCache = new Map<string, sourceMap.SourceMapConsumer>();
+
+    private _mapFiles: true | Map<string, any | boolean>;
 
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
@@ -141,6 +143,8 @@ export class LuaDebugSession extends LoggingDebugSession {
         if (args.cwd) {
             process.chdir(args.cwd);
         }
+
+        await this.readAllMapFile(process.cwd());
 
         this.sendResponse(response);
     }
@@ -324,28 +328,56 @@ export class LuaDebugSession extends LoggingDebugSession {
             result: reply ? reply : `evaluate(context: '${args.context}', '${args.expression}')`,
             variablesReference: 0
         };
+
         this.sendResponse(response);
     }
 
     //---- helpers
+    private async readAllMapFile(cwd: string) {
+        const files = await this.readAllMapFileInDirectory(cwd);
+        if (files !== false) {
+            this._mapFiles = files;
+        }
+    }
+
+    private async readAllMapFileInDirectory(filePath: string) {
+        const stat = await fs.stat(filePath);
+        if (stat.isDirectory()) {
+            const allFiles = await fs.readdir(filePath);
+            const files = new Map<string, any | boolean>();
+            for (const file of allFiles) {
+                const value = await this.readAllMapFileInDirectory(join(filePath, file));
+                if (value !== false) {
+                    files[file] = value;
+                }
+            }
+
+            return files;
+        }
+
+        if (stat.isFile()) {
+            return filePath.endsWith('.map');
+        }
+
+        return false;
+    }
+
     private createSource(filePath: string): Source {
         // default response
         return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'lua-file-adapter-data');
     }
 
     private convertFrameFromMap(frame: any) {
-        if (frame.file in this._sourceMapCache) {
-            const originalPosition = this.getOriginalPositionFor(frame.file, frame.line || 1, frame.column || 0);
-            if (originalPosition) {
-                frame.file = originalPosition.source;
+        const originalPosition = this.getOriginalPositionFor(frame.file, frame.line || 1, frame.column || 0);
+        if (originalPosition) {
+            frame.file = originalPosition.source;
 
-                if (frame.line > 0) {
-                    frame.line = originalPosition.line;
-                    frame.column = originalPosition.column;
-                } else {
-                    frame.line = 1;
-                    frame.column = 0;
-                }
+            if (frame.line > 0) {
+                frame.line = originalPosition.line;
+                frame.column = originalPosition.column;
+            } else {
+                frame.line = 1;
+                frame.column = 0;
             }
         }
 
