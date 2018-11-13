@@ -48,6 +48,8 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     private _sourceMapCache = new Map<string, sourceMap.SourceMapConsumer>();
 
+    private _sourceMapFilePathCache = new Map<string, string>();
+
     private _mapFiles: true | Map<string, any | boolean>;
 
 	/**
@@ -133,16 +135,19 @@ export class LuaDebugSession extends LoggingDebugSession {
         // make sure to 'Stop' the buffered logging if 'trace' is not set
         logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
-        // wait until configuration has finished (and configurationDoneRequest has been called)
-        await this._configurationDone.wait(1000);
-
-        // start the program in the runtime
-        await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
-
         // set current folder
         if (args.cwd) {
             process.chdir(args.cwd);
         }
+
+        if (this._mapFiles === undefined) {
+            await this.readAllMapFile(process.cwd());
+        }
+        // start the program in the runtime
+        await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
+
+        // wait until configuration has finished (and configurationDoneRequest has been called)
+        await this._configurationDone.wait(1000);
 
         this.sendResponse(response);
     }
@@ -205,10 +210,6 @@ export class LuaDebugSession extends LoggingDebugSession {
     protected async getStackTrace(startFrame, endFrame) {
         const stk = await this._runtime.stack(startFrame, endFrame);
 
-        if (this._mapFiles === undefined) {
-            await this.readAllMapFile(process.cwd());
-        }
-
         // creating cache of map files
         for (const frame of stk.frames) {
             if (frame.file && !this._sourceMapCache[frame.file]) {
@@ -216,6 +217,7 @@ export class LuaDebugSession extends LoggingDebugSession {
                 const filePath = this.getFilePathOfMapFile(mapFile);
                 if (filePath) {
                     const json = await fs.readJson(filePath);
+                    this._sourceMapFilePathCache[frame.file] = filePath;
                     this._sourceMapCache[frame.file] = await new sourceMap.SourceMapConsumer(json);
                 } else {
                     console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
@@ -301,6 +303,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         let reply: string | undefined = undefined;
 
+        /*
         if (args.context === 'repl') {
             // 'evaluate' supports to create and delete breakpoints from the 'repl':
             const matches = /new +([0-9]+)/.exec(args.expression);
@@ -323,6 +326,7 @@ export class LuaDebugSession extends LoggingDebugSession {
                 }
             }
         }
+        */
 
         response.body = {
             result: reply ? reply : `evaluate(context: '${args.context}', '${args.expression}')`,
@@ -423,7 +427,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             return path;
         }
 
-        return this.replaceFileName(path, consumer.file);
+        return this.replaceFileName(this._sourceMapFilePathCache[origin], consumer.file);
     }
 
     private replaceFileName(path: string, newFileName: string) {
@@ -433,7 +437,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
 
         if (subPathIndex === -1) {
-            return path;
+            return newFileName;
         }
 
         return path.substr(0, subPathIndex + 1) + newFileName;
