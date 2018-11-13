@@ -150,16 +150,19 @@ export class LuaDebugSession extends LoggingDebugSession {
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) {
 
         const path = this.convertPathFromMap(<string>args.source.path, args.source.origin);
-        const clientLines = this.convertLinesFromMap(args.lines || []);
+        const clientLines = args.lines || [];
+        const originLines = this.convertLinesFromMap(clientLines, args.source.origin, args.source.name);
 
         // clear all breakpoints for this file
         this._runtime.clearBreakpoints(path);
 
         // set and verify breakpoint locations
         const actualBreakpoints = new Array<DebugProtocol.Breakpoint>();
-        for (const element of clientLines) {
+        for (let index = 0; index < originLines.length; index++) {
+            const element = originLines[index];
+            const fileLine = clientLines[index];
             let { verified, line, id } = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(element));
-            const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(line));
+            const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(fileLine));
             bp.id = id;
             actualBreakpoints.push(bp);
         }
@@ -436,17 +439,32 @@ export class LuaDebugSession extends LoggingDebugSession {
         return path.substr(0, subPathIndex + 1) + newFileName;
     }
 
-    private convertLinesFromMap(lines: number[], origin?: string): number[] {
+    private convertLinesFromMap(lines: number[], origin?: string, sourceFile?: string): number[] {
         if (!origin) {
             return lines;
         }
 
-        const consumer = this._sourceMapCache[origin];
+        const consumer: sourceMap.SourceMapConsumer = this._sourceMapCache[origin];
         if (!consumer) {
             return lines;
         }
 
-        return [];
+        const originLines = new Array<number>();
+        for (const line of lines) {
+            const originPosition = consumer.generatedPositionFor({
+                source: sourceFile || '',
+                line: line,
+                column: 0
+            });
+
+            if (originPosition && originPosition.line) {
+                originLines.push(originPosition.line);
+            } else {
+                originLines.push(line);
+            }
+        }
+
+        return originLines;
     }
 
     private getOriginalPositionFor(filePath: string, line: number, column: number): any {
