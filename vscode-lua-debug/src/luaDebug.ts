@@ -6,7 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename, join } from 'path';
-import { LuaRuntime, LuaBreakpoint, VariableTypes } from './luaRuntime';
+import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo } from './luaRuntime';
 import { Subject } from 'await-notify';
 import * as sourceMap from 'source-map';
 import * as fs from 'fs-extra';
@@ -149,8 +149,8 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) {
 
-        const path = <string>args.source.path;
-        const clientLines = args.lines || [];
+        const path = this.convertPathFromMap(<string>args.source.path, args.source.origin);
+        const clientLines = this.convertLinesFromMap(args.lines || []);
 
         // clear all breakpoints for this file
         this._runtime.clearBreakpoints(path);
@@ -193,7 +193,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         response.body = {
             stackFrames: stk.frames
                 .map(f => this.convertFrameFromMap(f))
-                .map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
+                .map(f => new StackFrame(f.index, f.name, this.createSource(f.file, f.origin), this.convertDebuggerLineToClient(f.line))),
             totalFrames: stk.count
         };
         this.sendResponse(response);
@@ -387,14 +387,15 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
     }
 
-    private createSource(filePath: string): Source {
+    private createSource(filePath: string, origin?: string): Source {
         // default response
-        return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'lua-file-adapter-data');
+        return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, origin, 'lua-file-adapter-data');
     }
 
-    private convertFrameFromMap(frame: any) {
+    private convertFrameFromMap(frame: StartFrameInfo) {
         const originalPosition = this.getOriginalPositionFor(frame.file, frame.line || 1, frame.column || 0);
         if (originalPosition) {
+            frame.origin = frame.file;
             frame.file = originalPosition.source;
 
             if (frame.line > 0) {
@@ -407,6 +408,45 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
 
         return frame;
+    }
+
+    private convertPathFromMap(path: string, origin?: string) {
+        if (!origin) {
+            return path;
+        }
+
+        const consumer = this._sourceMapCache[origin];
+        if (!consumer) {
+            return path;
+        }
+
+        return this.replaceFileName(path, consumer.file);
+    }
+
+    private replaceFileName(path: string, newFileName: string) {
+        let subPathIndex = path.lastIndexOf('\\');
+        if (subPathIndex === -1) {
+            subPathIndex = path.lastIndexOf('/');
+        }
+
+        if (subPathIndex === -1) {
+            return path;
+        }
+
+        return path.substr(0, subPathIndex + 1) + newFileName;
+    }
+
+    private convertLinesFromMap(lines: number[], origin?: string): number[] {
+        if (!origin) {
+            return lines;
+        }
+
+        const consumer = this._sourceMapCache[origin];
+        if (!consumer) {
+            return lines;
+        }
+
+        return [];
     }
 
     private getOriginalPositionFor(filePath: string, line: number, column: number): any {

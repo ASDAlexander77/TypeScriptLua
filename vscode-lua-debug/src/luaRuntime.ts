@@ -12,6 +12,20 @@ export interface LuaBreakpoint {
     verified: boolean;
 }
 
+export interface StartFrameInfo {
+    index: number;
+    name: string;
+    file: string;
+    line: number;
+    column?: number;
+    origin?: string;
+}
+
+export interface StartFrameInfos {
+    count: number;
+    frames: StartFrameInfo[];
+}
+
 export enum VariableTypes {
     Local,
     Global,
@@ -286,13 +300,13 @@ class LuaSpawnedDebugProcess {
         return success;
     }
 
-    public async stack(startFrame: number, endFrame: number) {
+    public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
         const parseLine = /(\[DEBUG\]\>\s)?\[(\d+)\](\*\*\*)?\s([^\s]*)\sin\s(.*)/;
         const parseFileNameAndLine = /(.*):(\d+)$/;
 
         await this._commands.stack();
 
-        const frames = new Array<any>();
+        const frames = new Array<StartFrameInfo>();
         // every word of the current line becomes a stack frame.
 
         await this.defaultDebugProcessStage((line) => {
@@ -315,7 +329,7 @@ class LuaSpawnedDebugProcess {
                     const fileName = fileIndex === -1 ? locationWithoutLine : locationWithoutLine.substring(0, fileIndex);
 
                     if (fileName !== "stdin" && fileName !== "C") {
-                        frames.push({
+                        frames.push(<StartFrameInfo>{
                             index: frames.length,
                             name: `${functionName}(${index})`,
                             file: fileName,
@@ -326,7 +340,7 @@ class LuaSpawnedDebugProcess {
             }
         });
 
-        return {
+        return <StartFrameInfos>{
             frames: frames,
             count: frames.length
         };
@@ -630,7 +644,7 @@ export class LuaRuntime extends EventEmitter {
 	/**
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
 	 */
-    public async stack(startFrame: number, endFrame: number) {
+    public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
         return await this._luaExe.stack(startFrame, endFrame);
     }
 
