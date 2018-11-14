@@ -8,7 +8,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename, join } from 'path';
 import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo } from './luaRuntime';
 import { Subject } from 'await-notify';
-import * as sourceMap from 'source-map';
+import * as sm from 'source-map';
 import * as fs from 'fs-extra';
 
 /**
@@ -46,7 +46,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     private _dumpInProgress: Subject;
 
-    private _sourceMapCache = new Map<string, sourceMap.SourceMapConsumer>();
+    private _sourceMapCache = new Map<string, sm.BasicSourceMapConsumer>();
 
     private _sourceMapFilePathCache = new Map<string, string>();
 
@@ -143,6 +143,25 @@ export class LuaDebugSession extends LoggingDebugSession {
         if (this._mapFiles === undefined) {
             await this.readAllMapFile(process.cwd());
         }
+
+        // load map file to setbreakpoints
+        const sourceMapConsumer = await this.loadMapFileIfExists(args.program);
+        if (sourceMapConsumer) {
+            const programPathClean = this._runtime.cleanUpFile(args.program);
+
+            const breakpointsMap = this._runtime.breakPoints;
+            for (const source in sourceMapConsumer.sources) {
+                const sourcePath = join(sourceMapConsumer.sourceRoot, source);
+                const bps = breakpointsMap.get(sourcePath);
+                if (bps) {
+                    const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
+                    for (const mappedLine of mappedLines) {
+                        this._runtime.setBreakPoint(programPathClean, mappedLine);
+                    }
+                }
+            }
+        }
+
         // start the program in the runtime
         await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
 
@@ -153,7 +172,6 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) {
-
         const path = this.convertPathFromMap(<string>args.source.path, args.source.origin);
         const clientLines = args.lines || [];
         const originLines = this.convertLinesFromMap(clientLines, args.source.origin, args.source.name);
@@ -212,20 +230,26 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         // creating cache of map files
         for (const frame of stk.frames) {
-            if (frame.file && !this._sourceMapCache[frame.file]) {
-                const mapFile = frame.file.endsWith('.map') ? frame.file : frame.file + ".map";
-                const filePath = this.getFilePathOfMapFile(mapFile);
-                if (filePath) {
-                    const json = await fs.readJson(filePath);
-                    this._sourceMapFilePathCache[frame.file] = filePath;
-                    this._sourceMapCache[frame.file] = await new sourceMap.SourceMapConsumer(json);
-                } else {
-                    console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
-                }
-            }
+            await this.loadMapFileIfExists(frame.file);
         }
 
         return stk;
+    }
+
+    private async loadMapFileIfExists(execFile: string): Promise<sm.BasicSourceMapConsumer | undefined> {
+        if (execFile && execFile in this._sourceMapCache) {
+            return undefined;
+        }
+
+        const mapFile = execFile.endsWith('.map') ? execFile : execFile + ".map";
+        const filePath = this.getFilePathOfMapFile(mapFile);
+        if (filePath) {
+            const json = await fs.readJson(filePath);
+            this._sourceMapFilePathCache[execFile] = filePath;
+            return this._sourceMapCache[execFile] = await new sm.SourceMapConsumer(json);
+        } else {
+            console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
+        }
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
@@ -427,7 +451,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             return path;
         }
 
-        return this.replaceFileName(this._sourceMapFilePathCache[origin], consumer.file);
+        return this.replaceFileName(this._sourceMapFilePathCache[consumer.file], consumer.file);
     }
 
     private replaceFileName(path: string, newFileName: string) {
@@ -448,11 +472,15 @@ export class LuaDebugSession extends LoggingDebugSession {
             return lines;
         }
 
-        const consumer: sourceMap.SourceMapConsumer = this._sourceMapCache[origin];
+        const consumer = this._sourceMapCache[origin];
         if (!consumer) {
             return lines;
         }
 
+        return this.convertLinesFromSourceMapConsumer(lines, consumer, sourceFile || '');
+    }
+
+    private convertLinesFromSourceMapConsumer(lines: number[], consumer: sm.BasicSourceMapConsumer, sourceFile: string) {
         const originLines = new Array<number>();
         for (const line of lines) {
             const originPosition = consumer.generatedPositionFor({

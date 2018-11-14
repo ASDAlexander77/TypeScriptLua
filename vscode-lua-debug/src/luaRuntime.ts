@@ -1,9 +1,10 @@
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import { Writable } from 'stream';
-import { Handles } from 'vscode-debugadapter';
+import { Handles, Source } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
+import * as sm from 'source-map';
 import * as path from 'path';
 
 export interface LuaBreakpoint {
@@ -613,6 +614,10 @@ export class LuaRuntime extends EventEmitter {
         }
     }
 
+    public get breakPoints(): Map<string, LuaBreakpoint[]> {
+        return this._breakPoints;
+    }
+
 	/**
 	 * Continue execution to the end/beginning.
 	 */
@@ -714,7 +719,7 @@ export class LuaRuntime extends EventEmitter {
         this._breakPoints.delete(path);
     }
 
-    private cleanUpFile(path: string) {
+    public cleanUpFile(path: string) {
         return path.replace(/\\/g, '/');
     }
 
