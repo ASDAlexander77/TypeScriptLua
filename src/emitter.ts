@@ -470,7 +470,7 @@ export class Emitter {
 
             this.sourceMapGenerator = new sourceMap.SourceMapGenerator({
                 file: path.basename(this.filePathLua),
-                sourceRoot: path.dirname(filePath)
+                sourceRoot: filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)
             });
 
             (<any>this.sourceMapGenerator).__lastDebugLine = 0;
