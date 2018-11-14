@@ -6,7 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename, join } from 'path';
-import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo } from './luaRuntime';
+import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo, cleanUpPath } from './luaRuntime';
 import { Subject } from 'await-notify';
 import * as sm from 'source-map';
 import * as fs from 'fs-extra';
@@ -144,17 +144,17 @@ export class LuaDebugSession extends LoggingDebugSession {
             await this.readAllMapFile(process.cwd());
         }
 
-        // load map file to setbreakpoints
-        const sourceMapConsumer = await this.loadMapFileIfExists(args.program);
-        if (sourceMapConsumer) {
-            const programPathClean = this._runtime.cleanUpFile(args.program);
+        const programPathClean = cleanUpPath(args.program);
 
+        // load map file to setbreakpoints
+        const sourceMapConsumer = await this.loadMapFileIfExists(basename(programPathClean));
+        if (sourceMapConsumer) {
             const breakpointsMap = this._runtime.breakPoints;
-            for (const source in sourceMapConsumer.sources) {
-                const sourcePath = join(sourceMapConsumer.sourceRoot, source);
+            for (const source of sourceMapConsumer.sources) {
+                const sourcePath = cleanUpPath(source);
                 const bps = breakpointsMap.get(sourcePath);
                 if (bps) {
-                    const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
+                    const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, basename(source));
                     for (const mappedLine of mappedLines) {
                         this._runtime.setBreakPoint(programPathClean, mappedLine);
                     }
@@ -238,7 +238,7 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     private async loadMapFileIfExists(execFile: string): Promise<sm.BasicSourceMapConsumer | undefined> {
         if (execFile && execFile in this._sourceMapCache) {
-            return undefined;
+            return this._sourceMapCache[execFile];
         }
 
         const mapFile = execFile.endsWith('.map') ? execFile : execFile + ".map";
@@ -250,6 +250,8 @@ export class LuaDebugSession extends LoggingDebugSession {
         } else {
             console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
         }
+
+        return undefined;
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {

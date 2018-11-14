@@ -4,7 +4,6 @@ import { Writable } from 'stream';
 import { Handles, Source } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
-import * as sm from 'source-map';
 import * as path from 'path';
 
 export interface LuaBreakpoint {
@@ -32,6 +31,14 @@ export enum VariableTypes {
     Global,
     Environment,
     SingleVariable
+}
+
+export function cleanUpPath(path: string) {
+    if (path.charAt(1) === ':' && path.charAt(0).match('[A-Z]')) {
+        path = path.charAt(0).toLowerCase() + path.substr(1);
+    }
+
+    return path.replace(/\\/g, '/');
 }
 
 class LuaCommands {
@@ -282,6 +289,12 @@ class LuaSpawnedDebugProcess {
     }
 
     public async setBreakpoint(path: string, line: number, column?: number) {
+        // exclude CWD path from file
+        const currentDir = cleanUpPath(process.cwd());
+        if (path.startsWith(currentDir)) {
+            path = path.substr(currentDir.length + 1);
+        }
+
         let success;
         await this._commands.setBreakpoint(line, column, path);
         await this.defaultDebugProcessStage((line) => {
@@ -592,7 +605,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async start(program: string, stopOnEntry: boolean, luaExecutable: string, luaDebuggerFilePath: string) {
 
-        this._sourceFile = this.cleanUpFile(program);
+        this._sourceFile = cleanUpPath(program);
 
         this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable, luaDebuggerFilePath);
         await this._luaExe.spawn();
@@ -662,7 +675,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async setBreakPoint(filePath: string, line: number) {
 
-        const path = this.cleanUpFile(filePath);
+        const path = cleanUpPath(filePath);
 
         const bp = <LuaBreakpoint>{ verified: false, line, id: this._breakpointId++ };
         let bps = this._breakPoints.get(path);
@@ -692,7 +705,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async clearBreakPoint(filePath: string, line: number) {
 
-        const path = this.cleanUpFile(filePath);
+        const path = cleanUpPath(filePath);
 
         let bps = this._breakPoints.get(path);
         if (bps) {
@@ -717,10 +730,6 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public clearBreakpoints(path: string): void {
         this._breakPoints.delete(path);
-    }
-
-    public cleanUpFile(path: string) {
-        return path.replace(/\\/g, '/');
     }
 
     private async stepInternal(type: StepTypes, stepEvent?: string) {
