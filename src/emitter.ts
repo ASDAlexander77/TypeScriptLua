@@ -70,7 +70,7 @@ export class Emitter {
             }
         }
 
-        this.generateSourceMap = (options.sourceMap || false) || (cmdLineOptions.sourcemap ? true : false);
+        this.generateSourceMap = ((options && options.sourceMap) || false) || (cmdLineOptions.sourcemap ? true : false);
     }
 
     private lib = '                                                 \
