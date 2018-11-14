@@ -378,7 +378,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             for (const file of allFiles) {
                 const value = await this.readAllMapFileInDirectory(join(filePath, file));
                 if (value !== false) {
-                    files[file] = value;
+                    files[file.toLowerCase()] = value;
                 }
             }
 
@@ -397,24 +397,44 @@ export class LuaDebugSession extends LoggingDebugSession {
             return undefined;
         }
 
-        return this.getFilePathOfMapFileInternal(fileMapName, <Map<string, any>>this._mapFiles, '');
+        return this.getFilePathOfMapFileInternal(fileMapName, <Map<string, any>>this._mapFiles, '', false);
     }
 
-    private getFilePathOfMapFileInternal(fileMapName: string, mapFiles: Map<string, any>, path: string): string | undefined {
-        if (!this._mapFiles) {
-            return undefined;
+    private getFilePathOfMapFileInternal(fileMapName: string, mapFiles: Map<string, any>, path: string, matching: boolean): string | undefined {
+
+        // case when xxx\yyy
+        let index = fileMapName.indexOf('/');
+        if (index === -1) {
+            index = fileMapName.indexOf('\\');
         }
 
+        if (index !== -1) {
+            // sub path
+            const dirPath = fileMapName.substr(0, index);
+            const restPath = fileMapName.substr(index + 1);
+
+            const value = mapFiles[dirPath.toLowerCase()];
+            if (value !== undefined && value !== true) {
+                const subPath = this.getFilePathOfMapFileInternal(restPath, <Map<string, any>>value, dirPath.toLowerCase(), true);
+                if (subPath && subPath.endsWith('.map')) {
+                    return join(path, subPath);
+                }
+            }
+        }
+
+        // other case when subfolder is not defined
         for (const item in mapFiles) {
             if (item === fileMapName) {
                 return join(path, item);
             }
 
-            const value = mapFiles[item];
-            if (value !== true) {
-                const subPath = this.getFilePathOfMapFileInternal(fileMapName, <Map<string, any>>value, item);
-                if (subPath && subPath.endsWith('.map')) {
-                    return join(path, subPath);
+            if (!matching) {
+                const value = mapFiles[item];
+                if (value !== true) {
+                    const subPath = this.getFilePathOfMapFileInternal(fileMapName, <Map<string, any>>value, item, matching);
+                    if (subPath && subPath.endsWith('.map')) {
+                        return join(path, subPath);
+                    }
                 }
             }
         }

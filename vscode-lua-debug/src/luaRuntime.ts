@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import { Writable } from 'stream';
-import { Handles, Source } from 'vscode-debugadapter';
+import { Handles } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
 import * as path from 'path';
