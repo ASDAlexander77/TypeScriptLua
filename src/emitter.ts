@@ -255,7 +255,11 @@ export class Emitter {
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.getEnd());
 
         if (this.sourceMapGenerator) {
-            const rootPath = (<any>this.sourceMapGenerator)._sourceRoot;
+            let rootPath = (<any>this.sourceMapGenerator)._sourceRoot;
+            if (rootPath[rootPath.length - 1] === '/' || rootPath[rootPath.length - 1] === '\\') {
+                rootPath = rootPath.substr(0, rootPath.length - 1);
+            }
+
             const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
             const fileSubPath = this.filePathLua.startsWith(rootPath)
                 ? this.filePathLua.substring(positionFrom)
