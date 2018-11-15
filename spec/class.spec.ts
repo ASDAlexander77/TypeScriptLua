@@ -540,6 +540,76 @@ describe('Classes', () => {
         c.show();                                       \
     '])));
 
+    it('Class - constructor with Default Parameter - 3', () => expect('Hello\r\n11\r\n').to.equals(new Run().test([
+        'class Matrix {                                 \
+        }                                               \
+                                                        \
+        class Class1 {                                  \
+            public _matrix1 = new Matrix();             \
+            private _name: string;                      \
+            constructor(name: string, scene: any, setActiveOnSceneIfNoneActive = true) { \
+                this._name = name;                      \
+            }                                           \
+        }                                               \
+                                                        \
+        class Class2 extends Class1 {                   \
+            public _matrix2 = new Matrix();             \
+            private val: string;                        \
+            private val2: number;                       \
+                                                        \
+            constructor(name: string, alpha: number, beta: number, radius: number, setActiveOnSceneIfNoneActive = true) { \
+                super(name, scene);                     \
+                this.val = name;                        \
+                this.val2 = alpha;                      \
+            }                                           \
+                                                        \
+            public show() {                             \
+                console.log(this.val);                  \
+                console.log(this.val2);                 \
+            }                                           \
+        }                                               \
+                                                        \
+        var c = new Class2("Hello", 11, 12, 13);        \
+        c.show();                                       \
+    '])));
+
+    it('Class - constructor with Default Parameter - 5', () => expect('1\r\nclass1\r\n3\r\n10\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            constructor(v1: number, v2:string, v3: number, d: number = 10) {  \
+                console.log(v1);                        \
+                console.log(v2);                        \
+                console.log(v3);                        \
+                console.log(d);                         \
+            }                                           \
+                                                        \
+            public static Identity(): number {          \
+                return "class1";                        \
+            }                                           \
+        }                                               \
+                                                        \
+        var c = new Class1(1, Class1.Identity(), 3);    \
+        c.show();                                       \
+    '])));
+
+    it('Class - constructor with Default Parameter - 6', () => expect('1\r\nclass0\r\n3\r\n10\r\n').to.equals(new Run().test([
+        'class Class0 {                                 \
+            public Identity(): number {                 \
+                return "class0";                        \
+            }                                           \
+        }                                               \
+        class Class1 {                                 \
+            constructor(v1: number, v2:string, v3: number, d: number = 10) {  \
+                console.log(v1);                        \
+                console.log(v2);                        \
+                console.log(v3);                        \
+                console.log(d);                         \
+            }                                           \
+        }                                               \
+                                                        \
+        var c = new Class1(1, new Class0().Identity(), 3);    \
+        c.show();                                       \
+    '])));
+
     it('Class - base fields are isolated',  () => expect('1\r\n2\r\n').to.equals(new Run().test([
         'export class Base {                                                \
             constructor(public number: number) {                            \

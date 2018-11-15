@@ -472,7 +472,15 @@ export class Emitter {
             this.filePathLua = filePath.replace(/\.ts$/, '.lua');
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
-            this.sourceMapGenerator = new sourceMap.SourceMapGenerator({
+            if (this.sourceMapGenerator && this.fileModuleName) {
+                // this is module, fix filename
+                (<any>this.sourceMapGenerator)._file = this.fileModuleName + '.lua';
+
+                this.filePathLua = path.join(path.dirname(filePath), this.fileModuleName + '.lua');
+                this.filePathLuaMap = path.join(path.dirname(filePath), this.fileModuleName + '.lua.map');
+            }
+
+            this.sourceMapGenerator = this.sourceMapGenerator || new sourceMap.SourceMapGenerator({
                 file: path.basename(this.filePathLua),
                 sourceRoot: filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)
             });
