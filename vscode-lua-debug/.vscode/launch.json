@@ -39,10 +39,20 @@
 		{
 			"type": "lua",
 			"request": "launch",
-            "name": "Lua Debugger Test1",
+            "name": "Lua Debugger - Lua file",
             "cwd": "${workspaceFolder}",
 			//"program": "${workspaceFolder}/${command:AskForProgramName}",
 			"program": "${workspaceFolder}/test/file.lua",
+			"luaExecutable": "lua",
+			"stopOnEntry": true
+		},
+		{
+			"type": "lua",
+			"request": "launch",
+            "name": "Lua Debugger - Test.ts",
+            "cwd": "C:/Temp/TypeScriptLUA/__build/win64/lua/Debug",
+			//"program": "${workspaceFolder}/${command:AskForProgramName}",
+			"program": "C:/Temp/TypeScriptLUA/__build/win64/lua/Debug/test.lua",
 			"luaExecutable": "lua",
 			"stopOnEntry": true
         },

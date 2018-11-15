@@ -1,4 +1,4 @@
-declare var print;
+const p: any = print;
 
 function fnc(d) {
     d[0] = 1;
@@ -6,7 +6,7 @@ function fnc(d) {
     d['end'] = 'hi';
 }
 
-print('start.');
+p('start.');
 
 const s = 'Hello String';
 const f = 3.14;
@@ -33,4 +33,4 @@ if (a) {
     const c = {};
 }
 
-print('done.');
+p('done.');

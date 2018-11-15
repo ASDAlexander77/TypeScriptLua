@@ -3063,11 +3063,29 @@ export class Emitter {
 
         // local vars
         this.writer.writeInt(functionContext.debug_locals.length);
-        functionContext.debug_locals.forEach(l => {
-            this.writer.writeString(l.name);
-            this.writer.writeInt(l.debugStartCode + 1);
-            this.writer.writeInt(l.debugEndCode + 1);
-        });
+
+        // assert
+        if (functionContext.debug_locals.length > 0) {
+            const firstLocalVarRegister = Math.min(...functionContext.debug_locals.filter(f => !f.fake).map(l => l.register));
+            if (firstLocalVarRegister > 0) {
+                console.error('Local variable does not start from 0');
+            }
+        }
+
+        functionContext.debug_locals
+            .filter(f => !f.fake)
+            .sort((a, b) => {
+                if (a.register === b.register) {
+                    return a.debugStartCode < b.debugStartCode ? -1 : 1;
+                }
+
+                return a.register < b.register ? -1 : 1;
+            })
+            .forEach(l => {
+                this.writer.writeString(l.name);
+                this.writer.writeInt(l.debugStartCode + 1);
+                this.writer.writeInt(l.debugEndCode + 1);
+            });
 
         // upvalues
         this.writer.writeInt(functionContext.upvalues.length);
