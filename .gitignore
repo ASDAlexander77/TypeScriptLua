@@ -8,5 +8,5 @@ package-lock.json
 /test/*.lua
 /experiments/BABYLON/*.lua
 /experiments/jslib/*.lua
-/experiments/BABYLON/*.lua.map
-/experiments/jslib/*.lua.map
+/experiments/BABYLON/*.map
+/experiments/jslib/*.map
