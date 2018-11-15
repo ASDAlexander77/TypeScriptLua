@@ -73,6 +73,8 @@ local _g      = _G
 local cocreate, cowrap = coroutine.create, coroutine.wrap
 local pausemsg = 'pause'
 
+local type_ = type
+
 --{{{  make Lua 5.2 compatible
 
 local unpack = unpack or table.unpack
@@ -92,7 +94,7 @@ if not setfenv then -- Lua 5.2
   ]]--
 
   setfenv = setfenv or function(f, t)
-    f = (type(f) == 'function' and f or debug.getinfo(f + 1, 'f').func)
+    f = (type_(f) == 'function' and f or debug.getinfo(f + 1, 'f').func)
     local name
     local up = 0
     repeat
@@ -106,7 +108,7 @@ if not setfenv then -- Lua 5.2
   end
 
   getfenv = getfenv or function(f)
-    f = (type(f) == 'function' and f or debug.getinfo(f + 1, 'f').func)
+    f = (type_(f) == 'function' and f or debug.getinfo(f + 1, 'f').func)
     local name, val
     local up = 0
     repeat
@@ -406,18 +408,18 @@ local dumpvisited
 
 local function dumpval( level, name, value, limit )
   local index
-  if type(name) == 'number' then
+  if type_(name) == 'number' then
     index = string.format('[%d] = ',name)
-  elseif type(name) == 'string'
+  elseif type_(name) == 'string'
      and (name == '__VARSLEVEL__' or name == '__ENVIRONMENT__' or name == '__GLOBALS__' or name == '__UPVALUES__' or name == '__LOCALS__') then
     --ignore these, they are debugger generated
     return
-  elseif type(name) == 'string' and string.find(name,'^[_%a][_.%w]*$') then
+  elseif type_(name) == 'string' and string.find(name,'^[_%a][_.%w]*$') then
     index = name ..' = '
   else
     index = string.format('[%q] = ',tostring(name))
   end
-  if type(value) == 'table' then
+  if type_(value) == 'table' then
     if dumpvisited[value] then
       indented( level, index, string.format('ref%q;',dumpvisited[value]) )
     else
@@ -433,7 +435,7 @@ local function dumpval( level, name, value, limit )
       end
     end
   else
-    if type(value) == 'string' then
+    if type_(value) == 'string' then
       if string.len(value) > 40 then
         indented( level, index, '[[', value, ']];' )
       else
@@ -728,7 +730,7 @@ end
 
 local function restore_vars(ref,vars)
 
-  if type(vars) ~= 'table' then return end
+  if type_(vars) ~= 'table' then return end
 
   local level = vars.__VARSLEVEL__       --NB: This level is relative to debug_hook offset by ref
   if not level then return end
@@ -1109,9 +1111,9 @@ local function debugger_loop(ev, vars, file, line, idx_watch)
           if n then n = n..'.'..w else n = w end
           if not v then break end
         end
-        if type(n) ~= 'string' then
+        if type_(n) ~= 'string' then
             io.write("Invalid function name given\n")
-        elseif type(v) == 'function' then
+        elseif type_(v) == 'function' then
           local def = debug.getinfo(v,'S')
           if def then
             io.write(def.what..' in '..def.short_src..' '..def.linedefined..'..'..def.lastlinedefined..'\n')
