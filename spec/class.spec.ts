@@ -488,7 +488,7 @@ describe('Classes', () => {
         new Test();                                                         \
     '])));
 
-    it('Class - constructor with Optional Parameters (4)',  () => expect('Run\r\n').to.equals(new Run().test([
+    it('Class - constructor with Optional Parameters - 4',  () => expect('Run\r\n').to.equals(new Run().test([
         'export class Observable<T> {                                       \
             constructor(onObserverAdded?: (observer: any) => void) {        \
                 console.log("Run");                                         \
@@ -498,6 +498,46 @@ describe('Classes', () => {
             }                                                               \
         }                                                                   \
         new Observable();                                                   \
+    '])));
+
+    it('Class - constructor with Default Parameter', () => expect('Hello\r\n10\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            private val: string;                        \
+            private val2: number;                       \
+                                                        \
+            constructor(s: string, def: number = 10) {  \
+                this.val = s;                           \
+                this.val2 = def;                        \
+            }                                           \
+                                                        \
+            public show() {                             \
+                console.log(this.val);                  \
+                console.log(this.val2);                 \
+            }                                           \
+        }                                               \
+                                                        \
+        var c = new Class1("Hello");                    \
+        c.show();                                       \
+    '])));
+
+    it('Class - constructor with Default Parameter - 2', () => expect('Hello\r\n11\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            private val: string;                        \
+            private val2: number;                       \
+                                                        \
+            constructor(s: string, def: number = 10) {  \
+                this.val = s;                           \
+                this.val2 = def;                        \
+            }                                           \
+                                                        \
+            public show() {                             \
+                console.log(this.val);                  \
+                console.log(this.val2);                 \
+            }                                           \
+        }                                               \
+                                                        \
+        var c = new Class1("Hello", 11);                \
+        c.show();                                       \
     '])));
 
     it('Class - base fields are isolated',  () => expect('1\r\n2\r\n').to.equals(new Run().test([
