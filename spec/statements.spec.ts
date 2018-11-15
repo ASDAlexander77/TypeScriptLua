@@ -78,7 +78,7 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it.skip('simple for/in (local) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+    it('simple for/in (local) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
         'let person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
         let text = "";                                          \
@@ -89,7 +89,7 @@ describe('Statements', () => {
         console.log(text);                                      \
     '])));
 
-    it.skip('simple for/in (global) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+    it('simple for/in (global) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
         'var person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
         var text = "";                                          \
@@ -100,7 +100,7 @@ describe('Statements', () => {
         console.log(text);                                      \
     '])));
 
-    it.skip('simple for/in (local) empty dictionary', () => expect('\r\n').to.equals(new Run().test([
+    it('simple for/in (local) empty dictionary', () => expect('\r\n').to.equals(new Run().test([
         'let person = {};                                       \
                                                                 \
         let text = "";                                          \
@@ -109,6 +109,13 @@ describe('Statements', () => {
             text += person[x] + " ";                            \
         }                                                       \
         console.log(text);                                      \
+    '])));
+
+    it('simple for/in (var)', () => expect('works\r\n').to.equals(new Run().test([
+        'const attached = { type: run() { console.log("works"); } }; \
+        for (var cam in attached) {                             \
+            attached[cam].run();                                \
+        }                                                       \
     '])));
 
     it('simple for/of (array)', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
