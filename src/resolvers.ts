@@ -408,13 +408,29 @@ export class IdentifierResolver {
                     }
 
                     // values are not the same as Node.Flags
+                    let varInfo;
                     if ((resolved.flags & 1) === 1) {
-                        const varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        // TODO: temporary solution to allow user global vars as const/let variables
+                        // to support for/in loops with global vars
+                        /*
+                        varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
+                        if (varInfo) {
+                            return varInfo;
+                        }
+                        */
+
+                        varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         return varInfo;
                     } else if ((resolved.flags & 2) === 2) {
-                        return this.returnLocalOrUpvalueNoException(identifier.text, functionContext)
-                               || this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
+                        if (varInfo) {
+                            return varInfo;
+                        }
+
+                        varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
+                        return varInfo;
                     } else {
                         console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
                         this.resolveMemberOfCurrentScope(identifier.text, functionContext);

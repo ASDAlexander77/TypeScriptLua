@@ -78,7 +78,7 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it('simple for/in (local) 2', () => expect(new Run().test([
+    it('simple for/in (local) 1', () => expect(new Run().test([
         'let person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
         let x;                                                  \
@@ -87,11 +87,27 @@ describe('Statements', () => {
         }                                                       \
     '])).to.contains('John').contains('Doe').contains('25'));
 
-    it('simple for/in (global) 2', () => expect(new Run().test([
+    it('simple for/in (local) 2', () => expect(new Run().test([
+        'let person = {fname:"John", lname:"Doe", age:25};      \
+                                                                \
+        for (const x in person) {                               \
+            console.log(person[x]);                             \
+        }                                                       \
+    '])).to.contains('John').contains('Doe').contains('25'));
+
+    it('simple for/in (global) 1', () => expect(new Run().test([
         'var person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
         var x;                                                  \
         for (x in person) {                                     \
+            console.log(person[x]);                             \
+        }                                                       \
+    '])).to.contains('John').contains('Doe').contains('25'));
+
+    it('simple for/in (global) 2', () => expect(new Run().test([
+        'var person = {fname:"John", lname:"Doe", age:25};      \
+                                                                \
+        for (var x in person) {                                 \
             console.log(person[x]);                             \
         }                                                       \
     '])).to.contains('John').contains('Doe').contains('25'));
@@ -108,9 +124,9 @@ describe('Statements', () => {
     '])));
 
     it('simple for/in (var)', () => expect('works\r\n').to.equals(new Run().test([
-        'const attached = { type: run() { console.log("works"); } }; \
+        'const attached = { type: function() { console.log("works"); } }; \
         for (var cam in attached) {                             \
-            attached[cam].run();                                \
+            attached[cam]();                                    \
         }                                                       \
     '])));
 

@@ -1556,8 +1556,20 @@ export class Emitter {
         const stateInfo = this.functionContext.createLocal('<state>');
         const controlInfo = this.functionContext.createLocal('<control>');
 
-        // initializer
-        this.declareLoopVariables(<ts.Expression>node.initializer);
+        const isLocalOrConstDecl =
+            ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList
+            && Helpers.isConstOrLet(<ts.VariableDeclarationList>node.initializer))
+            || ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier
+            && this.resolver.resolver(<ts.Identifier>node.initializer, this.functionContext).isLocal());
+
+        let varInfo;
+        if (!isLocalOrConstDecl) {
+            varInfo = this.functionContext.createLocal('<var>');
+        } else {
+            // if iterator variable is not local then we need to save local variable into
+            // initializer
+            this.declareLoopVariables(<ts.Expression>node.initializer);
+        }
 
         // call PAIRS(...) before jump
         // TODO: finish it
@@ -1595,13 +1607,30 @@ export class Emitter {
 
         const beforeBlock = this.functionContext.code.length;
 
+        // save <var> into local
+        if (!isLocalOrConstDecl) {
+            // get last identifier
+            let forInIdentifier: ts.Identifier;
+            if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList) {
+                const decls = (<ts.VariableDeclarationList>node.initializer).declarations;
+                forInIdentifier = <ts.Identifier>decls[decls.length - 1].name;
+            } else if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier) {
+                forInIdentifier = <ts.Identifier>node.initializer;
+            } else {
+                throw new Error('Not Implemented');
+            }
+
+            const assignmentOperation = ts.createAssignment(forInIdentifier, ts.createIdentifier('<var>'));
+            assignmentOperation.parent = node;
+            this.processExpression(assignmentOperation);
+        }
+
         this.processStatement(node.statement);
 
         const loopOpsBlock = this.functionContext.code.length;
 
         this.resolveContinueJumps();
 
-        // !!!! TODO: problem in calling this code, something happening to NULL value
         const tforCallOp = [Ops.TFORCALL, generatorInfo.getRegister(), 0, 1];
         this.functionContext.code.push(tforCallOp);
 
@@ -1613,6 +1642,11 @@ export class Emitter {
         initialJmpOp[2] = loopOpsBlock - beforeBlock;
 
         this.resolveBreakJumps();
+
+        // clean temp local variable
+        if (!isLocalOrConstDecl) {
+            this.functionContext.stack.pop();
+        }
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
