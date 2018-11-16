@@ -159,20 +159,22 @@ class LuaCommands {
     }
 }
 
-class LuaSpawnedDebugProcess {
+class LuaSpawnedDebugProcess extends EventEmitter {
     private _commands: LuaCommands;
     private exe: ChildProcess;
+    private lastError: string;
+    private lastErrorStack: string | null;
 
     constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
+        super();
+    }
+
+    public hasErrorStack(): boolean {
+        return (this.lastErrorStack) ? true : false;
     }
 
     public async spawn() {
         const exe = this.exe = spawn(this.luaExecutable, [
-			/*
-			'-e', 'require(\'./debugger\')',
-			'-e', 'pause()',
-			'-e', 'dofile(\'C:/Temp/TypeScriptLUA/vscode-lua-debug/test/file.lua\')',
-			*/
             '-i'
         ]);
 
@@ -186,33 +188,45 @@ class LuaSpawnedDebugProcess {
             console.log(`process exited with code ${code}`);
         });
 
-        const fileParse = /\s*no\sfile\s'(.*)\/_debugger.lua'/;
+        let stackTrace;
+        let stackReading = false;
+        let notProcessedErrorData = '';
         exe.stderr.on('data', async (binary) => {
-            const data = binary.toString();
-            console.error("err: " + data);
+            let data = notProcessedErrorData + binary.toString();
+            notProcessedErrorData = '';
+            const indexOfCompleteData = data.lastIndexOf('\n');
+            if (indexOfCompleteData >= 0) {
+                // not complete data;
+                notProcessedErrorData = data.substr(indexOfCompleteData + 1);
+                data = data.substr(0, indexOfCompleteData + 1);
+                console.error("err: " + data);
 
-            for (const line of data.split('\n')) {
-                const values = fileParse.exec(line);
-                if (values) {
-                    if (!fs.existsSync(this.luaDebuggerFilePath)) {
-                        console.error('!!! can\'t find file ./debugger/_debugger.lua');
-                        console.error('Folder: ' + process.cwd());
-                        break;
-                    }
+                // processing data
+                if (!await this.checkErrorToInstallDebugger(data)) {
+                    // process error data
+                    // first line is error message
+                    if (!stackReading) {
+                        const index = data.indexOf('\n');
+                        const msg = data.substr(0, index + 1);
 
-                    const folderPath = values[1];
-                    if (fs.existsSync(folderPath)) {
-                        // copy file
-                        try {
-                            fs.copySync(this.luaDebuggerFilePath, path.join(folderPath, '_debugger.lua'));
-                            await this._commands.loadDebuggerSourceAsRequire();
-                            break;
-                        }
-                        catch (e) {
-                            console.error(e);
+                        stackReading = true;
+                        // rest of data
+                        stackTrace = data.substr(index + 1);
+
+                        this.lastError = msg;
+
+                        this.emit('error', msg);
+                    } else {
+                        stackTrace += data;
+                        if (data.indexOf('[C]: in ?') >= 0) {
+                            // end of stack
+                            stackReading = false;
+                            this.lastErrorStack = stackTrace;
                         }
                     }
                 }
+            } else {
+                notProcessedErrorData = data;
             }
         });
 
@@ -315,7 +329,7 @@ class LuaSpawnedDebugProcess {
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
-        const parseLine = /(\[DEBUG\]\>\s)?\[(\d+)\](\*\*\*)?\s([^\s]*)\sin\s(.*)/;
+        const parseLine = /(\[DEBUG\]\>\s)?(\[(\d+)\])?(\*\*\*)?\s+([^\s]*)\sin\s(.*)/;
         const parseFileNameAndLine = /(.*):(\d+)$/;
 
         await this._commands.stack();
@@ -327,10 +341,10 @@ class LuaSpawnedDebugProcess {
             // parse output
             const values = parseLine.exec(line);
             if (values) {
-                const index = values[2];
-                //const isActive = values[3];
-                const functionName = values[4];
-                const location = values[5];
+                const index = values[3];
+                //const isActive = values[4];
+                const functionName = values[5];
+                const location = values[6];
 
                 const locationValues = parseFileNameAndLine.exec(location);
                 if (locationValues) {
@@ -353,6 +367,56 @@ class LuaSpawnedDebugProcess {
                 }
             }
         });
+
+        return <StartFrameInfos>{
+            frames: frames,
+            count: frames.length
+        };
+    }
+
+    public async errorStack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
+        const parseLine = /\s+([^\s]*):\sin\s(.*)/;
+        const parseFileNameAndLine = /(.*):(\d+)$/;
+        const parseFunctionName = /(method|field)\s+'([^']*)'/;
+
+        const frames = new Array<StartFrameInfo>();
+        // every word of the current line becomes a stack frame.
+
+        if (this.lastErrorStack) {
+            let index = 0;
+            for (const line of this.lastErrorStack.split('\n')) {
+                index++;
+                const values = parseLine.exec(line);
+                if (values) {
+                    const location = values[1];
+                    let functionName = values[2];
+                    const functionNameValues = parseFunctionName.exec(functionName);
+                    if (functionNameValues) {
+                        functionName = functionNameValues[2];
+                    }
+
+                    const locationValues = parseFileNameAndLine.exec(location);
+                    if (locationValues) {
+                        const locationWithoutLine = locationValues[1];
+                        const startIndex =
+                            (locationWithoutLine.length > 2 && locationWithoutLine[1] === ':' && (locationWithoutLine[2] === '\\' || locationWithoutLine[2] === '/'))
+                                ? 3
+                                : 0;
+                        const fileIndex = locationWithoutLine.indexOf(':', startIndex);
+                        const fileName = fileIndex === -1 ? locationWithoutLine : locationWithoutLine.substring(0, fileIndex);
+
+                        if (fileName !== "stdin" && fileName !== "C") {
+                            frames.push(<StartFrameInfo>{
+                                index: frames.length,
+                                name: `${functionName}(${index})`,
+                                file: fileName,
+                                line: parseInt(locationValues[2])
+                            });
+                        }
+                    }
+                }
+            }
+        }
 
         return <StartFrameInfos>{
             frames: frames,
@@ -510,7 +574,7 @@ class LuaSpawnedDebugProcess {
         }
     }
 
-    async processStagesAsync(stages: { text: string | string[], action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
+    private async processStagesAsync(stages: { text: string | string[], action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
         let stageNumber;
         let stage = stages[stageNumber = 0];
 
@@ -543,7 +607,7 @@ class LuaSpawnedDebugProcess {
         }
     }
 
-    async readAsync(timeout: number = 3000) {
+    private async readAsync(timeout: number = 3000) {
         return new Promise((resolve, reject) => {
             let timerId;
             this.exe.stdout.on('data', (data) => {
@@ -566,6 +630,41 @@ class LuaSpawnedDebugProcess {
                 timerId = setTimeout(() => reject('read timeout'), timeout);
             }
         });
+    }
+
+    private async checkErrorToInstallDebugger(data: string): Promise<boolean> {
+        const fileParse = /\s*no\sfile\s'(.*)\/_debugger.lua'/;
+        for (const line of data.split('\n')) {
+            const values = fileParse.exec(line);
+            if (values) {
+                await this.installDebuggerIfDoesNotExist(values[1]);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async installDebuggerIfDoesNotExist(folderPath: string) {
+        if (!fs.existsSync(this.luaDebuggerFilePath)) {
+            console.error('!!! can\'t find file ./debugger/_debugger.lua');
+            console.error('Folder: ' + process.cwd());
+            return false;
+        }
+
+        if (fs.existsSync(folderPath)) {
+            // copy file
+            try {
+                fs.copySync(this.luaDebuggerFilePath, path.join(folderPath, '_debugger.lua'));
+                await this._commands.loadDebuggerSourceAsRequire();
+                return true;
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+
+        return false;
     }
 }
 
@@ -608,6 +707,11 @@ export class LuaRuntime extends EventEmitter {
         this._sourceFile = cleanUpPath(program);
 
         this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable, luaDebuggerFilePath);
+
+        this._luaExe.on('error', (msg) => {
+            this.sendEvent('stopOnException', msg);
+        });
+
         await this._luaExe.spawn();
 
         // TODO: finish it, dummy verification of breakpoints
@@ -663,6 +767,10 @@ export class LuaRuntime extends EventEmitter {
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
 	 */
     public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
+        if (this._luaExe.hasErrorStack()) {
+            return this._luaExe.errorStack(startFrame, endFrame);
+        }
+
         return await this._luaExe.stack(startFrame, endFrame);
     }
 
@@ -733,12 +841,13 @@ export class LuaRuntime extends EventEmitter {
     }
 
     private async stepInternal(type: StepTypes, stepEvent?: string) {
-        if (await this._luaExe.step(type)) {
+        let response;
+        if (response = await this._luaExe.step(type)) {
             this.sendEvent('end');
             return;
         }
 
-        if (stepEvent) {
+        if (response !== undefined && stepEvent) {
             this.sendEvent(stepEvent);
         }
     }

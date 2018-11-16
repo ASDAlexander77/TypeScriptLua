@@ -75,8 +75,8 @@ export class LuaDebugSession extends LoggingDebugSession {
         this._runtime.on('stopOnBreakpoint', () => {
             this.sendEvent(new StoppedEvent('breakpoint', LuaDebugSession.THREAD_ID));
         });
-        this._runtime.on('stopOnException', () => {
-            this.sendEvent(new StoppedEvent('exception', LuaDebugSession.THREAD_ID));
+        this._runtime.on('stopOnException', (msg?) => {
+            this.sendEvent(new StoppedEvent('exception', LuaDebugSession.THREAD_ID, msg));
         });
         this._runtime.on('breakpointValidated', (bp: LuaBreakpoint) => {
             this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
@@ -185,7 +185,8 @@ export class LuaDebugSession extends LoggingDebugSession {
             const element = originLines[index];
             const fileLine = clientLines[index];
             let { verified, line, id } = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(element));
-            const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(fileLine));
+            line = fileLine;
+            const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(line));
             bp.id = id;
             actualBreakpoints.push(bp);
         }
