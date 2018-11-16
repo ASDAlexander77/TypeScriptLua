@@ -78,27 +78,23 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it('simple for/in (local) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+    it('simple for/in (local) 2', () => expect(new Run().test([
         'let person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
-        let text = "";                                          \
         let x;                                                  \
         for (x in person) {                                     \
-            text += person[x] + " ";                            \
+            console.log(person[x]);                             \
         }                                                       \
-        console.log(text);                                      \
-    '])));
+    '])).to.contains('John').contains('Doe').contains('25'));
 
-    it('simple for/in (global) 2', () => expect('John Doe 25\r\n').to.equals(new Run().test([
+    it('simple for/in (global) 2', () => expect(new Run().test([
         'var person = {fname:"John", lname:"Doe", age:25};      \
                                                                 \
-        var text = "";                                          \
         var x;                                                  \
         for (x in person) {                                     \
-            text += person[x] + " ";                            \
+            console.log(person[x]);                             \
         }                                                       \
-        console.log(text);                                      \
-    '])));
+    '])).to.contains('John').contains('Doe').contains('25'));
 
     it('simple for/in (local) empty dictionary', () => expect('\r\n').to.equals(new Run().test([
         'let person = {};                                       \
@@ -118,14 +114,21 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it('simple for/of (array)', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
+    it('simple for/of (array) - global', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
         'var someArray = [9, 2, 5];                             \
         for (var item of someArray) {                           \
             console.log(item);                                  \
         }                                                       \
     '])));
 
-    it('simple for/of (array) 2', () => expect('').to.equals(new Run().test([
+    it('simple for/of (array) - local', () => expect('9\r\n2\r\n5\r\n').to.equals(new Run().test([
+        'const someArray = [9, 2, 5];                           \
+        for (const item of someArray) {                         \
+            console.log(item);                                  \
+        }                                                       \
+    '])));
+
+    it('simple for/of (array) - empty', () => expect('').to.equals(new Run().test([
         'var someArray = [];                                    \
         for (var item of someArray) {                           \
             console.log(item);                                  \
