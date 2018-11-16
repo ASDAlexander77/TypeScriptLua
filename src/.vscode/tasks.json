@@ -3,24 +3,18 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
-		{
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": [
-				"$tsc-watch"
-			],
-			"isBackground": true,
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},        
         {
             "type": "npm",
-            "script": "lint",
+            "label": "npm",
+            "script": "watch",
             "problemMatcher": [
-                "$eslint-compact"
-            ]
+                "$tsc-watch"
+            ],
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
