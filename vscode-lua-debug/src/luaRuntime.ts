@@ -383,9 +383,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         // every word of the current line becomes a stack frame.
 
         if (this.lastErrorStack) {
-            let index = 0;
             for (const line of this.lastErrorStack.split('\n')) {
-                index++;
                 const values = parseLine.exec(line);
                 if (values) {
                     const location = values[1];
@@ -408,7 +406,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         if (fileName !== "stdin" && fileName !== "C") {
                             frames.push(<StartFrameInfo>{
                                 index: frames.length,
-                                name: `${functionName}(${index})`,
+                                name: `${functionName}(${frames.length + 1})`,
                                 file: fileName,
                                 line: parseInt(locationValues[2])
                             });
@@ -841,6 +839,11 @@ export class LuaRuntime extends EventEmitter {
     }
 
     private async stepInternal(type: StepTypes, stepEvent?: string) {
+        if (this._luaExe.hasErrorStack()) {
+            this.sendEvent('end');
+            return;
+        }
+
         let response;
         if (response = await this._luaExe.step(type)) {
             this.sendEvent('end');
