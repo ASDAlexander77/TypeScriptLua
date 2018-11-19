@@ -10,6 +10,7 @@ import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo, cleanUpPath }
 import { Subject } from 'await-notify';
 import * as sm from 'source-map';
 import * as fs from 'fs-extra';
+import { reporters } from 'mocha';
 
 /**
  * This interface describes the lua debug specific launch attributes
@@ -76,7 +77,9 @@ export class LuaDebugSession extends LoggingDebugSession {
             this.sendEvent(new StoppedEvent('breakpoint', LuaDebugSession.THREAD_ID));
         });
         this._runtime.on('stopOnException', (msg?) => {
-            this.sendEvent(new StoppedEvent('exception', LuaDebugSession.THREAD_ID, msg));
+            const event = new StoppedEvent('exception', LuaDebugSession.THREAD_ID, msg);
+            //// (<DebugProtocol.StoppedEvent>event).body.description = msg;
+            this.sendEvent(event);
         });
         this._runtime.on('breakpointValidated', (bp: LuaBreakpoint) => {
             this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
@@ -109,7 +112,12 @@ export class LuaDebugSession extends LoggingDebugSession {
         response.body.supportsEvaluateForHovers = true;
 
         // make VS Code to show a 'step back' button
-        response.body.supportsStepBack = true;
+        response.body.supportsStepBack = false;
+
+        //
+        response.body.supportsExceptionOptions = false;
+        response.body.supportsExceptionInfoRequest = true;
+		response.body.exceptionBreakpointFilters = [];
 
         this.sendResponse(response);
 
@@ -335,6 +343,23 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
         await this._runtime.stepOut();
     }
+
+    protected exceptionInfoRequest(response: DebugProtocol.ExceptionInfoResponse, args: DebugProtocol.ExceptionInfoArguments)
+    {
+        response.body = {
+            exceptionId: "undefined",
+            description: this._runtime.getError(),
+            ////breakMode: 'userUnhandled',
+            breakMode: 'never',
+            details: {
+                ////message: this._runtime.getError(),
+                stackTrace: this._runtime.getErrorStack()
+            }
+        };
+
+        this.sendResponse(response);
+    }
+
 
     protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 

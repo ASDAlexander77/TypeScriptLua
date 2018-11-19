@@ -169,12 +169,16 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         super();
     }
 
+    public get HasError(): boolean {
+        return (this._lastErrorStack) ? true : false;
+    }
+
     public get LastError(): string | null {
         return this._lastError;
     }
 
-    public hasErrorStack(): boolean {
-        return (this._lastErrorStack) ? true : false;
+    public get LastErrorStack(): string | null {
+        return this._lastErrorStack;
     }
 
     public async spawn() {
@@ -769,11 +773,19 @@ export class LuaRuntime extends EventEmitter {
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
 	 */
     public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
-        if (this._luaExe.hasErrorStack()) {
+        if (this._luaExe.HasError) {
             return this._luaExe.errorStack(startFrame, endFrame);
         }
 
         return await this._luaExe.stack(startFrame, endFrame);
+    }
+
+    public getError(): string {
+        return this._luaExe.HasError ? this._luaExe.LastError || '' : '';
+    }
+
+    public getErrorStack(): string {
+        return this._luaExe.HasError ? this._luaExe.LastErrorStack || '' : '';
     }
 
     public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>) {
@@ -843,7 +855,7 @@ export class LuaRuntime extends EventEmitter {
     }
 
     private async stepInternal(type: StepTypes, stepEvent?: string) {
-        if (this._luaExe.hasErrorStack()) {
+        if (this._luaExe.HasError) {
             this.sendEvent('end');
             return;
         }
@@ -864,7 +876,7 @@ export class LuaRuntime extends EventEmitter {
         }
         */
 
-        if (response !== undefined && stepEvent && !this._luaExe.hasErrorStack()) {
+        if (response !== undefined && stepEvent && !this._luaExe.HasError) {
             this.sendEvent(stepEvent);
         }
     }
