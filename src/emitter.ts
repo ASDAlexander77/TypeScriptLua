@@ -480,12 +480,15 @@ export class Emitter {
                 this.filePathLuaMap = path.join(path.dirname(filePath), this.fileModuleName + '.lua.map');
             }
 
+            const firstFile = !this.sourceMapGenerator;
             this.sourceMapGenerator = this.sourceMapGenerator || new sourceMap.SourceMapGenerator({
                 file: path.basename(this.filePathLua),
                 sourceRoot: filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)
             });
 
-            (<any>this.sourceMapGenerator).__lastDebugLine = 0;
+            if (firstFile) {
+                (<any>this.sourceMapGenerator).__lastDebugLine = 0;
+            }
         }
 
 
