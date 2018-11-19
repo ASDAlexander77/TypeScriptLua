@@ -161,20 +161,24 @@ class LuaCommands {
 
 class LuaSpawnedDebugProcess extends EventEmitter {
     private _commands: LuaCommands;
-    private exe: ChildProcess;
-    private lastError: string;
-    private lastErrorStack: string | null;
+    private _exe: ChildProcess;
+    private _lastError: string | null;
+    private _lastErrorStack: string | null;
 
     constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
         super();
     }
 
+    public get LastError(): string | null {
+        return this._lastError;
+    }
+
     public hasErrorStack(): boolean {
-        return (this.lastErrorStack) ? true : false;
+        return (this._lastErrorStack) ? true : false;
     }
 
     public async spawn() {
-        const exe = this.exe = spawn(this.luaExecutable, [
+        const exe = this._exe = spawn(this.luaExecutable, [
             '-i'
         ]);
 
@@ -213,15 +217,15 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         // rest of data
                         stackTrace = data.substr(index + 1);
 
-                        this.lastError = msg;
+                        this._lastError = msg;
 
-                        this.emit('error', msg);
+                        ////this.emit('error', msg);
                     } else {
                         stackTrace += data;
                         if (data.indexOf('[C]: in ?') >= 0) {
                             // end of stack
                             stackReading = false;
-                            this.lastErrorStack = stackTrace;
+                            this._lastErrorStack = stackTrace;
                         }
                     }
                 }
@@ -382,8 +386,8 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         const frames = new Array<StartFrameInfo>();
         // every word of the current line becomes a stack frame.
 
-        if (this.lastErrorStack) {
-            for (const line of this.lastErrorStack.split('\n')) {
+        if (this._lastErrorStack) {
+            for (const line of this._lastErrorStack.split('\n')) {
                 const values = parseLine.exec(line);
                 if (values) {
                     const location = values[1];
@@ -608,7 +612,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private async readAsync(timeout: number = 3000) {
         return new Promise((resolve, reject) => {
             let timerId;
-            this.exe.stdout.on('data', (data) => {
+            this._exe.stdout.on('data', (data) => {
                 if (timerId) {
                     clearTimeout(timerId);
                 }
@@ -616,7 +620,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 resolve(data);
             });
 
-            this.exe.stdout.on('error', (e) => {
+            this._exe.stdout.on('error', (e) => {
                 if (timerId) {
                     clearTimeout(timerId);
                 }
@@ -851,7 +855,11 @@ export class LuaRuntime extends EventEmitter {
         }
 
         if (response !== undefined && stepEvent) {
-            this.sendEvent(stepEvent);
+            if (this._luaExe.hasErrorStack()) {
+                this.sendEvent("stopOnException", this._luaExe.LastError);
+            } else {
+                this.sendEvent(stepEvent);
+            }
         }
     }
 

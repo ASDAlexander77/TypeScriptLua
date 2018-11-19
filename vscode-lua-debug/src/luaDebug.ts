@@ -147,7 +147,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         const programPathClean = cleanUpPath(args.program);
 
         // load map file to setbreakpoints
-        const sourceMapConsumer = await this.loadMapFileIfExists(basename(programPathClean));
+        const sourceMapConsumer = await this.loadMapFileIfExists(programPathClean);
         if (sourceMapConsumer) {
             const breakpointsMap = this._runtime.breakPoints;
             for (const source of sourceMapConsumer.sources) {
@@ -317,23 +317,23 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments) {
-        await this._runtime.continue();
         this.sendResponse(response);
+        await this._runtime.continue();
     }
 
     protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments) {
-        await this._runtime.stepOver();
         this.sendResponse(response);
+        await this._runtime.stepOver();
     }
 
     protected async stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments) {
-        await this._runtime.stepIn();
         this.sendResponse(response);
+        await this._runtime.stepIn();
     }
 
     protected async stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
-        await this._runtime.stepOut();
         this.sendResponse(response);
+        await this._runtime.stepOut();
     }
 
     protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
