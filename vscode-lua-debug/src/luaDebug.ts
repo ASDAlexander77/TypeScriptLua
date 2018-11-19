@@ -243,7 +243,17 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
 
         const mapFile = execFile.endsWith('.map') ? execFile : execFile + ".map";
-        const filePath = this.getFilePathOfMapFile(mapFile);
+        let filePath = this.getFilePathOfMapFile(mapFile);
+        if (!filePath) {
+            const canBeRootFolder = (mapFile.length > 1 && mapFile.charAt(1) === ':') || (mapFile.length > 0 && mapFile.charAt(0) === '/');
+            if (canBeRootFolder) {
+                const exists = await new Promise((resolve, reject) => fs.exists(mapFile, (exists) => resolve(exists)));
+                if (exists) {
+                    filePath = mapFile;
+                }
+            }
+        }
+
         if (filePath) {
             const json = await fs.readJson(filePath);
             this._sourceMapFilePathCache[execFile] = filePath;
