@@ -219,13 +219,13 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
                         this._lastError = msg;
 
-                        ////this.emit('error', msg);
                     } else {
                         stackTrace += data;
                         if (data.indexOf('[C]: in ?') >= 0) {
                             // end of stack
                             stackReading = false;
                             this._lastErrorStack = stackTrace;
+                            this.emit('error', this._lastError);
                         }
                     }
                 }
@@ -854,12 +854,18 @@ export class LuaRuntime extends EventEmitter {
             return;
         }
 
+        /*
         if (response !== undefined && stepEvent) {
             if (this._luaExe.hasErrorStack()) {
                 this.sendEvent("stopOnException", this._luaExe.LastError);
             } else {
                 this.sendEvent(stepEvent);
             }
+        }
+        */
+
+        if (response !== undefined && stepEvent && !this._luaExe.hasErrorStack()) {
+            this.sendEvent(stepEvent);
         }
     }
 
