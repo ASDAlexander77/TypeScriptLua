@@ -164,6 +164,8 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private _exe: ChildProcess;
     private _lastError: string | null;
     private _lastErrorStack: string | null;
+    private _frames: StartFrameInfo[] | null;
+    private _errorFrames: StartFrameInfo[] | null;
 
     constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
         super();
@@ -179,6 +181,10 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
     public get LastErrorStack(): string | null {
         return this._lastErrorStack;
+    }
+
+    public dropStackTrace(): void {
+        this._frames = null;
     }
 
     public async spawn() {
@@ -221,6 +227,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         // rest of data
                         stackTrace = data.substr(index + 1);
 
+                        this._errorFrames = null;
                         this._lastError = msg;
 
                     } else {
@@ -337,60 +344,72 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
-        const parseLine = /(\[DEBUG\]\>\s)?(\[(\d+)\])?(\*\*\*)?\s+([^\s]*)\sin\s(.*)/;
-        const parseFileNameAndLine = /(.*):(\d+)$/;
+        if (!this._frames) {
+            const parseLine = /(\[DEBUG\]\>\s)?(\[(\d+)\])?(\*\*\*)?\s+([^\s]*)\sin\s(.*)/;
+            const parseFileNameAndLine = /(.*):(\d+)$/;
 
-        await this._commands.stack();
+            await this._commands.stack();
 
-        const frames = new Array<StartFrameInfo>();
-        // every word of the current line becomes a stack frame.
+            const frames = new Array<StartFrameInfo>();
+            // every word of the current line becomes a stack frame.
 
-        await this.defaultDebugProcessStage((line) => {
-            // parse output
-            const values = parseLine.exec(line);
-            if (values) {
-                const index = values[3];
-                //const isActive = values[4];
-                const functionName = values[5];
-                const location = values[6];
+            await this.defaultDebugProcessStage((line) => {
+                // parse output
+                const values = parseLine.exec(line);
+                if (values) {
+                    const index = values[3];
+                    //const isActive = values[4];
+                    const functionName = values[5];
+                    const location = values[6];
 
-                const locationValues = parseFileNameAndLine.exec(location);
-                if (locationValues) {
-                    const locationWithoutLine = locationValues[1];
-                    const startIndex =
-                        (locationWithoutLine.length > 2 && locationWithoutLine[1] === ':' && (locationWithoutLine[2] === '\\' || locationWithoutLine[2] === '/'))
-                            ? 3
-                            : 0;
-                    const fileIndex = locationWithoutLine.indexOf(':', startIndex);
-                    const fileName = fileIndex === -1 ? locationWithoutLine : locationWithoutLine.substring(0, fileIndex);
+                    const locationValues = parseFileNameAndLine.exec(location);
+                    if (locationValues) {
+                        const locationWithoutLine = locationValues[1];
+                        const startIndex =
+                            (locationWithoutLine.length > 2 && locationWithoutLine[1] === ':' && (locationWithoutLine[2] === '\\' || locationWithoutLine[2] === '/'))
+                                ? 3
+                                : 0;
+                        const fileIndex = locationWithoutLine.indexOf(':', startIndex);
+                        const fileName = fileIndex === -1 ? locationWithoutLine : locationWithoutLine.substring(0, fileIndex);
 
-                    if (fileName !== "stdin" && fileName !== "C") {
-                        frames.push(<StartFrameInfo>{
-                            index: frames.length,
-                            name: `${functionName}(${index})`,
-                            file: fileName,
-                            line: parseInt(locationValues[2])
-                        });
+                        if (fileName !== "stdin" && fileName !== "C") {
+                            frames.push(<StartFrameInfo>{
+                                index: frames.length,
+                                name: `${functionName}(${index})`,
+                                file: fileName,
+                                line: parseInt(locationValues[2])
+                            });
+                        }
                     }
                 }
-            }
-        });
+            });
+
+            this._frames = frames;
+        }
+
+        const windowFrames = this._frames.filter(f => f.index >= startFrame && f.index <= endFrame);
 
         return <StartFrameInfos>{
-            frames: frames,
-            count: frames.length
+            frames: windowFrames,
+            count: this._frames.length
         };
     }
 
     public async errorStack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
-        const parseLine = /\s+([^\s]*):\sin\s(.*)/;
-        const parseFileNameAndLine = /(.*):(\d+)$/;
-        const parseFunctionName = /(method|field)\s+'([^']*)'/;
+        if (!this._lastErrorStack) {
+            return <StartFrameInfos>{
+                frames: [],
+                count: 0
+            };
+        }
 
-        const frames = new Array<StartFrameInfo>();
-        // every word of the current line becomes a stack frame.
+        if (!this._errorFrames) {
+            const parseLine = /\s+([^\s]*):\sin\s(.*)/;
+            const parseFileNameAndLine = /(.*):(\d+)$/;
+            const parseFunctionName = /(method|field)\s+'([^']*)'/;
 
-        if (this._lastErrorStack) {
+            const frames = new Array<StartFrameInfo>();
+
             for (const line of this._lastErrorStack.split('\n')) {
                 const values = parseLine.exec(line);
                 if (values) {
@@ -422,11 +441,15 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                     }
                 }
             }
+
+            this._errorFrames = frames;
         }
 
+        const windowFrames = this._errorFrames.filter(f => f.index >= startFrame && f.index <= endFrame);
+
         return <StartFrameInfos>{
-            frames: frames,
-            count: frames.length
+            frames: windowFrames,
+            count: this._errorFrames.length
         };
     }
 
@@ -861,6 +884,7 @@ export class LuaRuntime extends EventEmitter {
         }
 
         let response;
+        this._luaExe.dropStackTrace();
         if (response = await this._luaExe.step(type)) {
             this.sendEvent('end');
             return;

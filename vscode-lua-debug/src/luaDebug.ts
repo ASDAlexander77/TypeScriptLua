@@ -10,7 +10,6 @@ import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo, cleanUpPath }
 import { Subject } from 'await-notify';
 import * as sm from 'source-map';
 import * as fs from 'fs-extra';
-import { reporters } from 'mocha';
 
 /**
  * This interface describes the lua debug specific launch attributes
@@ -115,6 +114,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         response.body.supportsStepBack = false;
 
         //
+        ////response.body.supportsDelayedStackTraceLoading = true;
         response.body.supportsExceptionOptions = false;
         response.body.supportsExceptionInfoRequest = true;
 		response.body.exceptionBreakpointFilters = [];
@@ -211,7 +211,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         // runtime supports now threads so just return a default thread.
         response.body = {
             threads: [
-                new Thread(LuaDebugSession.THREAD_ID, "thread 1")
+                new Thread(LuaDebugSession.THREAD_ID, "main")
             ]
         };
         this.sendResponse(response);
