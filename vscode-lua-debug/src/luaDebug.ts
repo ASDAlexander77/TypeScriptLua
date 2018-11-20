@@ -155,10 +155,9 @@ export class LuaDebugSession extends LoggingDebugSession {
             await this.readAllMapFile(process.cwd(), this._listOfMapFiles);
         }
 
-        const programPathClean = cleanUpPath(args.program);
-
         // load map file to setbreakpoints
         /*
+        const programPathClean = cleanUpPath(args.program);
         const sourceMapConsumer = await this.loadMapFileIfExists(programPathClean);
         if (sourceMapConsumer) {
             const breakpointsMap = this._runtime.breakPoints;
