@@ -6,7 +6,7 @@ module JS {
 
     export class Object {
 
-        public create(proto: any): any {
+        public static create(proto: any): any {
             const obj = <any>{};
             obj.__index = __get_call__;
             obj.__proto = proto;
@@ -15,7 +15,7 @@ module JS {
             return obj;
         }
 
-        public freeze(obj: any) {
+        public static freeze(obj: any) {
             obj.__newindex = function (table: any) {
                 throw 'Object is read-only';
             };
