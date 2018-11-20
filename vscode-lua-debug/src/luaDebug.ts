@@ -52,6 +52,8 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     private _mapFiles: true | Map<string, any | boolean>;
 
+    private _listOfMapFiles: Array<string>;
+
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
 	 * We configure the default implementation of a debug adapter here.
@@ -117,7 +119,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         ////response.body.supportsDelayedStackTraceLoading = true;
         response.body.supportsExceptionOptions = false;
         response.body.supportsExceptionInfoRequest = true;
-		response.body.exceptionBreakpointFilters = [];
+        response.body.exceptionBreakpointFilters = [];
 
         this.sendResponse(response);
 
@@ -149,12 +151,14 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
 
         if (this._mapFiles === undefined) {
-            await this.readAllMapFile(process.cwd());
+            this._listOfMapFiles = [];
+            await this.readAllMapFile(process.cwd(), this._listOfMapFiles);
         }
 
         const programPathClean = cleanUpPath(args.program);
 
         // load map file to setbreakpoints
+        /*
         const sourceMapConsumer = await this.loadMapFileIfExists(programPathClean);
         if (sourceMapConsumer) {
             const breakpointsMap = this._runtime.breakPoints;
@@ -162,9 +166,29 @@ export class LuaDebugSession extends LoggingDebugSession {
                 const sourcePath = cleanUpPath(source);
                 const bps = breakpointsMap.get(sourcePath);
                 if (bps) {
-                    const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, basename(source));
+                    const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
                     for (const mappedLine of mappedLines) {
                         this._runtime.setBreakPoint(programPathClean, mappedLine);
+                    }
+                }
+            }
+        }
+        */
+
+        // check all map files
+        const breakpointsMap = this._runtime.breakPoints;
+        for (const mapFile of this._listOfMapFiles) {
+            const sourceMapConsumer = await this.loadMapFileIfExists(mapFile);
+            if (sourceMapConsumer) {
+                const luaFilePath = this.getFilePathFromSourceMapConsumer(sourceMapConsumer);
+                for (const source of sourceMapConsumer.sources) {
+                    const sourcePath = cleanUpPath(source);
+                    const bps = breakpointsMap.get(sourcePath);
+                    if (bps) {
+                        const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
+                        for (const mappedLine of mappedLines) {
+                            this._runtime.setBreakPoint(luaFilePath, mappedLine);
+                        }
                     }
                 }
             }
@@ -180,19 +204,19 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) {
-        const path = this.convertPathFromMap(<string>args.source.path, args.source.origin);
+        const subPath = args.source.origin || <string>args.source.path;
         const clientLines = args.lines || [];
         const originLines = this.convertLinesFromMap(clientLines, args.source.origin, args.source.path);
 
         // clear all breakpoints for this file
-        this._runtime.clearBreakpoints(path);
+        this._runtime.clearBreakpoints(subPath);
 
         // set and verify breakpoint locations
         const actualBreakpoints = new Array<DebugProtocol.Breakpoint>();
         for (let index = 0; index < originLines.length; index++) {
             const element = originLines[index];
             const fileLine = clientLines[index];
-            let { verified, line, id } = await this._runtime.setBreakPoint(path, this.convertClientLineToDebugger(element));
+            let { verified, line, id } = await this._runtime.setBreakPoint(subPath, this.convertClientLineToDebugger(element));
             line = fileLine;
             const bp = <DebugProtocol.Breakpoint>new Breakpoint(verified, this.convertDebuggerLineToClient(line));
             bp.id = id;
@@ -265,7 +289,9 @@ export class LuaDebugSession extends LoggingDebugSession {
         if (filePath) {
             const json = await fs.readJson(filePath);
             this._sourceMapFilePathCache[execFile] = filePath;
-            return this._sourceMapCache[execFile] = await new sm.SourceMapConsumer(json);
+            const mapConsumer = await new sm.SourceMapConsumer(json);
+            this._sourceMapCache[execFile] = mapConsumer;
+            return mapConsumer;
         } else {
             console.error(`Could not load file ${mapFile}, current folder: ${process.cwd()}`);
         }
@@ -344,8 +370,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         await this._runtime.stepOut();
     }
 
-    protected exceptionInfoRequest(response: DebugProtocol.ExceptionInfoResponse, args: DebugProtocol.ExceptionInfoArguments)
-    {
+    protected exceptionInfoRequest(response: DebugProtocol.ExceptionInfoResponse, args: DebugProtocol.ExceptionInfoArguments) {
         response.body = {
             exceptionId: "undefined",
             description: this._runtime.getError(),
@@ -399,20 +424,20 @@ export class LuaDebugSession extends LoggingDebugSession {
     }
 
     //---- helpers
-    private async readAllMapFile(cwd: string) {
-        const files = await this.readAllMapFileInDirectory(cwd);
+    private async readAllMapFile(cwd: string, allMapFilePathes?: Array<string>) {
+        const files = await this.readAllMapFileInDirectory(cwd, allMapFilePathes);
         if (files !== false) {
             this._mapFiles = files;
         }
     }
 
-    private async readAllMapFileInDirectory(filePath: string) {
+    private async readAllMapFileInDirectory(filePath: string, allMapFilePathes?: Array<string>) {
         const stat = await fs.stat(filePath);
         if (stat.isDirectory()) {
             const allFiles = await fs.readdir(filePath);
             const files = new Map<string, any | boolean>();
             for (const file of allFiles) {
-                const value = await this.readAllMapFileInDirectory(join(filePath, file));
+                const value = await this.readAllMapFileInDirectory(join(filePath, file), allMapFilePathes);
                 if (value !== false) {
                     files[file.toLowerCase()] = value;
                 }
@@ -421,8 +446,12 @@ export class LuaDebugSession extends LoggingDebugSession {
             return files;
         }
 
-        if (stat.isFile()) {
-            return filePath.endsWith('.map');
+        if (stat.isFile() && filePath.endsWith('.map')) {
+            if (allMapFilePathes) {
+                allMapFilePathes.push(filePath);
+            }
+
+            return true;
         }
 
         return false;
@@ -499,24 +528,14 @@ export class LuaDebugSession extends LoggingDebugSession {
         return frame;
     }
 
-    private convertPathFromMap(path: string, origin?: string) {
-        if (!origin) {
-            return path;
-        }
-
-        const consumer = this._sourceMapCache[origin];
-        if (!consumer) {
-            return path;
-        }
-
-        let fullPath = origin ? origin : this._sourceMapFilePathCache[consumer.file];
-        if (!fullPath) {
-            // find path by
-            for (const fileSubPath in this._sourceMapFilePathCache) {
-                if (fileSubPath.startsWith(consumer.file)) {
-                    fullPath = this._sourceMapFilePathCache[fileSubPath];
-                    break;
-                }
+    private getFilePathFromSourceMapConsumer(consumer: sm.BasicSourceMapConsumer) {
+        let fullPath = '';
+        const mapFile = consumer.file + ".map";
+        // find path by
+        for (const fileSubPath in this._sourceMapFilePathCache) {
+            if (fileSubPath.endsWith(mapFile)) {
+                fullPath = this._sourceMapFilePathCache[fileSubPath];
+                break;
             }
         }
 
