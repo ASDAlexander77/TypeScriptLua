@@ -182,7 +182,7 @@ export class LuaDebugSession extends LoggingDebugSession {
     protected async setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) {
         const path = this.convertPathFromMap(<string>args.source.path, args.source.origin);
         const clientLines = args.lines || [];
-        const originLines = this.convertLinesFromMap(clientLines, args.source.origin, args.source.name);
+        const originLines = this.convertLinesFromMap(clientLines, args.source.origin, args.source.path);
 
         // clear all breakpoints for this file
         this._runtime.clearBreakpoints(path);
@@ -509,7 +509,18 @@ export class LuaDebugSession extends LoggingDebugSession {
             return path;
         }
 
-        return this.replaceFileName(this._sourceMapFilePathCache[consumer.file], consumer.file);
+        let fullPath = origin ? origin : this._sourceMapFilePathCache[consumer.file];
+        if (!fullPath) {
+            // find path by
+            for (const fileSubPath in this._sourceMapFilePathCache) {
+                if (fileSubPath.startsWith(consumer.file)) {
+                    fullPath = this._sourceMapFilePathCache[fileSubPath];
+                    break;
+                }
+            }
+        }
+
+        return this.replaceFileName(fullPath, consumer.file);
     }
 
     private replaceFileName(path: string, newFileName: string) {
@@ -525,7 +536,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         return path.substr(0, subPathIndex + 1) + newFileName;
     }
 
-    private convertLinesFromMap(lines: number[], origin?: string, sourceFile?: string): number[] {
+    private convertLinesFromMap(lines: number[], origin?: string, sourceFilePath?: string): number[] {
         if (!origin) {
             return lines;
         }
@@ -535,14 +546,21 @@ export class LuaDebugSession extends LoggingDebugSession {
             return lines;
         }
 
-        return this.convertLinesFromSourceMapConsumer(lines, consumer, sourceFile || '');
+        return this.convertLinesFromSourceMapConsumer(lines, consumer, sourceFilePath || '');
     }
 
-    private convertLinesFromSourceMapConsumer(lines: number[], consumer: sm.BasicSourceMapConsumer, sourceFile: string) {
+    private convertLinesFromSourceMapConsumer(lines: number[], consumer: sm.BasicSourceMapConsumer, sourceFilePath: string) {
+        if (sourceFilePath) {
+            sourceFilePath = cleanUpPath(sourceFilePath);
+            if (sourceFilePath.startsWith(consumer.sourceRoot)) {
+                sourceFilePath = sourceFilePath.substr(consumer.sourceRoot.length);
+            }
+        }
+
         const originLines = new Array<number>();
         for (const line of lines) {
             const originPosition = consumer.generatedPositionFor({
-                source: sourceFile || '',
+                source: sourceFilePath || '',
                 line: line,
                 column: 0
             });
