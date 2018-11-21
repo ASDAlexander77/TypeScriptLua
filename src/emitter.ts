@@ -571,6 +571,7 @@ export class Emitter {
             case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
             case ts.SyntaxKind.InterfaceDeclaration: /*nothing to do*/ return;
             case ts.SyntaxKind.TypeAliasDeclaration: /*nothing to do*/ return;
+            case ts.SyntaxKind.ExportAssignment: /*nothing to do*/ return;
         }
 
         // TODO: finish it
@@ -1272,6 +1273,10 @@ export class Emitter {
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
+        const isModuleDeclaratino = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword);
+        if (isModuleDeclaratino) {
+            return;
+        }
 
         this.functionContext.namespaces.push(node);
 
