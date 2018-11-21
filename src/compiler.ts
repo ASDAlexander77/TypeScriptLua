@@ -113,21 +113,19 @@ export class Run {
         const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
         if (!isSingleModule) {
             console.log('Generating binaries...');
-            sourceFiles.forEach(s => {
-                if (sources.some(sf => s.fileName.endsWith(sf))) {
-                    console.log('File: ' + s.fileName);
-                    const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
+            sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
+                console.log('File: ' + s.fileName);
+                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
 
-                    emitter.processNode(s);
-                    emitter.save();
+                emitter.processNode(s);
+                emitter.save();
 
-                    const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
-                    const fileName = Helpers.correctFileNameForLua(fileNamnNoExt.concat('.', outputExtention));
+                const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
+                const fileName = Helpers.correctFileNameForLua(fileNamnNoExt.concat('.', outputExtention));
 
-                    console.log('Writing to file ' + fileName);
+                console.log('Writing to file ' + fileName);
 
-                    fs.writeFileSync(fileName, emitter.writer.getBytes());
-                }
+                fs.writeFileSync(fileName, emitter.writer.getBytes());
             });
         } else {
             console.log('Generating single binary...');

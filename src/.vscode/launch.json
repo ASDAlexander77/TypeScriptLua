@@ -24,7 +24,6 @@
             "cwd": "${workspaceFolder}/../experiments/jslib",
             "args": [
                 "-singleModule",
-                "-sourcemap",
                 "tsconfig.json"
             ]
         },

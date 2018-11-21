@@ -16,7 +16,7 @@
     "strictFunctionTypes": true,
     "skipLibCheck": true,
     "noUnusedParameters": true,
-    "module": "esnext",
+    "module": "es2015",
     "outDir": "./__out/jslib",
     "baseUrl": "./",    
     "lib": [
