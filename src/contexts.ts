@@ -272,7 +272,11 @@ export class FunctionContext {
         return index;
     }
 
-    public createLocal(name: string, predefinedRegisterInfo?: ResolvedInfo): ResolvedInfo {
+    public createParam(name: string): ResolvedInfo {
+        return this.createLocal(name, undefined, true);
+    }
+
+    public createLocal(name: string, predefinedRegisterInfo?: ResolvedInfo, param?: boolean): ResolvedInfo {
         // locals start with 0
         const index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
@@ -281,7 +285,7 @@ export class FunctionContext {
                 name: name,
                 register: registerInfo.getRegister(),
                 fake: predefinedRegisterInfo ? true : false,
-                debugStartCode: this.code.length
+                debugStartCode: this.code.length - (param ? 1 : 0)
             });
             return registerInfo;
         }

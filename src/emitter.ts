@@ -397,7 +397,7 @@ export class Emitter {
             if (createThis) {
                 const thisIsInParams = parameters && parameters.some(p => (<ts.Identifier>p.name).text === 'this');
                 if (!thisIsInParams) {
-                    this.functionContext.createLocal('this');
+                    this.functionContext.createParam('this');
                     addThisAsParameter = true;
                 }
             }
@@ -406,7 +406,7 @@ export class Emitter {
         if (parameters) {
             let dotDotDotAny = false;
             parameters.forEach(p => {
-                this.functionContext.createLocal((<ts.Identifier>p.name).text);
+                this.functionContext.createParam((<ts.Identifier>p.name).text);
                 if (p.dotDotDotToken) {
                     dotDotDotAny = true;
                 }
