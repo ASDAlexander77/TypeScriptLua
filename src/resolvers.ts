@@ -337,9 +337,9 @@ export class IdentifierResolver {
         try {
             if (functionContext.current_location_node) {
                 resolved = (<any>this.typeChecker).resolveName(
-                identifier.text,
-                functionContext.current_location_node,
-                ((1 << 27) - 1)/*mask for all types*/);
+                    identifier.text,
+                    functionContext.current_location_node,
+                    ((1 << 27) - 1)/*mask for all types*/);
             }
         } catch (e) {
         }
@@ -453,6 +453,11 @@ export class IdentifierResolver {
                     const classInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     classInfo.isTypeReference = true;
                     return classInfo;
+
+                case ts.SyntaxKind.ModuleDeclaration:
+                    const moduleInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    moduleInfo.isTypeReference = true;
+                    return moduleInfo;
             }
         }
 
