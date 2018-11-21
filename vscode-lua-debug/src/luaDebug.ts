@@ -384,40 +384,27 @@ export class LuaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-
     protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments) {
 
-        let reply: string | undefined = undefined;
-
-        /*
-        if (args.context === 'repl') {
-            // 'evaluate' supports to create and delete breakpoints from the 'repl':
-            const matches = /new +([0-9]+)/.exec(args.expression);
-            if (matches && matches.length === 2) {
-                const mbp = await this._runtime.setBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
-                const bp = <DebugProtocol.Breakpoint>new Breakpoint(mbp.verified, this.convertDebuggerLineToClient(mbp.line), undefined, this.createSource(this._runtime.sourceFile));
-                bp.id = mbp.id;
-                this.sendEvent(new BreakpointEvent('new', bp));
-                reply = `breakpoint created`;
-            } else {
-                const matches = /del +([0-9]+)/.exec(args.expression);
-                if (matches && matches.length === 2) {
-                    const mbp = await this._runtime.clearBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
-                    if (mbp) {
-                        const bp = <DebugProtocol.Breakpoint>new Breakpoint(false);
-                        bp.id = mbp.id;
-                        this.sendEvent(new BreakpointEvent('removed', bp));
-                        reply = `breakpoint deleted`;
-                    }
-                }
-            }
+        if (this._dumpInProgress) {
+            await this._dumpInProgress.wait(3000);
+            this._dumpInProgress = null;
         }
-        */
+
+        const dumpInProgress = this._dumpInProgress = new Subject();
+
+        let variableName = args.expression;
+        let variableType = VariableTypes.SingleVariable;
+
+        const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles, true);
 
         response.body = {
-            result: reply ? reply : `evaluate(context: '${args.context}', '${args.expression}')`,
-            variablesReference: 0
+            result: variables[0].value,
+            variablesReference: variables[0].variablesReference
         };
+
+        dumpInProgress.notify();
+        this._dumpInProgress = null;
 
         this.sendResponse(response);
     }

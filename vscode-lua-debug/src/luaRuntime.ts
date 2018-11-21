@@ -453,7 +453,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         };
     }
 
-    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>) {
+    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
         let rootName = variableName;
         switch (variableType) {
             case VariableTypes.Local: rootName = "variables"; break;
@@ -555,20 +555,33 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         });
 
         if (rootName) {
-            const values = currentObject[rootName].value;
-            if (values) {
-                for (let name in values) {
-                    const value = values[name];
-                    variables.push({
-                        name: name,
-                        type: value.type,
-                        value: value.type === "object" ? "" : value.value,
-                        variablesReference: value.type !== "object" ? 0 : variableHandles.create(
-                            variableType === VariableTypes.SingleVariable
-                                ? value.path
-                                : name)
-                    });
+            const value = currentObject[rootName];
+            if (value.type === "object" && !evaluate) {
+                const values = value.value;
+                if (values) {
+                    for (let name in values) {
+                        const value = values[name];
+                        variables.push({
+                            name: value.name,
+                            type: value.type,
+                            value: value.type === "object" ? "" : value.value,
+                            variablesReference: value.type !== "object" ? 0 : variableHandles.create(
+                                variableType === VariableTypes.SingleVariable
+                                    ? value.path
+                                    : name)
+                        });
+                    }
                 }
+            } else {
+                variables.push({
+                    name: value.name,
+                    type: value.type,
+                    value: value.type === "object" ? "" : value.value,
+                    variablesReference: value.type !== "object" ? 0 : variableHandles.create(
+                        variableType === VariableTypes.SingleVariable
+                            ? value.path
+                            : name)
+                });
             }
         }
 
@@ -811,8 +824,8 @@ export class LuaRuntime extends EventEmitter {
         return this._luaExe.HasError ? this._luaExe.LastErrorStack || '' : '';
     }
 
-    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>) {
-        return await this._luaExe.dumpVariables(variableType, variableName, variableHandles);
+    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
+        return await this._luaExe.dumpVariables(variableType, variableName, variableHandles, evaluate);
     }
 
 	/*
