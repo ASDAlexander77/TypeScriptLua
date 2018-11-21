@@ -23,7 +23,8 @@
       ]
     },
     "include": [
-      "babyloncli.ts"
+      "babyloncli.ts",
+      "declarations.d.ts"
     ],
     "exclude": [
       "node_modules"

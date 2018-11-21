@@ -67,12 +67,119 @@ import './BABYLON/Cameras/babylon_arcRotateCamera';
 
 // xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
 
+class Canvas implements WebGLRenderingContext {
+    MAX_SAMPLES: number;
+    RGBA8: number;
+    READ_FRAMEBUFFER: number;
+    DRAW_FRAMEBUFFER: number;
+    UNIFORM_BUFFER: number;
+    HALF_FLOAT_OES: number;
+    RGBA16F: number;
+    RGBA32F: number;
+    R32F: number;
+    RG32F: number;
+    RGB32F: number;
+    R16F: number;
+    RG16F: number;
+    RGB16F: number;
+    RED: number;
+    RG: number;
+    R8: number;
+    RG8: number;
+    UNSIGNED_INT_24_8: number;
+    DEPTH24_STENCIL8: number;
+    COLOR_ATTACHMENT0: number;
+    COLOR_ATTACHMENT1: number;
+    COLOR_ATTACHMENT2: number;
+    COLOR_ATTACHMENT3: number;
+    ANY_SAMPLES_PASSED_CONSERVATIVE: number;
+    ANY_SAMPLES_PASSED: number;
+    QUERY_RESULT_AVAILABLE: number;
+    QUERY_RESULT: number;
+
+    drawBuffers(buffers: number[]): void {
+        throw new Error('Method not implemented.');
+    }
+
+    readBuffer(src: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    drawArraysInstanced(mode: number, first: number, count: number, primcount: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    drawElementsInstanced(mode: number, count: number, type: number, offset: number, primcount: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    vertexAttribDivisor(index: number, divisor: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    createVertexArray() {
+        throw new Error('Method not implemented.');
+    }
+
+    bindVertexArray(vao?: any): void {
+        throw new Error('Method not implemented.');
+    }
+
+    deleteVertexArray(vao: any): void {
+        throw new Error('Method not implemented.');
+    }
+
+    blitFramebuffer(srcX0: number, srcY0: number, srcX1: number, srcY1: number, dstX0: number, dstY0: number,
+        dstX1: number, dstY1: number, mask: number, filter: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    renderbufferStorageMultisample(target: number, samples: number, internalformat: number, width: number, height: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    bindBufferBase(target: number, index: number, buffer: WebGLBuffer): void {
+        throw new Error('Method not implemented.');
+    }
+
+    getUniformBlockIndex(program: WebGLProgram, uniformBlockName: string): number {
+        throw new Error('Method not implemented.');
+    }
+    uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBinding: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    createQuery() {
+        throw new Error('Method not implemented.');
+    }
+
+    deleteQuery(query: any): void {
+        throw new Error('Method not implemented.');
+    }
+
+    beginQuery(target: number, query: any): void {
+        throw new Error('Method not implemented.');
+    }
+
+    endQuery(target: number): void {
+        throw new Error('Method not implemented.');
+    }
+
+    getQueryParameter(query: any, pname: number) {
+        throw new Error('Method not implemented.');
+    }
+
+    getQuery(target: number, pname: number) {
+        throw new Error('Method not implemented.');
+    }
+}
+
 class Runner {
     private canvas: any;
     private engine: any;
 
     constructor() {
-        this.canvas = undefined;
+        this.canvas = new Canvas();
         this.engine = new BABYLON.Engine(
             this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
     }
