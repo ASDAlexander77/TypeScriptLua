@@ -168,7 +168,7 @@ export class Run {
                 }
 
                 console.log('File: ' + s.fileName);
-                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
+                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, program.getCurrentDirectory());
 
                 emitter.processNode(s);
                 emitter.save();
@@ -182,7 +182,7 @@ export class Run {
             });
         } else {
             console.log('Generating single binary...');
-            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
+            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
                 if (sources.some(sf => s.fileName.endsWith(sf))) {
                     emitter.processNode(s);
