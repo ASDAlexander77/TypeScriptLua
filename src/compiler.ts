@@ -150,11 +150,12 @@ export class Run {
     private generateBinary(
         program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions, cmdLineOptions: any) {
 
+        console.log('Generating binary files...');
+
         const sourceFiles = program.getSourceFiles();
 
         const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
         if (!isSingleModule) {
-            console.log('Generating binaries...');
             sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
                 // track version
                 const fileVersion = (<any>s).version;
@@ -181,7 +182,6 @@ export class Run {
                 fs.writeFileSync(fileName, emitter.writer.getBytes());
             });
         } else {
-            console.log('Generating single binary...');
             const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
                 if (sources.some(sf => s.fileName.endsWith(sf))) {
@@ -197,6 +197,8 @@ export class Run {
             emitter.save();
             fs.writeFileSync(fileName, emitter.writer.getBytes());
         }
+
+        console.log('Binary files are generated...');
     }
 
     public test(sources: string[]): string {
