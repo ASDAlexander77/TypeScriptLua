@@ -5,7 +5,14 @@
             "label": "npm",
             "type": "npm",
             "script": "watch",
-            "problemMatcher": [],
+            "problemMatcher": {
+                "owner": "lua",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Generating binary files",
+                    "endsPattern": "Binary files are generated"
+                }                
+            },
             "isBackground": true,
             "group": {
                 "kind": "build",
