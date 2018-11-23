@@ -25,7 +25,8 @@ export class Emitter {
     private filePathLuaMap: string;
     private ignoreDebugInfo: boolean;
 
-    public constructor(typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any) {
+    public constructor(
+        typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any, private rootFolder?: string) {
         this.resolver = new IdentifierResolver(typeChecker);
         this.functionContext = new FunctionContext();
 
@@ -261,7 +262,7 @@ export class Emitter {
             }
 
             const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
-            const fileSubPath = this.filePathLua.startsWith(rootPath)
+            const fileSubPath = rootPath.length > 0 && this.filePathLua.startsWith(rootPath)
                 ? this.filePathLua.substring(positionFrom)
                 : this.filePathLua;
             functionContext.debug_location = '@' + fileSubPath;
@@ -483,7 +484,7 @@ export class Emitter {
             const firstFile = !this.sourceMapGenerator;
             this.sourceMapGenerator = this.sourceMapGenerator || new sourceMap.SourceMapGenerator({
                 file: path.basename(this.filePathLua),
-                sourceRoot: filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)
+                sourceRoot: this.rootFolder || filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)
             });
 
             if (firstFile) {
