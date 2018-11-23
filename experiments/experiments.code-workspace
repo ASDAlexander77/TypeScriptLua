@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "BABYLON",
+			"path": "./BABYLON"
+		},
+		{
+			"name": "JSLib",
+			"path": "./jslib"
+		}
+	],
+	"settings": {}
+}
