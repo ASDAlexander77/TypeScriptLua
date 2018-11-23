@@ -2,20 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-        "type": "node",
-        "request": "launch",
-        "name": "Launch Node.js (Babylon Client)",
-        "program": "${workspaceFolder}/../../__out/main.js",
-        "cwd": "${workspaceFolder}",
-        "args": [
-            "tsconfig.json"
-        ]
-    },
-    {
       "type": "lua",
       "request": "launch",
-      "name": "Run Babyloncli",
+      "name": "Debug Babyloncli",
       "cwd": "${workspaceFolder}",
+      "preLaunchTask": "npm",
       //"program": "${workspaceFolder}/${command:AskForProgramName}",
       "program": "${workspaceFolder}/babyloncli.lua",
       "luaExecutable": "lua",

@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "build": "node ../../__out/main.js",
+    "watch": "node ../../__out/main.js -watch"
+  }
+}
