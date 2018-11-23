@@ -50,9 +50,9 @@
 			"type": "lua",
 			"request": "launch",
             "name": "Lua Debugger - Test.ts",
-            "cwd": "C:/Temp/TypeScriptLUA/__build/win64/lua/Debug",
+            "cwd": "${workspaceFolder}/../test",
 			//"program": "${workspaceFolder}/${command:AskForProgramName}",
-			"program": "C:/Temp/TypeScriptLUA/__build/win64/lua/Debug/test.lua",
+			"program": "${workspaceFolder}/../test/test.lua",
 			"luaExecutable": "lua",
 			"stopOnEntry": true
         },
@@ -60,9 +60,9 @@
 			"type": "lua",
 			"request": "launch",
             "name": "Lua Debugger Test - Babyloncli",
-            "cwd": "C:/Temp/TypeScriptLUA/__build/win64/lua/Debug",
+            "cwd": "${workspaceFolder}/../experiments/BABYLON",
 			//"program": "${workspaceFolder}/${command:AskForProgramName}",
-            "program": "C:/Temp/TypeScriptLUA/__build/win64/lua/Debug/babyloncli.lua",
+            "program": "${workspaceFolder}/../experiments/BABYLON/babyloncli.lua",
             "luaExecutable": "lua",
 			"stopOnEntry": true
         }

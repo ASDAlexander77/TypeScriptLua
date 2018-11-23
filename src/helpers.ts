@@ -41,4 +41,17 @@ export class Helpers {
 
         return path.replace(/\\/g, '/');
     }
+
+    public static getSubPath(filePath: string, rootPath: string) {
+        if (rootPath[rootPath.length - 1] === '/' || rootPath[rootPath.length - 1] === '\\') {
+            rootPath = rootPath.substr(0, rootPath.length - 1);
+        }
+
+        const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
+        const fileSubPath = rootPath.length > 0 && filePath.toLowerCase().startsWith(rootPath)
+            ? filePath.substring(positionFrom)
+            : filePath;
+
+        return fileSubPath;
+    }
 }

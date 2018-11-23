@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { ResolvedInfo, ResolvedKind, StackResolver } from './resolvers';
 import { Ops, OpMode, OpCodes } from './opcodes';
 import { SourceMapGenerator } from 'source-map';
+import { Helpers } from './helpers';
 
 class LocalVarInfo {
     public name: string;
@@ -149,7 +150,7 @@ export class CodeStorage {
                   line: debugLine,
                   column: 0
                 },
-                source: file.fileName,
+                source: Helpers.getSubPath(file.fileName, (<any>sourceMapGenerator)._sourceRoot),
                 original: {
                   line: locStart.line + 1,
                   column: locStart.column ? locStart.column + 1 : 0

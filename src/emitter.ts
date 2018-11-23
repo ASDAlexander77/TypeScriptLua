@@ -71,7 +71,7 @@ export class Emitter {
             }
         }
 
-        this.generateSourceMap = ((options && options.sourceMap) || false) || (cmdLineOptions.sourcemap ? true : false);
+        this.generateSourceMap = ((options && options.sourceMap) || false);
     }
 
     private lib = '                                                 \
@@ -256,15 +256,7 @@ export class Emitter {
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.getEnd());
 
         if (this.sourceMapGenerator) {
-            let rootPath = (<any>this.sourceMapGenerator)._sourceRoot;
-            if (rootPath[rootPath.length - 1] === '/' || rootPath[rootPath.length - 1] === '\\') {
-                rootPath = rootPath.substr(0, rootPath.length - 1);
-            }
-
-            const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
-            const fileSubPath = rootPath.length > 0 && this.filePathLua.startsWith(rootPath)
-                ? this.filePathLua.substring(positionFrom)
-                : this.filePathLua;
+            const fileSubPath = Helpers.getSubPath(this.filePathLua, (<any>this.sourceMapGenerator)._sourceRoot);
             functionContext.debug_location = '@' + fileSubPath;
         } else {
             if (!functionContext.debug_location) {
