@@ -52,6 +52,18 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Node.js(Watch) (Babylon Client)",
+            "preLaunchTask": "npm",
+            "program": "${workspaceFolder}/../__out/main.js",
+            "cwd": "${workspaceFolder}/../experiments/BABYLON",
+            "args": [
+                "-watch",
+                "tsconfig.json"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch TS-Node",
             "runtimeExecutable": "${workspaceFolder}/../node_modules/.bin/ts-node",
             "program": "${workspaceFolder}/../src/main.ts",

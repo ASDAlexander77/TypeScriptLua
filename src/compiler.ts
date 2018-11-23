@@ -6,6 +6,17 @@ import { Helpers } from './helpers';
 
 export class Run {
 
+    private formatHost: ts.FormatDiagnosticsHost;
+    private versions: Map<string, number> = new Map<string, number>();
+
+    public constructor() {
+        this.formatHost = <ts.FormatDiagnosticsHost>{
+            getCanonicalFileName: path => path,
+            getCurrentDirectory: ts.sys.getCurrentDirectory,
+            getNewLine: () => ts.sys.newLine
+        };
+    }
+
     public static processOptions(cmdLineArgs: string[]): any {
         const options = {};
         for (let i = 2; i < cmdLineArgs.length; i++) {
@@ -31,16 +42,23 @@ export class Run {
             options.push(item);
         }
 
+        if (options.length === 0) {
+            return 'tsconfig.json';
+        }
+
         return options.length === 1 ? options[0] : options;
     }
 
     public run(sourcesOrConfigFile: string[] | string, outputExtention: string, cmdLineOptions: any): void {
+
         if (typeof (sourcesOrConfigFile) === 'string') {
             if (sourcesOrConfigFile.endsWith('.json')) {
                 const configPath = ts.findConfigFile('./', ts.sys.fileExists, sourcesOrConfigFile);
                 if (configPath) {
                     this.compileWithConfig(configPath, outputExtention, cmdLineOptions);
                     return;
+                } else {
+                    throw new Error('Could not find a valid \'tsconfig.json\'.');
                 }
             }
 
@@ -52,7 +70,7 @@ export class Run {
     }
 
     public compileSources(sources: string[], outputExtention: string, cmdLineOptions: any): void {
-        this.generateBinary(this.createProgram(ts.createProgram(sources, {})), sources, outputExtention, undefined, cmdLineOptions);
+        this.generateBinary(ts.createProgram(sources, {}), sources, outputExtention, undefined, cmdLineOptions);
     }
 
     public compileWithConfig(configPath: string, outputExtention: string, cmdLineOptions: any): void {
@@ -67,53 +85,88 @@ export class Run {
 
         const parsedCommandLine = ts.parseJsonSourceFileConfigFileContent(configFile, parseConfigHost, './');
 
-        const program = this.createProgram(ts.createProgram({
-            rootNames: parsedCommandLine.fileNames,
-            options: parsedCommandLine.options
-        }));
-        this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, parsedCommandLine.options, cmdLineOptions);
+        const watch = cmdLineOptions && 'watch' in cmdLineOptions;
+
+        if (!watch) {
+            // simple case, just compile
+            const program = ts.createProgram({
+                rootNames: parsedCommandLine.fileNames,
+                options: parsedCommandLine.options
+            });
+            this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, parsedCommandLine.options, cmdLineOptions);
+        } else {
+            const createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
+
+            const watchCompilingHost = ts.createWatchCompilerHost(
+                configPath,
+                {},
+                ts.sys,
+                createProgram,
+                (d) => this.reportDiagnostic(d),
+                (d) => this.reportWatchStatusChanged(d)
+            );
+
+            watchCompilingHost.afterProgramCreate = program => {
+              this.generateBinary(
+                  program.getProgram(),
+                  parsedCommandLine.fileNames,
+                  outputExtention,
+                  parsedCommandLine.options,
+                  cmdLineOptions);
+            };
+
+            ts.createWatchProgram(watchCompilingHost);
+        }
     }
 
-    private createProgram(program: ts.Program): any {
-        console.log('Compiling...');
-        const emitResult = program.emit(undefined, (f, data, writeByteOrderMark) => {
-            console.log('Emitting: ' + f);
+    private reportDiagnostic(diagnostic: ts.Diagnostic) {
 
-            // TODO: comment it when not needed
-            // ts.sys.writeFile(f, data, writeByteOrderMark);
-        });
+        const category = ts.DiagnosticCategory[diagnostic.category];
 
-        emitResult.diagnostics.forEach(d => {
-            let outputDiag = '';
-            switch (d.category) {
-                case 0:
-                    outputDiag = 'Warning';
-                    break;
-                case 1:
-                    outputDiag = 'Error';
-                    break;
-                case 2:
-                    outputDiag = 'Suggestion';
-                    break;
-                case 3:
-                    outputDiag = 'Message';
-                    break;
-            }
+        let action;
+        switch (<ts.DiagnosticCategory>diagnostic.category) {
+            case ts.DiagnosticCategory.Warning:
+                action = console.warn;
+                break;
+            case ts.DiagnosticCategory.Error:
+                action = console.error;
+                break;
+            case ts.DiagnosticCategory.Suggestion:
+                action = console.warn;
+                break;
+            case ts.DiagnosticCategory.Message:
+                action = console.log;
+                break;
+        }
 
-            console.log(outputDiag + ': ' + d.messageText + ' file: ' + d.file + ' line: ' + d.start);
-        });
+        action(category, this.formatHost.getNewLine());
+        action(category, diagnostic.code, ':', ts.flattenDiagnosticMessageText(diagnostic.messageText, this.formatHost.getNewLine()));
+    }
 
-        return program;
+    private reportWatchStatusChanged(diagnostic: ts.Diagnostic) {
+        console.log(ts.formatDiagnostic(diagnostic, this.formatHost));
     }
 
     private generateBinary(
         program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions, cmdLineOptions: any) {
+
         const sourceFiles = program.getSourceFiles();
 
         const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
         if (!isSingleModule) {
             console.log('Generating binaries...');
             sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
+                // track version
+                const fileVersion = (<any>s).version;
+                if (fileVersion) {
+                    const latestVersion = this.versions[s.fileName];
+                    if (latestVersion && latestVersion >= fileVersion) {
+                        return;
+                    }
+
+                    this.versions[s.fileName] = fileVersion;
+                }
+
                 console.log('File: ' + s.fileName);
                 const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions);
 
