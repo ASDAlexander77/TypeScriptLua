@@ -484,7 +484,8 @@ export class Emitter {
             const firstFile = !this.sourceMapGenerator;
             this.sourceMapGenerator = this.sourceMapGenerator || new sourceMap.SourceMapGenerator({
                 file: path.basename(this.filePathLua),
-                sourceRoot: this.rootFolder || filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)
+                sourceRoot: Helpers.cleanUpPath(
+                    this.rootFolder || filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)).toLowerCase()
             });
 
             if (firstFile) {

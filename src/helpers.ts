@@ -33,4 +33,12 @@ export class Helpers {
 
         return beginPath + fileNameFixed + endExt;
     }
+
+    public static cleanUpPath(path: string) {
+        if (path.charAt(1) === ':' && path.charAt(0).match('[A-Z]')) {
+            path = path.charAt(0).toLowerCase() + path.substr(1);
+        }
+
+        return path.replace(/\\/g, '/');
+    }
 }
