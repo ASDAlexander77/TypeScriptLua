@@ -5,15 +5,20 @@
             "label": "npm",
             "type": "npm",
             "script": "watch",
+            "isBackground": true,
             "problemMatcher": {
                 "owner": "lua",
+                "fileLocation": "relative",
+                "pattern": {
+                    "regexp": "(.*)",
+                    "message": 1
+                },
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": "Generating binary files",
-                    "endsPattern": "Binary files are generated"
-                }                
+                    "beginsPattern": "Generating",
+                    "endsPattern": "generated"
+                }
             },
-            "isBackground": true,
             "group": {
                 "kind": "build",
                 "isDefault": true
