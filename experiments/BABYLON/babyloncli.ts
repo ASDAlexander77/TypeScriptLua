@@ -1,7 +1,7 @@
 import './JS';
 
-var window = <Window>{};
-var navigator = <Navigator>{};
+window = <Window>{};
+navigator = <Navigator>{};
 
 // Core
 import './BABYLON/Materials/babylon_effect';
