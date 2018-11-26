@@ -41,6 +41,14 @@ export function cleanUpPath(path: string) {
     return path.replace(/\\/g, '/');
 }
 
+export function excludeRootPath(path: string, rootPath: string) {
+    if (path.startsWith(rootPath)) {
+        return path.substr(rootPath.length + ((rootPath[rootPath.length - 1] === '\\' || rootPath[rootPath.length - 1] === '/') ? 0 : 1));
+    }
+
+    return path;
+}
+
 class LuaCommands {
     constructor(private stdin: Writable) {
     }
@@ -746,6 +754,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async start(program: string, stopOnEntry: boolean, luaExecutable: string, luaDebuggerFilePath: string) {
 
+        const rootPath = process.cwd();
         this._sourceFile = cleanUpPath(program);
 
         this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable, luaDebuggerFilePath);
@@ -756,11 +765,10 @@ export class LuaRuntime extends EventEmitter {
 
         await this._luaExe.spawn();
 
-        // TODO: finish it, dummy verification of breakpoints
-        const bps = this._breakPoints.get(this._sourceFile);
-        if (bps) {
+        for (const [key, bps] of this._breakPoints) {
             for (const bp of bps) {
-                await this._luaExe.setBreakpoint(this._sourceFile, bp.line);
+                const subPath = excludeRootPath(key, rootPath);
+                await this._luaExe.setBreakpoint(subPath, bp.line);
             }
         }
 

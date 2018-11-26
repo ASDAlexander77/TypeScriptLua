@@ -6,7 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename, join } from 'path';
-import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo, cleanUpPath } from './luaRuntime';
+import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo, cleanUpPath, excludeRootPath } from './luaRuntime';
 import { Subject } from 'await-notify';
 import * as sm from 'source-map';
 import * as fs from 'fs-extra';
@@ -557,9 +557,7 @@ export class LuaDebugSession extends LoggingDebugSession {
     private convertLinesFromSourceMapConsumer(lines: number[], consumer: sm.BasicSourceMapConsumer, sourceFilePath: string) {
         if (sourceFilePath) {
             sourceFilePath = cleanUpPath(sourceFilePath);
-            if (sourceFilePath.startsWith(consumer.sourceRoot)) {
-                sourceFilePath = sourceFilePath.substr(consumer.sourceRoot.length);
-            }
+            sourceFilePath = excludeRootPath(sourceFilePath, consumer.sourceRoot);
         }
 
         const originLines = new Array<number>();
