@@ -786,7 +786,7 @@ class Canvas implements WebGLRenderingContext {
     getExtension(extensionName: 'OES_element_index_uint'): OES_element_index_uint;
     getExtension(extensionName: 'ANGLE_instanced_arrays'): ANGLE_instanced_arrays;
     getExtension(extensionName: string | any): any {
-        throw new Error('Method not implemented.');
+        return undefined;
     }
 
     getFramebufferAttachmentParameter(target: number, attachment: number, pname: number) {
@@ -794,7 +794,7 @@ class Canvas implements WebGLRenderingContext {
     }
 
     getParameter(pname: number) {
-        throw new Error('Method not implemented.');
+        return 0;
     }
 
     getProgramInfoLog(program: WebGLProgram): string {
@@ -818,7 +818,7 @@ class Canvas implements WebGLRenderingContext {
     }
 
     getShaderPrecisionFormat(shadertype: number, precisiontype: number): WebGLShaderPrecisionFormat {
-        throw new Error('Method not implemented.');
+        return undefined;
     }
 
     getShaderSource(shader: WebGLShader): string {

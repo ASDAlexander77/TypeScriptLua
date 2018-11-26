@@ -1,7 +1,11 @@
 import './JS';
 
-window = <Window>{};
-navigator = <Navigator>{};
+window = <Window> {
+    innerWidth: 640,
+    innerHeight: 480
+};
+
+navigator = <Navigator> {};
 
 // Core
 import './BABYLON/Materials/babylon_effect';
