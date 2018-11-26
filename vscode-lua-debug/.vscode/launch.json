@@ -40,7 +40,7 @@
 			"type": "lua",
 			"request": "launch",
             "name": "Lua Debugger - Lua file",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/test",
 			//"program": "${workspaceFolder}/${command:AskForProgramName}",
 			"program": "${workspaceFolder}/test/file.lua",
 			"luaExecutable": "lua",

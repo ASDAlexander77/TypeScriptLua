@@ -181,6 +181,10 @@ export class LuaDebugSession extends LoggingDebugSession {
             const sourceMapConsumer = await this.loadMapFileIfExists(mapFile);
             if (sourceMapConsumer) {
                 const luaFilePath = cleanUpPath(this.getFilePathFromSourceMapConsumer(sourceMapConsumer));
+                if (!luaFilePath) {
+                    continue;
+                }
+
                 for (const source of sourceMapConsumer.sources) {
                     const sourcePath = cleanUpPath(source);
                     const bps = breakpointsMap.get(sourcePath);
@@ -531,6 +535,10 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     private getFilePathFromSourceMapConsumer(consumer: sm.BasicSourceMapConsumer) {
         let fullPath = '';
+        if (!consumer.file) {
+            return fullPath;
+        }
+
         const mapFile = consumer.file + ".map";
         // find path by
         for (const fileSubPath in this._sourceMapFilePathCache) {
