@@ -754,7 +754,7 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async start(program: string, stopOnEntry: boolean, luaExecutable: string, luaDebuggerFilePath: string) {
 
-        const rootPath = process.cwd();
+        const rootPath = cleanUpPath(process.cwd());
         this._sourceFile = cleanUpPath(program);
 
         this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable, luaDebuggerFilePath);
@@ -766,9 +766,11 @@ export class LuaRuntime extends EventEmitter {
         await this._luaExe.spawn();
 
         for (const [key, bps] of this._breakPoints) {
-            for (const bp of bps) {
-                const subPath = excludeRootPath(key, rootPath);
-                await this._luaExe.setBreakpoint(subPath, bp.line);
+            if (key.endsWith('.lua')) {
+                for (const bp of bps) {
+                    const subPath = excludeRootPath(key, rootPath);
+                    await this._luaExe.setBreakpoint(subPath, bp.line);
+                }
             }
         }
 

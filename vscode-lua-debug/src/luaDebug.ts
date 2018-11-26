@@ -5,7 +5,7 @@ import {
     Thread, StackFrame, Scope, Source, Handles, Breakpoint
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { basename, join } from 'path';
+import { basename, join, dirname } from 'path';
 import { LuaRuntime, LuaBreakpoint, VariableTypes, StartFrameInfo, cleanUpPath, excludeRootPath } from './luaRuntime';
 import { Subject } from 'await-notify';
 import * as sm from 'source-map';
@@ -175,18 +175,33 @@ export class LuaDebugSession extends LoggingDebugSession {
         */
 
         // check all map files
+        const rootFolder = cleanUpPath(process.cwd());
         const breakpointsMap = this._runtime.breakPoints;
         for (const mapFile of this._listOfMapFiles) {
             const sourceMapConsumer = await this.loadMapFileIfExists(mapFile);
             if (sourceMapConsumer) {
-                const luaFilePath = this.getFilePathFromSourceMapConsumer(sourceMapConsumer);
+                const luaFilePath = cleanUpPath(this.getFilePathFromSourceMapConsumer(sourceMapConsumer));
                 for (const source of sourceMapConsumer.sources) {
                     const sourcePath = cleanUpPath(source);
                     const bps = breakpointsMap.get(sourcePath);
                     if (bps) {
+                        const sourceFileSubPath = excludeRootPath(source, sourceMapConsumer.sourceRoot);
+                        let sourceSubPath = dirname(sourceFileSubPath);
+                        if (sourceSubPath === '.') {
+                            sourceSubPath = '';
+                        }
+
+                        let luaFilePathWithoutRoot = excludeRootPath(luaFilePath, rootFolder);
+                        const positionOfSubPath = luaFilePathWithoutRoot.indexOf(sourceSubPath);
+                        if (positionOfSubPath > -1) {
+                            luaFilePathWithoutRoot = luaFilePathWithoutRoot.substring(positionOfSubPath);
+                            // to lower folder names
+                            luaFilePathWithoutRoot = luaFilePathWithoutRoot.toLowerCase();
+                        }
+
                         const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
                         for (const mappedLine of mappedLines) {
-                            this._runtime.setBreakPoint(luaFilePath, mappedLine);
+                            this._runtime.setBreakPoint(luaFilePathWithoutRoot, mappedLine);
                         }
                     }
                 }
