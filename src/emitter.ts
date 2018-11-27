@@ -1847,7 +1847,14 @@ export class Emitter {
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
         const identifier = ts.createIdentifier('RegExp');
-        const expr = ts.createNew(identifier, undefined, [ts.createStringLiteral(node.getText())]);
+        const arg = node.text.split('/');
+        let expr;
+        if (arg[2] !== '') {
+            expr = ts.createNew(identifier, undefined, [ts.createStringLiteral(arg[1]), ts.createStringLiteral(arg[2])]);
+        } else {
+            expr = ts.createNew(identifier, undefined, [ts.createStringLiteral(arg[1])]);
+        }
+
         expr.parent = node;
         this.processNewExpression(expr);
     }
