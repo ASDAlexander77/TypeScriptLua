@@ -172,6 +172,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private _exe: ChildProcess;
     private _lastError: string | null;
     private _lastErrorStack: string | null;
+    private _errorOutputInProgress: boolean;
     private _frames: StartFrameInfo[] | null;
     private _errorFrames: StartFrameInfo[] | null;
 
@@ -198,6 +199,10 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
 
         return false;
+    }
+
+    public get HasErrorReadingInProgress(): boolean {
+        return (this._errorOutputInProgress) ? true : false;
     }
 
     public get HasError(): boolean {
@@ -235,6 +240,9 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         let stackReading = false;
         let notProcessedErrorData = '';
         exe.stderr.on('data', async (binary) => {
+
+            this._errorOutputInProgress = true;
+
             let data = notProcessedErrorData + binary.toString();
             notProcessedErrorData = '';
             const indexOfCompleteData = data.lastIndexOf('\n');
@@ -256,14 +264,15 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
                     this._errorFrames = null;
                     this._lastError = msg;
-                } else {
-                    stackTrace += data;
-                    if (data.indexOf('[C]: in ?') >= 0) {
-                        // end of stack
-                        stackReading = false;
-                        this._lastErrorStack = stackTrace;
-                        this.emit('error', this._lastError);
-                    }
+                }
+
+                // stack trace
+                if (stackReading && data.indexOf('[C]: in ?') >= 0) {
+                    // end of stack
+                    this._errorOutputInProgress = false;
+                    stackReading = false;
+                    this._lastErrorStack = stackTrace;
+                    this.emit('error', this._lastError);
                 }
             } else {
                 notProcessedErrorData = data;
@@ -420,7 +429,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         };
     }
 
-    public async errorStack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
+    public errorStack(startFrame: number, endFrame: number): StartFrameInfos {
         if (!this._lastErrorStack) {
             return <StartFrameInfos>{
                 frames: [],
@@ -892,7 +901,7 @@ export class LuaRuntime extends EventEmitter {
 
         let response;
         this._luaExe.dropStackTrace();
-        if (response = await this._luaExe.step(type)) {
+        if (response = await this._luaExe.step(type) && !this._luaExe.HasErrorReadingInProgress) {
             this.sendEvent('end');
             return;
         }
@@ -907,7 +916,7 @@ export class LuaRuntime extends EventEmitter {
         }
         */
 
-        if (response !== undefined && stepEvent && !this._luaExe.HasError) {
+        if (response !== undefined && stepEvent && !this._luaExe.HasErrorReadingInProgress && !this._luaExe.HasError) {
             this.sendEvent(stepEvent);
         }
     }

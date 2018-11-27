@@ -78,6 +78,10 @@ export class LuaDebugSession extends LoggingDebugSession {
             this.sendEvent(new StoppedEvent('breakpoint', LuaDebugSession.THREAD_ID));
         });
         this._runtime.on('stopOnException', (msg?) => {
+
+            const outputEvet = new OutputEvent(msg, 'error', this._runtime.getErrorStack());
+            this.sendEvent(outputEvet);
+
             const event = new StoppedEvent('exception', LuaDebugSession.THREAD_ID, msg);
             //// (<DebugProtocol.StoppedEvent>event).body.description = msg;
             this.sendEvent(event);
