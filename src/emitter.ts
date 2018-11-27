@@ -75,12 +75,28 @@ export class Emitter {
     }
 
     private lib = '                                                 \
+    __type = __type || type;                                        \
     __instanceof = __instanceof || function(inst, type) {           \
         if (!inst) {                                                \
             return false;                                           \
         }                                                           \
                                                                     \
-        let mt = inst.__index;                                      \
+        let mt;                                                     \
+        switch (__type(inst)) {                                     \
+            case "table":                                           \
+                mt = inst.__index;                                  \
+                break;                                              \
+            case "number":                                          \
+                mt = Number;                                        \
+                break;                                              \
+            case "string":                                          \
+                mt = String;                                        \
+                break;                                              \
+            case "boolean":                                         \
+                mt = Boolean;                                       \
+                break;                                              \
+        }                                                           \
+                                                                    \
         while (mt) {                                                \
             if (mt == type) {                                       \
                 return true;                                        \
@@ -852,7 +868,7 @@ export class Emitter {
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        const typeCall = ts.createCall(ts.createIdentifier('type'), undefined, [node.expression]);
+        const typeCall = ts.createCall(ts.createIdentifier('__type'), undefined, [node.expression]);
         typeCall.parent = node;
         this.processExpression(typeCall);
     }
