@@ -394,31 +394,10 @@ export class IdentifierResolver {
                 case ts.SyntaxKind.VariableDeclaration:
                     const type = (resolved.valueDeclaration || resolved.exportSymbol.valueDeclaration).type;
                     // can be keyward to 'string'
-                    let isAny = false;
-                    if (type) {
-                        isAny = type.kind === ts.SyntaxKind.AnyKeyword;
-                        if (type.typeName) {
-                            switch (type.typeName.text) {
-                                case 'Console':
-                                    const memberInfo = this.returnResolvedEnv(functionContext);
-                                    memberInfo.isTypeReference = type.kind === ts.SyntaxKind.TypeReference;
-                                    return memberInfo;
-                            }
-                        }
-                    }
-
+                    const isAny = type && type.kind === ts.SyntaxKind.AnyKeyword;
                     // values are not the same as Node.Flags
                     let varInfo;
                     if ((resolved.flags & 1) === 1) {
-                        // TODO: temporary solution to allow user global vars as const/let variables
-                        // to support for/in loops with global vars
-                        /*
-                        varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
-                        if (varInfo) {
-                            return varInfo;
-                        }
-                        */
-
                         varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         return varInfo;

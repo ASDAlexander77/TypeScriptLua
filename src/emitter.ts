@@ -24,6 +24,7 @@ export class Emitter {
     private filePathLua: string;
     private filePathLuaMap: string;
     private ignoreDebugInfo: boolean;
+    private jsLib: boolean;
 
     public constructor(
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any, private rootFolder?: string) {
@@ -65,48 +66,17 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
 
         this.extraDebugEmbed = cmdLineOptions.extradebug ? true : false;
-        if (options) {
-            if (options.outFile) {
-                this.fileModuleName = options.outFile;
-            }
+        if (options && options.outFile) {
+            this.fileModuleName = options.outFile;
         }
 
         this.generateSourceMap = ((options && options.sourceMap) || false);
+
+        this.jsLib = ((options && options.lib && options.lib.some(l => /lib.es\d+.d.ts/.test(l))) || cmdLineOptions.jslib) ? true : false;
     }
 
-    private lib = '                                                 \
+    private libCommon = '                                           \
     __type = __type || type;                                        \
-    __instanceof = __instanceof || function(inst, type) {           \
-        if (!inst) {                                                \
-            return false;                                           \
-        }                                                           \
-                                                                    \
-        let mt;                                                     \
-        switch (__type(inst)) {                                     \
-            case "table":                                           \
-                mt = inst.__index;                                  \
-                break;                                              \
-            case "number":                                          \
-                mt = Number;                                        \
-                break;                                              \
-            case "string":                                          \
-                mt = String;                                        \
-                break;                                              \
-            case "boolean":                                         \
-                mt = Boolean;                                       \
-                break;                                              \
-        }                                                           \
-                                                                    \
-        while (mt) {                                                \
-            if (mt == type) {                                       \
-                return true;                                        \
-            }                                                       \
-                                                                    \
-            mt = mt.__index;                                        \
-        }                                                           \
-                                                                    \
-        return false;                                               \
-    }                                                               \
                                                                     \
     __get_static_call__ = __get_static_call__ || function (t, k) {  \
         const getmethod = rawget(t, "__get__")[k];                  \
@@ -145,6 +115,69 @@ export class Emitter {
                                                                     \
         rawset(t, k, v);                                            \
     }';
+
+    private libNoJsLib = '                                          \
+    __instanceof = __instanceof || function(inst, type) {           \
+        if (!inst) {                                                \
+            return false;                                           \
+        }                                                           \
+                                                                    \
+        let mt;                                                     \
+        switch (__type(inst)) {                                     \
+            case "table":                                           \
+                mt = inst.__index;                                  \
+                break;                                              \
+            case "number":                                          \
+            case "string":                                          \
+            case "boolean":                                         \
+                return false;                                       \
+        }                                                           \
+                                                                    \
+        while (mt) {                                                \
+            if (mt == type) {                                       \
+                return true;                                        \
+            }                                                       \
+                                                                    \
+            mt = mt.__index;                                        \
+        }                                                           \
+                                                                    \
+        return false;                                               \
+    }                                                               \
+    ';
+
+    private libJsLib = '                                            \
+    __instanceof = __instanceof || function(inst, type) {           \
+        if (!inst) {                                                \
+            return false;                                           \
+        }                                                           \
+                                                                    \
+        let mt;                                                     \
+        switch (__type(inst)) {                                     \
+            case "table":                                           \
+                mt = inst.__index;                                  \
+                break;                                              \
+            case "number":                                          \
+                mt = Number;                                        \
+                break;                                              \
+            case "string":                                          \
+                mt = String;                                        \
+                break;                                              \
+            case "boolean":                                         \
+                mt = Boolean;                                       \
+                break;                                              \
+        }                                                           \
+                                                                    \
+        while (mt) {                                                \
+            if (mt == type) {                                       \
+                return true;                                        \
+            }                                                       \
+                                                                    \
+            mt = mt.__index;                                        \
+        }                                                           \
+                                                                    \
+        return false;                                               \
+    }                                                               \
+    ';
 
     /*
     -- new instance
@@ -395,7 +428,7 @@ export class Emitter {
             this.resolver.createEnv(this.functionContext);
 
             // we need to inject helper functions
-            this.processTSCode(this.lib, true);
+            this.processTSCode(this.libCommon + (this.jsLib ? this.libJsLib : this.libNoJsLib), true);
         }
 
         let addThisAsParameter = false;
@@ -1936,6 +1969,12 @@ export class Emitter {
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
+        if (this.jsLib && node.elements.length === 0) {
+            const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
+            this.processNewExpression(newArray);
+            return;
+        }
+
         const resultInfo = this.functionContext.useRegisterAndPush();
         this.functionContext.code.push([
             Ops.NEWTABLE,

@@ -14,6 +14,6 @@ describe('InstanceOf', () => {
         console.log(ok1 ? "true" : "false");        \
         const ok2 = (<any>true) instanceof Boolean; \
         console.log(ok2 ? "true" : "false");        \
-    '])).to.equals('true\r\ntrue\r\ntrue\r\n'));
+    '], { jslib: true })).to.equals('true\r\ntrue\r\ntrue\r\n'));
 
 });

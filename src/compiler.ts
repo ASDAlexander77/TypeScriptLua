@@ -201,7 +201,7 @@ export class Run {
         console.log('Binary files have been generated...');
     }
 
-    public test(sources: string[]): string {
+    public test(sources: string[], cmdLineOptions?: any): string {
         let actualOutput = '';
 
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
@@ -217,7 +217,7 @@ export class Run {
 
         try {
             sources.forEach((s: string, index: number) => {
-                fs.writeFileSync('test' + index + '.ts', s);
+                fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
             });
 
             const program = ts.createProgram(tempSourceFiles, {});
@@ -235,7 +235,7 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = new Emitter(program.getTypeChecker(), undefined, {});
+                    const emitter = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {});
                     emitter.processNode(s);
                     emitter.save();
 
