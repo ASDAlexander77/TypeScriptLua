@@ -260,19 +260,22 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
                     stackReading = true;
                     // rest of data
-                    stackTrace = data.substr(index + 1);
+                    data = data.substr(index + 1);
 
                     this._errorFrames = null;
                     this._lastError = msg;
                 }
 
                 // stack trace
-                if (stackReading && data.indexOf('[C]: in ?') >= 0) {
-                    // end of stack
-                    this._errorOutputInProgress = false;
-                    stackReading = false;
-                    this._lastErrorStack = stackTrace;
-                    this.emit('error', this._lastError);
+                if (stackReading) {
+                    stackTrace += data;
+                    if (data.indexOf('[C]: in ?') >= 0) {
+                        // end of stack
+                        this._errorOutputInProgress = false;
+                        stackReading = false;
+                        this._lastErrorStack = stackTrace;
+                        this.emit('error', this._lastError);
+                    }
                 }
             } else {
                 notProcessedErrorData = data;
@@ -901,7 +904,7 @@ export class LuaRuntime extends EventEmitter {
 
         let response;
         this._luaExe.dropStackTrace();
-        if (response = await this._luaExe.step(type) && !this._luaExe.HasErrorReadingInProgress) {
+        if (response = await this._luaExe.step(type) && !this._luaExe.HasErrorReadingInProgress && !this._luaExe.HasError) {
             this.sendEvent('end');
             return;
         }
