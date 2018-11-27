@@ -150,13 +150,15 @@ export class LuaDebugSession extends LoggingDebugSession {
             process.chdir(args.cwd);
         }
 
+        const cwd = process.cwd();
+
         if (this._mapFiles === undefined) {
             this._listOfMapFiles = [];
-            await this.readAllMapFile(process.cwd(), this._listOfMapFiles);
+            await this.readAllMapFile(cwd, this._listOfMapFiles);
         }
 
         // check all map files
-        const rootFolder = cleanUpPath(process.cwd());
+        const rootFolder = cleanUpPath(cwd);
         const breakpointsMap = this._runtime.breakPoints;
         for (const mapFile of this._listOfMapFiles) {
             const sourceMapConsumer = await this.loadMapFileIfExists(mapFile);

@@ -179,6 +179,27 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         super();
     }
 
+    public installDebuggerIfDoesNotExist(folderPath: string): boolean {
+        if (!fs.existsSync(this.luaDebuggerFilePath)) {
+            console.error('!!! can\'t find file ./debugger/_debugger.lua');
+            console.error('Folder: ' + process.cwd());
+            return false;
+        }
+
+        if (fs.existsSync(folderPath)) {
+            // copy file
+            try {
+                fs.copySync(this.luaDebuggerFilePath, path.join(folderPath, '_debugger.lua'));
+                return true;
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+
+        return false;
+    }
+
     public get HasError(): boolean {
         return (this._lastErrorStack) ? true : false;
     }
@@ -223,29 +244,25 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 data = data.substr(0, indexOfCompleteData + 1);
                 console.error("err: " + data);
 
-                // processing data
-                if (!await this.checkErrorToInstallDebugger(data)) {
-                    // process error data
-                    // first line is error message
-                    if (!stackReading) {
-                        const index = data.indexOf('\n');
-                        const msg = data.substr(0, index + 1);
+                // process error data
+                // first line is error message
+                if (!stackReading) {
+                    const index = data.indexOf('\n');
+                    const msg = data.substr(0, index + 1);
 
-                        stackReading = true;
-                        // rest of data
-                        stackTrace = data.substr(index + 1);
+                    stackReading = true;
+                    // rest of data
+                    stackTrace = data.substr(index + 1);
 
-                        this._errorFrames = null;
-                        this._lastError = msg;
-
-                    } else {
-                        stackTrace += data;
-                        if (data.indexOf('[C]: in ?') >= 0) {
-                            // end of stack
-                            stackReading = false;
-                            this._lastErrorStack = stackTrace;
-                            this.emit('error', this._lastError);
-                        }
+                    this._errorFrames = null;
+                    this._lastError = msg;
+                } else {
+                    stackTrace += data;
+                    if (data.indexOf('[C]: in ?') >= 0) {
+                        // end of stack
+                        stackReading = false;
+                        this._lastErrorStack = stackTrace;
+                        this.emit('error', this._lastError);
                     }
                 }
             } else {
@@ -681,41 +698,6 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             }
         });
     }
-
-    private async checkErrorToInstallDebugger(data: string): Promise<boolean> {
-        const fileParse = /\s*no\sfile\s'(.*)\/_debugger.lua'/;
-        for (const line of data.split('\n')) {
-            const values = fileParse.exec(line);
-            if (values) {
-                await this.installDebuggerIfDoesNotExist(values[1]);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private async installDebuggerIfDoesNotExist(folderPath: string) {
-        if (!fs.existsSync(this.luaDebuggerFilePath)) {
-            console.error('!!! can\'t find file ./debugger/_debugger.lua');
-            console.error('Folder: ' + process.cwd());
-            return false;
-        }
-
-        if (fs.existsSync(folderPath)) {
-            // copy file
-            try {
-                fs.copySync(this.luaDebuggerFilePath, path.join(folderPath, '_debugger.lua'));
-                await this._commands.loadDebuggerSourceAsRequire();
-                return true;
-            }
-            catch (e) {
-                console.error(e);
-            }
-        }
-
-        return false;
-    }
 }
 
 /**
@@ -754,10 +736,12 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async start(program: string, stopOnEntry: boolean, luaExecutable: string, luaDebuggerFilePath: string) {
 
-        const rootPath = cleanUpPath(process.cwd());
+        const cwd = process.cwd();
+        const rootPath = cleanUpPath(cwd);
         this._sourceFile = cleanUpPath(program);
 
         this._luaExe = new LuaSpawnedDebugProcess(this._sourceFile, luaExecutable, luaDebuggerFilePath);
+        this._luaExe.installDebuggerIfDoesNotExist(cwd);
 
         this._luaExe.on('error', (msg) => {
             this.sendEvent('stopOnException', msg);
