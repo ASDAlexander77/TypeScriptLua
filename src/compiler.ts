@@ -198,7 +198,7 @@ export class Run {
             fs.writeFileSync(fileName, emitter.writer.getBytes());
         }
 
-        console.log('Binary files are generated...');
+        console.log('Binary files have been generated...');
     }
 
     public test(sources: string[]): string {
