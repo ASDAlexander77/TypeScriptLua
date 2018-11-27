@@ -382,6 +382,9 @@ class Canvas implements WebGLRenderingContext {
     drawingBufferHeight: number;
     drawingBufferWidth: number;
 
+    addEventListener(eventName: string, cb: any, flag: boolean): void {
+    }
+
     drawArraysInstanced(mode: number, first: number, count: number, primcount: number): void {
         throw new Error('Method not implemented.');
     }
