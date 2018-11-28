@@ -78,7 +78,6 @@ describe('Modules', () => {
         console.log(c2.X());                        \
     '])));
 
-
     it('Module - import only', () => expect('1\r\n3\r\n').to.equals(new Run().test([
         'module M {                                 \
             export class C {                        \
@@ -103,4 +102,14 @@ describe('Modules', () => {
         console.log(c2.X());                        \
     '])));
 
+    it('Module - static method call with param', () => expect(new Run().test([
+        'module M {                                 \
+            export class C {                        \
+                static Y(name: string) { return name; }\
+            }                                       \
+        }                                           \
+        ',
+        'import \'./test0\';                        \
+        console.log(M.C.Y("test"));                 \
+    '])).to.equals('test\r\n'));
 });
