@@ -63,6 +63,8 @@ import './BABYLON/Materials/babylon_pushMaterial';
 import './BABYLON/Materials/babylon_standardMaterial';
 
 // extra
+import './BABYLON/Mesh/babylon_meshBuilder';
+
 import './BABYLON/Cameras/babylon_targetCamera';
 import './BABYLON/Cameras/babylon_cameraInputsManager';
 import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraKeyboardMoveInput';
