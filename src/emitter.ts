@@ -2944,6 +2944,7 @@ export class Emitter {
             let objectIdentifierInfo = resolvedInfo.objectInfo;
             let memberIdentifierInfo = resolvedInfo.memberInfo;
             memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
+            memberIdentifierInfo.variableDeclaration = resolvedInfo.variableDeclaration;
 
             const resultInfo = this.functionContext.useRegisterAndPush();
             resultInfo.originalInfo = memberIdentifierInfo;

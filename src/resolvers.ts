@@ -31,6 +31,7 @@ export class ResolvedInfo {
     public upvalueStackIndex: number;
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
+    public variableDeclaration: any;
     // TODO: use chainPop instead
     public popRequired: boolean;
     public chainPop: ResolvedInfo;
@@ -329,13 +330,25 @@ export class IdentifierResolver {
     }
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
+        let resolved;
+
         if (this.Scope.any()) {
-            return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+            const resolveInfo = this.Scope.peek() as ResolvedInfo;
+            if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.variableDeclaration) {
+                try {
+                    if (functionContext.current_location_node) {
+                        resolved = (<any>this.typeChecker).resolveName(
+                            identifier.text,
+                            resolveInfo.originalInfo.variableDeclaration,
+                            ((1 << 27) - 1)/*mask for all types*/);
+                    }
+                } catch (e) {
+                }
+            }
         }
 
-        let resolved;
         try {
-            if (functionContext.current_location_node) {
+            if (!resolved && functionContext.current_location_node) {
                 resolved = (<any>this.typeChecker).resolveName(
                     identifier.text,
                     functionContext.current_location_node,
@@ -426,21 +439,28 @@ export class IdentifierResolver {
                 case ts.SyntaxKind.EnumDeclaration:
                     const enumInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     enumInfo.isTypeReference = true;
+                    enumInfo.variableDeclaration = declaration;
                     return enumInfo;
 
                 case ts.SyntaxKind.ClassDeclaration:
                     const classInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     classInfo.isTypeReference = true;
+                    classInfo.variableDeclaration = declaration;
                     return classInfo;
 
                 case ts.SyntaxKind.ModuleDeclaration:
                     const moduleInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     moduleInfo.isTypeReference = true;
+                    moduleInfo.variableDeclaration = declaration;
                     return moduleInfo;
             }
         }
 
         // default: local, upvalues
+        if (this.Scope.any()) {
+            return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+        }
+
         const localObj = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
         if (localObj) {
             return localObj;
@@ -583,28 +603,7 @@ export class IdentifierResolver {
             return loadMemberInfo;
         }
 
-        // HACK mapping to LUA methods
-        let identifierName = identifier;
-        const parentScope: any = this.Scope.peek();
-        if (parentScope && (parentScope.kind === ResolvedKind.Register || parentScope.kind === ts.SyntaxKind.ObjectLiteralExpression)) {
-            // HACK
-            if (parentScope.originalInfo) {
-                if (parentScope.originalInfo.kind === ResolvedKind.Upvalue) {
-                    if (parentScope.originalInfo.identifierName === '_ENV') {
-                        if (identifier === 'log') {
-                            identifierName = 'print';
-                        }
-                    }
-                } else if (parentScope.originalInfo.kind === ResolvedKind.Const) {
-                    if (parentScope.originalInfo.identifierName === 'math') {
-                        identifierName = identifier.toLowerCase();
-                    }
-                }
-            }
-        }
-
-        // end of HACK
-
+        const identifierName = identifier;
         const finalResolvedInfo = new ResolvedInfo(functionContext);
         finalResolvedInfo.kind = ResolvedKind.Const;
         finalResolvedInfo.identifierName = identifierName;
