@@ -2012,22 +2012,23 @@ export class Emitter {
 
             // set 1.. elements
             const reversedValues = (<Array<any>><any>node.elements.slice(1));
+            if (reversedValues.length > 0) {
+                reversedValues.forEach((e, index: number) => {
+                    this.processExpression(e);
+                });
 
-            reversedValues.forEach((e, index: number) => {
-                this.processExpression(e);
-            });
+                reversedValues.forEach(a => {
+                    // pop method arguments
+                    this.functionContext.stack.pop();
+                });
 
-            reversedValues.forEach(a => {
-                // pop method arguments
-                this.functionContext.stack.pop();
-            });
+                if (node.elements.length > 511) {
+                    throw new Error('finish using C in SETLIST');
+                }
 
-            if (node.elements.length > 511) {
-                throw new Error('finish using C in SETLIST');
+                this.functionContext.code.push(
+                    [Ops.SETLIST, resultInfo.getRegister(), reversedValues.length, 1]);
             }
-
-            this.functionContext.code.push(
-                [Ops.SETLIST, resultInfo.getRegister(), reversedValues.length, 1]);
         }
     }
 

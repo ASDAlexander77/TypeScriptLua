@@ -79,15 +79,11 @@ I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
     '])));
 
     it('Const Array with Const Objects', () => expect(new Run().test([
-        'function f(Colors: any) {                                                    \
-            let color = Colors[1].Green;                                              \
-            console.log(color);                                                       \
-            let color1 = Colors[0].Green;                                             \
-            console.log(color1);                                                      \
+        'function f(events: { name: string; handler: any; }[]) { \
+            console.log(events[0].name);                                              \
+            if (events[1]) console.log("failed");                                     \
         }                                                                             \
-        let s = { s: "5" };                                                           \
-        let Colors = [{Red: 1, Green: "2", Blue: 3}, {Red: 4, Green: s.s, Blue: 6}];  \
-        f(Colors);                                                                    \
-    '])).to.equals('5\r\n2\r\n'));
+        f([{ name: "blur", handler: 1 }]);                                            \
+    '])).to.equals('blur\r\n'));
 
 });
