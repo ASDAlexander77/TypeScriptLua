@@ -76,5 +76,14 @@ I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
         'enum Color {Red = 1, Green, Blue};     \
         let colorName: string = Color[2];       \
         console.log(colorName);                 \
-'])));
+    '])));
+
+    it('Const Array with Const Objects', () => expect(new Run().test([
+        'let Colors = [{Red: 1, Green: 2, Blue: 3}, {Red: 4, Green: 5, Blue: 6}];    \
+        let color = Colors[1].Green;                                                 \
+        console.log(color);                                                          \
+        let color1 = Colors[0].Green;                                                \
+        console.log(color1);                                                         \
+    '])).to.equals('5\r\n2\r\n'));
+
 });
