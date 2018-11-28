@@ -649,6 +649,19 @@ export class Emitter {
                 }
 
                 break;
+            /*
+            case ts.SyntaxKind.PropertyAccessExpression:
+
+                const propertyAccessExpression = <ts.PropertyAccessExpression>node;
+                if (propertyAccessExpression.name.text ===  'length') {
+                    const typeAt = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
+                    if (typeAt && typeAt.symbol && typeAt.symbol.name === 'Array') {
+                        (<any>propertyAccessExpression.name).__len = true;
+                    }
+                }
+
+                break;
+            */
         }
 
         return node;
@@ -1609,9 +1622,9 @@ export class Emitter {
 
         const isLocalOrConstDecl =
             ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList
-            && Helpers.isConstOrLet(<ts.VariableDeclarationList>node.initializer))
+                && Helpers.isConstOrLet(<ts.VariableDeclarationList>node.initializer))
             || ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier
-            && this.resolver.resolver(<ts.Identifier>node.initializer, this.functionContext).isLocal());
+                && this.resolver.resolver(<ts.Identifier>node.initializer, this.functionContext).isLocal());
 
         let varInfo;
         if (!isLocalOrConstDecl) {
@@ -1969,18 +1982,19 @@ export class Emitter {
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
-        if (this.jsLib && node.elements.length === 0) {
+        let resultInfo;
+        if (this.jsLib) {
             const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
             this.processNewExpression(newArray);
-            return;
+            resultInfo = this.functionContext.stack.peek();
+        } else {
+            resultInfo = this.functionContext.useRegisterAndPush();
+            this.functionContext.code.push([
+                Ops.NEWTABLE,
+                resultInfo.getRegister(),
+                node.elements.length,
+                0]);
         }
-
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.NEWTABLE,
-            resultInfo.getRegister(),
-            node.elements.length,
-            0]);
 
         if (node.elements.length > 0) {
             // set 0 element
