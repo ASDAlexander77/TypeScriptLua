@@ -2,7 +2,9 @@ import './JS';
 
 window = <Window> {
     innerWidth: 640,
-    innerHeight: 480
+    innerHeight: 480,
+    addEventListener: function (eventName: string, cb: any, flag: boolean): void {
+    }
 };
 
 navigator = <Navigator> {};
