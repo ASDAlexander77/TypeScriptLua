@@ -5,7 +5,6 @@ import { Handles } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { stringify } from 'querystring';
 
 export interface LuaBreakpoint {
     id: number;
@@ -165,6 +164,42 @@ class LuaCommands {
                 timerId = setTimeout(() => reject('write timeout'), timeout);
             }
         });
+    }
+}
+
+class LuaSpawnedProcess extends EventEmitter {
+    constructor(private program: string, private luaExecutable: string) {
+        super();
+    }
+
+    public async spawn() {
+        const exe = spawn(this.luaExecutable, [
+            this.program
+        ]);
+
+        const commands = new LuaCommands(exe.stdin);
+
+        exe.on('close', (code) => {
+            console.log(`process exited with code ${code}`);
+            this.emit('end', code);
+        });
+
+        exe.on('exit', (code) => {
+            console.log(`process exited with code ${code}`);
+            this.emit('end', code);
+        });
+
+        exe.stderr.on('data', async (data) => {
+            this.emit('errorData', data.toString());
+        });
+
+        exe.stdout.on('data', async (data) => {
+            this.emit('outputData', data.toString());
+        });
+
+        exe.stdout.setEncoding('utf8');
+
+        ////await commands.loadFile(this.program);
     }
 }
 
@@ -772,6 +807,18 @@ export class LuaRuntime extends EventEmitter {
             this.sendEvent('stopOnException', msg);
         });
 
+        this._luaExe.on('errorData', (msg) => {
+            this.sendEvent('errorData', msg);
+        });
+
+        this._luaExe.on('outputData', (msg) => {
+            this.sendEvent('outputData', msg);
+        });
+
+        this._luaExe.on('end', (msg) => {
+            this.sendEvent('end', msg);
+        });
+
         await this._luaExe.spawn();
 
         for (const [key, bps] of this._breakPoints) {
@@ -790,6 +837,24 @@ export class LuaRuntime extends EventEmitter {
             // we just start to run until we hit a breakpoint or an exception
             await this.continue();
         }
+    }
+
+    public async startNoDebug(program: string, luaExecutable: string) {
+        this._sourceFile = cleanUpPath(program);
+        const luaExe = new LuaSpawnedProcess(this._sourceFile, luaExecutable);
+        luaExe.on('errorData', (msg) => {
+            this.sendEvent('errorData', msg);
+        });
+
+        luaExe.on('outputData', (msg) => {
+            this.sendEvent('outputData', msg);
+        });
+
+        luaExe.on('end', (msg) => {
+            this.sendEvent('end', msg);
+        });
+
+        await luaExe.spawn();
     }
 
     public get breakPoints(): Map<string, LuaBreakpoint[]> {

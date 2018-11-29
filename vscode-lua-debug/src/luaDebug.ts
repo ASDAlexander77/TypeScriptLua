@@ -89,6 +89,14 @@ export class LuaDebugSession extends LoggingDebugSession {
         this._runtime.on('breakpointValidated', (bp: LuaBreakpoint) => {
             this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
         });
+        this._runtime.on('outputData', (text) => {
+            const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
+            this.sendEvent(e);
+        });
+        this._runtime.on('errorData', (text) => {
+            const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`, 'error');
+            this.sendEvent(e);
+        });
         this._runtime.on('output', (text, filePath, line, column) => {
             const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
             e.body.source = this.createSource(filePath);
@@ -156,52 +164,56 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         const cwd = process.cwd();
 
-        if (this._mapFiles === undefined) {
-            this._listOfMapFiles = [];
-            await this.readAllMapFile(cwd, this._listOfMapFiles);
-        }
+        if (!args.noDebug) {
+            if (this._mapFiles === undefined) {
+                this._listOfMapFiles = [];
+                await this.readAllMapFile(cwd, this._listOfMapFiles);
+            }
 
-        // check all map files
-        const rootFolder = cleanUpPath(cwd);
-        const breakpointsMap = this._runtime.breakPoints;
-        for (const mapFile of this._listOfMapFiles) {
-            const sourceMapConsumer = await this.loadMapFileIfExists(mapFile);
-            if (sourceMapConsumer) {
-                const luaFilePath = cleanUpPath(this.getFilePathFromSourceMapConsumer(sourceMapConsumer));
-                if (!luaFilePath) {
-                    continue;
-                }
+            // check all map files
+            const rootFolder = cleanUpPath(cwd);
+            const breakpointsMap = this._runtime.breakPoints;
+            for (const mapFile of this._listOfMapFiles) {
+                const sourceMapConsumer = await this.loadMapFileIfExists(mapFile);
+                if (sourceMapConsumer) {
+                    const luaFilePath = cleanUpPath(this.getFilePathFromSourceMapConsumer(sourceMapConsumer));
+                    if (!luaFilePath) {
+                        continue;
+                    }
 
-                for (const source of sourceMapConsumer.sources) {
-                    const sourcePath = cleanUpPath(source);
-                    const bps = breakpointsMap.get(sourcePath);
-                    if (bps) {
-                        let luaFilePathWithoutRoot = excludeRootPath(luaFilePath, rootFolder);
-                        const sourceFileSubPath = excludeRootPath(source, sourceMapConsumer.sourceRoot);
-                        let sourceSubPath = dirname(sourceFileSubPath);
-                        if (sourceSubPath === '.') {
-                            luaFilePathWithoutRoot = basename(luaFilePathWithoutRoot);
-                            // to lower folder names
-                        } else {
-                            const positionOfSubPath = luaFilePathWithoutRoot.indexOf(sourceSubPath);
-                            if (positionOfSubPath > -1) {
-                                luaFilePathWithoutRoot = luaFilePathWithoutRoot.substring(positionOfSubPath);
+                    for (const source of sourceMapConsumer.sources) {
+                        const sourcePath = cleanUpPath(source);
+                        const bps = breakpointsMap.get(sourcePath);
+                        if (bps) {
+                            let luaFilePathWithoutRoot = excludeRootPath(luaFilePath, rootFolder);
+                            const sourceFileSubPath = excludeRootPath(source, sourceMapConsumer.sourceRoot);
+                            let sourceSubPath = dirname(sourceFileSubPath);
+                            if (sourceSubPath === '.') {
+                                luaFilePathWithoutRoot = basename(luaFilePathWithoutRoot);
+                                // to lower folder names
+                            } else {
+                                const positionOfSubPath = luaFilePathWithoutRoot.indexOf(sourceSubPath);
+                                if (positionOfSubPath > -1) {
+                                    luaFilePathWithoutRoot = luaFilePathWithoutRoot.substring(positionOfSubPath);
+                                }
                             }
-                        }
 
-                        luaFilePathWithoutRoot = luaFilePathWithoutRoot.toLowerCase();
+                            luaFilePathWithoutRoot = luaFilePathWithoutRoot.toLowerCase();
 
-                        const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
-                        for (const mappedLine of mappedLines) {
-                            this._runtime.setBreakPoint(luaFilePathWithoutRoot, mappedLine);
+                            const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
+                            for (const mappedLine of mappedLines) {
+                                this._runtime.setBreakPoint(luaFilePathWithoutRoot, mappedLine);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // start the program in the runtime
-        await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
+            // start the program in the runtime
+            await this._runtime.start(args.program, !!args.stopOnEntry, args.luaExecutable, args.luaDebuggerFilePath);
+        } else {
+            await this._runtime.startNoDebug(args.program, args.luaExecutable);
+        }
 
         // wait until configuration has finished (and configurationDoneRequest has been called)
         await this._configurationDone.wait(1000);
