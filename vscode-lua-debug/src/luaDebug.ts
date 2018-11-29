@@ -78,23 +78,19 @@ export class LuaDebugSession extends LoggingDebugSession {
             this.sendEvent(new StoppedEvent('breakpoint', LuaDebugSession.THREAD_ID));
         });
         this._runtime.on('stopOnException', (msg?) => {
-
-            const outputEvet = new OutputEvent(msg, 'error', this._runtime.getErrorStack());
-            this.sendEvent(outputEvet);
-
             const event = new StoppedEvent('exception', LuaDebugSession.THREAD_ID, msg);
-            //// (<DebugProtocol.StoppedEvent>event).body.description = msg;
+            //(<DebugProtocol.StoppedEvent>event).body.description = msg;
             this.sendEvent(event);
         });
         this._runtime.on('breakpointValidated', (bp: LuaBreakpoint) => {
             this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
         });
         this._runtime.on('outputData', (text) => {
-            const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
+            const e: DebugProtocol.OutputEvent = new OutputEvent(text);
             this.sendEvent(e);
         });
         this._runtime.on('errorData', (text) => {
-            const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`, 'error');
+            const e: DebugProtocol.OutputEvent = new OutputEvent(text, 'error');
             this.sendEvent(e);
         });
         this._runtime.on('output', (text, filePath, line, column) => {

@@ -177,29 +177,33 @@ class LuaSpawnedProcess extends EventEmitter {
             this.program
         ]);
 
-        const commands = new LuaCommands(exe.stdin);
-
         exe.on('close', (code) => {
             console.log(`process exited with code ${code}`);
-            this.emit('end', code);
+            this.sendEvent('end', code);
         });
 
         exe.on('exit', (code) => {
             console.log(`process exited with code ${code}`);
-            this.emit('end', code);
+            this.sendEvent('end', code);
         });
 
         exe.stderr.on('data', async (data) => {
-            this.emit('errorData', data.toString());
+            this.sendEvent('errorData', data.toString());
         });
 
         exe.stdout.on('data', async (data) => {
-            this.emit('outputData', data.toString());
+            this.sendEvent('outputData', data.toString());
         });
 
         exe.stdout.setEncoding('utf8');
 
         ////await commands.loadFile(this.program);
+    }
+
+    private sendEvent(event: string, ...args: any[]) {
+        setImmediate(_ => {
+            this.emit(event, ...args);
+        });
     }
 }
 
@@ -275,12 +279,15 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         let stackTrace;
         let stackReading = false;
         let notProcessedErrorData = '';
-        exe.stderr.on('data', async (binary) => {
 
+        exe.stderr.on('data', async (binary) => {
             this._errorOutputInProgress = true;
 
             let data = notProcessedErrorData + binary.toString();
             notProcessedErrorData = '';
+
+            this.sendEvent('errorData', data);
+
             const indexOfCompleteData = data.lastIndexOf('\n');
             if (indexOfCompleteData >= 0) {
                 // not complete data;
@@ -310,7 +317,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         this._errorOutputInProgress = false;
                         stackReading = false;
                         this._lastErrorStack = stackTrace;
-                        this.emit('error', this._lastError);
+                        this.sendEvent('error', this._lastError);
                     }
                 }
             } else {
@@ -386,7 +393,14 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 break;
         }
 
-        const lastLine = await this.defaultProcessStage();
+        const lastLine = await this.defaultProcessStage((data) => {
+            const line = data.toString();
+            const debugStart = line.startsWith('[DEBUG]>');
+            const pause = line.startsWith('[DEBUG]> Paused at');
+            if (!pause) {
+                this.sendEvent('outputData', (debugStart ? line.substr(9) : line) + '\n');
+            }
+        });
         return lastLine === ">";
     }
 
@@ -758,6 +772,12 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             }
         });
     }
+
+    private sendEvent(event: string, ...args: any[]) {
+        setImmediate(_ => {
+            this.emit(event, ...args);
+        });
+    }
 }
 
 /**
@@ -807,12 +827,12 @@ export class LuaRuntime extends EventEmitter {
             this.sendEvent('stopOnException', msg);
         });
 
-        this._luaExe.on('errorData', (msg) => {
-            this.sendEvent('errorData', msg);
-        });
-
         this._luaExe.on('outputData', (msg) => {
             this.sendEvent('outputData', msg);
+        });
+
+        this._luaExe.on('errorData', (msg) => {
+            this.sendEvent('errorData', msg);
         });
 
         this._luaExe.on('end', (msg) => {
