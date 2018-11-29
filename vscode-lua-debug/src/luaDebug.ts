@@ -354,9 +354,11 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
 
-        response.body = {
-            variables: variables
-        };
+        if (variables) {
+            response.body = {
+                variables: variables
+            };
+        }
 
         dumpInProgress.notify();
         this._dumpInProgress = null;
@@ -412,11 +414,19 @@ export class LuaDebugSession extends LoggingDebugSession {
         let variableType = VariableTypes.SingleVariable;
 
         const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles, true);
-
-        response.body = {
-            result: variables[0].value,
-            variablesReference: variables[0].variablesReference
-        };
+        if (variables) {
+            response.body = {
+                result: variables[0].value,
+                variablesReference: variables[0].variablesReference
+            };
+        } else if (args.context === 'repl') {
+            // run statement
+            await this._runtime.runStatement(variableName);
+            response.body = {
+                result: "done.",
+                variablesReference: 0
+            };
+        }
 
         dumpInProgress.notify();
         this._dumpInProgress = null;

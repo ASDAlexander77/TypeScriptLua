@@ -63,6 +63,11 @@ class LuaCommands {
         await this.flush();
     }
 
+    public async runStatement(statement: string) {
+        await this.writeLineAsync(statement);
+        await this.flush();
+    }
+
     public async pause() {
         await this.writeLineAsync(`pause('start', nil, true)`);
         await this.writeLineAsync(``);
@@ -394,16 +399,28 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
 
         const lastLine = await this.defaultProcessStage((data) => {
-            if (!this._errorOutputInProgress && !this.HasError) {
-                const lines = data.toString();
-                for (const line of lines.split('\n')) {
-                    const debugStart = line.startsWith('[DEBUG]>');
-                    const pause = line.startsWith('[DEBUG]> Paused at') || line.startsWith('Paused at');
-                    if (!pause) {
-                        this.sendEvent('outputData', (debugStart ? line.substr(9) : line) + '\n');
-                    }
+            this.processOutput(data);
+        });
+        return lastLine === ">";
+    }
+
+    private processOutput(data: any) {
+        if (!this._errorOutputInProgress && !this.HasError) {
+            const lines = data.toString();
+            for (const line of lines.split('\n')) {
+                const debugStart = line.startsWith('[DEBUG]>');
+                const pause = line.startsWith('[DEBUG]> Paused at') || line.startsWith('Paused at');
+                if (!pause) {
+                    this.sendEvent('outputData', (debugStart ? line.substr(9) : line) + '\n');
                 }
             }
+        }
+    }
+
+    public async runStatement(statement: string) {
+        this._commands.runStatement(statement);
+        const lastLine = await this.defaultProcessStage((data) => {
+            this.processOutput(data);
         });
         return lastLine === ">";
     }
@@ -647,6 +664,10 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
         if (rootName) {
             const value = currentObject[rootName];
+            if (value === undefined) {
+                return undefined;
+            }
+
             if (value.type === "object" && !evaluate) {
                 const values = value.value;
                 if (values) {
@@ -934,6 +955,10 @@ export class LuaRuntime extends EventEmitter {
 
     public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
         return await this._luaExe.dumpVariables(variableType, variableName, variableHandles, evaluate);
+    }
+
+    public async runStatement(statement: string) {
+        return await this._luaExe.runStatement(statement);
     }
 
 	/*
