@@ -394,11 +394,15 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
 
         const lastLine = await this.defaultProcessStage((data) => {
-            const line = data.toString();
-            const debugStart = line.startsWith('[DEBUG]>');
-            const pause = line.startsWith('[DEBUG]> Paused at');
-            if (!pause) {
-                this.sendEvent('outputData', (debugStart ? line.substr(9) : line) + '\n');
+            if (!this._errorOutputInProgress && !this.HasError) {
+                const lines = data.toString();
+                for (const line of lines.split('\n')) {
+                    const debugStart = line.startsWith('[DEBUG]>');
+                    const pause = line.startsWith('[DEBUG]> Paused at') || line.startsWith('Paused at');
+                    if (!pause) {
+                        this.sendEvent('outputData', (debugStart ? line.substr(9) : line) + '\n');
+                    }
+                }
             }
         });
         return lastLine === ">";
