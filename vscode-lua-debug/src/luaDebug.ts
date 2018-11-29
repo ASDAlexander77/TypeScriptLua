@@ -176,19 +176,20 @@ export class LuaDebugSession extends LoggingDebugSession {
                     const sourcePath = cleanUpPath(source);
                     const bps = breakpointsMap.get(sourcePath);
                     if (bps) {
+                        let luaFilePathWithoutRoot = excludeRootPath(luaFilePath, rootFolder);
                         const sourceFileSubPath = excludeRootPath(source, sourceMapConsumer.sourceRoot);
                         let sourceSubPath = dirname(sourceFileSubPath);
                         if (sourceSubPath === '.') {
-                            sourceSubPath = '';
+                            luaFilePathWithoutRoot = basename(luaFilePathWithoutRoot);
+                            // to lower folder names
+                        } else {
+                            const positionOfSubPath = luaFilePathWithoutRoot.indexOf(sourceSubPath);
+                            if (positionOfSubPath > -1) {
+                                luaFilePathWithoutRoot = luaFilePathWithoutRoot.substring(positionOfSubPath);
+                            }
                         }
 
-                        let luaFilePathWithoutRoot = excludeRootPath(luaFilePath, rootFolder);
-                        const positionOfSubPath = luaFilePathWithoutRoot.indexOf(sourceSubPath);
-                        if (positionOfSubPath > -1) {
-                            luaFilePathWithoutRoot = luaFilePathWithoutRoot.substring(positionOfSubPath);
-                            // to lower folder names
-                            luaFilePathWithoutRoot = luaFilePathWithoutRoot.toLowerCase();
-                        }
+                        luaFilePathWithoutRoot = luaFilePathWithoutRoot.toLowerCase();
 
                         const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
                         for (const mappedLine of mappedLines) {
