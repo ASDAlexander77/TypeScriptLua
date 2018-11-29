@@ -31,7 +31,7 @@ export class ResolvedInfo {
     public upvalueStackIndex: number;
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
-    public variableDeclaration: any;
+    public declarationInfo: any;
     // TODO: use chainPop instead
     public popRequired: boolean;
     public chainPop: ResolvedInfo;
@@ -334,13 +334,24 @@ export class IdentifierResolver {
 
         if (this.Scope.any()) {
             const resolveInfo = this.Scope.peek() as ResolvedInfo;
-            if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.variableDeclaration) {
+            if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.declarationInfo) {
+                const varDecl = resolveInfo.originalInfo.declarationInfo;
                 try {
                     resolved = (<any>this.typeChecker).resolveName(
                         identifier.text,
-                        resolveInfo.originalInfo.variableDeclaration,
+                        varDecl,
                         ((1 << 27) - 1)/*mask for all types*/);
                 } catch (e) {
+                }
+
+                if (!resolved) {
+                    for (const memberDecl of varDecl.members) {
+                        if (memberDecl.name && memberDecl.name.text === identifier.text) {
+                            // found
+                            resolved = memberDecl;
+                            break;
+                        }
+                    }
                 }
             }
         } else {
@@ -386,8 +397,10 @@ export class IdentifierResolver {
         }
 
         if (resolved) {
-            const declaration = resolved.valueDeclaration
-                || (resolved.declarations && resolved.declarations.length > 0 ? resolved.declarations[0] : undefined);
+            let declaration = resolved.valueDeclaration
+                    || (resolved.declarations && resolved.declarations.length > 0
+                        ? resolved.declarations[0]
+                        : undefined);
             if (!declaration) {
                 if (resolved.name === 'undefined') {
                     return this.returnConst(null, functionContext);
@@ -397,7 +410,7 @@ export class IdentifierResolver {
                     return this.resolveMemberOfCurrentScope('arg', functionContext);
                 }
 
-                throw Error('Can\'t find declaration for "' + identifier.text + '"');
+                declaration = resolved;
             }
 
             const kind: ts.SyntaxKind = <ts.SyntaxKind>declaration.kind;
@@ -437,20 +450,25 @@ export class IdentifierResolver {
                 case ts.SyntaxKind.EnumDeclaration:
                     const enumInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     enumInfo.isTypeReference = true;
-                    enumInfo.variableDeclaration = declaration;
+                    enumInfo.declarationInfo = declaration;
                     return enumInfo;
 
                 case ts.SyntaxKind.ClassDeclaration:
                     const classInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     classInfo.isTypeReference = true;
-                    classInfo.variableDeclaration = declaration;
+                    classInfo.declarationInfo = declaration;
                     return classInfo;
 
                 case ts.SyntaxKind.ModuleDeclaration:
                     const moduleInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     moduleInfo.isTypeReference = true;
-                    moduleInfo.variableDeclaration = declaration;
+                    moduleInfo.declarationInfo = declaration;
                     return moduleInfo;
+
+                case ts.SyntaxKind.MethodDeclaration:
+                    const methodInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    methodInfo.declarationInfo = declaration;
+                    return methodInfo;
             }
         }
 

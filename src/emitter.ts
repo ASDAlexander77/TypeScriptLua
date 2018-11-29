@@ -2944,7 +2944,7 @@ export class Emitter {
             let objectIdentifierInfo = resolvedInfo.objectInfo;
             let memberIdentifierInfo = resolvedInfo.memberInfo;
             memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
-            memberIdentifierInfo.variableDeclaration = resolvedInfo.variableDeclaration;
+            memberIdentifierInfo.declarationInfo = resolvedInfo.declarationInfo;
 
             const resultInfo = this.functionContext.useRegisterAndPush();
             resultInfo.originalInfo = memberIdentifierInfo;
@@ -3011,6 +3011,11 @@ export class Emitter {
         const upvalueOrConst = objectOriginalInfo
             && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
                                 /*|| objectOriginalInfo.kind === ResolvedKind.Const*/);
+        const isMemberStatic = memberIdentifierInfo.originalInfo
+                               && memberIdentifierInfo.originalInfo.declarationInfo
+                               && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
+                               && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
+                                    .some(m => m.kind === ts.SyntaxKind.StaticKeyword);
 
         // this.<...>(this support)
         if (this.resolver.methodCall
@@ -3032,6 +3037,7 @@ export class Emitter {
         objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
         const reservedSpace = this.functionContext.useRegisterAndPush();
         memberIdentifierInfo = this.preprocessConstAndUpvalues(memberIdentifierInfo);
+        resultInfo.originalInfo = memberIdentifierInfo.originalInfo;
 
         this.functionContext.code.push(
             [opCode,
