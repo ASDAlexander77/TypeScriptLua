@@ -344,7 +344,7 @@ export class IdentifierResolver {
                 } catch (e) {
                 }
 
-                if (!resolved) {
+                if (!resolved && varDecl.members) {
                     for (const memberDecl of varDecl.members) {
                         if (memberDecl.name && memberDecl.name.text === identifier.text) {
                             // found
