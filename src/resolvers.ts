@@ -316,13 +316,13 @@ export class IdentifierResolver {
     public pushAndSetMethodCallInfo() {
         this.methodCalls.push({ methodCall: this.methodCall, thisMethodCall: this.thisMethodCall });
         this.methodCall = true;
-        this.thisMethodCall =  null;
+        this.thisMethodCall = null;
     }
 
     public popMethodCallInfo() {
         const state = this.methodCalls.pop();
         this.methodCall = state.methodCall;
-        this.thisMethodCall =  state.thisMethodCall;
+        this.thisMethodCall = state.thisMethodCall;
     }
 
     public getTypeAtLocation(location: ts.Node): any {
@@ -336,60 +336,58 @@ export class IdentifierResolver {
             const resolveInfo = this.Scope.peek() as ResolvedInfo;
             if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.variableDeclaration) {
                 try {
-                    if (functionContext.current_location_node) {
-                        resolved = (<any>this.typeChecker).resolveName(
-                            identifier.text,
-                            resolveInfo.originalInfo.variableDeclaration,
-                            ((1 << 27) - 1)/*mask for all types*/);
-                    }
+                    resolved = (<any>this.typeChecker).resolveName(
+                        identifier.text,
+                        resolveInfo.originalInfo.variableDeclaration,
+                        ((1 << 27) - 1)/*mask for all types*/);
                 } catch (e) {
                 }
             }
-        }
-
-        try {
-            if (!resolved && functionContext.current_location_node) {
-                resolved = (<any>this.typeChecker).resolveName(
-                    identifier.text,
-                    functionContext.current_location_node,
-                    ((1 << 27) - 1)/*mask for all types*/);
-            }
-        } catch (e) {
-        }
-
-        try {
-            if (!resolved && functionContext.function_or_file_location_node) {
-                let originLocation = functionContext.function_or_file_location_node;
-                if ((<any>originLocation).__origin) {
-                    originLocation = (<any>originLocation).__origin;
+        } else {
+            try {
+                if (!resolved && functionContext.current_location_node) {
+                    resolved = (<any>this.typeChecker).resolveName(
+                        identifier.text,
+                        functionContext.current_location_node,
+                        ((1 << 27) - 1)/*mask for all types*/);
                 }
-
-                resolved = (<any>this.typeChecker).resolveName(
-                    identifier.text,
-                    originLocation,
-                    ((1 << 27) - 1)/*mask for all types*/);
+            } catch (e) {
             }
-        } catch (e) {
-            console.warn('Can\'t resolve "' + identifier.text + '"');
-        }
 
-        if (!resolved
-            && functionContext.current_location_node
-            && functionContext.current_location_node.kind === ts.SyntaxKind.ClassDeclaration) {
-            // 1 find constructor
-            const constuctorMember = (<ts.ClassDeclaration>functionContext.current_location_node)
-                .members.find(m => m.kind === ts.SyntaxKind.Constructor);
-            if (constuctorMember) {
-                resolved = (<any>this.typeChecker).resolveName(
-                    identifier.text,
-                    constuctorMember,
-                    ((1 << 27) - 1)/*mask for all types*/);
+            try {
+                if (!resolved && functionContext.function_or_file_location_node) {
+                    let originLocation = functionContext.function_or_file_location_node;
+                    if ((<any>originLocation).__origin) {
+                        originLocation = (<any>originLocation).__origin;
+                    }
+
+                    resolved = (<any>this.typeChecker).resolveName(
+                        identifier.text,
+                        originLocation,
+                        ((1 << 27) - 1)/*mask for all types*/);
+                }
+            } catch (e) {
+                console.warn('Can\'t resolve "' + identifier.text + '"');
+            }
+
+            if (!resolved
+                && functionContext.current_location_node
+                && functionContext.current_location_node.kind === ts.SyntaxKind.ClassDeclaration) {
+                // 1 find constructor
+                const constuctorMember = (<ts.ClassDeclaration>functionContext.current_location_node)
+                    .members.find(m => m.kind === ts.SyntaxKind.Constructor);
+                if (constuctorMember) {
+                    resolved = (<any>this.typeChecker).resolveName(
+                        identifier.text,
+                        constuctorMember,
+                        ((1 << 27) - 1)/*mask for all types*/);
+                }
             }
         }
 
         if (resolved) {
             const declaration = resolved.valueDeclaration
-                                || (resolved.declarations && resolved.declarations.length > 0 ? resolved.declarations[0] : undefined);
+                || (resolved.declarations && resolved.declarations.length > 0 ? resolved.declarations[0] : undefined);
             if (!declaration) {
                 if (resolved.name === 'undefined') {
                     return this.returnConst(null, functionContext);
@@ -411,7 +409,7 @@ export class IdentifierResolver {
                     // values are not the same as Node.Flags
                     let varInfo;
                     if ((resolved.flags & 1) === 1) {
-                        varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         return varInfo;
                     } else if ((resolved.flags & 2) === 2) {
@@ -420,7 +418,7 @@ export class IdentifierResolver {
                             return varInfo;
                         }
 
-                        varInfo =  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         return varInfo;
                     } else {
@@ -471,7 +469,7 @@ export class IdentifierResolver {
         }
 
         // default
-        return  this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+        return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
     }
 
     public returnConst(value: any, functionContext: FunctionContext): ResolvedInfo {
