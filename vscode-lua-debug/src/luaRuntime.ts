@@ -5,6 +5,7 @@ import { Handles } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { stringify } from 'querystring';
 
 export interface LuaBreakpoint {
     id: number;
@@ -138,7 +139,7 @@ class LuaCommands {
             case VariableTypes.SingleVariable: vars = 'dump ' + variableName; break;
         }
 
-        console.log("#: dump of " + vars);
+        console.log("#: dump - " + vars);
 
         await this.writeLineAsync(vars);
         await this.flush();
@@ -621,6 +622,18 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 });
             }
         }
+
+        variables.sort((a, b): number => {
+            if (a.name > b.name) {
+                return 1;
+            }
+
+            if (a.name < b.name) {
+                return -1;
+            }
+
+            return 0;
+        });
 
         return variables;
     }
