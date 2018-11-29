@@ -629,7 +629,7 @@ describe('Classes', () => {
         console.log(d2.number);                                             \
     '])));
 
-    it('Class - deep inheritance',  () => expect('Run\r\n').to.equals(new Run().test([
+    it('Class - deep inheritance',  () => expect(new Run().test([
         'export interface IBehaviorAware<T> {                   \
             init(): void;                                       \
         }                                                       \
@@ -640,6 +640,7 @@ describe('Classes', () => {
         public animations = new Array<Animation>();             \
                                                                 \
         constructor(scene: any = null) {                        \
+            this.init();                                        \
         }                                                       \
                                                                 \
         public init() {                                         \
@@ -681,8 +682,72 @@ describe('Classes', () => {
                                                                 \
     new ArcCamera();                                            \
     console.log("Run");                                         \
-    '])));
+    '])).to.equals('Run\r\n'));
 
+    it('Class - deep inheritance 2',  () => expect(new Run().test([
+        'export interface IBehaviorAware {                      \
+            init2(): void;                                      \
+        }                                                       \
+        export interface IBehaviorAware2 {                      \
+            init2(): void;                                      \
+        }                                                       \
+        export interface IBehaviorAware3 {                      \
+            init2(): void;                                      \
+        }                                                       \
+                                                                \
+        class Node {                                            \
+        public metadata: any = null;                            \
+                                                                \
+        public animations = new Array<Animation>();             \
+                                                                \
+        constructor(scene: any = null) {                        \
+            this.init();                                        \
+        }                                                       \
+                                                                \
+        public init() {                                         \
+            console.log("Run1");                                \
+        }                                                       \
+                                                                \
+        public set x(v) {                                       \
+        }                                                       \
+                                                                \
+        public get x() {                                        \
+            return 0;                                           \
+        }                                                       \
+    }                                                           \
+                                                                \
+    class TargetCamera extends Node implements IBehaviorAware, IBehaviorAware2, IBehaviorAware3 { \
+        constructor() {                                         \
+            super();                                            \
+        }                                                       \
+                                                                \
+        public init2() {                                        \
+        }                                                       \
+                                                                \
+        public set x1(v) {                                      \
+        }                                                       \
+                                                                \
+        public get x1() {                                       \
+            return 1;                                           \
+        }                                                       \
+    }                                                           \
+                                                                \
+    class ArcCamera extends TargetCamera {                      \
+        constructor() {                                         \
+            super();                                            \
+        }                                                       \
+                                                                \
+        public set x2(v) {                                      \
+        }                                                       \
+                                                                \
+        public get x2() {                                       \
+            return 2;                                           \
+        }                                                       \
+    }                                                           \
+                                                                \
+    new ArcCamera();                                            \
+    console.log("Run");                                         \
+    '])).to.equals('Run1\r\nRun\r\n'));
 
     it('Class - this in static',  () => expect('Run\r\n').to.equals(new Run().test([
         'export class Node1 {                                                           \
