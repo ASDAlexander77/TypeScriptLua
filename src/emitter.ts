@@ -1576,6 +1576,9 @@ export class Emitter {
     }
 
     private emitLoop(expression: ts.Expression, node: ts.IterationStatement, incrementor?: ts.Expression): number {
+
+        this.functionContext.newBreakContinueScope();
+
         const beforeBlock = this.functionContext.code.length;
 
         this.processStatement(node.statement);
@@ -1604,6 +1607,7 @@ export class Emitter {
         this.functionContext.code.push(jmpOp);
 
         this.resolveBreakJumps();
+        this.functionContext.restoreBreakContinueScope();
 
         return expressionBlock;
     }
@@ -1615,6 +1619,9 @@ export class Emitter {
     }
 
     private processForInStatementNoScope(node: ts.ForInStatement): void {
+
+        this.functionContext.newBreakContinueScope();
+
         // we need to generate 3 local variables for ForEach loop
         const generatorInfo = this.functionContext.createLocal('<generator>');
         const stateInfo = this.functionContext.createLocal('<state>');
@@ -1711,6 +1718,8 @@ export class Emitter {
         if (!isLocalOrConstDecl) {
             this.functionContext.stack.pop();
         }
+
+        this.functionContext.restoreBreakContinueScope();
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
@@ -1783,6 +1792,8 @@ export class Emitter {
 
         this.functionContext.newLocalScope(node);
 
+        this.functionContext.newBreakContinueScope();
+
         const switchResultInfo = this.functionContext.stack.peek();
 
         let previousCaseJmpIndex = -1;
@@ -1838,12 +1849,14 @@ export class Emitter {
             c.statements.forEach(s => this.processStatement(s));
         });
 
-        // clearup switch result;
         this.functionContext.restoreLocalScope();
 
         this.functionContext.stack.pop();
 
+        // clearup switch result;
         this.resolveBreakJumps();
+
+        this.functionContext.restoreBreakContinueScope();
     }
 
     private processBlock(node: ts.Block): void {

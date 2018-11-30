@@ -198,11 +198,13 @@ export class FunctionContext {
     public debug_locals: Array<LocalVarInfo> = [];
     public upvalues: Array<UpvalueInfo> = [];
     public protos: Array<FunctionContext> = [];
+    public breaks: Array<number> = [];
+    public continues: Array<number> = [];
     public local_scopes: Array<any> = [];
     public location_scopes: Array<any> = [];
     // to support break, continue in loops
-    public breaks: Array<number> = [];
-    public continues: Array<number> = [];
+    public breaks_scopes: Array<any> = [];
+    public continues_scopes: Array<any> = [];
     public thisInUpvalue: boolean;
     public isStatic: boolean;
     public isFinalReturnAdded: boolean;
@@ -227,6 +229,26 @@ export class FunctionContext {
 
         this.locals = this.local_scopes.pop();
         this.current_location_node = this.location_scopes.pop();
+    }
+
+    public newBreakContinueScope() {
+        this.breaks_scopes.push(this.breaks);
+        this.continues_scopes.push(this.continues);
+        this.breaks = [];
+        this.continues = [];
+    }
+
+    public restoreBreakContinueScope() {
+        if (this.breaks.length > 0) {
+            throw new Error('Breaks are not resolved');
+        }
+
+        if (this.continues.length > 0) {
+            throw new Error('Continues are not resolved');
+        }
+
+        this.breaks = this.breaks_scopes.pop();
+        this.continues = this.continues_scopes.pop();
     }
 
     public debugInfoMarkEndOfScopeForLocals() {
