@@ -237,13 +237,20 @@ describe('Statements', () => {
            case 0:                                              \
               console.log("Excellent");                         \
               break;                                            \
-           case "B":                                            \
+           case 1:                                              \
               var i = 0;                                        \
               for (i; i < 10; i++) {                            \
                   console.log("failed");                        \
               }                                                 \
               console.log("failed");                            \
-              break;                                            \
+              for (i; i < 10; i++) {                            \
+                  console.log("failed");                        \
+              }                                                 \
+              console.log("failed");                            \
+            break;                                              \
+            case 2:                                             \
+              console.log("failed");                            \
+            break;                                              \
         }                                                       \
     '])).to.equals('Excellent\r\n'));
 });

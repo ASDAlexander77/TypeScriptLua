@@ -5,26 +5,23 @@ class console {
     }
 }
 
-class Class1 {
-    public method1(): boolean {
-        return false;
-    }
+const grade = 0;
+switch (grade) {
+    case 0:
+        console.log("Excellent");
+        break;
+    case 1:
+        var i = 0;
+        for (i; i < 10; i++) {
+            console.log("failed");
+        }
+        console.log("failed");
+        for (i; i < 10; i++) {
+            console.log("failed");
+        }
+        console.log("failed");
+        break;
+    case 2:
+        console.log("failed");
+        break;
 }
-
-class Class2 extends Class1 {
-
-    public static get Name() {
-        return 'test';
-    }
-
-    public method2(): boolean {
-        return true;
-    }
-}
-
-const c1 = new Class1();
-console.log(c1.method1());
-
-const c2 = new Class2();
-console.log(c2.method1());
-console.log(c2.method2());
