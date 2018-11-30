@@ -698,6 +698,14 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
 
         variables.sort((a, b): number => {
+            const an = parseInt(a.name);
+            const bn = parseInt(b.name);
+            if (an < bn) {
+                return -1;
+            } else if (an > bn) {
+                return 1;
+            }
+
             if (a.name > b.name) {
                 return 1;
             }
@@ -773,7 +781,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
     }
 
-    private async readAsync(timeout: number = 3000) {
+    private async readAsync(timeout: number = 6000) {
         return new Promise((resolve, reject) => {
             let timerId;
             this._exe.stdout.on('data', (data) => {
