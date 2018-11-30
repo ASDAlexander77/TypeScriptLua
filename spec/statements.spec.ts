@@ -230,4 +230,20 @@ describe('Statements', () => {
            }                                                    \
         }                                                       \
     '])).to.equals('Excellent\r\n'));
+
+    it('switch - with for statement', () => expect(new Run().test([
+        'const grade = 0;                                       \
+        switch(grade) {                                         \
+           case 0:                                              \
+              console.log("Excellent");                         \
+              break;                                            \
+           case "B":                                            \
+              var i = 0;                                        \
+              for (i; i < 10; i++) {                            \
+                  console.log("failed");                        \
+              }                                                 \
+              console.log("failed");                            \
+              break;                                            \
+        }                                                       \
+    '])).to.equals('Excellent\r\n'));
 });
