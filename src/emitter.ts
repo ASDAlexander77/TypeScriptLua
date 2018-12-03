@@ -629,21 +629,55 @@ export class Emitter {
                 const callExpression = <ts.CallExpression>node;
                 // check if end propertyaccess is 'bind'
                 let memberAccess = callExpression.expression;
-                if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
-                    && (<ts.PropertyAccessExpression>memberAccess).name.text === 'bind') {
-                    return (<ts.PropertyAccessExpression>memberAccess).expression;
-                }
+                if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                    const propertyAccessExpression = <ts.PropertyAccessExpression>memberAccess;
+                    if (propertyAccessExpression.name.text === 'bind') {
+                        return propertyAccessExpression.expression;
+                    }
 
-                // STRING
-                // string "...".<function>()  => new String("...").<function>()
-                if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
-                    && (<ts.PropertyAccessExpression>memberAccess).expression.kind === ts.SyntaxKind.StringLiteral) {
-                    const methodCall = ts.createCall(
-                        ts.createPropertyAccess(ts.createIdentifier('StringHelper'), (<ts.PropertyAccessExpression>memberAccess).name),
-                        undefined,
-                        [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
-                    methodCall.parent = node;
-                    return methodCall;
+                    // STRING
+                    // string "...".<function>()  => new String("...").<function>()
+                    const isConstString = propertyAccessExpression.expression.kind === ts.SyntaxKind.StringLiteral;
+                    if (!isConstString) {
+                        try {
+                            const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
+                            if (typeResult && typeResult.intrinsicName === 'string') {
+                            }
+                        } catch (e) {
+                            console.warn('Can\'t get type of "' + node.getText() + '"');
+                        }
+                    }
+
+                    if (isConstString) {
+                        const methodCall = ts.createCall(
+                            ts.createPropertyAccess(ts.createIdentifier('StringHelper'), (<ts.PropertyAccessExpression>memberAccess).name),
+                            undefined,
+                            [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
+                        methodCall.parent = node;
+                        return methodCall;
+                    }
+
+                    // NUMERIC
+                    const isConstNumber = propertyAccessExpression.expression.kind === ts.SyntaxKind.NumericLiteral;
+                    if (!isConstNumber) {
+                        try {
+                            const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
+                            if (typeResult && typeResult.intrinsicName === 'number') {
+                            }
+                        } catch (e) {
+                            console.warn('Can\'t get type of "' + node.getText() + '"');
+                        }
+                    }
+
+                    if (isConstNumber) {
+                        const methodCall = ts.createCall(
+                            ts.createPropertyAccess(
+                                ts.createIdentifier('NumberHelper'), (<ts.PropertyAccessExpression>memberAccess).name),
+                            undefined,
+                            [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
+                        methodCall.parent = node;
+                        return methodCall;
+                    }
                 }
 
                 // SUPER
