@@ -635,44 +635,30 @@ export class Emitter {
                         return propertyAccessExpression.expression;
                     }
 
-                    // STRING
+                    // STRING & NUMBER
                     // string "...".<function>()  => new String("...").<function>()
-                    const isConstString = propertyAccessExpression.expression.kind === ts.SyntaxKind.StringLiteral;
-                    if (!isConstString) {
+                    let isConstString = propertyAccessExpression.expression.kind === ts.SyntaxKind.StringLiteral;
+                    let isConstNumber = propertyAccessExpression.expression.kind === ts.SyntaxKind.NumericLiteral;
+                    if (!isConstString && !isConstNumber) {
                         try {
                             const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
-                            if (typeResult && typeResult.intrinsicName === 'string') {
+                            if (typeResult) {
+                                isConstString = typeResult.intrinsicName === 'string';
+                                isConstNumber = typeResult.intrinsicName === 'number';
                             }
                         } catch (e) {
                             console.warn('Can\'t get type of "' + node.getText() + '"');
                         }
                     }
 
-                    if (isConstString) {
-                        const methodCall = ts.createCall(
-                            ts.createPropertyAccess(ts.createIdentifier('StringHelper'), (<ts.PropertyAccessExpression>memberAccess).name),
-                            undefined,
-                            [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
-                        methodCall.parent = node;
-                        return methodCall;
-                    }
-
-                    // NUMERIC
-                    const isConstNumber = propertyAccessExpression.expression.kind === ts.SyntaxKind.NumericLiteral;
-                    if (!isConstNumber) {
-                        try {
-                            const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
-                            if (typeResult && typeResult.intrinsicName === 'number') {
-                            }
-                        } catch (e) {
-                            console.warn('Can\'t get type of "' + node.getText() + '"');
-                        }
-                    }
-
-                    if (isConstNumber) {
+                    if (isConstString || isConstNumber) {
                         const methodCall = ts.createCall(
                             ts.createPropertyAccess(
-                                ts.createIdentifier('NumberHelper'), (<ts.PropertyAccessExpression>memberAccess).name),
+                                ts.createIdentifier(
+                                    isConstString
+                                    ? 'StringHelper'
+                                    : (isConstNumber ? 'NumberHelper' : '')),
+                                (<ts.PropertyAccessExpression>memberAccess).name),
                             undefined,
                             [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
                         methodCall.parent = node;
