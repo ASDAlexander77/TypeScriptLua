@@ -626,13 +626,24 @@ export class Emitter {
             case ts.SyntaxKind.CallExpression:
                 // BIND
                 // convert <xxx>.bind(this) into <xxx>(...);
-
                 const callExpression = <ts.CallExpression>node;
                 // check if end propertyaccess is 'bind'
                 let memberAccess = callExpression.expression;
                 if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
                     && (<ts.PropertyAccessExpression>memberAccess).name.text === 'bind') {
                     return (<ts.PropertyAccessExpression>memberAccess).expression;
+                }
+
+                // STRING
+                // string "...".<function>()  => new String("...").<function>()
+                if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression
+                    && (<ts.PropertyAccessExpression>memberAccess).expression.kind === ts.SyntaxKind.StringLiteral) {
+                    const methodCall = ts.createCall(
+                        ts.createPropertyAccess(ts.createIdentifier('StringHelper'), (<ts.PropertyAccessExpression>memberAccess).name),
+                        undefined,
+                        [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
+                    methodCall.parent = node;
+                    return methodCall;
                 }
 
                 // SUPER
@@ -2667,23 +2678,22 @@ export class Emitter {
     private processNewExpression(node: ts.NewExpression): void {
 
         // special cases: new Array and new Object
-        /*
-        // disabled as JSLib should be used
-        if (node.expression.kind === ts.SyntaxKind.Identifier && (!node.arguments || node.arguments.length === 0)) {
-            const name = node.expression.getText();
-            if (name === 'Object') {
-                return this.processObjectLiteralExpression(ts.createObjectLiteral());
-            }
+        if (!this.jsLib) {
+            if (node.expression.kind === ts.SyntaxKind.Identifier && (!node.arguments || node.arguments.length === 0)) {
+                const name = node.expression.getText();
+                if (name === 'Object') {
+                    return this.processObjectLiteralExpression(ts.createObjectLiteral());
+                }
 
-            if (name === 'Array') {
-                return this.processArrayLiteralExpression(ts.createArrayLiteral());
-            }
+                if (name === 'Array') {
+                    return this.processArrayLiteralExpression(ts.createArrayLiteral());
+                }
 
-            if (name === 'String') {
-                return this.processStringLiteral(ts.createStringLiteral(''));
+                if (name === 'String') {
+                    return this.processStringLiteral(ts.createStringLiteral(''));
+                }
             }
         }
-        */
 
         this.processExpression(
             ts.createObjectLiteral([
