@@ -2397,11 +2397,37 @@ export class Emitter {
                     }
                 }
 
-                // <left> + ...
-                this.processExpression(node.left);
+                // operation
+                switch (node.operatorToken.kind) {
+                    case ts.SyntaxKind.AmpersandToken:
+                    case ts.SyntaxKind.BarToken:
+                    case ts.SyntaxKind.CaretToken:
 
-                // ... + <right>
-                this.processExpression(node.right);
+                    case ts.SyntaxKind.AmpersandEqualsToken:
+                    case ts.SyntaxKind.BarEqualsToken:
+                    case ts.SyntaxKind.CaretEqualsToken:
+
+                        // FLOAT -> INT
+                        const op1 = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('math'), 'floor'), undefined, [node.left]);
+                        op1.parent = node;
+                        const op2 = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('math'), 'floor'), undefined, [node.right]);
+                        op2.parent = node;
+
+                        // <left> + ...
+                        this.processExpression(op1);
+
+                        // ... + <right>
+                        this.processExpression(op2);
+
+                        break;
+                    default:
+                        // <left> + ...
+                        this.processExpression(node.left);
+
+                        // ... + <right>
+                        this.processExpression(node.right);
+                        break;
+                }
 
 
                 if (operationCode === Ops.CONCAT) {
