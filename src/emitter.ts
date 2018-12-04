@@ -125,7 +125,7 @@ export class Emitter {
         let mt;                                                     \
         switch (__type(inst)) {                                     \
             case "table":                                           \
-                mt = inst.__index;                                  \
+                mt = inst.__proto;                                  \
                 break;                                              \
             case "number":                                          \
             case "string":                                          \
@@ -138,7 +138,7 @@ export class Emitter {
                 return true;                                        \
             }                                                       \
                                                                     \
-            mt = mt.__index;                                        \
+            mt = mt.__proto;                                        \
         }                                                           \
                                                                     \
         return false;                                               \
@@ -154,7 +154,7 @@ export class Emitter {
         let mt;                                                     \
         switch (__type(inst)) {                                     \
             case "table":                                           \
-                mt = inst.__index;                                  \
+                mt = inst.__proto;                                  \
                 break;                                              \
             case "number":                                          \
                 mt = Number;                                        \
@@ -172,7 +172,7 @@ export class Emitter {
                 return true;                                        \
             }                                                       \
                                                                     \
-            mt = mt.__index;                                        \
+            mt = mt.__proto;                                        \
         }                                                           \
                                                                     \
         return false;                                               \
