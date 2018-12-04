@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
-import { Writable } from 'stream';
+import { Writable, Readable } from 'stream';
 import { Handles } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as fs from 'fs-extra';
@@ -212,6 +212,31 @@ class LuaSpawnedProcess extends EventEmitter {
     }
 }
 
+class TextStream extends EventEmitter {
+    public constructor(stream: Readable) {
+        super();
+
+        let restData = '';
+        stream.on('data', (binary) => {
+            let data = restData + binary.toString();
+            restData = '';
+
+            const indexOfCompleteData = data.lastIndexOf('\n');
+            if (indexOfCompleteData >= 0) {
+                // not complete data;
+                restData = data.substr(indexOfCompleteData + 1);
+                data = data.substr(0, indexOfCompleteData + 1);
+
+                setImmediate(_ => {
+                    this.emit('data', data.split('\n'));
+                });
+            } else {
+                restData = data;
+            }
+        });
+    }
+}
+
 class LuaSpawnedDebugProcess extends EventEmitter {
     private _commands: LuaCommands;
     private _exe: ChildProcess;
@@ -281,43 +306,25 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             console.log(`process exited with code ${code}`);
         });
 
-        let stackTrace;
+        let stackTrace = '';
         let stackReading = false;
-        let notProcessedErrorData = '';
 
-        exe.stderr.on('data', async (binary) => {
+        const textStream = new TextStream(exe.stderr);
+        textStream.on('data', (data) => {
             this._errorOutputInProgress = true;
+            this.sendEvent('errorData', data.join('\n'));
 
-            let data = notProcessedErrorData + binary.toString();
-            notProcessedErrorData = '';
-
-            this.sendEvent('errorData', data);
-
-            const indexOfCompleteData = data.lastIndexOf('\n');
-            if (indexOfCompleteData >= 0) {
-                // not complete data;
-                notProcessedErrorData = data.substr(indexOfCompleteData + 1);
-                data = data.substr(0, indexOfCompleteData + 1);
-                console.error("err: " + data);
-
-                // process error data
-                // first line is error message
+            for (let line of data) {
                 if (!stackReading) {
-                    const index = data.indexOf('\n');
-                    const msg = data.substr(0, index + 1);
-
-                    stackReading = true;
-                    // rest of data
-                    data = data.substr(index + 1);
-
+                    this._lastError = line;
                     this._errorFrames = null;
-                    this._lastError = msg;
+                    stackReading = true;
                 }
 
                 // stack trace
                 if (stackReading) {
-                    stackTrace += data;
-                    if (data.indexOf('[C]: in ?') >= 0) {
+                    stackTrace += line + '\n';
+                    if (line.indexOf('[C]: in ?') >= 0) {
                         // end of stack
                         this._errorOutputInProgress = false;
                         stackReading = false;
@@ -325,8 +332,6 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         this.sendEvent('error', this._lastError);
                     }
                 }
-            } else {
-                notProcessedErrorData = data;
             }
         });
 
