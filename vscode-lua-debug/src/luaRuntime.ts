@@ -404,6 +404,14 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         return lastLine === ">";
     }
 
+    public async pause() {
+        await this._commands.pause();
+        const lastLine = await this.defaultProcessStage((data) => {
+            this.processOutput(data);
+        });
+        return lastLine === ">";
+    }
+
     private processOutput(data: any) {
         if (!this._errorOutputInProgress && !this.HasError) {
             const lines = data.toString();
@@ -940,6 +948,13 @@ export class LuaRuntime extends EventEmitter {
 	 */
     public async stepOut(event = 'stopOnStep') {
         await this.stepInternal(StepTypes.Out, event);
+    }
+
+	/**
+	 * Step out
+	 */
+    public async pause() {
+        await this._luaExe.pause();
     }
 
 	/**

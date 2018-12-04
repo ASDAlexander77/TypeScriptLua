@@ -128,6 +128,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         response.body.supportsExceptionOptions = false;
         response.body.supportsExceptionInfoRequest = true;
         response.body.exceptionBreakpointFilters = [];
+        response.body.supportTerminateDebuggee = true;
 
         this.sendResponse(response);
 
@@ -384,6 +385,11 @@ export class LuaDebugSession extends LoggingDebugSession {
     protected async stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
         this.sendResponse(response);
         await this._runtime.stepOut();
+    }
+
+    protected async pauseRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
+        this.sendResponse(response);
+        await this._runtime.pause();
     }
 
     protected exceptionInfoRequest(response: DebugProtocol.ExceptionInfoResponse, args: DebugProtocol.ExceptionInfoArguments) {
