@@ -2555,7 +2555,34 @@ export class Emitter {
                 // <left> = ...
                 this.processExpression(node.left);
 
-                const leftOpNode3 = this.functionContext.stack.pop().optimize();
+                // processing x || y
+                let leftOpNode3 = this.functionContext.stack.pop().optimize();
+
+                if (!((<any>node).__not_required_logic_fix)) {
+                    // fix: to treat 0 as false value, converting (x) => (x && x != 0) by using temporary variable
+                    this.functionContext.newLocalScope(node);
+
+                    const localName = '<cond>';
+                    this.functionContext.createLocal(localName, leftOpNode3);
+                    const fixingExpression = ts.createBinary(
+                        ts.createIdentifier(localName),
+                        ts.SyntaxKind.AmpersandAmpersandToken,
+                        ts.createBinary(
+                            ts.createIdentifier(localName),
+                            ts.SyntaxKind.ExclamationEqualsToken,
+                            ts.createNumericLiteral('0')));
+                    // fixingExpression.parent = node;
+
+                    (<any>fixingExpression).__not_required_logic_fix = true;
+
+                    this.processExpression(fixingExpression);
+
+                    leftOpNode3 = this.functionContext.stack.pop().optimize();
+
+                    this.functionContext.restoreLocalScope();
+                }
+
+                // end of fix
 
                 let equalsTo2 = 0;
                 switch (node.operatorToken.kind) {
