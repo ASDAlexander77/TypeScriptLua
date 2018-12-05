@@ -237,6 +237,8 @@ class TextStream extends EventEmitter {
     }
 }
 
+type stageType = { text: string | string[], action: (() => Promise<void>) | undefined };
+
 class LuaSpawnedDebugProcess extends EventEmitter {
     private _commands: LuaCommands;
     private _exe: ChildProcess;
@@ -245,6 +247,14 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private _errorOutputInProgress: boolean;
     private _frames: StartFrameInfo[] | null;
     private _errorFrames: StartFrameInfo[] | null;
+
+    private stackTrace: string;
+    private stackReading: boolean;
+
+    private stages: stageType[] = [];
+    private defaultActions: (Function | undefined)[] = [];
+    private stage: stageType | undefined;
+    private defaultAction: Function | undefined;
 
     constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
         super();
@@ -306,34 +316,11 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             console.log(`process exited with code ${code}`);
         });
 
-        let stackTrace = '';
-        let stackReading = false;
+        const errorTextStream = new TextStream(exe.stderr);
+        errorTextStream.on('data', (data) => this.processErrorOutput(data));
 
-        const textStream = new TextStream(exe.stderr);
-        textStream.on('data', (data) => {
-            this._errorOutputInProgress = true;
-            this.sendEvent('errorData', data.join('\n'));
-
-            for (let line of data) {
-                if (!stackReading) {
-                    this._lastError = line;
-                    this._errorFrames = null;
-                    stackReading = true;
-                }
-
-                // stack trace
-                if (stackReading) {
-                    stackTrace += line + '\n';
-                    if (line.indexOf('[C]: in ?') >= 0) {
-                        // end of stack
-                        this._errorOutputInProgress = false;
-                        stackReading = false;
-                        this._lastErrorStack = stackTrace;
-                        this.sendEvent('error', this._lastError);
-                    }
-                }
-            }
-        });
+        const textStream = new TextStream(exe.stdout);
+        textStream.on('data', (data) => this.processStdOutput(data));
 
         exe.stdout.setEncoding('utf8');
 
@@ -387,7 +374,85 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         console.log(">>> the app is spawed");
     }
 
-    public async step(type: StepTypes) {
+    private pushStages(stages: stageType[], defaultAction?: Function | undefined) {
+        for (const stage of stages) {
+            this.stages.push(stage);
+            this.defaultActions.push(defaultAction);
+        }
+
+        if (!this.stage) {
+            this.stage = this.stages.pop();
+            this.defaultAction = this.defaultActions.pop();
+        }
+    }
+
+    private pushDefaultStages(action: () => Promise<void>,  defaultAction?: Function | undefined) {
+        this.pushStages([
+            {
+                text: ['[DEBUG]>', '>'], action
+            }
+        ], defaultAction);
+    }
+
+    private processErrorOutput(data: string[]) {
+        this._errorOutputInProgress = true;
+        this.sendEvent('errorData', data.join('\n'));
+
+        for (let line of data) {
+            if (!this.stackReading) {
+                this._lastError = line;
+                this._errorFrames = null;
+                this.stackReading = true;
+            }
+
+            // stack trace
+            if (this.stackReading) {
+                this.stackTrace += line + '\n';
+                if (line.indexOf('[C]: in ?') >= 0) {
+                    // end of stack
+                    this._errorOutputInProgress = false;
+                    this.stackReading = false;
+                    this._lastErrorStack = this.stackTrace;
+                    this.sendEvent('error', this._lastError);
+                }
+            }
+        }
+    }
+
+    private async processStdOutput(data: string[]) {
+        if (!this.stage)
+        {
+            return;
+        }
+
+        const isArray = this.stage.text instanceof Array;
+
+        for (let line of data) {
+            line = line.trim();
+            console.log('>: ' + line);
+
+            if (this.defaultAction) {
+                this.defaultAction(line);
+            }
+
+            const process = isArray ? (<string[]>this.stage.text).some(v => v === line) : line === this.stage.text;
+            if (process) {
+                console.log('#: match [' + line + '] acting...');
+                if (this.stage.action) {
+                    await this.stage.action();
+                }
+
+                this.stage = this.stages.pop();
+                if (!this.stage) {
+                    console.log('#: no more actions...');
+                    break;
+                }
+            }
+        }
+    }
+
+    public async step(type: StepTypes, action: () => Promise<void> ) {
+        this.pushDefaultStages(action, (data) => this.processOutput(data));
         switch (type) {
             case StepTypes.Run:
                 await this._commands.run();
@@ -402,11 +467,6 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 await this._commands.stepOver();
                 break;
         }
-
-        const lastLine = await this.defaultProcessStage((data) => {
-            this.processOutput(data);
-        });
-        return lastLine === ">";
     }
 
     public async pause() {
@@ -761,7 +821,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
     }
 
-    private async processStagesAsync(stages: { text: string | string[], action: (() => Promise<void>) | undefined }[], defaultAction?: Function | undefined) {
+    private async processStagesAsync(stages: stageType[], defaultAction?: Function | undefined) {
         let stageNumber;
         let stage = stages[stageNumber = 0];
 
@@ -1057,26 +1117,12 @@ export class LuaRuntime extends EventEmitter {
             return;
         }
 
-        let response;
         this._luaExe.dropStackTrace();
-        if (response = await this._luaExe.step(type) && !this._luaExe.HasErrorReadingInProgress && !this._luaExe.HasError) {
-            this.sendEvent('end');
-            return;
-        }
-
-        /*
-        if (response !== undefined && stepEvent) {
-            if (this._luaExe.hasErrorStack()) {
-                this.sendEvent("stopOnException", this._luaExe.LastError);
-            } else {
+        this._luaExe.step(type, async () => {
+            if (stepEvent) {
                 this.sendEvent(stepEvent);
             }
-        }
-        */
-
-        if (response !== undefined && stepEvent && !this._luaExe.HasErrorReadingInProgress && !this._luaExe.HasError) {
-            this.sendEvent(stepEvent);
-        }
+        });
     }
 
     private sendEvent(event: string, ...args: any[]) {
