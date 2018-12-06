@@ -2568,7 +2568,7 @@ export class Emitter {
                     switch (node.operatorToken.kind) {
                         case ts.SyntaxKind.AmpersandAmpersandToken:
                             condition = ts.createBinary(
-                                localOp1Ident,
+                                ts.createPrefix(ts.SyntaxKind.ExclamationToken, localOp1Ident),
                                 ts.SyntaxKind.BarBarToken,
                                 ts.createBinary(localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0')));
                             break;
@@ -2582,7 +2582,7 @@ export class Emitter {
 
                     (<any>condition).__fix_not_required = true;
 
-                    const condExpression = ts.createConditional(condition, ts.createIdentifier('<op1>'), node.right);
+                    const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
                     condExpression.parent = node;
                     this.processExpression(condExpression);
 
