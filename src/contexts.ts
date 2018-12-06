@@ -330,7 +330,7 @@ export class FunctionContext {
         return this.locals[index].register;
     }
 
-    public findLocal(name: string, noerror?: boolean): number {
+    public findLocalInfo(name: string, noerror?: boolean): LocalVarInfo {
         // locals start with 0
         let index = this.locals.findIndex(e => e.name === name);
         if (index === -1) {
@@ -339,28 +339,37 @@ export class FunctionContext {
             for (let i = this.local_scopes.length - 1; i >= 0; i--) {
                 index = this.local_scopes[i].findIndex(e => e.name === name);
                 if (index !== -1) {
-                    return this.local_scopes[i][index].register;
+                    return this.local_scopes[i][index];
                 }
             }
 
             if (noerror) {
-                return index;
+                return undefined;
             }
 
             throw new Error('Can\'t find local: ' + name);
         }
 
-        return this.locals[index].register;
+        return this.locals[index];
+    }
+
+    public findLocal(name: string, noerror?: boolean): number {
+        const localInfo = this.findLocalInfo(name, noerror);
+        if (localInfo) {
+            return localInfo.register;
+        }
+
+        return -1;
     }
 
     public isRegisterLocal(register: number): boolean {
         // locals start with 0
-        let index = this.locals.findIndex(e => e.register === register);
+        let index = this.locals.findIndex(e => !e.fake && e.register === register);
         if (index === -1) {
 
             // try to find it in other scopes
             for (let i = this.local_scopes.length - 1; i >= 0; i--) {
-                index = this.local_scopes[i].findIndex(e => e.register === register);
+                index = this.local_scopes[i].findIndex(e => !e.fake && e.register === register);
                 if (index !== -1) {
                     return true;
                 }

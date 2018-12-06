@@ -2558,7 +2558,7 @@ export class Emitter {
                 // processing x || y
                 let leftOpNode3 = this.functionContext.stack.pop().optimize();
 
-                if (!((<any>node).__not_required_logic_fix)) {
+                if (node.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
                     // fix: to treat 0 as false value, converting (x) => (x && x != 0) by using temporary variable
                     this.functionContext.newLocalScope(node);
 
@@ -2572,8 +2572,6 @@ export class Emitter {
                             ts.SyntaxKind.ExclamationEqualsToken,
                             ts.createNumericLiteral('0')));
                     // fixingExpression.parent = node;
-
-                    (<any>fixingExpression).__not_required_logic_fix = true;
 
                     this.processExpression(fixingExpression);
 
