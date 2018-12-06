@@ -656,8 +656,8 @@ export class Emitter {
                             ts.createPropertyAccess(
                                 ts.createIdentifier(
                                     isConstString
-                                    ? 'StringHelper'
-                                    : (isConstNumber ? 'NumberHelper' : '')),
+                                        ? 'StringHelper'
+                                        : (isConstNumber ? 'NumberHelper' : '')),
                                 (<ts.PropertyAccessExpression>memberAccess).name),
                             undefined,
                             [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
@@ -2555,59 +2555,45 @@ export class Emitter {
                 // <left> = ...
                 this.processExpression(node.left);
 
-                // processing x || y
+                if (!(<any>node).__fix_not_required) {
+
+                    const op1 = this.functionContext.stack.peek();
+
+                    this.functionContext.newLocalScope(node);
+
+                    this.functionContext.createLocal('<op1>', op1);
+                    const localOp1Ident = ts.createIdentifier('<op1>');
+
+                    let condition;
+                    switch (node.operatorToken.kind) {
+                        case ts.SyntaxKind.AmpersandAmpersandToken:
+                            condition = ts.createBinary(
+                                localOp1Ident,
+                                ts.SyntaxKind.BarBarToken,
+                                ts.createBinary(localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0')));
+                            break;
+                        case ts.SyntaxKind.BarBarToken:
+                            condition = ts.createBinary(
+                                localOp1Ident,
+                                ts.SyntaxKind.AmpersandAmpersandToken,
+                                ts.createBinary(localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createNumericLiteral('0')));
+                            break;
+                    }
+
+                    (<any>condition).__fix_not_required = true;
+
+                    const condExpression = ts.createConditional(condition, ts.createIdentifier('<op1>'), node.right);
+                    condExpression.parent = node;
+                    this.processExpression(condExpression);
+
+                    this.functionContext.restoreLocalScope();
+
+                    this.functionContext.stack.pop().optimize();
+
+                    return;
+                }
+
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
-
-                /*
-                if (!(<any>node).__not_required_fix &&
-                    node.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
-                    // fix: to treat 0 as false value, converting (x) => (x && x != 0) by using temporary variable
-                    this.functionContext.newLocalScope(node);
-
-                    const localName = '<cond>';
-                    this.functionContext.createLocal(localName, leftOpNode3);
-                    const fixingExpression = ts.createBinary(
-                        ts.createIdentifier(localName),
-                        ts.SyntaxKind.AmpersandAmpersandToken,
-                        ts.createBinary(
-                            ts.createIdentifier(localName),
-                            ts.SyntaxKind.ExclamationEqualsToken,
-                            ts.createNumericLiteral('0')));
-                    // fixingExpression.parent = node;
-                    (<any>fixingExpression).__not_required_fix = true;
-
-                    this.processExpression(fixingExpression);
-
-                    leftOpNode3 = this.functionContext.stack.pop().optimize();
-
-                    this.functionContext.restoreLocalScope();
-                }
-                else if (!(<any>node).__not_required_fix &&
-                    node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
-                    // fix: to treat 0 as false value, converting (x) => (x && x != 0) by using temporary variable
-                    this.functionContext.newLocalScope(node);
-
-                    const localName = '<cond>';
-                    this.functionContext.createLocal(localName, leftOpNode3);
-                    const fixingExpression = ts.createBinary(
-                        ts.createIdentifier(localName),
-                        ts.SyntaxKind.AmpersandAmpersandToken,
-                        ts.createBinary(
-                            ts.createIdentifier(localName),
-                            ts.SyntaxKind.EqualsEqualsToken,
-                            ts.createNumericLiteral('0')));
-                    // fixingExpression.parent = node;
-                    (<any>fixingExpression).__not_required_fix = true;
-
-                    this.processExpression(fixingExpression);
-
-                    leftOpNode3 = this.functionContext.stack.pop().optimize();
-
-                    this.functionContext.restoreLocalScope();
-                }
-                */
-
-                // end of fix
 
                 let equalsTo2 = 0;
                 switch (node.operatorToken.kind) {
@@ -3133,10 +3119,10 @@ export class Emitter {
             && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
                                 /*|| objectOriginalInfo.kind === ResolvedKind.Const*/);
         const isMemberStatic = memberIdentifierInfo.originalInfo
-                               && memberIdentifierInfo.originalInfo.declarationInfo
-                               && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
-                               && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
-                                    .some(m => m.kind === ts.SyntaxKind.StaticKeyword);
+            && memberIdentifierInfo.originalInfo.declarationInfo
+            && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
+            && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
+                .some(m => m.kind === ts.SyntaxKind.StaticKeyword);
 
         // this.<...>(this support)
         if (this.resolver.methodCall

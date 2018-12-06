@@ -32,5 +32,6 @@ describe('Discrepancies', () => {
         console.log(null && 1);                        \
         console.log(0 && 1);                           \
         console.log(1 && 1);                           \
-        '])).to.equals('nil\r\n0\r\nnil\r\nnil\r\n0\r\n0\r\nnil\r\n0\r\n1\r\n'));
+        console.log(1 && 2);                           \
+        '])).to.equals('nil\r\n0\r\nnil\r\nnil\r\n0\r\n0\r\nnil\r\n0\r\n1\r\n2\r\n'));
 });

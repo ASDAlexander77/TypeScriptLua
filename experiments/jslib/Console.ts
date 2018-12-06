@@ -5,7 +5,7 @@ module JS {
     export class Console {
 
         public static log(...params: any[]) {
-            print(params);
+            print(...params);
         }
 
     }

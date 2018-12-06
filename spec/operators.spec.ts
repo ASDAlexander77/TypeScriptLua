@@ -130,6 +130,14 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
+    it('Logical (basic 5)', () => expect('1\r\n2\r\n').to.equals(new Run().test([
+        'let r, x = 1, y = 2;                       \
+        r = x || y;                                 \
+        console.log(r);                             \
+        r = x && y;                                 \
+        console.log(r);                             \
+    '])));
+
     it('In operator', () => expect('true\r\n').to.equals(new Run().test([
         'let c = [1, 2, 3];                         \
         let b = 2 in c;                             \
