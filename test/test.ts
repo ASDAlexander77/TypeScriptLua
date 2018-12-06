@@ -1,3 +1,1 @@
-declare var print;
-
-print(0 || 10);
+console.log('fail 1');

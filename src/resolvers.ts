@@ -331,10 +331,11 @@ export class IdentifierResolver {
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
         let resolved;
+        const isFakeName = identifier.text.charAt(0) === '<';
 
         if (this.Scope.any()) {
             const resolveInfo = this.Scope.peek() as ResolvedInfo;
-            if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.declarationInfo) {
+            if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.declarationInfo && !isFakeName) {
                 const varDecl = resolveInfo.originalInfo.declarationInfo;
                 try {
                     resolved = (<any>this.typeChecker).resolveName(
@@ -356,7 +357,7 @@ export class IdentifierResolver {
             }
         } else {
             try {
-                if (!resolved && functionContext.current_location_node) {
+                if (!resolved && functionContext.current_location_node && !isFakeName) {
                     resolved = (<any>this.typeChecker).resolveName(
                         identifier.text,
                         functionContext.current_location_node,
@@ -366,7 +367,7 @@ export class IdentifierResolver {
             }
 
             try {
-                if (!resolved && functionContext.function_or_file_location_node) {
+                if (!resolved && functionContext.function_or_file_location_node && !isFakeName) {
                     let originLocation = functionContext.function_or_file_location_node;
                     if ((<any>originLocation).__origin) {
                         originLocation = (<any>originLocation).__origin;
@@ -383,7 +384,8 @@ export class IdentifierResolver {
 
             if (!resolved
                 && functionContext.current_location_node
-                && functionContext.current_location_node.kind === ts.SyntaxKind.ClassDeclaration) {
+                && functionContext.current_location_node.kind === ts.SyntaxKind.ClassDeclaration
+                && !isFakeName) {
                 // 1 find constructor
                 const constuctorMember = (<ts.ClassDeclaration>functionContext.current_location_node)
                     .members.find(m => m.kind === ts.SyntaxKind.Constructor);

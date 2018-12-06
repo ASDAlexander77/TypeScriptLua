@@ -2556,9 +2556,11 @@ export class Emitter {
                 this.processExpression(node.left);
 
                 // processing x || y
-                let leftOpNode3 = this.functionContext.stack.pop().optimize();
+                const leftOpNode3 = this.functionContext.stack.pop().optimize();
 
-                if (node.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+                /*
+                if (!(<any>node).__not_required_fix &&
+                    node.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
                     // fix: to treat 0 as false value, converting (x) => (x && x != 0) by using temporary variable
                     this.functionContext.newLocalScope(node);
 
@@ -2572,6 +2574,7 @@ export class Emitter {
                             ts.SyntaxKind.ExclamationEqualsToken,
                             ts.createNumericLiteral('0')));
                     // fixingExpression.parent = node;
+                    (<any>fixingExpression).__not_required_fix = true;
 
                     this.processExpression(fixingExpression);
 
@@ -2579,6 +2582,30 @@ export class Emitter {
 
                     this.functionContext.restoreLocalScope();
                 }
+                else if (!(<any>node).__not_required_fix &&
+                    node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+                    // fix: to treat 0 as false value, converting (x) => (x && x != 0) by using temporary variable
+                    this.functionContext.newLocalScope(node);
+
+                    const localName = '<cond>';
+                    this.functionContext.createLocal(localName, leftOpNode3);
+                    const fixingExpression = ts.createBinary(
+                        ts.createIdentifier(localName),
+                        ts.SyntaxKind.AmpersandAmpersandToken,
+                        ts.createBinary(
+                            ts.createIdentifier(localName),
+                            ts.SyntaxKind.EqualsEqualsToken,
+                            ts.createNumericLiteral('0')));
+                    // fixingExpression.parent = node;
+                    (<any>fixingExpression).__not_required_fix = true;
+
+                    this.processExpression(fixingExpression);
+
+                    leftOpNode3 = this.functionContext.stack.pop().optimize();
+
+                    this.functionContext.restoreLocalScope();
+                }
+                */
 
                 // end of fix
 
