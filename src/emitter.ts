@@ -2364,8 +2364,7 @@ export class Emitter {
             return false;
         }
 
-        try
-        {
+        try {
             const detectType = this.resolver.getTypeAtLocation(node);
             return (detectType.intrinsicName || typeof(detectType.value)) === typeName;
         } catch (e) {
