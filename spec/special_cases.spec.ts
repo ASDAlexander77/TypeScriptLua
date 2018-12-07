@@ -142,6 +142,40 @@ describe('Special cases', () => {
         console.log(!b ? b : 2);              \
     '])).to.equals('1\r\n2\r\n1\r\n2\r\n'));
 
+    it('? : (special cases)', () => expect(new Run().test([
+        'let x = 1, y = 2;                    \
+        console.log(!x || x == 0 ? x : y);    \
+        console.log(x && x != 0 ? x : y);    \
+    '])).to.equals('2\r\n1\r\n'));
+
+    it('? : (special cases 2)', () => expect(new Run().test([
+        'function _x() {                      \
+            console.log(1);                   \
+            return 1;                         \
+        }                                     \
+        function _y() {                       \
+            console.log(2);                   \
+            return 2;                         \
+        }                                     \
+                                              \
+        console.log(!_x() || _x() == 0 ? _x() : _y());    \
+        console.log(_x() && _x() != 0 ? _x() : _y());     \
+    '])).to.equals('1\r\n1\r\n2\r\n2\r\n1\r\n1\r\n1\r\n1\r\n'));
+
+    it('? : (special cases 3)', () => expect(new Run().test([
+        'function _x() {                      \
+            console.log(1);                   \
+            return 1;                         \
+        }                                     \
+        function _y() {                       \
+            console.log(2);                   \
+            return 2;                         \
+        }                                     \
+                                              \
+        console.log(_x() || _x() == 0 ? _x() : _y());     \
+        console.log(!_x() && _x() != 0 ? _x() : _y());     \
+    '])).to.equals('1\r\n1\r\n1\r\n1\r\n2\r\n2\r\n'));
+
     it('= || : (local)', () => expect('test\r\n').to.equals(new Run().test([
         'let a;                                           \
         console.log((a = a || { name: "test" }).name;     \
