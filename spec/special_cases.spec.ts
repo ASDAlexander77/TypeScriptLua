@@ -126,15 +126,21 @@ describe('Special cases', () => {
         console.log(a += b);                  \
     '])));
 
-    it('? : (local)', () => expect('2\r\n').to.equals(new Run().test([
+    it('? : (local)', () => expect(new Run().test([
         'let a = 0, b = 1;                    \
-        console.log(a > 0 ? b : 2);           \
-    '])));
+        console.log(b > 0 ? b : 2);           \
+        console.log(b < 0 ? b : 2);           \
+        console.log(b ? b : 2);               \
+        console.log(!b ? b : 2);              \
+    '])).to.equals('1\r\n2\r\n1\r\n2\r\n'));
 
-    it('? : (global)', () => expect('2\r\n').to.equals(new Run().test([
+    it('? : (global)', () => expect(new Run().test([
         'var a = 0, b = 1;                    \
-        console.log(a > 0 ? b : 2);           \
-    '])));
+        console.log(b > 0 ? b : 2);           \
+        console.log(b < 0 ? b : 2);           \
+        console.log(b ? b : 2);               \
+        console.log(!b ? b : 2);              \
+    '])).to.equals('1\r\n2\r\n1\r\n2\r\n'));
 
     it('= || : (local)', () => expect('test\r\n').to.equals(new Run().test([
         'let a;                                           \

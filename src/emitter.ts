@@ -2555,6 +2555,7 @@ export class Emitter {
                 // <left> = ...
                 this.processExpression(node.left);
 
+                /*
                 if (!(<any>node).__fix_not_required) {
 
                     const op1 = this.functionContext.stack.peek();
@@ -2592,6 +2593,7 @@ export class Emitter {
 
                     return;
                 }
+                */
 
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
 
