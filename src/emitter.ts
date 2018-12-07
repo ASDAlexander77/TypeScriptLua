@@ -643,8 +643,8 @@ export class Emitter {
                         try {
                             const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
                             if (typeResult) {
-                                isConstString = typeResult.intrinsicName === 'string';
-                                isConstNumber = typeResult.intrinsicName === 'number';
+                                isConstString = (typeResult.intrinsicName || typeof(typeResult.value)) === 'string';
+                                isConstNumber = (typeResult.intrinsicName || typeof(typeResult.value)) === 'number';
                             }
                         } catch (e) {
                             console.warn('Can\'t get type of "' + node.getText() + '"');
@@ -2359,6 +2359,22 @@ export class Emitter {
         jmpElseOp[2] = this.functionContext.code.length - elseBlock;
     }
 
+    private isTypeOfNode(node: ts.Node, typeName: string) {
+        if (node === null) {
+            return false;
+        }
+
+        try
+        {
+            const detectType = this.resolver.getTypeAtLocation(node);
+            return (detectType.intrinsicName || typeof(detectType.value)) === typeName;
+        } catch (e) {
+            console.warn('Can\'t get type of "' + node.getText() + '"');
+        }
+
+        return false;
+    }
+
     private processBinaryExpression(node: ts.BinaryExpression): void {
         // perform '='
         switch (node.operatorToken.kind) {
@@ -2406,15 +2422,9 @@ export class Emitter {
                 let rightOpNode;
 
                 let operationCode = this.opsMap[node.operatorToken.kind];
-                if (node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-                    try {
-                        const typeResult = this.resolver.getTypeAtLocation(node);
-                        if (typeResult && typeResult.intrinsicName === 'string') {
-                            operationCode = Ops.CONCAT;
-                        }
-                    } catch (e) {
-                        console.warn('Can\'t get type of "' + node.getText() + '"');
-                    }
+                if (node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                    && this.isTypeOfNode(node, 'string')) {
+                    operationCode = Ops.CONCAT;
                 }
 
                 // operation
@@ -2555,47 +2565,49 @@ export class Emitter {
                 // <left> = ...
                 this.processExpression(node.left);
 
+                // fix when 0 is true in LUA
                 if (!(<any>node).__fix_not_required) {
+                    if (this.isTypeOfNode(node.left, 'number')) {
+                        const op1 = this.functionContext.stack.peek();
 
-                    const op1 = this.functionContext.stack.peek();
+                        this.functionContext.newLocalScope(node);
 
-                    this.functionContext.newLocalScope(node);
+                        this.functionContext.createLocal('<op1>', op1);
+                        const localOp1Ident = ts.createIdentifier('<op1>');
 
-                    this.functionContext.createLocal('<op1>', op1);
-                    const localOp1Ident = ts.createIdentifier('<op1>');
+                        let condition;
+                        switch (node.operatorToken.kind) {
+                            case ts.SyntaxKind.AmpersandAmpersandToken:
+                                condition = ts.createBinary(
+                                    ts.createPrefix(ts.SyntaxKind.ExclamationToken, localOp1Ident),
+                                    ts.SyntaxKind.BarBarToken,
+                                    ts.createBinary(localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0')));
+                                break;
+                            case ts.SyntaxKind.BarBarToken:
+                                condition = ts.createBinary(
+                                    localOp1Ident,
+                                    ts.SyntaxKind.AmpersandAmpersandToken,
+                                    ts.createBinary(localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createNumericLiteral('0')));
+                                break;
+                        }
 
-                    let condition;
-                    switch (node.operatorToken.kind) {
-                        case ts.SyntaxKind.AmpersandAmpersandToken:
-                            condition = ts.createBinary(
-                                ts.createPrefix(ts.SyntaxKind.ExclamationToken, localOp1Ident),
-                                ts.SyntaxKind.BarBarToken,
-                                ts.createBinary(localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0')));
-                            break;
-                        case ts.SyntaxKind.BarBarToken:
-                            condition = ts.createBinary(
-                                localOp1Ident,
-                                ts.SyntaxKind.AmpersandAmpersandToken,
-                                ts.createBinary(localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createNumericLiteral('0')));
-                            break;
+                        (<any>condition).__fix_not_required = true;
+
+                        const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
+                        condExpression.parent = node;
+                        this.processExpression(condExpression);
+
+                        this.functionContext.restoreLocalScope();
+
+                        const result = this.functionContext.stack.pop();
+                        this.functionContext.code.push([
+                            Ops.MOVE,
+                            op1.getRegister(),
+                            result.getRegister(),
+                            0]);
+
+                        return;
                     }
-
-                    (<any>condition).__fix_not_required = true;
-
-                    const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
-                    condExpression.parent = node;
-                    this.processExpression(condExpression);
-
-                    this.functionContext.restoreLocalScope();
-
-                    const result = this.functionContext.stack.pop();
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        op1.getRegister(),
-                        result.getRegister(),
-                        0]);
-
-                    return;
                 }
 
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
