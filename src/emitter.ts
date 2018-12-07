@@ -2555,7 +2555,6 @@ export class Emitter {
                 // <left> = ...
                 this.processExpression(node.left);
 
-                /*
                 if (!(<any>node).__fix_not_required) {
 
                     const op1 = this.functionContext.stack.peek();
@@ -2589,11 +2588,15 @@ export class Emitter {
 
                     this.functionContext.restoreLocalScope();
 
-                    this.functionContext.stack.pop().optimize();
+                    const result = this.functionContext.stack.pop();
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        op1.getRegister(),
+                        result.getRegister(),
+                        0]);
 
                     return;
                 }
-                */
 
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
 
@@ -3076,6 +3079,11 @@ export class Emitter {
         throw new Error('Not Implemeneted');
     }
 
+    private popDependancy(target: ResolvedInfo, dependancy: ResolvedInfo) {
+        dependancy.chainPop = target;
+        target.hasPopChain = true;
+    }
+
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
 
@@ -3139,8 +3147,7 @@ export class Emitter {
         const resultInfo = this.functionContext.useRegisterAndPush();
         if (prefixPostfix) {
             // to cause chain pop
-            objectIdentifierInfo.chainPop = resultInfo;
-            resultInfo.hasPopChain = true;
+            this.popDependancy(resultInfo, objectIdentifierInfo);
         }
 
         objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
