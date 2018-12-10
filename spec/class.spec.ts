@@ -879,4 +879,26 @@ describe('Classes', () => {
         c._computeViewMatrix();                             \
     '])));
 
+    it('Class - BUG (base class has setter and derived not)',  () => expect('Run\r\n').to.equals(new Run().test([
+        'class Node1 {                                      \
+        public _scene: Scene;                               \
+                                                            \
+        constructor(scene: Scene) {                         \
+            this._scene = scene;                            \
+        }                                                   \
+                                                            \
+        public set parent(v) {                              \
+        }                                                   \
+    }                                                       \
+                                                            \
+    class Camera extends Node1 {                            \
+        constructor(scene: Scene) {                         \
+            super(null);                                    \
+        }                                                   \
+    }                                                       \
+                                                            \
+    let c = new Camera(s);                                  \
+    console.log("Run");                                     \
+    '])));
+
 });
