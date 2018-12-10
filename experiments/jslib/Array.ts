@@ -8,13 +8,15 @@ module JS {
 
         [k: number]: T;
 
-        public push(obj: T) {
-            if (!this[0]) {
-                this[0] = obj;
-                return;
+        public push(...objs: T[]) {
+            for (const obj of objs) {
+                if (!this[0]) {
+                    this[0] = obj;
+                    continue;
+                }
+
+                table.insert(this, obj);
             }
- 
-            table.insert(this, obj);
         }
 
         public pop() {
