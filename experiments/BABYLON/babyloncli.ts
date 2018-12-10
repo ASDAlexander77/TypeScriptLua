@@ -83,8 +83,11 @@ class Runner {
 
     constructor() {
         this.canvas = new Canvas();
+        /*
         this.engine = new BABYLON.Engine(
             this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
+        */
+        this.engine = new BABYLON.NullEngine();
     }
 
     createScene() {
