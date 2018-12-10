@@ -38,6 +38,66 @@ npm run build
 create file test.ts
 
 ```TypeScript
+declare var print: any;
+
+class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
+}
+
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
+    }
+
+    public get ElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
+}
+
+let howard = new Employee("Howard", "Sales");
+print(howard.ElevatorPitch);
+```
+
+```
+node __out/main.js test.ts
+```
+
+Now you have test.luabc
+
+3) Run it.
+
+```
+lua test.lua
+```
+
+Result:
+```
+Hello, my name is Howard and I work in Sales.
+```
+
+Enjoy it. 
+
+How to use JavaScript Library
+-----------
+
+1) Compile JavaScript Library
+
+```
+cd experiments\jslib
+node ../../__out/main.js -singleModule
+```
+
+2) Copy JS.lua into your folder where you run the compiled app.
+
+3) Compile test.ts
+
+create file test.ts
+
+```TypeScript
 class Person {
     protected name: string;
     constructor(name: string) { this.name = name; }
@@ -59,17 +119,10 @@ class Employee extends Person {
 let howard = new Employee("Howard", "Sales");
 console.log(howard.ElevatorPitch);
 ```
-
-```
-node __out/main.js test.ts
-```
-
-Now you have test.luabc
-
 3) Run it.
 
 ```
-lua test.lua
+lua -e "require('./JS')" test.lua
 ```
 
 Result:
@@ -77,4 +130,4 @@ Result:
 Hello, my name is Howard and I work in Sales.
 ```
 
-Enjoy it. 
+Enjoy it
