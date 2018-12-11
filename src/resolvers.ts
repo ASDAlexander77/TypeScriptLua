@@ -534,7 +534,7 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Register;
         resolvedInfo.identifierName = 'this';
         resolvedInfo.register = 0;
-        resolvedInfo.isTypeReference = true;
+        resolvedInfo.isTypeReference = false; // if we set it to TRUE it will be treated as static method access
         resolvedInfo.declarationInfo = this.thisClassType;
         return resolvedInfo;
     }
