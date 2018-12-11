@@ -308,7 +308,8 @@ export class IdentifierResolver {
     public thisMethodCall: ResolvedInfo;
     public prefixPostfix: boolean;
 
-    public thisClass: ts.Identifier;
+    public thisClassName: ts.Identifier;
+    public thisClassType: ts.Node;
     public superClass: ts.Identifier;
 
     private methodCalls: Array<any> = [];
@@ -316,6 +317,11 @@ export class IdentifierResolver {
     public pushAndSetMethodCallInfo() {
         this.methodCalls.push({ methodCall: this.methodCall, thisMethodCall: this.thisMethodCall });
         this.methodCall = true;
+        this.thisMethodCall = null;
+    }
+
+    public clearMethodCallInfo() {
+        this.methodCall = false;
         this.thisMethodCall = null;
     }
 
@@ -337,21 +343,23 @@ export class IdentifierResolver {
             const resolveInfo = this.Scope.peek() as ResolvedInfo;
             if (resolveInfo && resolveInfo.originalInfo && resolveInfo.originalInfo.declarationInfo && !isFakeName) {
                 const varDecl = resolveInfo.originalInfo.declarationInfo;
-                try {
-                    resolved = (<any>this.typeChecker).resolveName(
-                        identifier.text,
-                        varDecl,
-                        ((1 << 27) - 1)/*mask for all types*/);
-                } catch (e) {
-                }
-
-                if (!resolved && varDecl.members) {
+                if (varDecl.members) {
                     for (const memberDecl of varDecl.members) {
                         if (memberDecl.name && memberDecl.name.text === identifier.text) {
                             // found
                             resolved = memberDecl;
                             break;
                         }
+                    }
+                }
+
+                if (!resolved) {
+                    try {
+                        resolved = (<any>this.typeChecker).resolveName(
+                            identifier.text,
+                            varDecl,
+                            ((1 << 27) - 1)/*mask for all types*/);
+                    } catch (e) {
                     }
                 }
             }
@@ -471,6 +479,11 @@ export class IdentifierResolver {
                     const methodInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     methodInfo.declarationInfo = declaration;
                     return methodInfo;
+
+                case ts.SyntaxKind.PropertyDeclaration:
+                    const propertyInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    propertyInfo.declarationInfo = declaration;
+                    return propertyInfo;
             }
         }
 
@@ -521,6 +534,8 @@ export class IdentifierResolver {
         resolvedInfo.kind = ResolvedKind.Register;
         resolvedInfo.identifierName = 'this';
         resolvedInfo.register = 0;
+        resolvedInfo.isTypeReference = true;
+        resolvedInfo.declarationInfo = this.thisClassType;
         return resolvedInfo;
     }
 

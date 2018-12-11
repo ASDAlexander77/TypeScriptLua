@@ -1004,7 +1004,8 @@ export class Emitter {
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.functionContext.newLocalScope(node);
 
-        this.resolver.thisClass = node.name;
+        this.resolver.thisClassName = node.name;
+        this.resolver.thisClassType = node;
 
         // process methods first
         const properties = node.members
@@ -2881,9 +2882,11 @@ export class Emitter {
 
         const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
 
-        this.resolver.popMethodCallInfo();
+        this.resolver.clearMethodCallInfo();
 
         this.emitCallOfLoadedMethod(node, selfOpCodeResolveInfoForThis);
+
+        this.resolver.popMethodCallInfo();
     }
 
     private isValueNotRequired(parent: ts.Node): boolean {
@@ -2947,7 +2950,7 @@ export class Emitter {
         }
 
         if (this.functionContext.isStatic) {
-            this.processExpression(this.resolver.thisClass);
+            this.processExpression(this.resolver.thisClassName);
             return;
         }
 
