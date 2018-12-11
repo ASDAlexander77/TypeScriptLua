@@ -38,8 +38,16 @@ class Vector3 {
     }
 }
 
-const center = new Vector3();
-const maximum = new Vector3();
-const minimum = new Vector3();
-center.copyFrom(maximum).addInPlace(minimum).scaleInPlace(0.5);
+class Run1 {
+    private maximum: Vector3 = new Vector3();
+    private minimum: Vector3 = new Vector3();
+    public exec() {
+        const center: Vector3 = new Vector3();
+        center.copyFrom(this.maximum).addInPlace(this.minimum).scaleInPlace(0.5);
+    }
+}
+
+const r = new Run1();
+r.exec();
+
 console.log('Run1');
