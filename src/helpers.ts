@@ -48,7 +48,7 @@ export class Helpers {
         }
 
         const positionFrom = rootPath.length + (rootPath.length > 0 && (rootPath[0] === '/' || rootPath[0] === '\\') ? 0 : 1);
-        const fileSubPath = rootPath.length > 0 && filePath.toLowerCase().startsWith(rootPath)
+        const fileSubPath = rootPath.length > 0 && filePath.startsWith(rootPath)
             ? filePath.substring(positionFrom)
             : filePath;
 

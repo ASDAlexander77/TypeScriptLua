@@ -209,7 +209,7 @@ export class LuaDebugSession extends LoggingDebugSession {
                             }
                         }
 
-                        luaFilePathWithoutRoot = luaFilePathWithoutRoot.toLowerCase();
+                        luaFilePathWithoutRoot = luaFilePathWithoutRoot;
 
                         const mappedLines = this.convertLinesFromSourceMapConsumer(bps.map(bp => bp.line), sourceMapConsumer, source);
                         for (const mappedLine of mappedLines) {
@@ -459,7 +459,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             for (const file of allFiles) {
                 const value = await this.readAllMapFileInDirectory(join(filePath, file), allMapFilePathes);
                 if (value !== false) {
-                    files[file.toLowerCase()] = value;
+                    files[file] = value;
                 }
             }
 
@@ -498,7 +498,7 @@ export class LuaDebugSession extends LoggingDebugSession {
             const dirPath = fileMapName.substr(0, index);
             const restPath = fileMapName.substr(index + 1);
 
-            const value = mapFiles[dirPath.toLowerCase()];
+            const value = mapFiles[dirPath];
             if (value !== undefined && value !== true) {
                 const subPath = this.getFilePathOfMapFileInternal(restPath, <Map<string, any>>value, dirPath.toLowerCase(), true);
                 if (subPath && subPath.endsWith('.map')) {

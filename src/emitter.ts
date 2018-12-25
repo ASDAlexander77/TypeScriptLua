@@ -510,7 +510,7 @@ export class Emitter {
 
     private processFile(sourceFile: ts.SourceFile): void {
         if (this.generateSourceMap) {
-            const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).path);
+            const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
             this.filePathLua = filePath.replace(/\.ts$/, '.lua');
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
@@ -526,7 +526,7 @@ export class Emitter {
             this.sourceMapGenerator = this.sourceMapGenerator || new sourceMap.SourceMapGenerator({
                 file: path.basename(this.filePathLua),
                 sourceRoot: Helpers.cleanUpPath(
-                    this.rootFolder || filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length)).toLowerCase()
+                    this.rootFolder || filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length))
             });
 
             if (firstFile) {

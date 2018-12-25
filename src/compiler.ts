@@ -77,7 +77,7 @@ export class Run {
         const configFile = ts.readJsonConfigFile(configPath, ts.sys.readFile);
 
         const parseConfigHost: ts.ParseConfigHost = {
-            useCaseSensitiveFileNames: false,
+            useCaseSensitiveFileNames: true,
             readDirectory: ts.sys.readDirectory,
             fileExists: ts.sys.fileExists,
             readFile: ts.sys.readFile
@@ -158,6 +158,8 @@ export class Run {
         if (!isSingleModule) {
             sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
                 // track version
+                const paths = sources.filter(sf => s.fileName.endsWith(sf));
+                (<any>s).__path = paths[0];
                 const fileVersion = (<any>s).version;
                 if (fileVersion) {
                     const latestVersion = this.versions[s.fileName];
@@ -175,7 +177,7 @@ export class Run {
                 emitter.save();
 
                 const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
-                const fileName = Helpers.correctFileNameForLua(fileNamnNoExt.toLowerCase().concat('.', outputExtention));
+                const fileName = Helpers.correctFileNameForLua(fileNamnNoExt.concat('.', outputExtention));
 
                 console.log('Writing to file ' + fileName);
 
@@ -184,7 +186,9 @@ export class Run {
         } else {
             const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
-                if (sources.some(sf => s.fileName.endsWith(sf))) {
+                const paths = sources.filter(sf => s.fileName.endsWith(sf));
+                if (paths && paths.length > 0) {
+                    (<any>s).__path = paths[0];
                     emitter.processNode(s);
                     console.log('File: ' + s.fileName);
                 }
