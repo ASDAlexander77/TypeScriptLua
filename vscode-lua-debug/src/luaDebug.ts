@@ -29,7 +29,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
     /** An absolute path to the lua "executable" to launch. */
     luaExecutable: string;
     /** An absolute path to the lua debugger (set in config) */
-    luaDebuggerFilePath: string,
+    luaDebuggerFilePath: string;
 }
 
 export class LuaDebugSession extends LoggingDebugSession {

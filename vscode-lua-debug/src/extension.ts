@@ -11,7 +11,7 @@ import * as path from 'path';
  * debug adapter should run inside the extension host.
  * Please note: the test suite does no longer work in this mode.
  */
-const EMBED_DEBUG_ADAPTER = true;
+const EMBED_DEBUG_ADAPTER = process.execArgv.some(a => a.startsWith('--inspect-brk='));
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     // register a configuration provider for 'mock' debug type
-    const provider = new LuaDebugConfigurationProvider(luaDebuggerFilePath)
+    const provider = new LuaDebugConfigurationProvider(luaDebuggerFilePath);
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('lua', provider));
     context.subscriptions.push(provider);
 }
