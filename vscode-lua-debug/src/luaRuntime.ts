@@ -76,7 +76,8 @@ class LuaCommands {
 
     public async setBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            const fileNameLowerCase = fileName.replace(/\\/g, '/');
+            // TODO: investigate why lua accept only "lowercase" file paths
+            const fileNameLowerCase = fileName.replace(/\\/g, '/').toLowerCase();
             await this.writeLineAsync(`setb ${line} ${fileNameLowerCase}`);
         }
         else {
@@ -88,7 +89,8 @@ class LuaCommands {
 
     public async deleteBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
-            const fileNameLowerCase = fileName.replace(/\\/g, '/');
+            // TODO: investigate why lua accept only "lowercase" file paths
+            const fileNameLowerCase = fileName.replace(/\\/g, '/').toLowerCase();
             await this.writeLineAsync(`delb ${line} ${fileNameLowerCase}`);
         }
         else {
