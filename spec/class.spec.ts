@@ -272,6 +272,77 @@ describe('Classes', () => {
         console.log(howard.ElevatorPitch);                              \
     '])).to.equals('Hello, my name is Howard and I work in Sales.\r\n'));
 
+    it('Class inheritance - complete example with property on base class 2',
+    () => expect(new Run().test([
+        'class Person {                                                 \
+            protected name: string;                                     \
+            constructor(name: string) { this.Name = name; }             \
+            public get ElevatorPitch() {                                \
+                return `Hello, my name is ${this.Name} and I work in ${this.department}.`;  \
+            }                                                           \
+                                                                        \
+            public get Name() {                                         \
+                return this.name;                                       \
+            }                                                           \
+                                                                        \
+            public set Name(val: string) {                              \
+                this.name = val;                                        \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        class Employee extends Person {                                 \
+            private department: string;                                 \
+                                                                        \
+            constructor(name: string, department: string) {             \
+                super(name);                                            \
+                this.department = department;                           \
+            }                                                           \
+                                                                        \
+        }                                                               \
+                                                                        \
+        let howard = new Employee("Howard", "Sales");                   \
+        console.log(howard.ElevatorPitch);                              \
+    '])).to.equals('Hello, my name is Howard and I work in Sales.\r\n'));
+
+    it('Class inheritance - complete example with property on base class 3',
+    () => expect(new Run().test([
+        'class Person {                                                 \
+            protected name: string;                                     \
+            constructor(name: string) { this.Name = name; }             \
+            public get ElevatorPitch() {                                \
+                return `Hello, my name is ${this.Name} and I work in ${this.department}.`;  \
+            }                                                           \
+                                                                        \
+            public get Name() {                                         \
+                return this.name;                                       \
+            }                                                           \
+                                                                        \
+            public set Name(val: string) {                              \
+                this.name = val;                                        \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        class Employee extends Person {                                 \
+            private department: string;                                 \
+                                                                        \
+            constructor(name: string, department: string) {             \
+                super(name);                                            \
+                this.Department = department;                           \
+            }                                                           \
+                                                                        \
+            public get Department() {                                   \
+                return this.department;                                 \
+            }                                                           \
+                                                                        \
+            public set Department(val: string) {                        \
+                this.department = val;                                  \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        let howard = new Employee("Howard", "Sales");                   \
+        console.log(howard.ElevatorPitch);                              \
+    '])).to.equals('Hello, my name is Howard and I work in Sales.\r\n'));
+
     it('Class - default ctor - readonly',  () => expect('8\r\n').to.equals(new Run().test([
         'class Octopus {                                                \
             readonly numberOfLegs: number = 8;                          \

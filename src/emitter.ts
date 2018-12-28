@@ -98,19 +98,31 @@ export class Emitter {
     }                                                               \
                                                                     \
     __get_call__ = __get_call__ || function (t, k) {                \
-        const getmethod = t.__proto.__get__[k];                     \
-        if (getmethod) {                                            \
-            return getmethod(t);                                    \
+        let proto = t.__proto;                                      \
+        while (proto) {                                             \
+            let get_ = proto.__get__;                               \
+            const getmethod = get_ && get_[k];                      \
+            if (getmethod) {                                        \
+                return getmethod(t);                                \
+            }                                                       \
+                                                                    \
+            proto = proto.__proto;                                  \
         }                                                           \
                                                                     \
         return rawget(t, k) || t.__proto[k];                        \
     }                                                               \
                                                                     \
     __set_call__ = __set_call__ || function (t, k, v) {             \
-        const setmethod = t.__proto.__set__[k];                     \
-        if (setmethod) {                                            \
-            setmethod(t, v);                                        \
-            return;                                                 \
+        let proto = t.__proto;                                      \
+        while (proto) {                                             \
+            let set_ = proto.__set__;                               \
+            const setmethod = set_ && set_[k];                      \
+            if (setmethod) {                                        \
+                setmethod(t, v);                                    \
+                return;                                             \
+            }                                                       \
+                                                                    \
+            proto = proto.__proto;                                  \
         }                                                           \
                                                                     \
         rawset(t, k, v);                                            \

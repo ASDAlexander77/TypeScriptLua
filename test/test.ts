@@ -1,51 +1,37 @@
-class Node1 {
-    public _scene: Scene;
+import './JS';
 
-    constructor(scene: Scene) {
-        this._scene = scene;
+class Person {
+    protected name: string;
+    constructor(name: string) { this.Name = name; }
+    public get ElevatorPitch() {
+        return `Hello, my name is ${this.Name} and I work in ${this.department}.`;
     }
 
-    public getScene(): Scene {
-        return this._scene;
+    public get Name() {
+        return this.name;
     }
 
-    public get parent(): any {
-        return 1;
-    }
-
-    public set parent(v) {
-    }
-}
-
-abstract class AbstractScene {
-}
-
-class Scene extends AbstractScene {
-    private cameras = new Array<Camera>();
-
-    public addCamera(newCamera: Camera): void {
-        this.cameras[1] = newCamera;
-    }
-
-    public get parent(): any {
-        return 1;
-    }
-
-    public set parent(v) {
+    public set Name(val: string) {
+        this.name = val;
     }
 }
 
-class Camera extends Node1 {
-    constructor(scene: Scene) {
-        super(scene);
-        this.getScene().addCamera(this);
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name);
+        this.Department = department;
     }
 
-    public get parent(): any {
-        return 1;
+    public get Department() {
+        return this.department;
+    }
+
+    public set Department(val: string) {
+        this.department = val;
     }
 }
 
-let s = new Scene();
-let c = new Camera(s);
-console.log("Run");
+const howard = new Employee('Howard', 'Sales');
+console.log(howard.ElevatorPitch);
