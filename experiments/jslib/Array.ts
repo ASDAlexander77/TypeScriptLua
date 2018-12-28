@@ -39,6 +39,17 @@ module JS {
             // implemented in the compiler
             throw 0;
         }
+
+        public indexOf(val: T): number {
+            const length_ = this.length;
+            for (let i = 0; i < length_; i++) {
+                if (this[i] == val) {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
     }
 
 }
