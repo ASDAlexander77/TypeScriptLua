@@ -2807,6 +2807,7 @@ export class Emitter {
 
     private processNewExpression(node: ts.NewExpression): void {
 
+        /*
         // special cases: new Array and new Object
         if (!this.jsLib) {
             if (node.expression.kind === ts.SyntaxKind.Identifier && (!node.arguments || node.arguments.length === 0)) {
@@ -2824,6 +2825,7 @@ export class Emitter {
                 }
             }
         }
+        */
 
         this.processExpression(
             ts.createObjectLiteral([
