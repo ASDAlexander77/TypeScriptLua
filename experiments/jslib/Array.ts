@@ -62,7 +62,7 @@ module JS {
         public splice(index: number, howmany?: number, ...items: T[]): T[] {
             const count = howmany || 1;
             const ret = new Array<T>();
-            for (let i = index + count; i < count; i--) {
+            for (let i = index + count - 1; i >= index; i--) {
                 if (i == 0) {
                     ret.push(this[0]);
                     delete this[0];
