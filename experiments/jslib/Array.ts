@@ -4,6 +4,14 @@ declare var __len__: any;
 
 module JS {
 
+    export class ArrayHelper {
+        @len
+        public static getLength(this: any[]): number {
+            // implemented in the compiler
+            throw 0;
+        }
+    }
+
     export class Array<T> {
 
         [k: number]: T;
@@ -65,7 +73,7 @@ module JS {
             }
 
             if (items) {
-                const length_ = items.length;
+                const length_: number = (<any>ArrayHelper).getLength(items);
                 for (let i = 0; i < length_; i++) {
                     const ind = i + index;
                     if (ind == 0) {

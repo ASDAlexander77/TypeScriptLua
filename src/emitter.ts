@@ -546,10 +546,7 @@ export class Emitter {
                 this.fileModuleName = this.discoverModuleNode(sourceFile);
             }
 
-            if (this.sourceMapGenerator && this.fileModuleName) {
-                // this is module, fix filename
-                (<any>this.sourceMapGenerator)._file = this.fileModuleName + '.lua';
-
+            if (this.fileModuleName) {
                 this.filePathLua = path.join(path.dirname(filePath), this.fileModuleName + '.lua');
                 this.filePathLuaMap = path.join(path.dirname(filePath), this.fileModuleName + '.lua.map');
             }
