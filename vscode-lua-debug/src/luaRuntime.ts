@@ -74,6 +74,11 @@ class LuaCommands {
         await this.flush();
     }
 
+    public async ctrlc() {
+        await this.writeLineAsync(`\x03`);
+        await this.flush();
+    }
+
     public async setBreakpoint(line: number, column?: number, fileName?: string) {
         if (fileName) {
             // TODO: investigate why lua accept only "lowercase" file paths
@@ -473,6 +478,14 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
     public async pause() {
         await this._commands.pause();
+        const lastLine = await this.defaultProcessStage((data) => {
+            this.processOutput(data);
+        });
+        return lastLine === ">";
+    }
+
+    public async ctrlc() {
+        await this._commands.ctrlc();
         const lastLine = await this.defaultProcessStage((data) => {
             this.processOutput(data);
         });
@@ -1018,10 +1031,14 @@ export class LuaRuntime extends EventEmitter {
     }
 
 	/**
-	 * Step out
+	 * Pause
 	 */
     public async pause() {
         await this._luaExe.pause();
+    }
+
+    public async ctrlc() {
+        await this._luaExe.ctrlc();
     }
 
 	/**

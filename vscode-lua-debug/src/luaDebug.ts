@@ -392,7 +392,8 @@ export class LuaDebugSession extends LoggingDebugSession {
 
     protected async pauseRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
         this.sendResponse(response);
-        await this._runtime.pause();
+        //await this._runtime.pause();
+        await this._runtime.ctrlc();
     }
 
     protected exceptionInfoRequest(response: DebugProtocol.ExceptionInfoResponse, args: DebugProtocol.ExceptionInfoArguments) {
