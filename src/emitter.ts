@@ -283,6 +283,21 @@ export class Emitter {
         return false;
     }
 
+    private discoverModuleNode(location: ts.Node): string {
+        let moduleName: string = null;
+        function checkMoudleNode(node: ts.Node): any {
+            if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
+                moduleName = (<ts.ModuleDeclaration> node).name.text;
+                return true;
+            }
+
+            ts.forEachChild(node, checkMoudleNode);
+        }
+
+        ts.forEachChild(location, checkMoudleNode);
+        return moduleName;
+    }
+
     private hasNodeUsedThis(location: ts.Node): boolean {
         let createThis = false;
         function checkThisKeyward(node: ts.Node): any {
@@ -525,6 +540,11 @@ export class Emitter {
             const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
             this.filePathLua = filePath.replace(/\.ts$/, '.lua');
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
+
+            // check if we have module declaration
+            if (!this.fileModuleName) {
+                this.fileModuleName = this.discoverModuleNode(sourceFile);
+            }
 
             if (this.sourceMapGenerator && this.fileModuleName) {
                 // this is module, fix filename
