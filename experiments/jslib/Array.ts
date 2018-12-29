@@ -28,7 +28,7 @@ module JS {
         }
 
         public pop() {
-            const l = this.length();
+            const l = this.length;
             if (l === 0) {
                 throw 'Out of items';
             }

@@ -45,7 +45,7 @@ describe('Statements', () => {
         while (a > 0) {                                         \
             a = a - 1;                                          \
             console.log(a);                                     \
-        };                                                      \
+        }                                                       \
     '])));
 
     it('simple while (global)', () => expect('9\r\n8\r\n7\r\n6\r\n5\r\n4\r\n3\r\n2\r\n1\r\n0\r\n').to.equals(new Run().test([
@@ -53,8 +53,18 @@ describe('Statements', () => {
         while (a > 0) {                                         \
             a = a - 1;                                          \
             console.log(a);                                     \
-        };                                                      \
+        }                                                       \
     '])));
+
+    it('simple while - 2', () => expect('1\r\n').to.equals(new Run().test([
+        'let a = 1;                                             \
+        let count = 0;                                          \
+        while (a) {                                             \
+            a--;                                                \
+            count++;                                            \
+        }                                                       \
+        console.log(count);                                     \
+        '])));
 
     it('simple for (local)', () => expect('0\r\n1\r\n2\r\n3\r\n4\r\n').to.equals(new Run().test([
         'let i;                                                 \
