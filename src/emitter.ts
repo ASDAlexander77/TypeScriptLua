@@ -287,7 +287,7 @@ export class Emitter {
         let moduleName: string = null;
         function checkMoudleNode(node: ts.Node): any {
             if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
-                moduleName = (<ts.ModuleDeclaration> node).name.text;
+                moduleName = (<ts.ModuleDeclaration>node).name.text;
                 return true;
             }
 
@@ -605,7 +605,8 @@ export class Emitter {
             ts.createStringLiteral(txt.substring(0, 140))]);
     }
 
-    private processStatementInternal(node: ts.Statement): void {
+    private processStatementInternal(nodeIn: ts.Statement): void {
+        const node = this.preprocessStatement(nodeIn);
 
         if (!this.ignoreDebugInfo) {
             this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
@@ -650,7 +651,27 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
-    private preprocess(node: ts.Expression): ts.Expression {
+    private preprocessStatement(node: ts.Statement): ts.Statement {
+        switch (node.kind) {
+            case ts.SyntaxKind.WhileStatement:
+            case ts.SyntaxKind.DoStatement:
+            case ts.SyntaxKind.IfStatement:
+                const expressionStatement = <any>node;
+                if (this.isTypeOfNode(expressionStatement.expression, 'number')) {
+                    const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
+                    newCondition.parent = expressionStatement.expression.parent;
+                    // to forcebly resolve it as 'number' type
+                    (<any>newCondition).__return_type = 'number';
+                    expressionStatement.expression = newCondition;
+                }
+
+                break;
+        }
+
+        return node;
+    }
+
+    private preprocessExpression(node: ts.Expression): ts.Expression {
         switch (node.kind) {
             case ts.SyntaxKind.CallExpression:
                 // BIND
@@ -672,8 +693,8 @@ export class Emitter {
                         try {
                             const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
                             if (typeResult) {
-                                isConstString = (typeResult.intrinsicName || typeof(typeResult.value)) === 'string';
-                                isConstNumber = (typeResult.intrinsicName || typeof(typeResult.value)) === 'number';
+                                isConstString = (typeResult.intrinsicName || typeof (typeResult.value)) === 'string';
+                                isConstNumber = (typeResult.intrinsicName || typeof (typeResult.value)) === 'number';
                             }
                         } catch (e) {
                             console.warn('Can\'t get type of "' + node.getText() + '"');
@@ -709,26 +730,23 @@ export class Emitter {
                 }
 
                 break;
-            /*
-            case ts.SyntaxKind.PropertyAccessExpression:
 
-                const propertyAccessExpression = <ts.PropertyAccessExpression>node;
-                if (propertyAccessExpression.name.text ===  'length') {
-                    const typeAt = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
-                    if (typeAt && typeAt.symbol && typeAt.symbol.name === 'Array') {
-                        (<any>propertyAccessExpression.name).__len = true;
-                    }
+            case ts.SyntaxKind.ConditionalExpression:
+                const conditionStatement = <ts.ConditionalExpression>node;
+                if (this.isTypeOfNode(conditionStatement.condition, 'number')) {
+                    const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
+                    newCondition.parent = node;
+                    conditionStatement.condition = newCondition;
                 }
 
                 break;
-            */
         }
 
         return node;
     }
 
     private processExpression(nodeIn: ts.Expression): void {
-        const node = this.preprocess(nodeIn);
+        const node = this.preprocessExpression(nodeIn);
 
         // we need to process it for statements only
         //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
@@ -2394,9 +2412,14 @@ export class Emitter {
             return false;
         }
 
+        if ((<any>node).__return_type === typeName) {
+            return true;
+        }
+
         try {
             const detectType = this.resolver.getTypeAtLocation(node);
-            return (detectType.intrinsicName || typeof(detectType.value)) === typeName;
+            (<any>node).__return_type = detectType.intrinsicName;
+            return (detectType.intrinsicName || typeof (detectType.value)) === typeName;
         } catch (e) {
             console.warn('Can\'t get type of "' + node.getText() + '"');
         }
