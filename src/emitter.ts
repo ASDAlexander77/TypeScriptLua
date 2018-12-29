@@ -660,8 +660,6 @@ export class Emitter {
                 if (this.isTypeOfNode(expressionStatement.expression, 'number')) {
                     const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
                     newCondition.parent = expressionStatement.expression.parent;
-                    // to forcebly resolve it as 'number' type
-                    (<any>newCondition).__return_type = 'number';
                     expressionStatement.expression = newCondition;
                 }
 
