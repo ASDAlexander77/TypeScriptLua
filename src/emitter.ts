@@ -27,7 +27,8 @@ export class Emitter {
     private jsLib: boolean;
 
     public constructor(
-        typeChecker: ts.TypeChecker, private options: ts.CompilerOptions, private cmdLineOptions: any, private rootFolder?: string) {
+        typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
+        private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
         this.resolver = new IdentifierResolver(typeChecker);
         this.functionContext = new FunctionContext();
 
@@ -66,7 +67,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
 
         this.extraDebugEmbed = cmdLineOptions.extradebug ? true : false;
-        if (options && options.outFile) {
+        if (options && options.outFile && singleModule) {
             this.fileModuleName = options.outFile;
         }
 
@@ -542,13 +543,15 @@ export class Emitter {
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
             // check if we have module declaration
-            if (!this.fileModuleName) {
-                this.fileModuleName = this.discoverModuleNode(sourceFile);
-            }
+            if (this.singleModule) {
+                if (!this.fileModuleName) {
+                    this.fileModuleName = this.discoverModuleNode(sourceFile);
+                }
 
-            if (this.fileModuleName) {
-                this.filePathLua = path.join(path.dirname(filePath), this.fileModuleName + '.lua');
-                this.filePathLuaMap = path.join(path.dirname(filePath), this.fileModuleName + '.lua.map');
+                if (this.fileModuleName) {
+                    this.filePathLua = path.join(path.dirname(filePath), this.fileModuleName + '.lua');
+                    this.filePathLuaMap = path.join(path.dirname(filePath), this.fileModuleName + '.lua.map');
+                }
             }
 
             const firstFile = !this.sourceMapGenerator;
@@ -1412,8 +1415,6 @@ export class Emitter {
         }
 
         this.functionContext.namespaces.push(node);
-
-        this.fileModuleName = this.fileModuleName || node.name.text;
 
         this.emitGetOrCreateObjectExpression(node, node.name.text);
         if (node.body) {

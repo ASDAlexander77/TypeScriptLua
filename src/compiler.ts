@@ -171,7 +171,7 @@ export class Run {
                 }
 
                 console.log('File: ' + s.fileName);
-                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, program.getCurrentDirectory());
+                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
 
                 emitter.processNode(s);
                 emitter.save();
@@ -184,7 +184,7 @@ export class Run {
                 fs.writeFileSync(fileName, emitter.writer.getBytes());
             });
         } else {
-            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, program.getCurrentDirectory());
+            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
                 const paths = sources.filter(sf => s.fileName.endsWith(sf));
                 if (paths && paths.length > 0) {
@@ -239,7 +239,7 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {});
+                    const emitter = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
                     emitter.processNode(s);
                     emitter.save();
 
