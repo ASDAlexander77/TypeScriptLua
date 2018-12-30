@@ -1,13 +1,6 @@
 import './JS';
 
-window = <Window> {
-    innerWidth: 640,
-    innerHeight: 480,
-    addEventListener: function (eventName: string, cb: any, flag: boolean): void {
-    }
-};
-
-navigator = <Navigator> {};
+navigator = <Navigator>{};
 
 // Core
 import './BABYLON/Materials/babylon_effect';
@@ -73,7 +66,10 @@ import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraPointersInput';
 import './BABYLON/Cameras/babylon_arcRotateCameraInputsManager';
 import './BABYLON/Cameras/babylon_arcRotateCamera';
 
+import './window';
 import './canvas';
+
+window = <Window> WindowEx;
 
 // xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
 

@@ -25,10 +25,10 @@
     "include": [
       "babyloncli.ts",
       "canvas.ts",
+      "window.ts",
       "declarations.d.ts"
     ],
     "exclude": [
       "node_modules"
     ]
   }
-  

@@ -1,10 +1,17 @@
 import './JS';
 
-let a = 1;
-let count = 0;
-while (a) {
-    a--;
-    count++;
+class Test {
+    /**
+     * test
+     */
+    val = 10;
+
+    public test() {
+        console.log('method call');
+        console.log(this.val);
+    }
 }
 
-console.log(count);
+const t = new Test();
+t.test();
+
