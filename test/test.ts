@@ -12,6 +12,19 @@ class Test {
     }
 }
 
+function __wrapper(_this: any, method: any) {
+    return function () {
+        method(_this);
+    };
+}
+
 const t = new Test();
+/*
 t.test();
 
+const m = __wrapper(t, t.test);
+m();
+*/
+
+const m2 = t.test;
+m2();
