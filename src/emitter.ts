@@ -127,6 +127,12 @@ export class Emitter {
         }                                                           \
                                                                     \
         rawset(t, k, v);                                            \
+    }                                                               \
+                                                                    \
+    __wrapper = __wrapper || function(_this: any, method: any) {    \
+        return function () {                                        \
+            method(_this);                                          \
+        };                                                          \
     }';
 
     private libNoJsLib = '                                          \
