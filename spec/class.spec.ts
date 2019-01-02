@@ -1100,4 +1100,18 @@ describe('Classes', () => {
         console.log("Run1");                                    \
     '])).to.equals('Run1\r\n'));
 
+    it('Class - class method call by reference',  () => expect(new Run().test([
+        'class Test {                           \
+            val = 10;                           \
+                                                \
+            public testMethod() {               \
+                console.log(this.val);          \
+            }                                   \
+        }                                       \
+                                                \
+        const t = new Test();                   \
+        const m2 = t.testMethod;                \
+        m2();                                   \
+    '])).to.equals('10\r\n'));
+
 });
