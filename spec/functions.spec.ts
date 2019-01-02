@@ -172,4 +172,10 @@ describe('Functions', () => {
                                                                                 \
         console.log(padLeft("Hello world", 4));                                 \
     '])));
+
+    it('test function - method call by reference',  () => expect(new Run().test([
+        'const padStr = (i: number) => (i < 10) ? "0" + i : "" + i;             \
+        console.log("[" + padStr(1) + "]:");                                    \
+    '])).to.equals('[01]:\r\n'));
+
 });
