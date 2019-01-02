@@ -79,6 +79,38 @@ export class Emitter {
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
+    __instanceof = __instanceof || function(inst, type) {           \
+        if (!inst) {                                                \
+            return false;                                           \
+        }                                                           \
+                                                                    \
+        let mt;                                                     \
+        switch (__type(inst)) {                                     \
+            case "table":                                           \
+                mt = inst.__proto;                                  \
+                break;                                              \
+            case "number":                                          \
+                mt = Number;                                        \
+                break;                                              \
+            case "string":                                          \
+                mt = String;                                        \
+                break;                                              \
+            case "boolean":                                         \
+                mt = Boolean;                                       \
+                break;                                              \
+        }                                                           \
+                                                                    \
+        while (mt) {                                                \
+            if (mt == type) {                                       \
+                return true;                                        \
+            }                                                       \
+                                                                    \
+            mt = mt.__proto;                                        \
+        }                                                           \
+                                                                    \
+        return false;                                               \
+    }                                                               \
+                                                                    \
     __get_static_call__ = __get_static_call__ || function (t, k) {  \
         const getmethod = rawget(t, "__get__")[k];                  \
         if (getmethod) {                                            \
@@ -133,68 +165,6 @@ export class Emitter {
         return function () {                                        \
             method(_this);                                          \
         };                                                          \
-    }';
-
-    private libNoJsLib = '                                          \
-    __instanceof = __instanceof || function(inst, type) {           \
-        if (!inst) {                                                \
-            return false;                                           \
-        }                                                           \
-                                                                    \
-        let mt;                                                     \
-        switch (__type(inst)) {                                     \
-            case "table":                                           \
-                mt = inst.__proto;                                  \
-                break;                                              \
-            case "number":                                          \
-            case "string":                                          \
-            case "boolean":                                         \
-                return false;                                       \
-        }                                                           \
-                                                                    \
-        while (mt) {                                                \
-            if (mt == type) {                                       \
-                return true;                                        \
-            }                                                       \
-                                                                    \
-            mt = mt.__proto;                                        \
-        }                                                           \
-                                                                    \
-        return false;                                               \
-    }                                                               \
-    ';
-
-    private libJsLib = '                                            \
-    __instanceof = __instanceof || function(inst, type) {           \
-        if (!inst) {                                                \
-            return false;                                           \
-        }                                                           \
-                                                                    \
-        let mt;                                                     \
-        switch (__type(inst)) {                                     \
-            case "table":                                           \
-                mt = inst.__proto;                                  \
-                break;                                              \
-            case "number":                                          \
-                mt = Number;                                        \
-                break;                                              \
-            case "string":                                          \
-                mt = String;                                        \
-                break;                                              \
-            case "boolean":                                         \
-                mt = Boolean;                                       \
-                break;                                              \
-        }                                                           \
-                                                                    \
-        while (mt) {                                                \
-            if (mt == type) {                                       \
-                return true;                                        \
-            }                                                       \
-                                                                    \
-            mt = mt.__proto;                                        \
-        }                                                           \
-                                                                    \
-        return false;                                               \
     }                                                               \
     ';
 
@@ -462,7 +432,7 @@ export class Emitter {
             this.resolver.createEnv(this.functionContext);
 
             // we need to inject helper functions
-            this.processTSCode(this.libCommon + (this.jsLib ? this.libJsLib : this.libNoJsLib), true);
+            this.processTSCode(this.libCommon, true);
         }
 
         let addThisAsParameter = false;
