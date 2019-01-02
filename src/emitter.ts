@@ -747,6 +747,29 @@ export class Emitter {
                 }
 
                 break;
+
+                // we need to convert all method returns (such as <THIS>.<METHOD>)
+                // into __wrapper(this, method) to be able to call method without providing <THIS>
+
+            case ts.SyntaxKind.PropertyAccessExpression:
+                const propertyAccessExpression2 = <ts.PropertyAccessExpression>node;
+                if (propertyAccessExpression2.parent && propertyAccessExpression2.parent.kind !== ts.SyntaxKind.CallExpression) {
+                    // in case of getting method
+                    const type = this.resolver.getTypeAtLocation(propertyAccessExpression2);
+                    if (type
+                        && type.symbol
+                        && type.symbol.valueDeclaration
+                        && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+                        && !(<any>propertyAccessExpression2).__self_call_required) {
+                        // wrap it into method
+                        (<any>propertyAccessExpression2).__self_call_required = true;
+                        const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [ propertyAccessExpression2 ]);
+                        methodWrapCall.parent = propertyAccessExpression2.parent;
+                        return methodWrapCall;
+                    }
+                }
+
+                break;
         }
 
         return node;
@@ -3214,6 +3237,11 @@ export class Emitter {
             && !upvalueOrConst
             && node.parent
             && node.parent.kind === ts.SyntaxKind.CallExpression) {
+            opCode = Ops.SELF;
+        }
+
+        // support __wrapper calls
+        if ((<any>node).__self_call_required) {
             opCode = Ops.SELF;
         }
 

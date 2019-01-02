@@ -6,11 +6,15 @@ class Test {
      */
     val = 10;
 
-    public test() {
+    public testMethod() {
         console.log('method call');
         console.log(this.val);
     }
 }
+
+const t = new Test();
+/*
+t.testMethod();
 
 function __wrapper(_this: any, method: any) {
     return function () {
@@ -18,13 +22,9 @@ function __wrapper(_this: any, method: any) {
     };
 }
 
-const t = new Test();
-/*
-t.test();
-
-const m = __wrapper(t, t.test);
+const m = __wrapper(t, t.testMethod);
 m();
 */
 
-const m2 = t.test;
+const m2 = t.testMethod;
 m2();
