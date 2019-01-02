@@ -3241,7 +3241,8 @@ export class Emitter {
         }
 
         // support __wrapper calls
-        if ((<any>node).__self_call_required) {
+        const wrapMethodCall = (<any>node).__self_call_required;
+        if (wrapMethodCall) {
             opCode = Ops.SELF;
         }
 
@@ -3262,7 +3263,7 @@ export class Emitter {
                 objectIdentifierInfo.getRegisterOrIndex(),
                 memberIdentifierInfo.getRegisterOrIndex()]);
 
-        if (opCode === Ops.SELF) {
+        if (opCode === Ops.SELF && !wrapMethodCall) {
             this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
         }
 
