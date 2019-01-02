@@ -129,7 +129,7 @@ export class Emitter {
         rawset(t, k, v);                                            \
     }                                                               \
                                                                     \
-    __wrapper = __wrapper || function(_this: any, method: any) {    \
+    __wrapper = __wrapper || function(method: any, _this: any) {    \
         return function () {                                        \
             method(_this);                                          \
         };                                                          \
@@ -2983,9 +2983,13 @@ export class Emitter {
     }
 
     private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
+        let wrapCallMethod = false;
         node.arguments.forEach(a => {
             // pop method arguments
             this.processExpression(a);
+            if ((<any>a).__self_call_required) {
+                wrapCallMethod = true;
+            }
         });
         node.arguments.forEach(a => {
             this.functionContext.stack.pop();
@@ -3007,7 +3011,7 @@ export class Emitter {
         }
 
         // parameters number
-        let parametersNumber = node.arguments.length + 1 + (_thisForNew ? 1 : 0);
+        let parametersNumber = node.arguments.length + 1 + (_thisForNew || wrapCallMethod ? 1 : 0);
         if (node.arguments.some(a => a.kind === ts.SyntaxKind.SpreadElement)) {
             parametersNumber = 0;
         }

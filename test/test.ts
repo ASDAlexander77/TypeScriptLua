@@ -16,14 +16,14 @@ const t = new Test();
 /*
 t.testMethod();
 
-function __wrapper(_this: any, method: any) {
+const m = __wrapper(t, t.testMethod);
+m();
+
+function __wrapper(method: any, _this: any) {
     return function () {
         method(_this);
     };
 }
-
-const m = __wrapper(t, t.testMethod);
-m();
 */
 
 const m2 = t.testMethod;
