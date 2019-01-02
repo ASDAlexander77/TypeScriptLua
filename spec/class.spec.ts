@@ -1114,4 +1114,16 @@ describe('Classes', () => {
         m2();                                   \
     '])).to.equals('10\r\n'));
 
+    it('Class - class static method call by reference',  () => expect(new Run().test([
+        'class Test {                           \
+            public static testMethod(val: number) { \
+                console.log(val);               \
+            }                                   \
+        }                                       \
+                                                \
+        const t = new Test();                   \
+        const m2 = t.testMethod;                \
+        m2(10);                                 \
+    '])).to.equals('10\r\n'));
+
 });

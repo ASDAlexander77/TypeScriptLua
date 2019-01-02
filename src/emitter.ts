@@ -735,6 +735,8 @@ export class Emitter {
                         && type.symbol
                         && type.symbol.valueDeclaration
                         && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+                        && !(type.symbol.valueDeclaration.modifiers
+                             && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword))
                         && !(<any>propertyAccessExpression2).__self_call_required) {
                         // wrap it into method
                         (<any>propertyAccessExpression2).__self_call_required = true;
