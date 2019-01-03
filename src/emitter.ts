@@ -665,12 +665,24 @@ export class Emitter {
 
     private isResultNonStaticMethodReference(expression: ts.Expression) {
         const type = this.resolver.getTypeAtLocation(expression);
-        return type
+        const nonStaticMethod = type
             && type.symbol
             && type.symbol.valueDeclaration
             && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
             && !(type.symbol.valueDeclaration.modifiers
                  && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
+        if (nonStaticMethod) {
+            return true;
+        }
+
+        const functionType = type
+            && type.symbol
+            && type.symbol.declarations
+            && type.symbol.declarations[0]
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType
+                || type.symbol.declarations[0].kind === ts.SyntaxKind.TypeParameter);
+
+        return functionType;
     }
 
     private preprocessExpression(node: ts.Expression): ts.Expression {
