@@ -1136,6 +1136,11 @@ describe('Classes', () => {
                                                 \
         const m2 = t.testMethod.bind(t2);       \
         m2();                                   \
-    '])).to.equals('10\r\n20\r\n'));
+        function fff(m3) {                      \
+            m3();                               \
+        }                                       \
+                                                \
+        fff(t.testMethod.bind(t2));             \
+    '])).to.equals('10\r\n20\r\n20\r\n'));
 
 });

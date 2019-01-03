@@ -691,6 +691,7 @@ export class Emitter {
                             [ propertyAccessExpression.expression, ...callExpression.arguments ]);
                         // do not use METHOD as parent, otherwise processCallExpression will mess up with return pareneters
                         methodBindCall.parent = propertyAccessExpression.parent.parent;
+                        (<any>methodBindCall).__bind_call = true;
                         return methodBindCall;
                     }
 
@@ -3002,7 +3003,7 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = constructorCall || this.isValueNotRequired(parent);
-        const isMethodArgumentCall = !wrapCallMethod && parent
+        const isMethodArgumentCall = parent
             && (parent.kind === ts.SyntaxKind.CallExpression ||
                 parent.kind === ts.SyntaxKind.SpreadElement);
         const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;
