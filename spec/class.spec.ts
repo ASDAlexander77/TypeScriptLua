@@ -1116,14 +1116,26 @@ describe('Classes', () => {
 
     it('Class - class static method call by reference',  () => expect(new Run().test([
         'class Test {                           \
-            public static testMethod(val: number) { \
-                console.log(val);               \
+            val = 10;                           \
+                                                \
+            public testMethod() {               \
+                console.log(this.val);          \
             }                                   \
         }                                       \
                                                 \
+        class Test2 {                           \
+            val = 20;                           \
+        }                                       \
+                                                \
         const t = new Test();                   \
-        const m2 = t.testMethod;                \
-        m2(10);                                 \
-    '])).to.equals('10\r\n'));
+                                                \
+        const m1 = t.testMethod;                \
+        m1();                                   \
+                                                \
+        const t2 = new Test2();                 \
+                                                \
+        const m2 = t.testMethod.bind(t2);       \
+        m2();                                   \
+    '])).to.equals('10\r\n20\r\n'));
 
 });

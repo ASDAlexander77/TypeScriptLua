@@ -171,6 +171,16 @@ export class Emitter {
             method(_this, ...params);                               \
         };                                                          \
     }                                                               \
+                                                                    \
+    __bind = __bind || function(method: any, _this: any, ...prependParams: any[]) { \
+        if (!method) {                                              \
+            return method;                                          \
+        }                                                           \
+                                                                    \
+        return function (...params: any[]) {                        \
+            method(_this, ...prependParams, ...params);             \
+        };                                                          \
+    }                                                               \
     ';
 
     /*
@@ -653,18 +663,34 @@ export class Emitter {
         return node;
     }
 
+    private isResultNonStaticMethodReference(expression: ts.Expression) {
+        const type = this.resolver.getTypeAtLocation(expression);
+        return type
+            && type.symbol
+            && type.symbol.valueDeclaration
+            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+            && !(type.symbol.valueDeclaration.modifiers
+                 && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
+    }
+
     private preprocessExpression(node: ts.Expression): ts.Expression {
         switch (node.kind) {
             case ts.SyntaxKind.CallExpression:
                 // BIND
-                // convert <xxx>.bind(this) into <xxx>(...);
+                // convert <xxx>.bind(this) into __bind(<xxx>, this, ...);
                 const callExpression = <ts.CallExpression>node;
                 // check if end propertyaccess is 'bind'
                 let memberAccess = callExpression.expression;
                 if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression) {
                     const propertyAccessExpression = <ts.PropertyAccessExpression>memberAccess;
-                    if (propertyAccessExpression.name.text === 'bind') {
-                        return propertyAccessExpression.expression;
+                    if (propertyAccessExpression.name.text === 'bind'
+                        && this.isResultNonStaticMethodReference(propertyAccessExpression.expression)) {
+                        const methodBindCall = ts.createCall(
+                            ts.createIdentifier('__bind'),
+                            undefined,
+                            [ propertyAccessExpression.expression, ...callExpression.arguments ]);
+                        methodBindCall.parent = propertyAccessExpression.parent.parent;
+                        return methodBindCall;
                     }
 
                     // STRING & NUMBER
@@ -728,15 +754,11 @@ export class Emitter {
 
             case ts.SyntaxKind.PropertyAccessExpression:
                 const propertyAccessExpression2 = <ts.PropertyAccessExpression>node;
-                if (propertyAccessExpression2.parent && propertyAccessExpression2.parent.kind !== ts.SyntaxKind.CallExpression) {
+                if (propertyAccessExpression2.parent
+                    && propertyAccessExpression2.parent.kind !== ts.SyntaxKind.CallExpression
+                    && propertyAccessExpression2.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
                     // in case of getting method
-                    const type = this.resolver.getTypeAtLocation(propertyAccessExpression2);
-                    if (type
-                        && type.symbol
-                        && type.symbol.valueDeclaration
-                        && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
-                        && !(type.symbol.valueDeclaration.modifiers
-                             && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword))
+                    if (this.isResultNonStaticMethodReference(propertyAccessExpression2)
                         && !(<any>propertyAccessExpression2).__self_call_required) {
                         // wrap it into method
                         (<any>propertyAccessExpression2).__self_call_required = true;
@@ -2979,7 +3001,7 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = constructorCall || this.isValueNotRequired(parent);
-        const isMethodArgumentCall = parent
+        const isMethodArgumentCall = !wrapCallMethod && parent
             && (parent.kind === ts.SyntaxKind.CallExpression ||
                 parent.kind === ts.SyntaxKind.SpreadElement);
         const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;

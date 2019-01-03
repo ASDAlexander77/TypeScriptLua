@@ -8,9 +8,17 @@ class Test {
     }
 }
 
-const t = new Test();
-const m2 = t.testMethod;
-m2();
+class Test2 {
+    val = 20;
+}
 
-const padStr = (i: number) => (i < 10) ? "0" + i : "" + i;
-console.log("[" + padStr(1) + "]:"));
+
+const t = new Test();
+
+const m1 = t.testMethod;
+m1();
+
+const t2 = new Test2();
+
+const m2 = t.testMethod.bind(t2);
+m2();
