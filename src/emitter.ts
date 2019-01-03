@@ -689,6 +689,7 @@ export class Emitter {
                             ts.createIdentifier('__bind'),
                             undefined,
                             [ propertyAccessExpression.expression, ...callExpression.arguments ]);
+                        // do not use METHOD as parent, otherwise processCallExpression will mess up with return pareneters
                         methodBindCall.parent = propertyAccessExpression.parent.parent;
                         return methodBindCall;
                     }
