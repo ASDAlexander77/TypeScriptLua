@@ -3239,18 +3239,6 @@ export class Emitter {
 
         let opCode = Ops.GETTABLE;
 
-        const readOpCode = this.functionContext.code.latest;
-        if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
-            if (prefixPostfix) {
-                prefixPostfix = false;
-                this.functionContext.stack.pop();
-            }
-
-            this.functionContext.code.pop();
-            opCode = Ops.GETTABUP;
-            objectIdentifierInfo.register = readOpCode[2];
-        }
-
         const objectOriginalInfo = objectIdentifierInfo.originalInfo;
         const upvalueOrConst = objectOriginalInfo
             && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
@@ -3275,6 +3263,18 @@ export class Emitter {
         const wrapMethodCall = (<any>node).__self_call_required;
         if (wrapMethodCall) {
             opCode = Ops.SELF;
+        }
+
+        const readOpCode = this.functionContext.code.latest;
+        if (opCode === Ops.GETTABLE && readOpCode && readOpCode[0] === Ops.GETUPVAL) {
+            if (prefixPostfix) {
+                prefixPostfix = false;
+                this.functionContext.stack.pop();
+            }
+
+            this.functionContext.code.pop();
+            opCode = Ops.GETTABUP;
+            objectIdentifierInfo.register = readOpCode[2];
         }
 
         const resultInfo = this.functionContext.useRegisterAndPush();
