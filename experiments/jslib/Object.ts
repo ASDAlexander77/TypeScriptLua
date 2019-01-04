@@ -7,6 +7,10 @@ module JS {
     export class Object {
 
         public static create(proto: any): any {
+            if (!proto) {
+                throw 'Prototype can\'t be undefined or null';
+            }
+
             const obj = <any>{};
             obj.__index = __get_call__;
             obj.__proto = proto;
