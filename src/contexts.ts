@@ -150,7 +150,7 @@ export class CodeStorage {
                   line: debugLine,
                   column: 0
                 },
-                source: Helpers.getSubPath(file.fileName, (<any>sourceMapGenerator)._sourceRoot),
+                source: Helpers.getSubPath(Helpers.cleanUpPath(file.fileName), (<any>sourceMapGenerator)._sourceRoot),
                 original: {
                   line: locStart.line + 1,
                   column: locStart.column ? locStart.column + 1 : 0
