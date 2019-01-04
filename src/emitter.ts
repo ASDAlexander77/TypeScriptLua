@@ -796,6 +796,13 @@ export class Emitter {
                     }
                 }
 
+                // replace <XXX>.prototype  to <XXX>.__proto
+                if (propertyAccessExpression2.name.text === 'prototype') {
+                    const protoIdentifier = ts.createIdentifier('__proto');
+                    protoIdentifier.parent = propertyAccessExpression2.name.parent;
+                    propertyAccessExpression2.name = protoIdentifier;
+                }
+
                 break;
         }
 
