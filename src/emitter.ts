@@ -6,7 +6,6 @@ import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
 import * as path from 'path';
-import { METHODS } from 'http';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
