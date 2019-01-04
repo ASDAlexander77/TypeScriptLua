@@ -4,16 +4,20 @@ module JS {
 
     export class Date {
 
-        public getHours() {
+        public getHours(): number {
             return os.date('*t').hour;
         }
 
-        public getMinutes() {
+        public getMinutes(): number {
             return os.date('*t').min;
         }
 
-        public getSeconds() {
+        public getSeconds(): number {
             return os.date('*t').sec;
+        }
+
+        public now(): number {
+            return os.time() * 1000;
         }
 
     }
