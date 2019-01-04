@@ -168,7 +168,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         return function (...params: any[]) {                        \
-            method(_this, ...params);                               \
+            return method(_this, ...params);                        \
         };                                                          \
     }                                                               \
                                                                     \
@@ -178,7 +178,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         return function (...params: any[]) {                        \
-            method(_this, ...prependParams, ...params);             \
+            return method(_this, ...prependParams, ...params);      \
         };                                                          \
     }                                                               \
     ';
