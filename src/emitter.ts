@@ -3036,10 +3036,18 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = constructorCall || this.isValueNotRequired(parent);
-        const isMethodArgumentCall = parent
-            && (parent.kind === ts.SyntaxKind.CallExpression ||
-                parent.kind === ts.SyntaxKind.SpreadElement);
-        const returnCount = noReturnCall ? 1 : isMethodArgumentCall ? 0 : 2;
+        let isLastMethodArgumentCallOrSpreadElement = parent && parent.kind === ts.SyntaxKind.SpreadElement;
+        if (!isLastMethodArgumentCallOrSpreadElement
+            && parent
+            && parent.kind === ts.SyntaxKind.CallExpression) {
+                // check if it last call method argument
+            const callMethod = <ts.CallExpression>parent;
+            if (callMethod.arguments.length > 0 && callMethod.arguments[callMethod.arguments.length - 1] === node) {
+                isLastMethodArgumentCallOrSpreadElement = true;
+            }
+        }
+
+        const returnCount = noReturnCall ? 1 : isLastMethodArgumentCallOrSpreadElement ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
         }
