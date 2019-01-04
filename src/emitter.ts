@@ -679,8 +679,7 @@ export class Emitter {
             && type.symbol
             && type.symbol.declarations
             && type.symbol.declarations[0]
-            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType
-                || type.symbol.declarations[0].kind === ts.SyntaxKind.TypeParameter);
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
 
         return functionType;
     }
@@ -769,11 +768,26 @@ export class Emitter {
             case ts.SyntaxKind.PropertyAccessExpression:
                 const propertyAccessExpression2 = <ts.PropertyAccessExpression>node;
                 if (propertyAccessExpression2.parent
-                    && propertyAccessExpression2.parent.kind !== ts.SyntaxKind.CallExpression
-                    && propertyAccessExpression2.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+                    && (propertyAccessExpression2.parent.kind === ts.SyntaxKind.VariableDeclaration
+                        || propertyAccessExpression2.parent.kind === ts.SyntaxKind.BinaryExpression
+                        || propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression)) {
+
+                    const isRightOfBinaryExpression =
+                        propertyAccessExpression2.parent.kind === ts.SyntaxKind.BinaryExpression
+                        && (<ts.BinaryExpression>propertyAccessExpression2.parent).operatorToken.kind === ts.SyntaxKind.EqualsToken
+                        && (<ts.BinaryExpression>propertyAccessExpression2.parent).right === node;
+
+                    const isCallParameter =
+                        propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression
+                        && (<ts.CallExpression>propertyAccessExpression2.parent).expression !== node;
+
+                    const declar =
+                        propertyAccessExpression2.parent.kind === ts.SyntaxKind.VariableDeclaration;
+
                     // in case of getting method
-                    if (this.isResultNonStaticMethodReference(propertyAccessExpression2)
-                        && !(<any>propertyAccessExpression2).__self_call_required) {
+                    if ((isRightOfBinaryExpression || isCallParameter || declar)
+                         && this.isResultNonStaticMethodReference(propertyAccessExpression2)
+                         && !(<any>propertyAccessExpression2).__self_call_required) {
                         // wrap it into method
                         (<any>propertyAccessExpression2).__self_call_required = true;
                         const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [ propertyAccessExpression2 ]);
