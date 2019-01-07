@@ -26,6 +26,16 @@ module JS {
 
             setmetatable(obj, obj);
         }
+
+        public static keys(obj: any): Array<any> {
+            const a = new Array<any>();
+            for (const k in obj) {
+                a.push(k);
+            }
+
+            return a;
+        }
+
     }
 
 }

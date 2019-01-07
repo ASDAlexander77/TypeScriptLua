@@ -177,12 +177,12 @@ export class Emitter {
         }                                                           \
                                                                     \
         if (prependParams[0]) {                                     \
-            return function (_dummy_this: any, ...params: any[]) {  \
+            return function (...params: any[]) {                    \
                 return method(_this, ...prependParams, ...params);  \
             };                                                      \
         }                                                           \
                                                                     \
-        return function (_dummy_this: any, ...params: any[]) {      \
+        return function (...params: any[]) {                        \
             return prependParams && method(_this, ...params);       \
         };                                                          \
     }                                                               \
