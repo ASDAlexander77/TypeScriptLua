@@ -176,7 +176,7 @@ export class Emitter {
             return method;                                          \
         }                                                           \
                                                                     \
-        return function (...params: any[]) {                        \
+        return function (_dummy_this: any, ...params: any[]) {      \
             return method(_this, ...prependParams, ...params);      \
         };                                                          \
     }                                                               \
