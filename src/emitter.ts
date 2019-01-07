@@ -176,7 +176,7 @@ export class Emitter {
             return method;                                          \
         }                                                           \
                                                                     \
-        if (prependParam) {                                         \
+        if (prependParams[0]) {                                     \
             return function (_dummy_this: any, ...params: any[]) {  \
                 return method(_this, ...prependParams, ...params);  \
             };                                                      \
@@ -668,6 +668,17 @@ export class Emitter {
         return node;
     }
 
+    private isResultFunctioinType(expression: ts.Expression) {
+        const type = this.resolver.getTypeAtLocation(expression);
+        const functionType = type
+            && type.symbol
+            && type.symbol.declarations
+            && type.symbol.declarations[0]
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
+
+        return functionType;
+    }
+
     private isResultNonStaticMethodReference(expression: ts.Expression) {
         const type = this.resolver.getTypeAtLocation(expression);
         const nonStaticMethod = type
@@ -798,6 +809,10 @@ export class Emitter {
                         const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [ propertyAccessExpression2 ]);
                         methodWrapCall.parent = propertyAccessExpression2.parent;
                         return methodWrapCall;
+                    } else if (this.isResultFunctioinType(propertyAccessExpression2)) {
+                        // propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression
+                        // suppress SELF calls
+                        (<any>propertyAccessExpression2).__self_call_required = false;
                     }
                 }
 
@@ -3263,11 +3278,15 @@ export class Emitter {
         const upvalueOrConst = objectOriginalInfo
             && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
                                 /*|| objectOriginalInfo.kind === ResolvedKind.Const*/);
-        const isMemberStatic = memberIdentifierInfo.originalInfo
-            && memberIdentifierInfo.originalInfo.declarationInfo
-            && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
-            && memberIdentifierInfo.originalInfo.declarationInfo.modifiers
-                .some(m => m.kind === ts.SyntaxKind.StaticKeyword);
+        const methodDeclInfo = this.resolver.methodCall
+            && memberIdentifierInfo.originalInfo
+            && memberIdentifierInfo.originalInfo.declarationInfo;
+
+        const methodDeclInfoModifiers = methodDeclInfo
+            && methodDeclInfo.modifiers;
+
+        const isMemberStatic = methodDeclInfoModifiers
+            && methodDeclInfoModifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
 
         // this.<...>(this support)
         if (this.resolver.methodCall
@@ -3280,9 +3299,14 @@ export class Emitter {
         }
 
         // support __wrapper calls
-        const wrapMethodCall = (<any>node).__self_call_required;
+        const wrapMethodCall = (<any>node).__self_call_required === true;
         if (wrapMethodCall) {
             opCode = Ops.SELF;
+        }
+
+        if ((<any>node).__self_call_required === false) {
+            // suppress self call
+            opCode = Ops.GETTABLE;
         }
 
         const readOpCode = this.functionContext.code.latest;

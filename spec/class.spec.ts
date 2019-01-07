@@ -1114,7 +1114,7 @@ describe('Classes', () => {
         m2();                                   \
     '])).to.equals('10\r\n'));
 
-    it('Class - class static method call by reference',  () => expect(new Run().test([
+    it('Class - class bind method call by reference',  () => expect(new Run().test([
         'class Test {                           \
             val = 10;                           \
                                                 \
@@ -1142,5 +1142,26 @@ describe('Classes', () => {
                                                 \
         fff(t.testMethod.bind(t2));             \
     '])).to.equals('10\r\n20\r\n20\r\n'));
+
+    it('Class - class static method reference by this reference',  () => expect(new Run().test([
+        'class Test {                           \
+            public m: (val: number) => void;    \
+                                                \
+            public constructor() {              \
+                this.m = Test.staticMethodTest; \
+            }                                   \
+                                                \
+            public static staticMethodTest(val2: number) {  \
+                console.log(val2);              \
+            }                                   \
+                                                \
+            public run() {                      \
+                this.m(10);                     \
+            }                                   \
+        }                                       \
+                                                \
+        const t = new Test();                   \
+        t.run();                                \
+    '])).to.equals('10\r\n'));
 
 });
