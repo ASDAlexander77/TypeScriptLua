@@ -2537,7 +2537,11 @@ export class Emitter {
             (<any>node).__return_type = detectType.intrinsicName;
             return (detectType.intrinsicName || typeof (detectType.value)) === typeName;
         } catch (e) {
-            console.warn('Can\'t get type of "' + node.getText() + '"');
+            try {
+                console.warn('Can\'t get type of "' + node.getText() + '"');
+            } catch (e2) {
+                console.warn('Can\'t get type of autogen. <node>');
+            }
         }
 
         return false;
