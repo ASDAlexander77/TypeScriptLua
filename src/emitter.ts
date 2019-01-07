@@ -176,8 +176,14 @@ export class Emitter {
             return method;                                          \
         }                                                           \
                                                                     \
+        if (prependParam) {                                         \
+            return function (_dummy_this: any, ...params: any[]) {  \
+                return method(_this, ...prependParams, ...params);  \
+            };                                                      \
+        }                                                           \
+                                                                    \
         return function (_dummy_this: any, ...params: any[]) {      \
-            return method(_this, ...prependParams, ...params);      \
+            return prependParams && method(_this, ...params);       \
         };                                                          \
     }                                                               \
     ';
