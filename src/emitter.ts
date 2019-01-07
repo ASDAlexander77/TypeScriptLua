@@ -824,6 +824,40 @@ export class Emitter {
                 }
 
                 break;
+
+            case ts.SyntaxKind.ElementAccessExpression:
+
+                // support string access  'asd'[xxx];
+
+                const elementAccessExpression = <ts.ElementAccessExpression>node;
+                if (this.isTypeOfNode(elementAccessExpression.expression, 'string')
+                    && this.isTypeOfNode(elementAccessExpression.argumentExpression, 'number')) {
+                    const stringIdent = ts.createIdentifier('string');
+                    const charIdent = ts.createIdentifier('char');
+                    const byteIdent = ts.createIdentifier('byte');
+
+                    const decrIndex = ts.createBinary(
+                        elementAccessExpression.argumentExpression, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1'));
+                    const getByteExpr = ts.createCall(ts.createPropertyAccess(stringIdent, byteIdent), undefined,
+                    [
+                        elementAccessExpression.expression,
+                        decrIndex
+                    ]);
+
+                    decrIndex.parent = getByteExpr;
+
+                    const expr = ts.createCall(
+                        ts.createPropertyAccess(stringIdent, charIdent),
+                        undefined,
+                        [ getByteExpr ]);
+
+                    expr.parent = elementAccessExpression.parent;
+                    getByteExpr.parent = expr;
+
+                    return expr;
+                }
+
+                break;
         }
 
         return node;

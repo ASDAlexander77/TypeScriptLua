@@ -1,9 +1,4 @@
 import './JS';
 
-var prop: any;
-
-prop = 1.1;
-
-let c = "asd";
-c += "asd";
-console.log(c);
+var s = "ABC";
+console.log(s[1]);
