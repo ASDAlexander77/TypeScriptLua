@@ -31,7 +31,7 @@ describe('Arithmetic Operators', () => {
         console.log(x2);                            \
     '])));
 
-    it('String (strict)', () => expect('Good Morning\r\n').to.equals(new Run().test([
+    it('String (strict) concat', () => expect('Good Morning\r\n').to.equals(new Run().test([
         'let text1:string, text2:string, text3:string;  \
         text1 = "Good ";                                \
         text2 = "Morning";                              \
@@ -39,12 +39,21 @@ describe('Arithmetic Operators', () => {
         console.log(text3);                             \
     '])));
 
-    it.skip('String (any)', () => expect('Good Morning\r\n').to.equals(new Run().test([
+    it.skip('String (any) concat', () => expect('Good Morning\r\n').to.equals(new Run().test([
         'let text1, text2, text3;                   \
         text1 = "Good ";                            \
         text2 = "Morning";                          \
         text3 = text1 + text2;                      \
         console.log(text3);                         \
+    '])));
+
+    it('String (strict) op +=', () => expect('Good Morning\r\n').to.equals(new Run().test([
+        'let text1:string, text2:string, text3:string;  \
+        text1 = "Good ";                                \
+        text2 = "Morning";                              \
+        text3 = "";                                     \
+        text3 += text1 + text2;                         \
+        console.log(text3);                             \
     '])));
 
     it('Bitwise', () => expect('1\r\n5\r\n-6\r\n4\r\n10\r\n2\r\n').to.equals(new Run().test([

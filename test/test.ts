@@ -1,20 +1,9 @@
 import './JS';
 
-class Test {
-    public m: (val: number) => void;
+var prop: any;
 
-    public constructor() {
-        this.m = Test.staticMethodTest;
-    }
+prop = 1.1;
 
-    public static staticMethodTest(val2: number) {
-        console.log(val2);
-    }
-
-    public run() {
-        this.m(10);
-    }
-}
-
-const t = new Test();
-t.run();
+let c = "asd";
+c += "asd";
+console.log(c);
