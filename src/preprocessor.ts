@@ -67,6 +67,10 @@ export class Preprocessor {
     }
 
     private preprocessCallExpression(callExpression: ts.CallExpression): ts.Expression {
+
+        // preprocess method paremeters when const string cast to String object required
+        this.preprocessMethodCallParameters(callExpression);
+
         if (callExpression.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
 
             const newExpression =
@@ -210,10 +214,7 @@ export class Preprocessor {
             const methodCall = ts.createCall(
                 ts.createPropertyAccess(
                     ts.createIdentifier(
-                        isConstString
-                            ? 'StringHelper'
-                            : (isConstNumber ? 'NumberHelper' : '')),
-                            propertyAccessExpression.name),
+                        isConstString ? 'StringHelper' : (isConstNumber ? 'NumberHelper' : '')), propertyAccessExpression.name),
                 undefined,
                 [propertyAccessExpression.expression, ...callExpression.arguments]);
             methodCall.parent = callExpression;
@@ -235,6 +236,53 @@ export class Preprocessor {
         if (memberAccess.kind === ts.SyntaxKind.SuperKeyword) {
             // add 'this' parameter
             callExpression.arguments = <ts.NodeArray<ts.Expression>><any>[ts.createThis(), ...callExpression.arguments];
+        }
+    }
+
+    private preprocessMethodCallParameters(callExpression: ts.CallExpression) {
+        if (callExpression.arguments.length === 0) {
+            return;
+        }
+
+        const newArguments = new Array<ts.Expression>();
+
+        const methodDelc = this.resolver.getTypeAtLocation(callExpression.expression);
+        const parameters = methodDelc
+            && methodDelc.symbol
+            && methodDelc.symbol.valueDeclaration
+            && methodDelc.symbol.valueDeclaration.parameters;
+
+        const length = parameters ? parameters.length : callExpression.arguments.length;
+        let anyNewArgument = false;
+        for (let i = 0; i < length; i++) {
+            let currentOrNewArgument = callExpression.arguments[i];
+            const parameter = parameters && parameters[i];
+            // if paraneter is NULL treaqt it as "custom code which is not required correction, for example rowget(t, '__get__')"
+            const any = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.AnyKeyword;
+            if (any) {
+                // if string
+                const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
+                switch (typeName) {
+                    case 'string':
+                        const newString = ts.createNew(ts.createIdentifier('String'), undefined, [ currentOrNewArgument ]);
+                        newString.parent = currentOrNewArgument.parent;
+                        currentOrNewArgument = newString;
+                        anyNewArgument = true;
+                        break;
+                    case 'number':
+                        const newNumber = ts.createNew(ts.createIdentifier('Number'), undefined, [ currentOrNewArgument ]);
+                        newNumber.parent = currentOrNewArgument.parent;
+                        currentOrNewArgument = newNumber;
+                        anyNewArgument = true;
+                        break;
+                }
+            }
+
+            newArguments.push(currentOrNewArgument);
+        }
+
+        if (anyNewArgument) {
+            callExpression.arguments = <any>newArguments;
         }
     }
 }

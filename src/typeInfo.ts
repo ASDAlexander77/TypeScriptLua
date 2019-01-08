@@ -7,18 +7,27 @@ export class TypeInfo {
     }
 
     public isTypeOfNode(node: ts.Node, typeName: string) {
+        return this.getTypeOfNode(node) === typeName;
+    }
+
+    public getTypeOfNode(node: ts.Node) {
         if (node === null) {
-            return false;
+            return undefined;
         }
 
-        if ((<any>node).__return_type === typeName) {
-            return true;
+        if ((<any>node).__return_type) {
+            return (<any>node).__return_type;
         }
 
         try {
             const detectType = this.resolver.getTypeAtLocation(node);
-            (<any>node).__return_type = detectType.intrinsicName;
-            return (detectType.intrinsicName || typeof (detectType.value)) === typeName;
+            (<any>node).__return_type =
+                detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
+                    ? detectType.intrinsicName
+                    : detectType.value
+                        ? typeof(detectType.value)
+                        : undefined;
+            return (<any>node).__return_type;
         } catch (e) {
             try {
                 console.warn('Can\'t get type of "' + node.getText() + '"');
@@ -27,7 +36,7 @@ export class TypeInfo {
             }
         }
 
-        return false;
+        return undefined;
     }
 
     public isResultFunctioinType(expression: ts.Expression) {
