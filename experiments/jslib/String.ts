@@ -10,6 +10,9 @@ module JS {
 
     export class String {
         public constructor(private constString: string) {
+            (<any>this).__tostring = function (): string {
+                return this.constString;
+            };
         }
 
         public replace(regExp: RegExp, func: (p: string) => string): String {
@@ -19,10 +22,6 @@ module JS {
 
         public toString(): String {
             return this;
-        }
-
-        public __tostring(): string {
-            return this.constString;
         }
     }
 
