@@ -11,7 +11,7 @@ export class TypeInfo {
     }
 
     public getTypeOfNode(node: ts.Node) {
-        if (node === null) {
+        if (!node) {
             return undefined;
         }
 
