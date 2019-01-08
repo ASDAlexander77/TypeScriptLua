@@ -1,4 +1,4 @@
 import './JS';
 
-var s = "ABC";
-console.log(s[1]);
+const s = new String("ABC");
+console.log(s);

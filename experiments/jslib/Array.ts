@@ -110,6 +110,27 @@ module JS {
 
             return ret;
         }
+
+        public slice(begin?: number, end?: number): T[] {
+            const ret = new Array<T>();
+
+            const from = begin || 0;
+            let to = end || this.length;
+            if (to > this.length) {
+                to = this.length;
+            }
+
+            for (let i = from; i < to; i++) {
+                if (!ret[0]) {
+                    ret[0] = this[i];
+                } else {
+                    table.insert(ret, this[i]);
+                }
+            }
+
+            return ret;
+        }
+
     }
 
 }
