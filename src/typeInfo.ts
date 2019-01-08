@@ -21,13 +21,17 @@ export class TypeInfo {
 
         try {
             const detectType = this.resolver.getTypeAtLocation(node);
-            (<any>node).__return_type =
+            const typeName =
                 detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
                     ? detectType.intrinsicName
-                    : detectType.value
-                        ? typeof(detectType.value)
+                    : detectType.value !== undefined
+                        ? typeof (detectType.value)
                         : undefined;
-            return (<any>node).__return_type;
+            if (typeName) {
+                (<any>node).__return_type = typeName;
+            }
+
+            return typeName;
         } catch (e) {
             try {
                 console.warn('Can\'t get type of "' + node.getText() + '"');
