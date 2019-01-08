@@ -21,31 +21,27 @@ export class Preprocessor {
     }
 
     public preprocessExpression(node: ts.Expression): ts.Expression {
+        let newExpression: ts.Expression;
         switch (node.kind) {
             case ts.SyntaxKind.CallExpression:
-                const newExpression = this.preprocessCallExpression(<ts.CallExpression>node);
-                if (newExpression) {
-                    return newExpression;
-                }
-
+                newExpression = this.preprocessCallExpression(<ts.CallExpression>node);
                 break;
 
             case ts.SyntaxKind.ConditionalExpression:
-                this.preprocessConditionalExpression(<ts.ConditionalExpression>node);
-
+                newExpression = this.preprocessConditionalExpression(<ts.ConditionalExpression>node);
                 break;
 
             case ts.SyntaxKind.PropertyAccessExpression:
-                this.preprocessPropertyAccessExpression(<ts.PropertyAccessExpression>node);
+                newExpression = this.preprocessPropertyAccessExpression(<ts.PropertyAccessExpression>node);
                 break;
 
             case ts.SyntaxKind.ElementAccessExpression:
-                const newExpression2 = this.preprocessElementAccessExpression(<ts.ElementAccessExpression>node);
-                if (newExpression2) {
-                    return newExpression2;
-                }
-
+                newExpression = this.preprocessElementAccessExpression(<ts.ElementAccessExpression>node);
                 break;
+        }
+
+        if (newExpression) {
+            return newExpression;
         }
 
         return node;
@@ -60,12 +56,14 @@ export class Preprocessor {
         }
     }
 
-    private preprocessConditionalExpression(conditionStatement: ts.ConditionalExpression) {
+    private preprocessConditionalExpression(conditionStatement: ts.ConditionalExpression): ts.Expression {
         if (this.typeInfo.isTypeOfNode(conditionStatement.condition, 'number')) {
             const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
             newCondition.parent = conditionStatement;
             conditionStatement.condition = newCondition;
         }
+
+        return undefined;
     }
 
     private preprocessCallExpression(callExpression: ts.CallExpression): ts.Expression {
@@ -136,7 +134,7 @@ export class Preprocessor {
 
     // we need to convert all method returns (such as <THIS>.<METHOD>)
     // into __wrapper(this, method) to be able to call method without providing <THIS>
-    private preprocessPropertyAccessExpression(propertyAccessExpression: ts.PropertyAccessExpression) {
+    private preprocessPropertyAccessExpression(propertyAccessExpression: ts.PropertyAccessExpression): ts.Expression {
         if (propertyAccessExpression.parent
             && (propertyAccessExpression.parent.kind === ts.SyntaxKind.VariableDeclaration
                 || propertyAccessExpression.parent.kind === ts.SyntaxKind.BinaryExpression
@@ -176,37 +174,42 @@ export class Preprocessor {
             protoIdentifier.parent = propertyAccessExpression.name.parent;
             propertyAccessExpression.name = protoIdentifier;
         }
+
+        return undefined;
     }
 
     private preprocessElementAccessExpression(elementAccessExpression: ts.ElementAccessExpression): ts.Expression {
         // support string access  'asd'[xxx];
-        if (this.typeInfo.isTypeOfNode(elementAccessExpression.expression, 'string')
-            && this.typeInfo.isTypeOfNode(elementAccessExpression.argumentExpression, 'number')) {
-            const stringIdent = ts.createIdentifier('string');
-            const charIdent = ts.createIdentifier('char');
-            const byteIdent = ts.createIdentifier('byte');
 
-            const decrIndex = ts.createBinary(
-                elementAccessExpression.argumentExpression, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1'));
-            const getByteExpr = ts.createCall(ts.createPropertyAccess(stringIdent, byteIdent), undefined,
-            [
-                elementAccessExpression.expression,
-                decrIndex
-            ]);
-
-            decrIndex.parent = getByteExpr;
-
-            const expr = ts.createCall(
-                ts.createPropertyAccess(stringIdent, charIdent),
-                undefined,
-                [ getByteExpr ]);
-
-            expr.parent = elementAccessExpression.parent;
-            getByteExpr.parent = expr;
-
-            return expr;
+        const isConstStringOrNumber =
+            this.typeInfo.isTypeOfNode(elementAccessExpression.expression, 'string')
+            && this.typeInfo.isTypeOfNode(elementAccessExpression.argumentExpression, 'number');
+        if (!isConstStringOrNumber) {
+            return undefined;
         }
 
-        return undefined;
+        const stringIdent = ts.createIdentifier('string');
+        const charIdent = ts.createIdentifier('char');
+        const byteIdent = ts.createIdentifier('byte');
+
+        const decrIndex = ts.createBinary(
+            elementAccessExpression.argumentExpression, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1'));
+        const getByteExpr = ts.createCall(ts.createPropertyAccess(stringIdent, byteIdent), undefined,
+        [
+            elementAccessExpression.expression,
+            decrIndex
+        ]);
+
+        decrIndex.parent = getByteExpr;
+
+        const expr = ts.createCall(
+            ts.createPropertyAccess(stringIdent, charIdent),
+            undefined,
+            [ getByteExpr ]);
+
+        expr.parent = elementAccessExpression.parent;
+        getByteExpr.parent = expr;
+
+        return expr;
     }
 }
