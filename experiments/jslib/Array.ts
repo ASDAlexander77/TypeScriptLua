@@ -6,7 +6,7 @@ module JS {
 
     export class ArrayHelper {
         @len
-        public static getLength(this: any[]): number {
+        public static getLength(_this: any[]): number {
             // implemented in the compiler
             throw 0;
         }
@@ -59,6 +59,30 @@ module JS {
             return -1;
         }
 
+        public concat(other: T[]): T[] {
+            const ret = new Array<T>();
+
+            for (const obj of this) {
+                if (!ret[0]) {
+                    ret[0] = obj;
+                    continue;
+                }
+
+                table.insert(ret, obj);
+            }
+
+            for (const obj of other) {
+                if (!ret[0]) {
+                    ret[0] = obj;
+                    continue;
+                }
+
+                table.insert(ret, obj);
+            }
+
+            return ret;
+        }
+
         public splice(index: number, howmany?: number, ...items: T[]): T[] {
             const count = howmany || 1;
             const ret = new Array<T>();
@@ -73,13 +97,13 @@ module JS {
             }
 
             if (items) {
-                const length_: number = (<any>ArrayHelper).getLength(items);
+                const length_ = ArrayHelper.getLength(items);
                 for (let i = 0; i < length_; i++) {
                     const ind = i + index;
                     if (ind == 0) {
-                        this[ind] = items[i];
+                        this[ind] = (<{ [k: number]: T; }>items)[i];
                     } else {
-                        table.insert(this, ind, items[i]);
+                        table.insert(this, ind, (<{ [k: number]: T; }>items)[i]);
                     }
                 }
             }
