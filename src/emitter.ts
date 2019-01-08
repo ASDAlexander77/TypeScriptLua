@@ -6,6 +6,8 @@ import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
 import * as path from 'path';
+import { Preprocessor } from './preprocessor';
+import { TypeInfo } from './typeInfo';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
@@ -13,6 +15,8 @@ export class Emitter {
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
+    private preprocessor: Preprocessor;
+    private typeInfo: TypeInfo;
     private sourceFileName: string;
     private opsMap = [];
     private extraDebugEmbed = false;
@@ -30,6 +34,8 @@ export class Emitter {
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
         private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
         this.resolver = new IdentifierResolver(typeChecker);
+        this.typeInfo = new TypeInfo(this.resolver);
+        this.preprocessor = new Preprocessor(this.resolver, this.typeInfo);
         this.functionContext = new FunctionContext();
 
         this.opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
@@ -605,7 +611,7 @@ export class Emitter {
     }
 
     private processStatementInternal(nodeIn: ts.Statement): void {
-        const node = this.preprocessStatement(nodeIn);
+        const node = this.preprocessor.preprocessStatement(nodeIn);
 
         if (!this.ignoreDebugInfo) {
             this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
@@ -650,221 +656,8 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
-    private preprocessStatement(node: ts.Statement): ts.Statement {
-        switch (node.kind) {
-            case ts.SyntaxKind.WhileStatement:
-            case ts.SyntaxKind.DoStatement:
-            case ts.SyntaxKind.IfStatement:
-                const expressionStatement = <any>node;
-                if (this.isTypeOfNode(expressionStatement.expression, 'number')) {
-                    const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
-                    newCondition.parent = expressionStatement.expression.parent;
-                    expressionStatement.expression = newCondition;
-                }
-
-                break;
-        }
-
-        return node;
-    }
-
-    private isResultFunctioinType(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
-        const functionType = type
-            && type.symbol
-            && type.symbol.declarations
-            && type.symbol.declarations[0]
-            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
-
-        return functionType;
-    }
-
-    private isResultNonStaticMethodReference(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
-        const nonStaticMethod = type
-            && type.symbol
-            && type.symbol.valueDeclaration
-            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
-            && !(type.symbol.valueDeclaration.modifiers
-                 && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
-        if (nonStaticMethod) {
-            return true;
-        }
-
-        const functionType = type
-            && type.symbol
-            && type.symbol.declarations
-            && type.symbol.declarations[0]
-            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
-
-        return functionType;
-    }
-
-    private preprocessExpression(node: ts.Expression): ts.Expression {
-        switch (node.kind) {
-            case ts.SyntaxKind.CallExpression:
-                // BIND
-                // convert <xxx>.bind(this) into __bind(<xxx>, this, ...);
-                const callExpression = <ts.CallExpression>node;
-                // check if end propertyaccess is 'bind'
-                let memberAccess = callExpression.expression;
-                if (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression) {
-                    const propertyAccessExpression = <ts.PropertyAccessExpression>memberAccess;
-                    if (propertyAccessExpression.name.text === 'bind'
-                        && this.isResultNonStaticMethodReference(propertyAccessExpression.expression)) {
-                        const methodBindCall = ts.createCall(
-                            ts.createIdentifier('__bind'),
-                            undefined,
-                            [ propertyAccessExpression.expression, ...callExpression.arguments ]);
-                        // do not use METHOD as parent, otherwise processCallExpression will mess up with return pareneters
-                        methodBindCall.parent = propertyAccessExpression.parent.parent;
-                        (<any>methodBindCall).__bind_call = true;
-                        return methodBindCall;
-                    }
-
-                    // STRING & NUMBER
-                    // string "...".<function>()  => new String("...").<function>()
-                    let isConstString = propertyAccessExpression.expression.kind === ts.SyntaxKind.StringLiteral;
-                    let isConstNumber = propertyAccessExpression.expression.kind === ts.SyntaxKind.NumericLiteral;
-                    if (!isConstString && !isConstNumber) {
-                        try {
-                            const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
-                            if (typeResult) {
-                                isConstString = (typeResult.intrinsicName || typeof (typeResult.value)) === 'string';
-                                isConstNumber = (typeResult.intrinsicName || typeof (typeResult.value)) === 'number';
-                            }
-                        } catch (e) {
-                            console.warn('Can\'t get type of "' + node.getText() + '"');
-                        }
-                    }
-
-                    if (isConstString || isConstNumber) {
-                        const methodCall = ts.createCall(
-                            ts.createPropertyAccess(
-                                ts.createIdentifier(
-                                    isConstString
-                                        ? 'StringHelper'
-                                        : (isConstNumber ? 'NumberHelper' : '')),
-                                (<ts.PropertyAccessExpression>memberAccess).name),
-                            undefined,
-                            [(<ts.PropertyAccessExpression>memberAccess).expression, ...callExpression.arguments]);
-                        methodCall.parent = node;
-                        return methodCall;
-                    }
-                }
-
-                // SUPER
-                // convert super.xxx(...) into <Type>.xxx(this, ...);
-                let lastPropertyAccess: ts.PropertyAccessExpression;
-                while (memberAccess.kind === ts.SyntaxKind.PropertyAccessExpression) {
-                    lastPropertyAccess = <ts.PropertyAccessExpression>memberAccess;
-                    memberAccess = lastPropertyAccess.expression;
-                }
-
-                if (memberAccess.kind === ts.SyntaxKind.SuperKeyword) {
-                    // add 'this' parameter
-                    callExpression.arguments = <ts.NodeArray<ts.Expression>><any>[ts.createThis(), ...callExpression.arguments];
-                }
-
-                break;
-
-            case ts.SyntaxKind.ConditionalExpression:
-                const conditionStatement = <ts.ConditionalExpression>node;
-                if (this.isTypeOfNode(conditionStatement.condition, 'number')) {
-                    const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
-                    newCondition.parent = node;
-                    conditionStatement.condition = newCondition;
-                }
-
-                break;
-
-                // we need to convert all method returns (such as <THIS>.<METHOD>)
-                // into __wrapper(this, method) to be able to call method without providing <THIS>
-
-            case ts.SyntaxKind.PropertyAccessExpression:
-                const propertyAccessExpression2 = <ts.PropertyAccessExpression>node;
-                if (propertyAccessExpression2.parent
-                    && (propertyAccessExpression2.parent.kind === ts.SyntaxKind.VariableDeclaration
-                        || propertyAccessExpression2.parent.kind === ts.SyntaxKind.BinaryExpression
-                        || propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression)) {
-
-                    const isRightOfBinaryExpression =
-                        propertyAccessExpression2.parent.kind === ts.SyntaxKind.BinaryExpression
-                        && (<ts.BinaryExpression>propertyAccessExpression2.parent).operatorToken.kind === ts.SyntaxKind.EqualsToken
-                        && (<ts.BinaryExpression>propertyAccessExpression2.parent).right === node;
-
-                    const isCallParameter =
-                        propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression
-                        && (<ts.CallExpression>propertyAccessExpression2.parent).expression !== node;
-
-                    const declar =
-                        propertyAccessExpression2.parent.kind === ts.SyntaxKind.VariableDeclaration;
-
-                    // in case of getting method
-                    if ((isRightOfBinaryExpression || isCallParameter || declar)
-                         && this.isResultNonStaticMethodReference(propertyAccessExpression2)
-                         && !(<any>propertyAccessExpression2).__self_call_required) {
-                        // wrap it into method
-                        (<any>propertyAccessExpression2).__self_call_required = true;
-                        const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [ propertyAccessExpression2 ]);
-                        methodWrapCall.parent = propertyAccessExpression2.parent;
-                        return methodWrapCall;
-                    } else if (this.isResultFunctioinType(propertyAccessExpression2)) {
-                        // propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression
-                        // suppress SELF calls
-                        (<any>propertyAccessExpression2).__self_call_required = false;
-                    }
-                }
-
-                // replace <XXX>.prototype  to <XXX>.__proto
-                if (propertyAccessExpression2.name.text === 'prototype') {
-                    const protoIdentifier = ts.createIdentifier('__proto');
-                    protoIdentifier.parent = propertyAccessExpression2.name.parent;
-                    propertyAccessExpression2.name = protoIdentifier;
-                }
-
-                break;
-
-            case ts.SyntaxKind.ElementAccessExpression:
-
-                // support string access  'asd'[xxx];
-
-                const elementAccessExpression = <ts.ElementAccessExpression>node;
-                if (this.isTypeOfNode(elementAccessExpression.expression, 'string')
-                    && this.isTypeOfNode(elementAccessExpression.argumentExpression, 'number')) {
-                    const stringIdent = ts.createIdentifier('string');
-                    const charIdent = ts.createIdentifier('char');
-                    const byteIdent = ts.createIdentifier('byte');
-
-                    const decrIndex = ts.createBinary(
-                        elementAccessExpression.argumentExpression, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1'));
-                    const getByteExpr = ts.createCall(ts.createPropertyAccess(stringIdent, byteIdent), undefined,
-                    [
-                        elementAccessExpression.expression,
-                        decrIndex
-                    ]);
-
-                    decrIndex.parent = getByteExpr;
-
-                    const expr = ts.createCall(
-                        ts.createPropertyAccess(stringIdent, charIdent),
-                        undefined,
-                        [ getByteExpr ]);
-
-                    expr.parent = elementAccessExpression.parent;
-                    getByteExpr.parent = expr;
-
-                    return expr;
-                }
-
-                break;
-        }
-
-        return node;
-    }
-
     private processExpression(nodeIn: ts.Expression): void {
-        const node = this.preprocessExpression(nodeIn);
+        const node = this.preprocessor.preprocessExpression(nodeIn);
 
         // we need to process it for statements only
         //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
@@ -2523,30 +2316,6 @@ export class Emitter {
         jmpElseOp[2] = this.functionContext.code.length - elseBlock;
     }
 
-    private isTypeOfNode(node: ts.Node, typeName: string) {
-        if (node === null) {
-            return false;
-        }
-
-        if ((<any>node).__return_type === typeName) {
-            return true;
-        }
-
-        try {
-            const detectType = this.resolver.getTypeAtLocation(node);
-            (<any>node).__return_type = detectType.intrinsicName;
-            return (detectType.intrinsicName || typeof (detectType.value)) === typeName;
-        } catch (e) {
-            try {
-                console.warn('Can\'t get type of "' + node.getText() + '"');
-            } catch (e2) {
-                console.warn('Can\'t get type of autogen. <node>');
-            }
-        }
-
-        return false;
-    }
-
     private processBinaryExpression(node: ts.BinaryExpression): void {
         // perform '='
         switch (node.operatorToken.kind) {
@@ -2596,7 +2365,7 @@ export class Emitter {
                 let operationCode = this.opsMap[node.operatorToken.kind];
                 if ((node.operatorToken.kind === ts.SyntaxKind.PlusToken
                     || node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
-                    && this.isTypeOfNode(node, 'string')) {
+                    && this.typeInfo.isTypeOfNode(node, 'string')) {
                     operationCode = Ops.CONCAT;
                 }
 
@@ -2740,7 +2509,7 @@ export class Emitter {
 
                 // fix when 0 is true in LUA
                 if (!(<any>node).__fix_not_required) {
-                    if (this.isTypeOfNode(node.left, 'number')) {
+                    if (this.typeInfo.isTypeOfNode(node.left, 'number')) {
                         const op1 = this.functionContext.stack.peek();
 
                         this.functionContext.newLocalScope(node);

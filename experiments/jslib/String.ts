@@ -17,6 +17,7 @@ module JS {
 
         public replace(regExp: RegExp, func: (p: string) => string): String {
             // retuns constString
+            // tslint:disable-next-line:no-construct
             return new String(StringHelper.replace(this.constString, regExp, func));
         }
 

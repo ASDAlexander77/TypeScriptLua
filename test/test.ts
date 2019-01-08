@@ -1,9 +1,10 @@
 import './JS';
 
-const sc = new String("ABC");
+// tslint:disable-next-line:no-construct
+const sc = new String('ABC');
 console.log(sc);
 
-const s = "asd";
+const s = 'asd';
 
 function f(p: any) {
     console.log(p.substr(0, 1));
