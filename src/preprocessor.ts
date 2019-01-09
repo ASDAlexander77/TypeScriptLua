@@ -8,6 +8,10 @@ export class Preprocessor {
     }
 
     public preprocessStatement(node: ts.Statement): ts.Statement {
+        if (!node) {
+            throw new Error('node is null or undefined');
+        }
+
         switch (node.kind) {
             case ts.SyntaxKind.WhileStatement:
             case ts.SyntaxKind.DoStatement:
@@ -21,6 +25,10 @@ export class Preprocessor {
     }
 
     public preprocessExpression(node: ts.Expression): ts.Expression {
+        if (!node) {
+            throw new Error('node is null or undefined');
+        }
+
         let newExpression: ts.Expression;
         switch (node.kind) {
             case ts.SyntaxKind.CallExpression:
@@ -252,7 +260,7 @@ export class Preprocessor {
             && methodDelc.symbol.valueDeclaration
             && methodDelc.symbol.valueDeclaration.parameters;
 
-        const length = parameters ? parameters.length : callExpression.arguments.length;
+        const length = callExpression.arguments.length;
         let anyNewArgument = false;
         for (let i = 0; i < length; i++) {
             let currentOrNewArgument = callExpression.arguments[i];
@@ -276,6 +284,10 @@ export class Preprocessor {
                         anyNewArgument = true;
                         break;
                 }
+            }
+
+            if (!currentOrNewArgument) {
+                throw Error('current argument is undefined/null');
             }
 
             newArguments.push(currentOrNewArgument);

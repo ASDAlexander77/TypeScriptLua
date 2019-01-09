@@ -332,7 +332,19 @@ export class IdentifierResolver {
     }
 
     public getTypeAtLocation(location: ts.Node): any {
-        return (<any>this.typeChecker).getTypeAtLocation(location);
+        try {
+            return (<any>this.typeChecker).getTypeAtLocation(location);
+        } catch (e) {
+            try {
+                console.warn('getTypeAtLocation issue: ' + location.getText());
+            } catch (e) {
+                console.warn('getTypeAtLocation issue: autogen node');
+            }
+
+            console.warn(e);
+        }
+
+        return undefined;
     }
 
     public resolver(identifier: ts.Identifier, functionContext: FunctionContext): ResolvedInfo {
