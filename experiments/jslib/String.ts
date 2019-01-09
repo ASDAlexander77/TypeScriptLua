@@ -15,8 +15,8 @@ module JS {
             return string.sub(constString, (begin || 0) + 1, (end || 0) + 1);
         }
 
-        public static indexOf(constString: string, begin?: number): number {
-            return string.find(constString, (begin || 0) + 1);
+        public static indexOf(constString: string, pattern: string, begin?: number): number {
+            return table.pack(string.find(constString, pattern, (begin || 0) + 1))[1] || -1;
         }
     }
 
@@ -49,8 +49,8 @@ module JS {
             return new String(StringHelper.substr(this.constString, begin, end));
         }
 
-        public indexOf(begin?: number): number {
-            return StringHelper.indexOf(this.constString, begin);
+        public indexOf(pattern: string, begin?: number): number {
+            return StringHelper.indexOf(this.constString, pattern, begin);
         }
 
         public toString(): String {
