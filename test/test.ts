@@ -7,7 +7,7 @@ console.log(sc);
 const s = 'asd';
 
 function f(p: any) {
-    console.log(p);
+    console.log(p + 'test 2');
 }
 
 f(s);
