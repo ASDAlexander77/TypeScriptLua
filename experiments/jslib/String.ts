@@ -14,6 +14,10 @@ module JS {
         public static substring(constString: string, begin?: number, end?: number): string {
             return string.sub(constString, (begin || 0) + 1, (end || 0) + 1);
         }
+
+        public static indexOf(constString: string, begin?: number): number {
+            return string.find(constString, (begin || 0) + 1);
+        }
     }
 
     export class String {
@@ -43,6 +47,10 @@ module JS {
         public substring(begin?: number, end?: number): String {
             // tslint:disable-next-line:no-construct
             return new String(StringHelper.substr(this.constString, begin, end));
+        }
+
+        public indexOf(begin?: number): number {
+            return StringHelper.indexOf(this.constString, begin);
         }
 
         public toString(): String {
