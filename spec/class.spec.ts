@@ -366,7 +366,7 @@ describe('Classes', () => {
     '])));
 
     // function is not using 'this' and thus making issue with parameters
-    it.skip('Class - generic',  () => expect('8\r\n').to.equals(new Run().test([
+    it('Class - generic',  () => expect('8\r\n').to.equals(new Run().test([
         'class GenericNumber<T> {                                           \
             zeroValue: T;                                                   \
             add: (x: T, y: T) => T;                                         \

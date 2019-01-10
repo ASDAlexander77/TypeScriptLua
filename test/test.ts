@@ -1,16 +1,11 @@
 import './JS';
 
-const x = "Hello";
-
-function to(p: any) {
-    console.log(p);
-    ((d) => {
-        from(d);
-    })(p);
+var hello = "is";
+for (var char of hello) {
+    console.log(char);
 }
 
-function from(s: string) {
-    console.log(s.substr(0));
+for (var i = 0; i < hello.length; i++) {
+	const char2 = hello[i];
+    console.log(char2);
 }
-
-to(x);

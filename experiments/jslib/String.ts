@@ -3,6 +3,10 @@ declare var string: any;
 module JS {
 
     export class StringHelper {
+        public static getLength(constString: string): number {
+            return string.len(constString);
+        }
+
         public static replace(constString: string, regExp: RegExp, func: (p: string) => string): string {
             return string.gsub(constString, regExp.__getLuaPattern(), func);
         }
@@ -51,6 +55,10 @@ module JS {
 
         public indexOf(pattern: string, begin?: number): number {
             return StringHelper.indexOf(this.constString, pattern, begin);
+        }
+
+        public get length(): number {
+            return string.len(this.constString);
         }
 
         public toString(): String {
