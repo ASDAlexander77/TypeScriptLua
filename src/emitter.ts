@@ -2365,7 +2365,9 @@ export class Emitter {
                 let operationCode = this.opsMap[node.operatorToken.kind];
                 if ((node.operatorToken.kind === ts.SyntaxKind.PlusToken
                     || node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
-                    && this.typeInfo.isTypeOfNode(node, 'string')) {
+                    && (this.typeInfo.isTypeOfNode(node, 'string')
+                        || this.typeInfo.isTypeOfNode(node.left, 'string')
+                        || this.typeInfo.isTypeOfNode(node.right, 'right'))) {
                     operationCode = Ops.CONCAT;
                 }
 
