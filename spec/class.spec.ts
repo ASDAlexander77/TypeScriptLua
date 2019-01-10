@@ -1168,9 +1168,11 @@ describe('Classes', () => {
     it('Class - calling chain of lamdas with this', () => expect(new Run().test([
         'class Test {                           \
         public run() {                          \
+            const s = "20";                     \
             this.run2(10, (x) => {              \
                 this.run3(x, (y) => {           \
                     this.run4(y);               \
+                    console.log(s);             \
                 });                             \
             });                                 \
         }                                       \
@@ -1190,5 +1192,5 @@ describe('Classes', () => {
                                                 \
     const t = new Test();                       \
     t.run();                                    \
-    '])).to.equals('10\r\n'));
+    '])).to.equals('10\r\n20\r\n'));
 });
