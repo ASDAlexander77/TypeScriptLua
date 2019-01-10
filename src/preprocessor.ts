@@ -266,6 +266,8 @@ export class Preprocessor {
             let currentOrNewArgument = callExpression.arguments[i];
             const parameter = parameters && parameters[i];
             // if paraneter is NULL treaqt it as "custom code which is not required correction, for example rowget(t, '__get__')"
+
+            // case 'Any'
             const any = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.AnyKeyword;
             if (any) {
                 // if string
@@ -281,6 +283,35 @@ export class Preprocessor {
                         const newNumber = ts.createNew(ts.createIdentifier('Number'), undefined, [ currentOrNewArgument ]);
                         newNumber.parent = currentOrNewArgument.parent;
                         currentOrNewArgument = newNumber;
+                        anyNewArgument = true;
+                        break;
+                }
+            }
+
+            // case 'string'
+            const stringConstType = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.StringKeyword;
+            if (stringConstType) {
+                // if string
+                const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
+                switch (typeName) {
+                    case 'any':
+                        const tostringCall = ts.createCall(ts.createIdentifier('tostring'), undefined, [ currentOrNewArgument ]);
+                        tostringCall.parent = currentOrNewArgument.parent;
+                        currentOrNewArgument = tostringCall;
+                        anyNewArgument = true;
+                        break;
+                }
+            }
+
+            const numberConstType = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.NumberKeyword;
+            if (numberConstType) {
+                // if string
+                const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
+                switch (typeName) {
+                    case 'any':
+                        const tonumberCall = ts.createCall(ts.createIdentifier('tonumber'), undefined, [ currentOrNewArgument ]);
+                        tonumberCall.parent = currentOrNewArgument.parent;
+                        currentOrNewArgument = tonumberCall;
                         anyNewArgument = true;
                         break;
                 }
