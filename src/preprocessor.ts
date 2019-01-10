@@ -294,7 +294,11 @@ export class Preprocessor {
                 // if string
                 const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
                 switch (typeName) {
+                    case 'string':
+                        // nothing to do
+                        break;
                     case 'any':
+                    default:
                         const tostringCall = ts.createCall(ts.createIdentifier('tostring'), undefined, [ currentOrNewArgument ]);
                         tostringCall.parent = currentOrNewArgument.parent;
                         currentOrNewArgument = tostringCall;
@@ -308,7 +312,11 @@ export class Preprocessor {
                 // if string
                 const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
                 switch (typeName) {
+                    case 'number':
+                        // nothing to do
+                        break;
                     case 'any':
+                    default:
                         const tonumberCall = ts.createCall(ts.createIdentifier('tonumber'), undefined, [ currentOrNewArgument ]);
                         tonumberCall.parent = currentOrNewArgument.parent;
                         currentOrNewArgument = tonumberCall;

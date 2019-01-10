@@ -4,7 +4,9 @@ const x = "Hello";
 
 function to(p: any) {
     console.log(p);
-    from(p);
+    ((d) => {
+        from(d);
+    })(p);
 }
 
 function from(s: string) {
