@@ -4,7 +4,11 @@ class RegExp {
     }
 
     public test(t: string) {
-        return false;
+        return !string.match(t, this.__getLuaPattern());
+    }
+
+    public exec(t: string) {
+        return string.match(t, this.__getLuaPattern());
     }
 
     public getPattern(): string {
@@ -12,6 +16,6 @@ class RegExp {
     }
 
     public __getLuaPattern(): string {
-        return string.gsub(this.pattern, '\\', '%');
+        return string.gsub(this.pattern, '\\', '%%');
     }
 }

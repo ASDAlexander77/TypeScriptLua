@@ -69,7 +69,7 @@ import './BABYLON/Cameras/babylon_arcRotateCamera';
 import './window';
 import './canvas';
 
-window = <Window> WindowEx;
+window = <Window>WindowEx;
 
 // xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
 
@@ -84,6 +84,29 @@ class Runner {
             this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
         */
         this.engine = new BABYLON.NullEngine();
+
+        const basicVertexShader =
+            'attribute vec4 position; \
+			// Uniforms \
+			uniform mat4 world; \
+			uniform mat4 view; \
+			uniform mat4 viewProjection; \
+			 \
+			void main() { \
+				gl_Position = viewProjection * world * position; \
+			}';
+
+        const basicPixelShader =
+            '#ifdef GL_ES \
+			precision mediump float; \
+			#endif \
+			 \
+			void main(void) { \
+			    gl_FragColor = vec4(1.,1.,1.,1.); \
+			}';
+
+        BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
+        BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
     }
 
     createScene() {

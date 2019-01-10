@@ -1,13 +1,26 @@
 import './JS';
 
-// tslint:disable-next-line:no-construct
-const sc = new String('ABC');
-console.log(sc);
+class Test {
+    public run() {
+        this.run2(10, (x) => {
+            this.run3(x, (y) => {
+                this.run4(y);
+            });
+        });
+    }
 
-const s = 'asd';
+    public run2(x, callback: (data: any) => void) {
+        callback(x);
+    }
 
-function f(p: any) {
-    console.log(p + 'test 2');
+    public run3(x, callback: (data: any) => void) {
+        callback(x);
+    }
+
+    public run4(x) {
+        console.log(x);
+    }
 }
 
-f(s);
+const t = new Test();
+t.run();
