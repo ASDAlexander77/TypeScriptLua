@@ -555,7 +555,7 @@ export class IdentifierResolver {
         const resolvedInfo = new ResolvedInfo(functionContext);
         resolvedInfo.kind = ResolvedKind.Upvalue;
         resolvedInfo.identifierName = 'this';
-        resolvedInfo.upvalueInstack = true;
+        resolvedInfo.upvalueInstack = functionContext.container ? !functionContext.container.thisInUpvalue : true;
         resolvedInfo.upvalueStackIndex = 0;
         return resolvedInfo;
     }
