@@ -1,4 +1,13 @@
 {
+  "homepage": "https://github.com/ASDAlexander77/TypeScriptLUA/#readme",
+  "keywords": [
+    "typescript",
+    "lua",
+    "tsc-lua",
+    "compiler"
+  ],
+  "license": "MIT",
+  "main": "__out/main.js",
   "name": "typescript_lua",
   "version": "1.0.0",
   "description": "",
@@ -9,6 +18,12 @@
     "lint": "tslint src/**/*.ts -t verbose",
     "build": "tsc -p tsconfig.json",
     "exec": "ts-node src/main.ts"
+  },
+  "bin": {
+    "tsc-lua": "./__out/main.js"
+  },
+  "bugs": {
+    "url": "https://github.com/ASDAlexander77/TypeScriptLUA/issues"
   },
   "private": true,
   "dependencies": {
