@@ -695,11 +695,12 @@ export class Emitter {
             case ts.SyntaxKind.NonNullExpression: this.processNonNullExpression(<ts.NonNullExpression>node); return;
             case ts.SyntaxKind.AsExpression: this.processAsExpression(<ts.AsExpression>node); return;
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
+            case ts.SyntaxKind.AwaitExpression: this.processAwaitExpression(<ts.AwaitExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
         }
 
         // TODO: finish it
-        throw new Error('Method not implemented. ' + node.getText());
+        throw new Error('Method not implemented.');
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -2886,6 +2887,9 @@ export class Emitter {
         let parametersNumber = node.arguments.length + 1 + (_thisForNew || wrapCallMethod ? 1 : 0);
         if (node.arguments.some(a => a.kind === ts.SyntaxKind.SpreadElement)) {
             parametersNumber = 0;
+        } else if (node.arguments.length === 1 && node.arguments.some(a => a.kind === ts.SyntaxKind.CallExpression)) {
+            // there is only 1 parameter and it is method call
+            parametersNumber = 0;
         }
 
         this.functionContext.code.push(
@@ -2965,6 +2969,38 @@ export class Emitter {
 
         // store result again
         this.functionContext.useRegisterAndPush();
+    }
+
+    private processAwaitExpression(node: ts.AwaitExpression): void {
+        const newFunctionBlock = ts.createBlock([ ts.createReturn(node.expression) ]);
+        const newFunction = ts.createFunctionExpression([], undefined, undefined, undefined, [], undefined, newFunctionBlock);
+        const createCall = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('coroutine'), 'create'), undefined, [
+            newFunction
+        ]);
+        // create call: coroutine.resume(coroutine.create(6))
+        const callResume = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('coroutine'), 'resume'), undefined, [
+            createCall
+        ]);
+
+        const callTablePack = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('table'), 'pack'), undefined, [
+            callResume
+        ]);
+
+        const getSecondValue = ts.createElementAccess(callTablePack, 2);
+
+        createCall.parent = callResume;
+        callResume.parent = callTablePack;
+        callTablePack.parent = getSecondValue;
+        getSecondValue.parent = node.parent;
+
+        this.bind(ts.createExpressionStatement(getSecondValue));
+
+        (<any>callResume).__origin = node;
+
+        // reset parent after bind
+        getSecondValue.parent = node.parent;
+
+        this.processExpression(getSecondValue);
     }
 
     private preprocessConstAndUpvalues(resolvedInfo: ResolvedInfo): ResolvedInfo {

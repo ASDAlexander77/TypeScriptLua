@@ -302,7 +302,7 @@ export class IdentifierResolver {
         '__instanceof': true, '__get_call__': true, '__set_call__': true, '__get_static_call__': true, '__set_static_call__': true,
         '__type': true, '__wrapper': true, '__bind': true, 'setmetatable': true, 'debug': true, 'type': true, 'error': true,
         'require': true, 'exports': true, 'math': true, 'table': true, 'tostring': true, 'tonumber': true, 'rawset': true, 'rawget': true,
-        'StringHelper': true, 'NumberHelper': true, 'string': true, 'number': true
+        'StringHelper': true, 'NumberHelper': true, 'string': true, 'number': true, 'coroutine': true
     };
 
     public methodCall: boolean;
@@ -646,6 +646,7 @@ export class IdentifierResolver {
             loadMemberInfo.kind = ResolvedKind.LoadGlobalMember;
             loadMemberInfo.objectInfo = objectInfo;
             loadMemberInfo.memberInfo = methodInfo;
+            loadMemberInfo.isTypeReference = true;
             return loadMemberInfo;
         }
 
