@@ -366,7 +366,7 @@ describe('Classes', () => {
     '])));
 
     // function is not using 'this' and thus making issue with parameters
-    it('Class - generic',  () => expect('8\r\n').to.equals(new Run().test([
+    it('Class - generic',  () => expect(new Run().test([
         'class GenericNumber<T> {                                           \
             zeroValue: T;                                                   \
             add: (x: T, y: T) => T;                                         \
@@ -377,7 +377,7 @@ describe('Classes', () => {
         stringNumeric.add = function(x: string, y: string) { return x + y; }; \
                                                                             \
         console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));    \
-    '])));
+    '])).to.equals('test\r\n'));
 
     it('Class - generic 2',  () => expect('2\r\n1\r\n').to.equals(new Run().test([
         'class Animal {                                                     \

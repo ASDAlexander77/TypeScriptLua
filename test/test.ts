@@ -1,5 +1,12 @@
 import './JS';
 
-const v = await 10;
+class GenericNumber<T> {
+    zeroValue: T;
+    add: (x: T, y: T) => T;
+}
 
-console.log(v);
+let stringNumeric = new GenericNumber<string>();
+stringNumeric.zeroValue = "";
+stringNumeric.add = function (x: string, y: string) { return x + y; };
+
+console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));
