@@ -252,7 +252,7 @@ export class Run {
             });
 
             // start program and test it to
-            const result: any = spawn.sync('__build/win64/lua/Debug/lua.exe', [lastLuaFile]);
+            const result: any = spawn.sync('lua', [lastLuaFile]);
             if (result.error) {
                 actualOutput = result.error.stack;
             } else {
