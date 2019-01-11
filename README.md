@@ -1,14 +1,14 @@
-TypeScript for LUA
+TypeScript for Lua
 ===========================
 
-The TypeScriptLUA repo contains the complete source code implementation for TypeScript compiler for LUA bytecode.
+The TypeScriptLua repo contains the complete source code implementation for TypeScript compiler for Lua bytecode.
 
 Chat Room
 ---------
 
-Want to chat with other members of the TypeScript for LUA community?
+Want to chat with other members of the TypeScript for Lua community?
 
-[![Join the chat at https://gitter.im/ASDAlexander77/cs2cpp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScriptLUA/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/ASDAlexander77/cs2cpp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScriptLua/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Engage, Contribute and Provide Feedback
 ---------------------------------------
@@ -19,12 +19,12 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 License
 -------
 
-TypeScriptLUA is licensed under the MIT license.
+TypeScriptLua is licensed under the MIT license.
 
 Quick Start
 -----------
 
-Prerequisite: nodejs, LUA 5.3, VSCode
+Prerequisite: nodejs, Lua 5.3, VSCode
 
 1) Build Project
 
@@ -66,7 +66,7 @@ print(howard.ElevatorPitch);
 node __out/main.js test.ts
 ```
 
-Now you have test.luabc
+Now you have test.lua
 
 3) Run it.
 
