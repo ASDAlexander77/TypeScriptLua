@@ -89,7 +89,7 @@ module JS {
             for (let i = index + count - 1; i >= index; i--) {
                 if (i == 0) {
                     ret.push(this[0]);
-                    delete this[0];
+                    this[0] = table.remove(this, 1);
                 } else {
                     ret.push(this[i]);
                     table.remove(this, i);
