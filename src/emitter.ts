@@ -1352,9 +1352,13 @@ export class Emitter {
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
         // 1) require './<nodule>'
-        const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
-        requireCall.parent = node;
-        this.processExpression(requireCall);
+        // const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+        // requireCall.parent = node;
+        // this.processExpression(requireCall);
+
+        const dofileCall = ts.createCall(ts.createIdentifier('dofile'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+        dofileCall.parent = node;
+        this.processExpression(dofileCall);
 
         // copy exported references from 'exports' object
         if (node.importClause) {
