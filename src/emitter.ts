@@ -699,7 +699,7 @@ export class Emitter {
         }
 
         // TODO: finish it
-        throw new Error('Method not implemented.');
+        throw new Error('Method not implemented. ' + node.getText());
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
