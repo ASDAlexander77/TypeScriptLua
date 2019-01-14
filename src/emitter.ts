@@ -1367,6 +1367,14 @@ export class Emitter {
         if (node.importClause) {
             if (node.importClause.namedBindings) {
                 switch (node.importClause.namedBindings.kind) {
+                    case ts.SyntaxKind.NamespaceImport:
+                        const name = node.importClause.namedBindings.name;
+                        const assignOfNamespaceImport = ts.createAssignment(
+                            name,
+                            ts.createIdentifier('exports'));
+                            assignOfNamespaceImport.parent = node;
+                        this.processExpression(assignOfNamespaceImport);
+                        break;
                     case ts.SyntaxKind.NamedImports:
                         const namedImports = <ts.NamedImports>node.importClause.namedBindings;
                         namedImports.elements.forEach(imp => {
