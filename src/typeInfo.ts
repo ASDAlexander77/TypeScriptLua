@@ -20,13 +20,24 @@ export class TypeInfo {
         }
 
         try {
-            const detectType = this.resolver.getTypeAtLocation(node);
-            const typeName =
-                detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
-                    ? detectType.intrinsicName
-                    : detectType.value !== undefined
-                        ? typeof (detectType.value)
-                        : undefined;
+            let typeName;
+
+            if (node.kind === ts.SyntaxKind.StringLiteral) {
+                typeName = 'string';
+            } else if (node.kind === ts.SyntaxKind.NumericLiteral) {
+                typeName = 'number';
+            } else if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
+                typeName = 'boolean';
+            } else {
+                const detectType = this.resolver.getTypeAtLocation(node);
+                typeName =
+                    detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
+                        ? detectType.intrinsicName
+                        : detectType.value !== undefined
+                            ? typeof (detectType.value)
+                            : undefined;
+            }
+
             if (typeName) {
                 (<any>node).__return_type = typeName;
             }

@@ -93,24 +93,6 @@
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Mocha Tests (One test)",
-            "program": "${workspaceFolder}/../node_modules/mocha/bin/_mocha",
-            "args": [
-                "-u",
-                "tdd",
-                "--timeout",
-                "999999",
-                "--colors",
-                "-r",
-                "ts-node/register",
-                "${workspaceFolder}/../spec/exports.spec.ts"
-            ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "cwd": "${workspaceFolder}/../"
         }
     ]
 }

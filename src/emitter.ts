@@ -1356,7 +1356,10 @@ export class Emitter {
         // requireCall.parent = node;
         // this.processExpression(requireCall);
 
-        const dofileCall = ts.createCall(ts.createIdentifier('dofile'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+        const dofileCall = ts.createCall(
+            ts.createIdentifier('dofile'),
+            /*typeArguments*/ undefined,
+            [ts.createAdd(node.moduleSpecifier, ts.createStringLiteral('.lua'))]);
         dofileCall.parent = node;
         this.processExpression(dofileCall);
 
