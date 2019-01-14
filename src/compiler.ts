@@ -225,7 +225,9 @@ export class Run {
             });
 
             const program = ts.createProgram(tempSourceFiles, {});
-            const emitResult = program.emit(undefined, (f) => { });
+            const emitResult = program.emit(undefined, (f, data, writeByteOrderMark) => {
+                // ts.sys.writeFile(f, data, writeByteOrderMark);
+            });
 
             emitResult.diagnostics.forEach((d: ts.Diagnostic) => {
                 switch (d.category) {
