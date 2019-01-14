@@ -20,4 +20,11 @@ const ci = <ICamera>c;
 c.attachControl(null, true);
 ci.attachControl(null, true);
 
+function f(this) {
+    return {
+        a: function () {
+            return this.data;
+        }
+    };
+}
 

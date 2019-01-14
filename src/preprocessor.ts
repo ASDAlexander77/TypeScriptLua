@@ -124,11 +124,11 @@ export class Preprocessor {
                 const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [propertyAccessExpression]);
                 methodWrapCall.parent = propertyAccessExpression.parent;
                 return methodWrapCall;
-            } else if (this.typeInfo.isResultFunctioinType(propertyAccessExpression)) {
+            } /*else if (this.typeInfo.isResultFunctioinType(propertyAccessExpression)) {
                 // propertyAccessExpression2.parent.kind === ts.SyntaxKind.CallExpression
                 // suppress SELF calls
                 (<any>propertyAccessExpression).__self_call_required = false;
-            }
+            } */
         }
 
         // replace <XXX>.prototype  to <XXX>.__proto
