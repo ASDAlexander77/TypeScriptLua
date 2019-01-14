@@ -1193,4 +1193,26 @@ describe('Classes', () => {
     const t = new Test();                       \
     t.run();                                    \
     '])).to.equals('10\r\n20\r\n'));
+
+    it('Class - calling method via interface function', () => expect(new Run().test([
+        'interface ICamera {                    \
+            attachControl: (element: HTMLElement, noPreventDefault?: boolean) => void;  \
+            checkInputs?: () => void;           \
+        }                                       \
+                                                \
+        class Camera implements ICamera {       \
+            public checkInputs: () => void;     \
+                                                \
+            public attachControl(element: HTMLElement, noPreventDefault?: boolean) {    \
+                console.log(noPreventDefault);  \
+            }                                   \
+        }                                       \
+                                                \
+        const c = new Camera();                 \
+                                                \
+        const ci = <ICamera>c;                  \
+                                                \
+        c.attachControl(null, 10);              \
+        ci.attachControl(null, 20);             \
+    '])).to.equals('10\r\n20\r\n'));
 });
