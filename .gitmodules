@@ -1,3 +1,7 @@
 [submodule "thirdparty/moongl"]
 	path = thirdparty/moongl
 	url = https://github.com/stetre/moongl.git
+[submodule "thirdparty/Babylon.js"]
+	path = thirdparty/Babylon.js
+	url = https://github.com/BabylonJS/Babylon.js.git
+	branch = master\\v3.3.0
