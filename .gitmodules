@@ -1,0 +1,3 @@
+[submodule "thirdparty/moongl"]
+	path = thirdparty/moongl
+	url = https://github.com/stetre/moongl.git
