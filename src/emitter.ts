@@ -2410,6 +2410,23 @@ export class Emitter {
                         this.processExpression(op2);
 
                         break;
+                    case ts.SyntaxKind.PlusToken:
+                    case ts.SyntaxKind.MinusToken:
+                    case ts.SyntaxKind.AsteriskToken:
+                    case ts.SyntaxKind.SlashToken:
+
+                        const op1_notnull = ts.createBinary(node.left, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
+                        op1_notnull.parent = node;
+                        const op2_notnull = ts.createBinary(node.right, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
+                        op2_notnull.parent = node;
+
+                        // <left> + ...
+                        this.processExpression(op1_notnull);
+
+                        // ... + <right>
+                        this.processExpression(op2_notnull);
+
+                        break;
                     default:
                         // <left> + ...
                         this.processExpression(node.left);
