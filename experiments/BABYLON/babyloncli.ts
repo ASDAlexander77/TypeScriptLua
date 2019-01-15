@@ -1,5 +1,7 @@
 import './JS';
 
+declare var os: any;
+
 navigator = <Navigator>{};
 
 // Core
@@ -130,7 +132,10 @@ class Runner {
         const scene = this.createScene();
 
         this.engine.runRenderLoop(() => {
+            const before = os.clock();
             scene.render();
+            const time = (os.clock() - before);
+            console.log(`Render time: ${time} sec.`);
         });
     }
 }

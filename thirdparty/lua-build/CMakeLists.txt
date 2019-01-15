@@ -50,22 +50,22 @@ else()
 endif()
 
 file(GLOB CORE_SRC
-    "${PROJECT_SOURCE_DIR}/src/*.c"
+    "${PROJECT_SOURCE_DIR}/../lua/src/*.c"
 )
 
 file(GLOB LUA_SRC
-    "${PROJECT_SOURCE_DIR}/src/lua.c"
+    "${PROJECT_SOURCE_DIR}/../lua/src/lua.c"
 )
 
 file(GLOB LUAC_SRC
-    "${PROJECT_SOURCE_DIR}/src/luac.c"
+    "${PROJECT_SOURCE_DIR}/../lua/src/luac.c"
 )
 
-get_filename_component(full_path_lbitlib_c ${PROJECT_SOURCE_DIR}/src/lbitlib.c ABSOLUTE)
+get_filename_component(full_path_lbitlib_c ${PROJECT_SOURCE_DIR}/../lua/src/lbitlib.c ABSOLUTE)
 list(REMOVE_ITEM CORE_SRC "${full_path_lbitlib_c}")
-get_filename_component(full_path_lua_c ${PROJECT_SOURCE_DIR}/src/lua.c ABSOLUTE)
+get_filename_component(full_path_lua_c ${PROJECT_SOURCE_DIR}/../lua/src/lua.c ABSOLUTE)
 list(REMOVE_ITEM CORE_SRC "${full_path_lua_c}")
-get_filename_component(full_path_luac_c ${PROJECT_SOURCE_DIR}/src/luac.c ABSOLUTE)
+get_filename_component(full_path_luac_c ${PROJECT_SOURCE_DIR}/../lua/src/luac.c ABSOLUTE)
 list(REMOVE_ITEM CORE_SRC "${full_path_luac_c}")
 
 add_library (core ${LUA_SRC} ${CORE_SRC})
