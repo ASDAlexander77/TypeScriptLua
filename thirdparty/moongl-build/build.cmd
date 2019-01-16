@@ -19,6 +19,8 @@ IF NOT EXIST __build MKDIR __build
 cd __build
 IF NOT EXIST mingw32 MKDIR mingw32
 cd mingw32
+mkdir ..\..\..\..\__dist\moongl
 cmake -Wno-dev -f ..\.. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE="%Mode%"
 @call mingw32-make.exe
+copy ..\..\..\moongl\moongl\*.* ..\..\..\..\__dist\moongl\
 :end

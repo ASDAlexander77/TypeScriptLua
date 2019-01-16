@@ -2,10 +2,10 @@ cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 
 project (moongl) 
 
-SET(CWARNSCPP "-Wextra -Wshadow	-Wsign-compare -Wundef -Wwrite-strings -Wredundant-decls -Wdisabled-optimization -Wdouble-promotion -Wstrict-aliasing=3 -Wno-aggressive-loop-optimizations -Wlogical-op -Werror")
+SET(CWARNSCPP "")
 
 # The next warnings are neither valid nor needed for C++
-SET(CWARNSC "-Wdeclaration-after-statement -Wmissing-prototypes -Wnested-externs -Wstrict-prototypes -Wc++-compat -Wold-style-definition")
+SET(CWARNSC "-Wall -Wextra -Wpedantic -std=gnu99 -DLUAVER=5.3.5")
 
 if (MSVC)
     SET(MYCFLAGS "/DLUA_USE_WINDOWS")
@@ -27,7 +27,7 @@ else()
         SET(BUILD_ARCH "vs_android")
 
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    	SET(MYCFLAGS "-DLUA_USE_WINDOWS")
+    	SET(MYCFLAGS "-DMINGW")
     	SET(MYLIBS )
 
         SET(EXTRA_CXX_FLAGS "${CWARNSCPP}")
@@ -47,17 +47,20 @@ else()
         SET(BUILD_ARCH "linux")
     endif()
 
+    SET(EXTRA_C_DEBUG_FLAGS "-DDEBUG -Wshadow -Wsign-compare -Wundef -Wwrite-strings -Wdisabled-optimization -Wdeclaration-after-statement -Wmissing-prototypes -Wstrict-prototypes -Wnested-externs -Wc++-compat -Wold-style-definition")
+
     SET(MYCFLAGS "${MYCFLAGS} -DGL_CONTEXT_FLAG_ROBUST_ACCESS_BIT=GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB")
 
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 ${EXTRA_CXX_FLAGS} -ggdb ${MYCFLAGS}")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 ${EXTRA_CXX_FLAGS} -ggdb ${MYCFLAGS} ${EXTRA_C_DEBUG_FLAGS}")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O2 ${EXTRA_CXX_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common ${MYCFLAGS}")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 ${EXTRA_C_FLAGS} -ggdb ${MYCFLAGS}")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 ${EXTRA_C_FLAGS} -ggdb ${MYCFLAGS} ${EXTRA_C_DEBUG_FLAGS}")
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 ${EXTRA_C_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common ${MYCFLAGS}")
 endif()
 
 file(GLOB MOONGL_SRC
     "${PROJECT_SOURCE_DIR}/../moongl/src/*.c"
 )
+list(APPEND ${MOONGL_SRC} "${PROJECT_SOURCE_DIR}/fix.c")
 
 include_directories("${PROJECT_SOURCE_DIR}/../lua/src/")
 
@@ -78,11 +81,12 @@ if(WITH_SYSTEM_GLEW)
 	)
 else()
 	if(WIN32)
-		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/include")
+		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../glew-2.2.0/include")
 		if (MSVC)
 			set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/lib/Win/x86/glew32.lib")
 		else()
 			set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../glew-build/__build/mingw32/lib/libglew32.dll.a")
+			set(CMAKE_SHARED_LIBRARY_PREFIX "")
 		endif()
 	endif()
 endif()
@@ -113,9 +117,7 @@ include_directories(SYSTEM
 	${GLUT_INCLUDE_PATH}
 )
 
-MESSAGE("GLEW: ${GLEW_LIBRARY}")
-
 add_library (moongl SHARED ${MOONGL_SRC})
 target_link_libraries (moongl ${LUA_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLUT_LIBRARY})
 
-add_custom_command(TARGET moongl POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:moongl> "${PROJECT_SOURCE_DIR}/../../__dist") 
+add_custom_command(TARGET moongl POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:moongl> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:moongl>") 
