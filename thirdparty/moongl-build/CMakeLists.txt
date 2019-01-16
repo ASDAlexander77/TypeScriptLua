@@ -49,8 +49,6 @@ else()
 
     SET(EXTRA_C_DEBUG_FLAGS "-DDEBUG -Wshadow -Wsign-compare -Wundef -Wwrite-strings -Wdisabled-optimization -Wdeclaration-after-statement -Wmissing-prototypes -Wstrict-prototypes -Wnested-externs -Wc++-compat -Wold-style-definition")
 
-    SET(MYCFLAGS "${MYCFLAGS} -DGL_CONTEXT_FLAG_ROBUST_ACCESS_BIT=GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB")
-
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 ${EXTRA_CXX_FLAGS} -ggdb ${MYCFLAGS} ${EXTRA_C_DEBUG_FLAGS}")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O2 ${EXTRA_CXX_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common ${MYCFLAGS}")
     SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 ${EXTRA_C_FLAGS} -ggdb ${MYCFLAGS} ${EXTRA_C_DEBUG_FLAGS}")
@@ -60,7 +58,6 @@ endif()
 file(GLOB MOONGL_SRC
     "${PROJECT_SOURCE_DIR}/../moongl/src/*.c"
 )
-list(APPEND ${MOONGL_SRC} "${PROJECT_SOURCE_DIR}/fix.c")
 
 include_directories("${PROJECT_SOURCE_DIR}/../lua/src/")
 
