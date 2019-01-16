@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 
-project (moongl) 
+project (moonglut) 
 
 SET(CWARNSCPP "")
 
@@ -55,44 +55,39 @@ else()
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 ${EXTRA_C_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common ${MYCFLAGS}")
 endif()
 
-file(GLOB MOONGL_SRC
-    "${PROJECT_SOURCE_DIR}/../moongl/src/*.c"
+file(GLOB MOONGLUT_SRC
+    "${PROJECT_SOURCE_DIR}/../moonglut/src/*.c"
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/../lua/src/")
 
 #-----------------------------------------------------------------------------
-# Configure OpenGL
+# Configure GLUT
 
-find_package(OpenGL)
-
-#-----------------------------------------------------------------------------
-# Configure GLEW
-
-if(WITH_SYSTEM_GLEW)
-	find_package(GLEW)
+if(WITH_SYSTEM_GLUT)
+	find_package(GLUT)
 
 	mark_as_advanced(
-		GLEW_LIBRARY
-		GLEW_INCLUDE_PATH
+		GLUT_LIBRARY
+		GLUT_INCLUDE_PATH
 	)
 else()
-	if(WIN32)
-		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../glew-2.2.0/include")
+	if(WIN32)		
+		set(GLUT_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../freeglut-3.0.0/include")
 		if (MSVC)
-			set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/lib/Win/x86/glew32.lib")
+			set(GLUT_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/freeglut/lib/freeglut.lib")
 		else()
-			set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../glew-build/__build/mingw32/lib/libglew32.dll.a")
+			set(GLUT_LIBRARY "${CMAKE_SOURCE_DIR}/../freeglut-build/__build/mingw32/lib/libfreeglut.dll.a")
 			set(CMAKE_SHARED_LIBRARY_PREFIX "")
 		endif()
 	endif()
 endif()
 
 include_directories(SYSTEM 
-	${GLEW_INCLUDE_PATH}
+	${GLUT_INCLUDE_PATH}
 )
 
-add_library (moongl SHARED ${MOONGL_SRC})
-target_link_libraries (moongl ${LUA_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY})
+add_library (moonglut SHARED ${MOONGLUT_SRC})
+target_link_libraries (moonglut ${LUA_LIBRARY} ${GLUT_LIBRARY})
 
-add_custom_command(TARGET moongl POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:moongl> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:moongl>") 
+add_custom_command(TARGET moonglut POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:moonglut> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:moonglut>") 
