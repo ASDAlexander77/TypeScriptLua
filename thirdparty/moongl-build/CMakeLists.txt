@@ -33,6 +33,9 @@ else()
         SET(EXTRA_CXX_FLAGS "${CWARNSCPP}")
         SET(EXTRA_C_FLAGS "${CWARNSC}")
         SET(BUILD_ARCH "mingw32")
+
+	set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../lua-build/__build/mingw32/libcore.a")
+	
     else()
     	#SET(MYCFLAGS "-DLUA_USE_LINUX -DLUA_USE_READLINE")
     	#SET(MYLIBS dl m readline)
@@ -58,7 +61,6 @@ file(GLOB MOONGL_SRC
 
 include_directories("${PROJECT_SOURCE_DIR}/../lua/src/")
 
-
 #-----------------------------------------------------------------------------
 # Configure OpenGL
 
@@ -77,7 +79,11 @@ if(WITH_SYSTEM_GLEW)
 else()
 	if(WIN32)
 		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/include")
-		set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/lib/Win/x86/glew32.lib")
+		if (MSVC)
+			set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/lib/Win/x86/glew32.lib")
+		else()
+			set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../glew-build/__build/mingw32/lib/libglew32.dll.a")
+		endif()
 	endif()
 endif()
 
@@ -107,7 +113,9 @@ include_directories(SYSTEM
 	${GLUT_INCLUDE_PATH}
 )
 
-add_library (moongl ${MOONGL_SRC})
-target_link_libraries (moongl ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLUT_LIBRARY})
+MESSAGE("GLEW: ${GLEW_LIBRARY}")
+
+add_library (moongl SHARED ${MOONGL_SRC})
+target_link_libraries (moongl ${LUA_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLUT_LIBRARY})
 
 add_custom_command(TARGET moongl POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:moongl> "${PROJECT_SOURCE_DIR}/../../__dist") 
