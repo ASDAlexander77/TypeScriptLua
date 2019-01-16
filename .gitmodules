@@ -4,3 +4,6 @@
 [submodule "thirdparty/Babylon.js"]
 	path = thirdparty/Babylon.js
 	url = https://github.com/BabylonJS/Babylon.js.git
+[submodule "thirdparty/glew"]
+	path = thirdparty/glew
+	url = https://github.com/nigels-com/glew.git
