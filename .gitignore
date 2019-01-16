@@ -1,3 +1,4 @@
+/__dist
 /__build
 /__out
 /node_modules
@@ -11,4 +12,4 @@ package-lock.json
 /experiments/jslib/*.lua
 /experiments/BABYLON/*.map
 /experiments/jslib/*.map
-
+__build

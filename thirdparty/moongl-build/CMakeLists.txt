@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 
-project (lua) 
+project (moongl) 
 
 SET(CWARNSCPP "-Wextra -Wshadow	-Wsign-compare -Wundef -Wwrite-strings -Wredundant-decls -Wdisabled-optimization -Wdouble-promotion -Wstrict-aliasing=3 -Wno-aggressive-loop-optimizations -Wlogical-op -Werror")
 
@@ -9,6 +9,7 @@ SET(CWARNSC "-Wdeclaration-after-statement -Wmissing-prototypes -Wnested-externs
 
 if (MSVC)
     SET(MYCFLAGS "/DLUA_USE_WINDOWS")
+    SET(MYCFLAGS "${MYCFLAGS} /DGL_CONTEXT_FLAG_ROBUST_ACCESS_BIT=GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB /Duint32_t=int")
 
     SET(BUILD_ARCH "win32")
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Zi /EHsc /DDEBUG /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8 /bigobj ${MYCFLAGS}")
@@ -38,10 +39,12 @@ else()
     	SET(MYCFLAGS "-DLUA_USE_LINUX")
     	SET(MYLIBS dl m)
 
-        SET(EXTRA_CXX_FLAGS "${CWARNSCPP}")
-        SET(EXTRA_C_FLAGS "${CWARNSC}")
+        SET(EXTRA_CXX_FLAGS "${CWARNSCPP} ${MYCFLAGS}")
+        SET(EXTRA_C_FLAGS "${CWARNSC} ${MYCFLAGS}")
         SET(BUILD_ARCH "linux")
     endif()
+
+    SET(MYCFLAGS "${MYCFLAGS} -DGL_CONTEXT_FLAG_ROBUST_ACCESS_BIT=GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT_ARB")
 
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 ${EXTRA_CXX_FLAGS} -ggdb ${MYCFLAGS}")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O2 ${EXTRA_CXX_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common ${MYCFLAGS}")
@@ -49,31 +52,62 @@ else()
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 ${EXTRA_C_FLAGS} -Wfatal-errors -fno-stack-protector -fno-common ${MYCFLAGS}")
 endif()
 
-file(GLOB CORE_SRC
-    "${PROJECT_SOURCE_DIR}/../lua/src/*.c"
+file(GLOB MOONGL_SRC
+    "${PROJECT_SOURCE_DIR}/../moongl/src/*.c"
 )
 
-file(GLOB LUA_SRC
-    "${PROJECT_SOURCE_DIR}/../lua/src/lua.c"
+include_directories("${PROJECT_SOURCE_DIR}/../lua/src/")
+
+
+#-----------------------------------------------------------------------------
+# Configure OpenGL
+
+find_package(OpenGL)
+
+#-----------------------------------------------------------------------------
+# Configure GLEW
+
+if(WITH_SYSTEM_GLEW)
+	find_package(GLEW)
+
+	mark_as_advanced(
+		GLEW_LIBRARY
+		GLEW_INCLUDE_PATH
+	)
+else()
+	if(WIN32)
+		set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/include")
+		set(GLEW_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/GLEW/lib/Win/x86/glew32.lib")
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure GLUT
+
+if(WITH_SYSTEM_GLUT)
+	find_package(GLUT)
+
+	mark_as_advanced(
+		GLUT_LIBRARY
+		GLUT_INCLUDE_PATH
+	)
+else()
+	if(WIN32)		
+		set(GLUT_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../Binaries/freeglut/include")
+		if (MSVC)
+			set(GLUT_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/freeglut/lib/freeglut.lib")
+		else()
+			set(GLUT_LIBRARY "${CMAKE_SOURCE_DIR}/../Binaries/freeglut/lib/libfreeglut.a")
+		endif()
+	endif()
+endif()
+
+include_directories(SYSTEM 
+	${GLEW_INCLUDE_PATH}
+	${GLUT_INCLUDE_PATH}
 )
 
-file(GLOB LUAC_SRC
-    "${PROJECT_SOURCE_DIR}/../lua/src/luac.c"
-)
+add_library (moongl ${MOONGL_SRC})
+target_link_libraries (moongl ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLUT_LIBRARY})
 
-get_filename_component(full_path_lbitlib_c ${PROJECT_SOURCE_DIR}/../lua/src/lbitlib.c ABSOLUTE)
-list(REMOVE_ITEM CORE_SRC "${full_path_lbitlib_c}")
-get_filename_component(full_path_lua_c ${PROJECT_SOURCE_DIR}/../lua/src/lua.c ABSOLUTE)
-list(REMOVE_ITEM CORE_SRC "${full_path_lua_c}")
-get_filename_component(full_path_luac_c ${PROJECT_SOURCE_DIR}/../lua/src/luac.c ABSOLUTE)
-list(REMOVE_ITEM CORE_SRC "${full_path_luac_c}")
-
-add_library (core ${LUA_SRC} ${CORE_SRC})
-target_link_libraries (lua ${MYLIBS})
-add_executable (lua ${LUA_SRC})
-target_link_libraries (lua core)
-add_executable (luac ${LUAC_SRC})
-target_link_libraries (luac core)
-
-add_custom_command(TARGET lua POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:lua> "${PROJECT_SOURCE_DIR}/../../__dist") 
-add_custom_command(TARGET luac POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:luac> "${PROJECT_SOURCE_DIR}/../../__dist")
+add_custom_command(TARGET moongl POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:moongl> "${PROJECT_SOURCE_DIR}/../../__dist") 
