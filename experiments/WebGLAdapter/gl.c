@@ -13,14 +13,13 @@
 extern "C" {
 #endif
 
-	static int createBuffer() {
-		::GLuint val;
+	int createBuffer() {
+		GLuint val;
 		glGenBuffers(1, &val);
 		return val;
 	}
 
-	//library to be registered
-	static const struct luaL_Reg webgl[] = {
+	const struct luaL_Reg webgl[] = {
 		  {"createBuffer", createBuffer},
 		  {NULL, NULL}  /* sentinel */
 	};
