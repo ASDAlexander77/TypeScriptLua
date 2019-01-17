@@ -26,7 +26,7 @@ else()
         SET(BUILD_ARCH "vs_android")
 
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    	SET(MYCFLAGS "-DLUA_USE_WINDOWS")
+    	#SET(MYCFLAGS "-DLUA_USE_WINDOWS")
     	SET(MYLIBS )
 
         SET(EXTRA_CXX_FLAGS "${CWARNSCPP}")

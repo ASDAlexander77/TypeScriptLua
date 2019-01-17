@@ -22,8 +22,8 @@ import './BABYLON/Tools/babylon_workerPool';
 import './BABYLON/States/babylon_alphaCullingState';
 import './BABYLON/States/babylon_depthCullingState';
 import './BABYLON/States/babylon_stencilState';
-import './BABYLON/Engine/babylon_engine';
-// import './BABYLON/Engine/babylon_webgl2';
+// import './BABYLON/Engine/babylon_engine';
+import './BABYLON/Engine/babylon_webgl2';
 import './BABYLON/Engine/babylon_nullEngine';
 import './BABYLON/babylon_node';
 import './BABYLON/Culling/babylon_boundingSphere';
@@ -81,11 +81,9 @@ class Runner {
 
     constructor() {
         this.canvas = new Canvas();
-        /*
         this.engine = new BABYLON.Engine(
             this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
-        */
-        this.engine = new BABYLON.NullEngine();
+        // this.engine = new BABYLON.NullEngine();
 
         const basicVertexShader =
             'attribute vec4 position; \
