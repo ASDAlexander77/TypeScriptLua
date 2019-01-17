@@ -93,8 +93,7 @@
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"
-        }
-
+        },
         {
             "type": "node",
             "request": "launch",

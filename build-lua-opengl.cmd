@@ -16,3 +16,14 @@ cd thirdparty\moongl-build\
 rem build.cmd win64 Release
 @call build.cmd Release
 cd ..\..\..\..
+
+rem Building FreeGLUT
+cd thirdparty\freeglut-build\
+@call build.cmd Release
+cd ..\..\..\..
+
+rem Building MoonGLUT
+cd thirdparty\moonglut-build\
+rem build.cmd win64 Release
+@call build.cmd Release
+cd ..\..\..\..
