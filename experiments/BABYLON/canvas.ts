@@ -1,3 +1,5 @@
+import 'webgl';
+declare var webgl: any;
 
 class Canvas implements WebGLRenderingContext {
     MAX_SAMPLES: number;
@@ -623,7 +625,8 @@ class Canvas implements WebGLRenderingContext {
     }
 
     createBuffer(): WebGLBuffer {
-        throw new Error('Method not implemented.');
+        const val = webgl.createBuffer();
+        return <WebGLBuffer>{ references: val };
     }
 
     createFramebuffer(): WebGLFramebuffer {

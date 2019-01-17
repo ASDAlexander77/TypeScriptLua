@@ -13,3 +13,4 @@ package-lock.json
 /experiments/BABYLON/*.map
 /experiments/jslib/*.map
 __build
+/thirdparty/glew-2.2.0/build/vc15/tmp

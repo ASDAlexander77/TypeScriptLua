@@ -4,10 +4,18 @@ class RegExp {
     }
 
     public test(t: string) {
+        if (!t) {
+            return false;
+        }
+
         return !string.match(t, this.__getLuaPattern());
     }
 
     public exec(t: string) {
+        if (!t) {
+            return false;
+        }
+
         return string.match(t, this.__getLuaPattern());
     }
 
