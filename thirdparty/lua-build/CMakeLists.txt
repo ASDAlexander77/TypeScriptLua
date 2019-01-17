@@ -8,7 +8,8 @@ SET(CWARNSCPP "-Wextra -Wshadow	-Wsign-compare -Wundef -Wwrite-strings -Wredunda
 SET(CWARNSC "-Wdeclaration-after-statement -Wmissing-prototypes -Wnested-externs -Wstrict-prototypes -Wc++-compat -Wold-style-definition")
 
 if (MSVC)
-    SET(MYCFLAGS "/DLUA_USE_WINDOWS")
+    #SET(MYCFLAGS "/DLUA_USE_WINDOWS")
+    SET(MYCFLAGS "${MYCFLAGS} /DLUA_BUILD_AS_DLL")
 
     SET(BUILD_ARCH "win32")
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Zi /EHsc /DDEBUG /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8 /bigobj ${MYCFLAGS}")
@@ -61,17 +62,17 @@ file(GLOB LUAC_SRC
     "${PROJECT_SOURCE_DIR}/../lua/src/luac.c"
 )
 
-get_filename_component(full_path_lbitlib_c ${PROJECT_SOURCE_DIR}/../lua/src/lbitlib.c ABSOLUTE)
-list(REMOVE_ITEM CORE_SRC "${full_path_lbitlib_c}")
-get_filename_component(full_path_lua_c ${PROJECT_SOURCE_DIR}/../lua/src/lua.c ABSOLUTE)
-list(REMOVE_ITEM CORE_SRC "${full_path_lua_c}")
-get_filename_component(full_path_luac_c ${PROJECT_SOURCE_DIR}/../lua/src/luac.c ABSOLUTE)
-list(REMOVE_ITEM CORE_SRC "${full_path_luac_c}")
+list(REMOVE_ITEM CORE_SRC "${PROJECT_SOURCE_DIR}/../lua/src/lbitlib.c")
+list(REMOVE_ITEM CORE_SRC "${PROJECT_SOURCE_DIR}/../lua/src/lua.c")
+list(REMOVE_ITEM CORE_SRC "${PROJECT_SOURCE_DIR}/../lua/src/luac.c")
 
-add_library (core ${LUA_SRC} ${CORE_SRC})
-target_link_libraries (lua ${MYLIBS})
+add_library (core SHARED ${CORE_SRC})
+set_target_properties(core PROPERTIES OUTPUT_NAME "lua53")
+target_link_libraries (core ${MYLIBS})
+
 add_executable (lua ${LUA_SRC})
 target_link_libraries (lua core)
+
 add_executable (luac ${LUAC_SRC})
 target_link_libraries (luac core)
 

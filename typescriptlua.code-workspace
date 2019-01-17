@@ -17,10 +17,6 @@
 			"path": "./experiments"
 		},
 		{
-			"name": "LUA Source Code"
-			"path": "./lua"
-		},
-		{
 			"name": "VSCode Lua Debugger"
 			"path": "./vscode-lua-debug"
 		}
