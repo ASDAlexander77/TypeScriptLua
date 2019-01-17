@@ -313,6 +313,12 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             '-i'
         ]);
 
+        if (!exe.pid) {
+            console.log(">>> can't spawn: " + this.luaExecutable);
+            this.processErrorOutput(["Can't start process: " + this.luaExecutable]);
+            return;
+        }
+
         this._commands = new LuaCommands(exe.stdin);
 
         exe.on('close', (code) => {
