@@ -9,23 +9,29 @@
 #include "lauxlib.h"
 #endif
 
+#ifdef _WIN32
+#    define LIBRARY_API extern __declspec(dllexport)
+#elif
+#    define LIBRARY_API static 
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-	int createBuffer() {
+	static int createBuffer() {
 		GLuint val;
 		glGenBuffers(1, &val);
 		return val;
 	}
 
-	const struct luaL_Reg webgl[] = {
+	static const struct luaL_Reg webgl[] = {
 		  {"createBuffer", createBuffer},
 		  {NULL, NULL}  /* sentinel */
 	};
 
 	//name of this function is not flexible
-	int luaopen_webgl(lua_State *L) {
+	LIBRARY_API int luaopen_webgl(lua_State *L) {
 		luaL_newlib(L, webgl);
 		return 1;
 	}
