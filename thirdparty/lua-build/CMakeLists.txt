@@ -66,15 +66,19 @@ list(REMOVE_ITEM CORE_SRC "${PROJECT_SOURCE_DIR}/../lua/src/lbitlib.c")
 list(REMOVE_ITEM CORE_SRC "${PROJECT_SOURCE_DIR}/../lua/src/lua.c")
 list(REMOVE_ITEM CORE_SRC "${PROJECT_SOURCE_DIR}/../lua/src/luac.c")
 
-add_library (core SHARED ${CORE_SRC})
-set_target_properties(core PROPERTIES OUTPUT_NAME "lua53")
-target_link_libraries (core ${MYLIBS})
+add_library (core ${CORE_SRC})
+target_link_libraries (core)
+
+add_library (lib_dll SHARED ${CORE_SRC})
+set_target_properties(lib_dll PROPERTIES OUTPUT_NAME "lua53")
+target_link_libraries (lib_dll ${MYLIBS})
 
 add_executable (lua ${LUA_SRC})
-target_link_libraries (lua core)
+target_link_libraries (lua lib_dll)
 
 add_executable (luac ${LUAC_SRC})
-target_link_libraries (luac core)
+target_link_libraries (luac lib_dll core)
 
+add_custom_command(TARGET lua POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:lib_dll> "${PROJECT_SOURCE_DIR}/../../__dist") 
 add_custom_command(TARGET lua POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:lua> "${PROJECT_SOURCE_DIR}/../../__dist") 
 add_custom_command(TARGET luac POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:luac> "${PROJECT_SOURCE_DIR}/../../__dist")
