@@ -13,5 +13,10 @@
 			"path": "./WebGLAdapter"
 		}
 	],
-	"settings": {}
+    "settings": {
+        "files.associations": {
+            "glew.h": "c",
+            "glut.h": "c"
+        }
+    }
 }

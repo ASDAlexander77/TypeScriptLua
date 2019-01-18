@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build WebGL Wrapper",
+            "type": "shell",
+            "command": "${workspaceFolder}/build.cmd",
+            "args": ["win64", "Release"],
+            "problemMatcher": []
+        }
+    ]
+}

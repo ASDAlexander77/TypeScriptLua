@@ -12,7 +12,7 @@ if (MSVC)
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${MYCFLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4049 /ignore:4217")
 
-    set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/win64/${CMAKE_BUILD_TYPE}/core.lib")
+    set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/win64/${CMAKE_BUILD_TYPE}/lua53.lib")
 else()
     if (CMAKE_SYSTEM_NAME STREQUAL "Android")
     	SET(MYCFLAGS "-DLUA_USE_LINUX")
@@ -25,7 +25,7 @@ else()
 
         SET(BUILD_ARCH "mingw32")
 
-	set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/mingw32/libcore.a")
+	set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/mingw32/lua53.a")
 	
     else()
     	#SET(MYCFLAGS "-DLUA_USE_LINUX -DLUA_USE_READLINE")

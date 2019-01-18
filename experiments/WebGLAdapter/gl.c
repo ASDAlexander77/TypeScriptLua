@@ -20,14 +20,66 @@ extern "C"
 {
 #endif
 
-    static int createBuffer()
+    static int initGL(lua_State *L)
+    {
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
+        {
+            return luaL_error(L, "glewInit error: %s", glewGetErrorString(err));
+        }
+
+        return errorCheck(L);
+    }
+
+    static int createBuffer(lua_State *L)
     {
         GLuint val;
         glGenBuffers(1, &val);
+        
+        int err = errorCheck(L);
+        if (err) 
+        {
+            return err;
+        }
+
         return val;
     }
 
+    // helpers
+    static int errorCheck(lua_State *L)
+    {
+        GLenum error = GL_NO_ERROR;
+        error = glGetError();
+        if (GL_NO_ERROR != error)
+        {
+            switch (error)
+            {
+            case GL_INVALID_ENUM:
+                return luaL_error(L, "GL error: enumeration parameter is not a legal enumeration for that function");
+            case GL_INVALID_VALUE:
+                return luaL_error(L, "GL error: value parameter is not a legal value for that function");
+            case GL_INVALID_OPERATION:
+                return luaL_error(L, "GL error: the set of state for a command is not legal for the parameters given to that command");
+            case GL_STACK_OVERFLOW:
+                return luaL_error(L, "GL error: stack pushing operation cannot be done because it would overflow the limit of that stack's size");
+            case GL_STACK_UNDERFLOW:
+                return luaL_error(L, "GL error: stack popping operation cannot be done because the stack is already at its lowest point");
+            case GL_OUT_OF_MEMORY:
+                return luaL_error(L, "GL error: performing an operation that can allocate memory, and the memory cannot be allocated");
+            case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
+                return luaL_error(L, "GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete");
+            case GL_TABLE_TOO_LARGE:
+                return luaL_error(L, "GL error: Table is too large");
+            default:
+                return luaL_error(L, "GL error: Error %d", error);
+            }
+        }
+
+        return error;
+    }
+
     static const struct luaL_Reg webgl[] = {
+        {"init", initGL},
         {"createBuffer", createBuffer},
         {NULL, NULL} /* sentinel */
     };
