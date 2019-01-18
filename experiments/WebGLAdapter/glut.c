@@ -22,13 +22,14 @@ extern "C"
     // === public
     static int initGLUT(lua_State *L)
     {
-        glutInit(0, NULL);
+        int argc = 0;
+        glutInit(&argc, NULL);
         return 0;
     }
 
     static int createWindowGLUT(lua_State *L)
     {
-        const char *name = luaL_checkstring(L, 2);
+        const char *name = luaL_checkstring(L, 1);
 
         int windowId = glutCreateWindow(name ? name : "GLUT Window");
 
