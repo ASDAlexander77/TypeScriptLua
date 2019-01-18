@@ -6,4 +6,13 @@ glut.createWindow("Cool window");
 
 gl.init()
 
-print ('success.')
+print ('init - success.')
+
+glut.display(function ()
+    print ('display function')
+    glut.swapBuffers()
+end)
+
+print ('Main loop.')
+
+glut.mainLoop();
