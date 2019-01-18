@@ -20,32 +20,7 @@ extern "C"
 {
 #endif
 
-    static int initGL(lua_State *L)
-    {
-        GLenum err = glewInit();
-        if (err != GLEW_OK)
-        {
-            return luaL_error(L, "glewInit error: %s", glewGetErrorString(err));
-        }
-
-        return errorCheck(L);
-    }
-
-    static int createBuffer(lua_State *L)
-    {
-        GLuint val;
-        glGenBuffers(1, &val);
-        
-        int err = errorCheck(L);
-        if (err) 
-        {
-            return err;
-        }
-
-        return val;
-    }
-
-    // helpers
+    // ==== private
     static int errorCheck(lua_State *L)
     {
         GLenum error = GL_NO_ERROR;
@@ -76,6 +51,40 @@ extern "C"
         }
 
         return error;
+    }
+
+    // === public
+    static int initGL(lua_State *L)
+    {
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
+        {
+            return luaL_error(L, "glewInit error: %s", glewGetErrorString(err));
+        }
+
+        int error = errorCheck(L);
+        if (error) 
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int createBuffer(lua_State *L)
+    {
+        GLuint val;
+        glGenBuffers(1, &val);
+        
+        int error = errorCheck(L);
+        if (error) 
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, val);
+
+        return 1;
     }
 
     static const struct luaL_Reg webgl[] = {

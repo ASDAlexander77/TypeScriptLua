@@ -6,7 +6,29 @@
             "type": "shell",
             "command": "${workspaceFolder}/build.cmd",
             "args": ["win64", "Release"],
-            "problemMatcher": []
+            "problemMatcher":{
+                "owner": "cpp",
+                "fileLocation":"absolute",
+                "pattern": {
+                    "regexp": "^\\s*([A-Za-z].*)\\((.*)\\):\\s(error|warning)\\s(.*)\\s\\[.*\\]$",
+                    "file": 1,
+                    "location": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
         }
     ]
 }
