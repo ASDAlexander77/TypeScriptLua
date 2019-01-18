@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 
-project (webgl) 
+project (wrappers) 
 
 if (MSVC)
     SET(MYCFLAGS "")
@@ -50,7 +50,11 @@ else()
 endif()
 
 file(GLOB WEBGL_SRC
-    "${PROJECT_SOURCE_DIR}/*.c"
+    "${PROJECT_SOURCE_DIR}/gl.c"
+)
+
+file(GLOB GLUT_SRC
+    "${PROJECT_SOURCE_DIR}/glut.c"
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/../../thirdparty/lua/src/")
@@ -110,6 +114,10 @@ include_directories(SYSTEM
 )
 
 add_library (webgl SHARED ${WEBGL_SRC})
-target_link_libraries (webgl ${LUA_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLUT_LIBRARY})
+target_link_libraries (webgl ${LUA_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY})
+
+add_library (glut SHARED ${GLUT_SRC})
+target_link_libraries (glut ${LUA_LIBRARY} ${GLUT_LIBRARY})
 
 add_custom_command(TARGET webgl POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:webgl> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:webgl>") 
+add_custom_command(TARGET glut POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:glut> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:glut>") 
