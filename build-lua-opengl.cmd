@@ -1,5 +1,7 @@
 IF NOT EXIST __dist MKDIR __dist
 
+IF "%VS150COMNTOOLS%" EQU "" set VS150COMNTOOLS=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\
+
 echo on
 
 rem Building Lua
