@@ -2,6 +2,8 @@ gl = require("webgl")
 glut = require("glut")
 
 glut.init();
+glut.initWindowSize(400, 640);
+glut.initDisplayMode(glut.DOUBLE, glut.DEPTH, glut.RGBA);
 glut.createWindow("Cool window");
 
 gl.init()
@@ -10,7 +12,8 @@ print ('init - success.')
 
 glut.display(function ()
     print ('display function')
-    gl.clearColor(0.1, 0.0, 0.0, 1.0)
+    gl.clear(gl.COLOR, gl.DEPTH)
+    gl.clearColor(0.5, 1.0, 0.2, 1.0)
     glut.swapBuffers()
 end)
 

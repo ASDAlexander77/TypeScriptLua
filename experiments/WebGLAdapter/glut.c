@@ -29,6 +29,40 @@ extern "C"
         return 0;
     }
 
+    static int initWindowSizeGLUT(lua_State *L)
+    {
+        const GLint width = luaL_checkinteger(L, 1);
+        const GLint height = luaL_checkinteger(L, 2);
+
+        glutInitWindowSize(width, height);
+
+        return 0;
+    }
+
+    static int initWindowPositionGLUT(lua_State *L)
+    {
+        const GLint top = luaL_checkinteger(L, 1);
+        const GLint left = luaL_checkinteger(L, 2);
+
+        glutInitWindowPosition(top, left);
+
+        return 0;
+    }    
+
+    static int initDisplayModeGLUT(lua_State *L)
+    {
+        int arg = 1;
+        GLint val = 0;
+        while(!lua_isnoneornil(L, arg)) 
+        {
+            val |= luaL_checkinteger(L, arg++);
+        }
+
+        glutInitDisplayMode(val);
+
+        return 0;
+    }    
+
     static int createWindowGLUT(lua_State *L)
     {
         const char *name = luaL_checkstring(L, 1);
@@ -86,8 +120,35 @@ extern "C"
         return 0;
     }
 
+    typedef struct ConstPair {
+        const char *name;
+        GLint val;
+    } ConstPairs;
+
+    static const struct ConstPair consts[] = {
+        {"DOUBLE", GLUT_DOUBLE},
+        {"DEPTH", GLUT_DEPTH},
+        {"RGB", GLUT_RGB},
+        {"RGBA", GLUT_RGBA}
+    };
+
+    static int AddConstsGLUT(lua_State *L)
+    {
+        const int count = sizeof(consts) / sizeof(consts[0]);
+        for (int i = 0; i < count; i++) 
+        {
+            const struct ConstPair val = consts[i];
+            lua_pushstring(L, val.name);
+            lua_pushinteger(L, val.val);
+            lua_settable(L, -3);
+        }
+    }
+
     static const struct luaL_Reg glut[] = {
         {"init", initGLUT},
+        {"initWindowSize", initWindowSizeGLUT},
+        {"initWindowPosition", initWindowPositionGLUT},
+        {"initDisplayMode", initDisplayModeGLUT},
         {"createWindow", createWindowGLUT},
         {"display", displayFuncGLUT},
         {"mainLoop", mainLoopGLUT},
@@ -100,6 +161,7 @@ extern "C"
     {
         global_L = L;
         luaL_newlib(L, glut);
+        AddConstsGLUT(L);
         return 1;
     }
 
