@@ -68,10 +68,11 @@ import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraPointersInput';
 import './BABYLON/Cameras/babylon_arcRotateCameraInputsManager';
 import './BABYLON/Cameras/babylon_arcRotateCamera';
 
-import './window';
-import './canvas';
+import WindowEx from './window';
+import Canvas from './canvas';
 
-window = <Window><any>WindowEx;
+declare var window: WindowEx;
+window = new WindowEx();
 
 // xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
 
@@ -139,3 +140,5 @@ class Runner {
 }
 
 new Runner().run();
+
+window.loop();
