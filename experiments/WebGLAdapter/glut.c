@@ -74,12 +74,13 @@ extern "C"
         return 1;
     }
 
-    static int luaDisplayFnctionReference = LUA_NOREF;
+    // Display
+    static int luaDisplayFunctionReference = LUA_NOREF;
     static void displayCallback()
     {
-        if (luaDisplayFnctionReference != LUA_NOREF)
+        if (luaDisplayFunctionReference != LUA_NOREF)
         {
-            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaDisplayFnctionReference) != LUA_TFUNCTION)
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaDisplayFunctionReference) != LUA_TFUNCTION)
             {
                 luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
                 return;
@@ -96,15 +97,56 @@ extern "C"
             return luaL_error(L, "bad argument #%d (function expected)", 1);
         }
 
-        if (luaDisplayFnctionReference != LUA_NOREF)
+        if (luaDisplayFunctionReference != LUA_NOREF)
         {
-            luaL_unref(L, LUA_REGISTRYINDEX, luaDisplayFnctionReference);
+            luaL_unref(L, LUA_REGISTRYINDEX, luaDisplayFunctionReference);
         }
 
-        luaDisplayFnctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+        luaDisplayFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
         glutDisplayFunc(displayCallback);
 
+        return 0;
+    }
+
+    // Idle
+    static int luaIdleFunctionReference = LUA_NOREF;
+    static void idleCallback()
+    {
+        if (luaIdleFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaIdleFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_call(global_L, 0, 0);
+    }
+
+    static int idleFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaIdleFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaIdleFunctionReference);
+        }
+
+        luaIdleFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutIdleFunc(idleCallback);
+
+        return 0;
+    }
+
+    static postRedisplayGLUT(lua_State *L)
+    {
+        glutPostRedisplay();
         return 0;
     }
 
@@ -132,7 +174,7 @@ extern "C"
         {"RGBA", GLUT_RGBA}
     };
 
-    static int AddConstsGLUT(lua_State *L)
+    static void AddConstsGLUT(lua_State *L)
     {
         const int count = sizeof(consts) / sizeof(consts[0]);
         for (int i = 0; i < count; i++) 
@@ -151,7 +193,9 @@ extern "C"
         {"initDisplayMode", initDisplayModeGLUT},
         {"createWindow", createWindowGLUT},
         {"display", displayFuncGLUT},
+        {"idle", idleFuncGLUT},
         {"mainLoop", mainLoopGLUT},
+        {"postRedisplay", postRedisplayGLUT},
         {"swapBuffers", swapBuffersGLUT},
         {NULL, NULL} /* sentinel */
     };

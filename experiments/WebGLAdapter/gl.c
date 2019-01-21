@@ -70,6 +70,19 @@ extern "C"
         return 0;
     }
 
+    static int flush(lua_State *L)
+    {
+        glFlush();
+        
+        int error = errorCheck(L);
+        if (error) 
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
     static int clear(lua_State *L)
     {
         int arg = 1;
@@ -134,7 +147,7 @@ extern "C"
         {"DEPTH", GL_DEPTH}
     };
 
-    static int AddConstsGL(lua_State *L)
+    static void AddConstsGL(lua_State *L)
     {
         const int count = sizeof(consts) / sizeof(consts[0]);
         for (int i = 0; i < count; i++) 
@@ -148,6 +161,7 @@ extern "C"
 
     static const struct luaL_Reg webgl[] = {
         {"init", initGL},
+        {"flush", flush},
         {"clear", clear},
         {"clearColor", clearColor},
         {"createBuffer", createBuffer},
