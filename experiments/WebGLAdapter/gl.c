@@ -70,6 +70,24 @@ extern "C"
         return 0;
     }
 
+    static int clearColor(lua_State *L)
+    {
+        const GLfloat red = luaL_checknumber(L, 1);
+        const GLfloat green = luaL_checknumber(L, 2);
+        const GLfloat blue = luaL_checknumber(L, 3);
+        const GLfloat alpha = luaL_checknumber(L, 4);
+
+        glClearColor(red, green, blue, alpha);
+
+        int error = errorCheck(L);
+        if (error) 
+        {
+            return error;
+        }
+
+        return 0;        
+    }
+
     static int createBuffer(lua_State *L)
     {
         GLuint val;
@@ -88,6 +106,7 @@ extern "C"
 
     static const struct luaL_Reg webgl[] = {
         {"init", initGL},
+        {"clearColor", clearColor},
         {"createBuffer", createBuffer},
         {NULL, NULL} /* sentinel */
     };

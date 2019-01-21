@@ -10,6 +10,7 @@ print ('init - success.')
 
 glut.display(function ()
     print ('display function')
+    gl.clearColor(0.1, 0.0, 0.0, 1.0)
     glut.swapBuffers()
 end)
 
