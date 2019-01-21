@@ -1,21 +1,15 @@
-interface ICamera {
-    checkInputs?: () => void;
+module M {
+    export class C {
+        static Y() { return 2; }
 
-    /*attachControl: (element: HTMLElement, noPreventDefault?: number) => void;*/
-    attachControl(element: HTMLElement, noPreventDefault?: number): void;
-}
-
-class Camera implements ICamera {
-    public checkInputs: () => void;
-
-    public attachControl(element: HTMLElement, noPreventDefault?: number) {
-        console.log(noPreventDefault);
+        X() { return 1; }
     }
 }
 
-const c = new Camera();
+module M {
+    export class C2 {
+        static Y() { return 4; }
 
-const ci = <ICamera>c;
-
-c.attachControl(null, 10);
-ci.attachControl(null, 20);
+        X() { return 3; }
+    }
+}

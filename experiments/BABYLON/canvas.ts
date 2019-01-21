@@ -1,5 +1,4 @@
-import 'webgl';
-declare var webgl: any;
+import webgl from 'webgl';
 
 class Canvas implements WebGLRenderingContext {
     MAX_SAMPLES: number;

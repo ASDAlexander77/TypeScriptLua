@@ -1042,10 +1042,18 @@ export class Emitter {
 
         if (this.functionContext.namespaces.length === 0) {
             const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
-            this.emitGetOrCreateObjectExpression(node, 'exports');
-            const setExport = ts.createAssignment(
-                ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? name : 'default'), name);
-            this.processExpression(setExport);
+            if (!isDefaultExport) {
+                this.emitGetOrCreateObjectExpression(node, 'exports');
+                const setExport = ts.createAssignment(
+                    ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? name : 'default'), name);
+                this.processExpression(setExport);
+            } else {
+                // return default value
+                const returnDefault = ts.createReturn(name);
+                returnDefault.parent = node;
+                this.processStatement(returnDefault);
+            }
+
             return;
         }
 
@@ -1351,28 +1359,21 @@ export class Emitter {
     }
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
-        // 1) require './<nodule>'
-        const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
-        requireCall.parent = node;
-        this.processExpression(requireCall);
-
-        // const dofileCall = ts.createCall(
-        //     ts.createIdentifier('dofile'),
-        //     /*typeArguments*/ undefined,
-        //     [ts.createAdd(node.moduleSpecifier, ts.createStringLiteral('.lua'))]);
-        // dofileCall.parent = node;
-        // this.processExpression(dofileCall);
-
         // copy exported references from 'exports' object
         if (node.importClause) {
             if (node.importClause.namedBindings) {
+                // 1) require './<nodule>'
+                const requireCall = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+                requireCall.parent = node;
+                this.processExpression(requireCall);
+
                 switch (node.importClause.namedBindings.kind) {
                     case ts.SyntaxKind.NamespaceImport:
                         const name = node.importClause.namedBindings.name;
                         const assignOfNamespaceImport = ts.createAssignment(
                             name,
                             ts.createIdentifier('exports'));
-                            assignOfNamespaceImport.parent = node;
+                        assignOfNamespaceImport.parent = node;
                         this.processExpression(assignOfNamespaceImport);
                         break;
                     case ts.SyntaxKind.NamedImports:
@@ -1389,13 +1390,31 @@ export class Emitter {
                         throw new Error('Not Implemented');
                 }
             } else {
-                // default case
+                // 1) require './<nodule>'
+                // const requireCall2 = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+                // requireCall2.parent = node;
+                // this.processExpression(requireCall2);
+
+                // // default case
+                // const assignOfImport = ts.createAssignment(
+                //     node.importClause.name,
+                //     ts.createElementAccess(ts.createIdentifier('exports'), ts.createStringLiteral('default')));
+                // assignOfImport.parent = node;
+                // this.processExpression(assignOfImport);
+
+                const requireCall2 = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+
                 const assignOfImport = ts.createAssignment(
                     node.importClause.name,
-                    ts.createElementAccess(ts.createIdentifier('exports'), ts.createStringLiteral('default')));
+                    requireCall2);
                 assignOfImport.parent = node;
+                requireCall2.parent = assignOfImport;
                 this.processExpression(assignOfImport);
             }
+        } else {
+            const requireCall3 = ts.createCall(ts.createIdentifier('require'), /*typeArguments*/ undefined, [node.moduleSpecifier]);
+            requireCall3.parent = node;
+            this.processExpression(requireCall3);
         }
     }
 
@@ -2903,7 +2922,7 @@ export class Emitter {
         if (!isLastMethodArgumentCallOrSpreadElement
             && parent
             && parent.kind === ts.SyntaxKind.CallExpression) {
-                // check if it last call method argument
+            // check if it last call method argument
             const callMethod = <ts.CallExpression>parent;
             if (callMethod.arguments.length > 0 && callMethod.arguments[callMethod.arguments.length - 1] === node) {
                 isLastMethodArgumentCallOrSpreadElement = true;
@@ -3004,7 +3023,7 @@ export class Emitter {
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
-        const newFunctionBlock = ts.createBlock([ ts.createReturn(node.expression) ]);
+        const newFunctionBlock = ts.createBlock([ts.createReturn(node.expression)]);
         const newFunction = ts.createFunctionExpression([], undefined, undefined, undefined, [], undefined, newFunctionBlock);
         const createCall = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('coroutine'), 'create'), undefined, [
             newFunction
