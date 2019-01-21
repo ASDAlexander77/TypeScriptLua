@@ -1,5 +1,3 @@
-import webgl from 'webgl';
-import glut from 'glut';
+import windowEx from './test2';
 
-print(webgl.DEPTH);
-print(glut.DEPTH);
+
