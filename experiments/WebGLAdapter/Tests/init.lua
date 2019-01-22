@@ -12,6 +12,12 @@ print ('init - success.')
 
 glut.display(function ()
     print ('display function')
+
+    -- === test ===
+    local vbo = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
+    -- === end of test ===
+
     gl.clear(gl.COLOR, gl.DEPTH)
     gl.clearColor(0.5, 1.0, 0.2, 1.0)
     gl.flush()

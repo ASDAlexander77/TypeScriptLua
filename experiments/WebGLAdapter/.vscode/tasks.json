@@ -10,7 +10,7 @@
                 "owner": "cpp",
                 "fileLocation":"absolute",
                 "pattern": {
-                    "regexp": "^\\s*([A-Za-z].*)\\((.*)\\):\\s(error|warning)\\s(.*)\\s\\[.*\\]$",
+                    "regexp": "^\\s*([A-Za-z].*)\\((.*)\\):\\s(error|warning)\\s(.*)$",
                     "file": 1,
                     "location": 2,
                     "severity": 3,
@@ -23,7 +23,7 @@
             },
             "presentation": {
                 "echo": true,
-                "reveal": "silent",
+                "reveal": "always",
                 "focus": false,
                 "panel": "shared",
                 "showReuseMessage": true,

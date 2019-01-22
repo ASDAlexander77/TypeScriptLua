@@ -1,6 +1,6 @@
 import gl from 'webgl';
 
-export default class Canvas implements WebGLRenderingContext {
+export default class Canvas extends gl implements WebGLRenderingContext {
 
     canvas: HTMLCanvasElement;
     drawingBufferHeight: number;
@@ -159,7 +159,7 @@ export default class Canvas implements WebGLRenderingContext {
     }
 
     bindBuffer(target: number, buffer: WebGLBuffer): void {
-        throw new Error('Method not implemented.');
+        gl.bindBuffer(target, buffer.references);
     }
 
     bindFramebuffer(target: number, framebuffer: WebGLFramebuffer): void {

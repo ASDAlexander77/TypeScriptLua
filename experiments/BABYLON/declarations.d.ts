@@ -1,8 +1,13 @@
-
-
 declare module 'babylonjs' {
     export = BABYLON;
 }
+
+interface WebGLBuffer {
+    references: number;
+    capacity: number;
+    is32Bits: boolean;
+}
+
 declare module BABYLON {
     /**
      * Defines how the parser contract is defined.
