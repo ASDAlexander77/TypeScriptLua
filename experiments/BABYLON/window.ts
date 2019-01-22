@@ -1,3 +1,4 @@
+// @ts-ignore
 import glut from 'glut';
 
 export default class WindowEx {
@@ -25,6 +26,7 @@ export default class WindowEx {
         });
     }
 
+    // @ts-ignore
     public addEventListener(eventName: string, cb: any, flag: boolean): void {
     }
 
