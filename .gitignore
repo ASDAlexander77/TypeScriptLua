@@ -16,3 +16,5 @@ __build
 /thirdparty/glew-2.2.0/build/vc15/tmp
 /thirdparty/glew-2.2.0/bin
 /thirdparty/glew-2.2.0/lib
+/packages/tsc-lua/lib
+/packages/tsc-lua/node_modules

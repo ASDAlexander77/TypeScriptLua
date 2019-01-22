@@ -1,21 +1,6 @@
 TypeScript for Lua
 ===========================
 
-The TypeScriptLua repo contains the complete source code implementation for TypeScript compiler for Lua bytecode.
-
-Chat Room
----------
-
-Want to chat with other members of the TypeScript for Lua community?
-
-[![Join the chat at https://gitter.im/ASDAlexander77/cs2cpp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScriptLua/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-Engage, Contribute and Provide Feedback
----------------------------------------
-
-Some of the best ways to contribute are to try things out, file bugs, and join in design conversations.
-
-
 License
 -------
 
@@ -24,16 +9,14 @@ TypeScriptLua is licensed under the MIT license.
 Quick Start
 -----------
 
-Prerequisite: nodejs, Lua 5.3, VSCode
-
-1) Build Project
+0) install
 
 ```
-npm install
-npm run build
+node -i typescript-lua-compiler
 ```
 
-2) Compile test.ts
+
+1) Compile test.ts
 
 create file test.ts
 
@@ -63,12 +46,12 @@ print(howard.ElevatorPitch);
 ```
 
 ```
-node __out/main.js test.ts
+tsc-lua test.ts
 ```
 
 Now you have test.lua
 
-3) Run it.
+2) Run it.
 
 ```
 lua test.lua
@@ -84,16 +67,9 @@ Enjoy it.
 How to use JavaScript Library
 -----------
 
-1) Compile JavaScript Library
+1) Copy JS.lua into your folder where you run the compiled app.
 
-```
-cd experiments\jslib
-node ../../__out/main.js -singleModule
-```
-
-2) Copy JS.lua into your folder where you run the compiled app.
-
-3) Compile test.ts
+2) Compile test.ts
 
 create file test.ts
 
@@ -121,10 +97,11 @@ console.log(howard.ElevatorPitch);
 ```
 
 ```
-node __out/main.js test.ts
+tsc-lua test.ts
 ```
 
-4) Run it.
+```
+3) Run it.
 
 ```
 lua -e "require('./JS')" test.lua
@@ -135,4 +112,4 @@ Result:
 Hello, my name is Howard and I work in Sales.
 ```
 
-Enjoy it
+	Enjoy it
