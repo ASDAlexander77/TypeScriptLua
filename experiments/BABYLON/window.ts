@@ -7,7 +7,7 @@ export default class WindowEx {
     constructor() {
         /* init GLUT */
         glut.init();
-        glut.initWindowSize(400, 640);
+        glut.initWindowSize(this.innerWidth, this.innerHeight);
         glut.initDisplayMode(glut.DOUBLE, glut.DEPTH, glut.RGBA);
         glut.createWindow('Cool window');
 
@@ -30,7 +30,8 @@ export default class WindowEx {
 
     public setTimeout(funct: any, millisec: number) {
         if (funct) {
-            funct();
+            // funct();
+            glut.timer(millisec, funct, 0);
         }
     }
 

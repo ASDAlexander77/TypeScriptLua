@@ -1,7 +1,7 @@
 
 
-declare module 'babylonjs' { 
-    export = BABYLON; 
+declare module 'babylonjs' {
+    export = BABYLON;
 }
 declare module BABYLON {
     /**
@@ -170,159 +170,6 @@ declare module BABYLON {
          */
         createRootMesh(): Mesh;
     }
-}
-
-interface Window {
-    mozIndexedDB: IDBFactory;
-    webkitIndexedDB: IDBFactory;
-    msIndexedDB: IDBFactory;
-    webkitURL: typeof URL;
-    mozRequestAnimationFrame(callback: FrameRequestCallback): number;
-    oRequestAnimationFrame(callback: FrameRequestCallback): number;
-    WebGLRenderingContext: WebGLRenderingContext;
-    MSGesture: MSGesture;
-    CANNON: any;
-    AudioContext: AudioContext;
-    webkitAudioContext: AudioContext;
-    PointerEvent: any;
-    Math: Math;
-    Uint8Array: Uint8ArrayConstructor;
-    Float32Array: Float32ArrayConstructor;
-    mozURL: typeof URL;
-    msURL: typeof URL;
-    VRFrameData: any;
-    DracoDecoderModule: any;
-    setImmediate(handler: (...args: any[]) => void): number;
-}
-interface WebGLRenderingContext {
-    drawArraysInstanced(mode: number, first: number, count: number, primcount: number): void;
-    drawElementsInstanced(mode: number, count: number, type: number, offset: number, primcount: number): void;
-    vertexAttribDivisor(index: number, divisor: number): void;
-    createVertexArray(): any;
-    bindVertexArray(vao?: WebGLVertexArrayObject | null): void;
-    deleteVertexArray(vao: WebGLVertexArrayObject): void;
-    blitFramebuffer(srcX0: number, srcY0: number, srcX1: number, srcY1: number, dstX0: number, dstY0: number, dstX1: number, dstY1: number, mask: number, filter: number): void;
-    renderbufferStorageMultisample(target: number, samples: number, internalformat: number, width: number, height: number): void;
-    bindBufferBase(target: number, index: number, buffer: WebGLBuffer | null): void;
-    getUniformBlockIndex(program: WebGLProgram, uniformBlockName: string): number;
-    uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBinding: number): void;
-    createQuery(): WebGLQuery;
-    deleteQuery(query: WebGLQuery): void;
-    beginQuery(target: number, query: WebGLQuery): void;
-    endQuery(target: number): void;
-    getQueryParameter(query: WebGLQuery, pname: number): any;
-    getQuery(target: number, pname: number): any;
-    MAX_SAMPLES: number;
-    RGBA8: number;
-    READ_FRAMEBUFFER: number;
-    DRAW_FRAMEBUFFER: number;
-    UNIFORM_BUFFER: number;
-    HALF_FLOAT_OES: number;
-    RGBA16F: number;
-    RGBA32F: number;
-    R32F: number;
-    RG32F: number;
-    RGB32F: number;
-    R16F: number;
-    RG16F: number;
-    RGB16F: number;
-    RED: number;
-    RG: number;
-    R8: number;
-    RG8: number;
-    UNSIGNED_INT_24_8: number;
-    DEPTH24_STENCIL8: number;
-    drawBuffers(buffers: number[]): void;
-    readBuffer(src: number): void;
-    readonly COLOR_ATTACHMENT0: number;
-    readonly COLOR_ATTACHMENT1: number;
-    readonly COLOR_ATTACHMENT2: number;
-    readonly COLOR_ATTACHMENT3: number;
-    ANY_SAMPLES_PASSED_CONSERVATIVE: number;
-    ANY_SAMPLES_PASSED: number;
-    QUERY_RESULT_AVAILABLE: number;
-    QUERY_RESULT: number;
-}
-interface Document {
-    mozCancelFullScreen(): void;
-    msCancelFullScreen(): void;
-    webkitCancelFullScreen(): void;
-    requestPointerLock(): void;
-    exitPointerLock(): void;
-    readonly fullscreen: boolean;
-    mozFullScreen: boolean;
-    msIsFullScreen: boolean;
-    readonly webkitIsFullScreen: boolean;
-    readonly pointerLockElement: Element;
-    mozPointerLockElement: HTMLElement;
-    msPointerLockElement: HTMLElement;
-    webkitPointerLockElement: HTMLElement;
-}
-interface HTMLCanvasElement {
-    requestPointerLock(): void;
-    msRequestPointerLock?(): void;
-    mozRequestPointerLock?(): void;
-    webkitRequestPointerLock?(): void;
-}
-interface CanvasRenderingContext2D {
-    msImageSmoothingEnabled: boolean;
-}
-interface WebGLBuffer {
-    references: number;
-    capacity: number;
-    is32Bits: boolean;
-}
-interface WebGLProgram {
-    transformFeedback?: WebGLTransformFeedback | null;
-
-}
-interface MouseEvent {
-    mozMovementX: number;
-    mozMovementY: number;
-    webkitMovementX: number;
-    webkitMovementY: number;
-    msMovementX: number;
-    msMovementY: number;
-}
-interface Navigator {
-    mozGetVRDevices: (any: any) => any;
-    webkitGetUserMedia(constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback): void;
-    mozGetUserMedia(constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback): void;
-    msGetUserMedia(constraints: MediaStreamConstraints, successCallback: NavigatorUserMediaSuccessCallback, errorCallback: NavigatorUserMediaErrorCallback): void;
-    webkitGetGamepads(): Gamepad[];
-    msGetGamepads(): Gamepad[];
-    webkitGamepads(): Gamepad[];
-}
-interface HTMLVideoElement {
-    mozSrcObject: any;
-}
-interface Element {
-    webkitRequestFullScreen: () => void;
-}
-interface Screen {
-    readonly orientation: ScreenOrientation;
-    readonly mozOrientation: string;
-}
-interface Math {
-    fround(x: number): number;
-    imul(a: number, b: number): number;
-}
-interface EXT_disjoint_timer_query {
-    QUERY_COUNTER_BITS_EXT: number;
-    TIME_ELAPSED_EXT: number;
-    TIMESTAMP_EXT: number;
-    GPU_DISJOINT_EXT: number;
-    QUERY_RESULT_EXT: number;
-    QUERY_RESULT_AVAILABLE_EXT: number;
-    queryCounterEXT(query: WebGLQuery, target: number): void;
-    createQueryEXT(): WebGLQuery;
-    beginQueryEXT(target: number, query: WebGLQuery): void;
-    endQueryEXT(target: number): void;
-    getQueryObjectEXT(query: WebGLQuery, target: number): any;
-    deleteQueryEXT(query: WebGLQuery): void;
-}
-interface WebGLUniformLocation {
-
 }
 
 declare module BABYLON {
@@ -1277,7 +1124,7 @@ declare module BABYLON {
         /** @hidden */
 
         /** @hidden */
-protected readonly _isAlternateRenderingEnabled: boolean;
+        protected readonly _isAlternateRenderingEnabled: boolean;
         private _frustumPlanes;
         /**
          * Gets the list of frustum planes (built from the active camera)
@@ -2704,8 +2551,8 @@ declare module BABYLON {
          * @param condition an optional determinant of action
          */
         constructor(
-        /** the trigger, with or without parameters, for the action */
-        triggerOptions: any, condition?: Condition);
+            /** the trigger, with or without parameters, for the action */
+            triggerOptions: any, condition?: Condition);
         /**
          * Internal only
          * @hidden
@@ -2762,12 +2609,12 @@ declare module BABYLON {
          * Internal only
          * @hidden
          */
-private static _SerializeValueAsString: (value: any) => string;
+        private static _SerializeValueAsString: (value: any) => string;
         /**
          * Internal only
          * @hidden
          */
-private static _GetTargetProperty: (target: Scene | Node) => {
+        private static _GetTargetProperty: (target: Scene | Node) => {
             name: string;
             targetType: string;
             value: string;
@@ -2802,18 +2649,18 @@ declare module BABYLON {
          * @param additionalData additional data for the event
          */
         constructor(
-        /** The mesh or sprite that triggered the action */
-        source: any, 
-        /** The X mouse cursor position at the time of the event */
-        pointerX: number, 
-        /** The Y mouse cursor position at the time of the event */
-        pointerY: number, 
-        /** The mesh that is currently pointed at (can be null) */
-        meshUnderPointer: Nullable<AbstractMesh>, 
-        /** the original (browser) event that triggered the ActionEvent */
-        sourceEvent?: any, 
-        /** additional data for the event */
-        additionalData?: any);
+            /** The mesh or sprite that triggered the action */
+            source: any,
+            /** The X mouse cursor position at the time of the event */
+            pointerX: number,
+            /** The Y mouse cursor position at the time of the event */
+            pointerY: number,
+            /** The mesh that is currently pointed at (can be null) */
+            meshUnderPointer: Nullable<AbstractMesh>,
+            /** the original (browser) event that triggered the ActionEvent */
+            sourceEvent?: any,
+            /** additional data for the event */
+            additionalData?: any);
         /**
          * Helper function to auto-create an ActionEvent from a source mesh.
          * @param source The source mesh that triggered the event
@@ -3175,13 +3022,13 @@ declare module BABYLON {
          * @param value the value compared by the conditional operator against the current value of the property
          * @param operator the conditional operator, default ValueCondition.IsEqual
          */
-        constructor(actionManager: ActionManager, target: any, 
-        /** path to specify the property of the target the conditional operator uses  */
-        propertyPath: string, 
-        /** the value compared by the conditional operator against the current value of the property */
-        value: any, 
-        /** the conditional operator, default ValueCondition.IsEqual */
-        operator?: number);
+        constructor(actionManager: ActionManager, target: any,
+            /** path to specify the property of the target the conditional operator uses  */
+            propertyPath: string,
+            /** the value compared by the conditional operator against the current value of the property */
+            value: any,
+            /** the conditional operator, default ValueCondition.IsEqual */
+            operator?: number);
         /**
          * Compares the given value with the property value for the specified conditional operator
          * @returns the result of the comparison
@@ -3215,9 +3062,9 @@ declare module BABYLON {
          * @param actionManager manager for the action the condition applies to
          * @param predicate defines the predicate function used to validate the condition
          */
-        constructor(actionManager: ActionManager, 
-        /** defines the predicate function used to validate the condition */
-        predicate: () => boolean);
+        constructor(actionManager: ActionManager,
+            /** defines the predicate function used to validate the condition */
+            predicate: () => boolean);
         /**
          * @returns the validity of the predicate condition
          */
@@ -3245,9 +3092,9 @@ declare module BABYLON {
          * @param target of the condition
          * @param value to compare with target state
          */
-        constructor(actionManager: ActionManager, target: any, 
-        /** Value to compare with target state  */
-        value: string);
+        constructor(actionManager: ActionManager, target: any,
+            /** Value to compare with target state  */
+            value: string);
         /**
          * Gets a boolean indicating if the current condition is met
          * @returns the validity of the state
@@ -3750,17 +3597,17 @@ declare module BABYLON {
          * @param onAnimationEnd defines a callback to call when animation ends if it is not looping
          * @param animations defines a group of animation to add to the new Animatable
          */
-        constructor(scene: Scene, 
-        /** defines the target object */
-        target: any, 
-        /** defines the starting frame number (default is 0) */
-        fromFrame?: number, 
-        /** defines the ending frame number (default is 100) */
-        toFrame?: number, 
-        /** defines if the animation must loop (default is false)  */
-        loopAnimation?: boolean, speedRatio?: number, 
-        /** defines a callback to call when animation ends if it is not looping */
-        onAnimationEnd?: (() => void) | null | undefined, animations?: Animation[]);
+        constructor(scene: Scene,
+            /** defines the target object */
+            target: any,
+            /** defines the starting frame number (default is 0) */
+            fromFrame?: number,
+            /** defines the ending frame number (default is 100) */
+            toFrame?: number,
+            /** defines if the animation must loop (default is false)  */
+            loopAnimation?: boolean, speedRatio?: number,
+            /** defines a callback to call when animation ends if it is not looping */
+            onAnimationEnd?: (() => void) | null | undefined, animations?: Animation[]);
         /**
          * Synchronize and normalize current Animatable with a source Animatable
          * This is useful when using animation weights and when animations are not of the same length
@@ -3854,12 +3701,12 @@ declare module BABYLON {
          * @param to The ending frame of the animation
          */
         constructor(
-        /**The name of the animation range**/
-        name: string, 
-        /**The starting frame of the animation */
-        from: number, 
-        /**The ending frame of the animation*/
-        to: number);
+            /**The name of the animation range**/
+            name: string,
+            /**The starting frame of the animation */
+            from: number,
+            /**The ending frame of the animation*/
+            to: number);
         /**
          * Makes a copy of the animation range
          * @returns A copy of the animation range
@@ -3887,12 +3734,12 @@ declare module BABYLON {
          * @param onlyOnce Specifies if the event should be triggered only once
          */
         constructor(
-        /** The frame for which the event is triggered **/
-        frame: number, 
-        /** The event to perform when triggered **/
-        action: (currentFrame: number) => void, 
-        /** Specifies if the event should be triggered only once**/
-        onlyOnce?: boolean | undefined);
+            /** The frame for which the event is triggered **/
+            frame: number,
+            /** The event to perform when triggered **/
+            action: (currentFrame: number) => void,
+            /** Specifies if the event should be triggered only once**/
+            onlyOnce?: boolean | undefined);
         /** @hidden */
 
     }
@@ -4048,7 +3895,7 @@ declare module BABYLON {
         /**
          * @hidden Internal use
          */
-private static _PrepareAnimation(name: string, targetProperty: string, framePerSecond: number, totalFrame: number, from: any, to: any, loopMode?: number, easingFunction?: EasingFunction): Nullable<Animation>;
+        private static _PrepareAnimation(name: string, targetProperty: string, framePerSecond: number, totalFrame: number, from: any, to: any, loopMode?: number, easingFunction?: EasingFunction): Nullable<Animation>;
         /**
          * Sets up an animation
          * @param property The property to animate
@@ -4136,18 +3983,18 @@ private static _PrepareAnimation(name: string, targetProperty: string, framePerS
          * @param enableBlendings Specifies if blending should be enabled
          */
         constructor(
-        /**Name of the animation */
-        name: string, 
-        /**Property to animate */
-        targetProperty: string, 
-        /**The frames per second of the animation */
-        framePerSecond: number, 
-        /**The data type of the animation */
-        dataType: number, 
-        /**The loop mode of the animation */
-        loopMode?: number | undefined, 
-        /**Specifies if blending should be enabled */
-        enableBlending?: boolean | undefined);
+            /**Name of the animation */
+            name: string,
+            /**Property to animate */
+            targetProperty: string,
+            /**The frames per second of the animation */
+            framePerSecond: number,
+            /**The data type of the animation */
+            dataType: number,
+            /**The loop mode of the animation */
+            loopMode?: number | undefined,
+            /**Specifies if blending should be enabled */
+            enableBlending?: boolean | undefined);
         /**
          * Converts the animation to a string
          * @param fullDetails support for multiple levels of logging within scene loading
@@ -4409,7 +4256,7 @@ private static _PrepareAnimation(name: string, targetProperty: string, framePerS
          */
         static readonly ANIMATIONLOOPMODE_CONSTANT: number;
         /** @hidden */
-private static _UniversalLerp(left: any, right: any, amount: number): any;
+        private static _UniversalLerp(left: any, right: any, amount: number): any;
         /**
          * Parses an animation object and creates an animation
          * @param parsedAnimation Parsed animation object
@@ -4499,8 +4346,8 @@ declare module BABYLON {
          * @param scene Defines the scene the group belongs to
          */
         constructor(
-        /** The name of the animation group */
-        name: string, scene?: Nullable<Scene>);
+            /** The name of the animation group */
+            name: string, scene?: Nullable<Scene>);
         /**
          * Add an animation (with its target) in the group
          * @param animation defines the animation we want to add
@@ -4698,8 +4545,8 @@ declare module BABYLON {
          * @param amplitude Defines the amplitude of the function
          */
         constructor(
-        /** Defines the amplitude of the function */
-        amplitude?: number);
+            /** Defines the amplitude of the function */
+            amplitude?: number);
         /** @hidden */
         easeInCore(gradient: number): number;
     }
@@ -4720,10 +4567,10 @@ declare module BABYLON {
          * @param bounciness Defines the amplitude of the bounce
          */
         constructor(
-        /** Defines the number of bounces */
-        bounces?: number, 
-        /** Defines the amplitude of the bounce */
-        bounciness?: number);
+            /** Defines the number of bounces */
+            bounces?: number,
+            /** Defines the amplitude of the bounce */
+            bounciness?: number);
         /** @hidden */
         easeInCore(gradient: number): number;
     }
@@ -4753,10 +4600,10 @@ declare module BABYLON {
          * @param springiness Defines the amplitude of the oscillations
          */
         constructor(
-        /** Defines the number of oscillations*/
-        oscillations?: number, 
-        /** Defines the amplitude of the oscillations*/
-        springiness?: number);
+            /** Defines the number of oscillations*/
+            oscillations?: number,
+            /** Defines the amplitude of the oscillations*/
+            springiness?: number);
         /** @hidden */
         easeInCore(gradient: number): number;
     }
@@ -4774,8 +4621,8 @@ declare module BABYLON {
          * @param exponent Defines the exponent of the function
          */
         constructor(
-        /** Defines the exponent of the function */
-        exponent?: number);
+            /** Defines the exponent of the function */
+            exponent?: number);
         /** @hidden */
         easeInCore(gradient: number): number;
     }
@@ -4793,8 +4640,8 @@ declare module BABYLON {
          * @param power Defines the power of the function
          */
         constructor(
-        /** Defines the power of the function */
-        power?: number);
+            /** Defines the power of the function */
+            power?: number);
         /** @hidden */
         easeInCore(gradient: number): number;
     }
@@ -4857,14 +4704,14 @@ declare module BABYLON {
          * @param y2 Defines the y component of the end tangent in the bezier curve
          */
         constructor(
-        /** Defines the x component of the start tangent in the bezier curve */
-        x1?: number, 
-        /** Defines the y component of the start tangent in the bezier curve */
-        y1?: number, 
-        /** Defines the x component of the end tangent in the bezier curve */
-        x2?: number, 
-        /** Defines the y component of the end tangent in the bezier curve */
-        y2?: number);
+            /** Defines the x component of the start tangent in the bezier curve */
+            x1?: number,
+            /** Defines the y component of the start tangent in the bezier curve */
+            y1?: number,
+            /** Defines the x component of the end tangent in the bezier curve */
+            x2?: number,
+            /** Defines the y component of the end tangent in the bezier curve */
+            y2?: number);
         /** @hidden */
         easeInCore(gradient: number): number;
     }
@@ -5933,10 +5780,10 @@ declare module BABYLON {
          * @param index defines index of the bone in the hiearchy
          */
         constructor(
-        /**
-         * defines the bone name
-         */
-        name: string, skeleton: Skeleton, parentBone?: Nullable<Bone>, localMatrix?: Nullable<Matrix>, restPose?: Nullable<Matrix>, baseMatrix?: Nullable<Matrix>, index?: Nullable<number>);
+            /**
+             * defines the bone name
+             */
+            name: string, skeleton: Skeleton, parentBone?: Nullable<Bone>, localMatrix?: Nullable<Matrix>, restPose?: Nullable<Matrix>, baseMatrix?: Nullable<Matrix>, index?: Nullable<number>);
         /**
          * Gets the parent skeleton
          * @returns a skeleton
@@ -6495,10 +6342,10 @@ declare module BABYLON {
          * @param scene defines the hosting scene
          */
         constructor(
-        /** defines the skeleton name */
-        name: string, 
-        /** defines the skeleton Id */
-        id: string, scene: Scene);
+            /** defines the skeleton name */
+            name: string,
+            /** defines the skeleton Id */
+            id: string, scene: Scene);
         /**
          * Gets the list of transform matrices to send to shaders (one matrix per bone)
          * @param mesh defines the mesh to use to get the root matrix (if needInitialSkinMatrix === true)
@@ -7754,15 +7601,15 @@ declare module BABYLON {
          * @param target Define the target of the camera
          * @param scene Define the scene the camera belongs to
          */
-        constructor(name: string, 
-        /** The longitudinal angle of the camera */
-        alpha: number, 
-        /** The latitudinal angle of the camera */
-        beta: number, 
-        /** The radius of the camera from its target */
-        radius: number, 
-        /** Define the camera target (the messh it should follow) */
-        target: Nullable<AbstractMesh>, scene: Scene);
+        constructor(name: string,
+            /** The longitudinal angle of the camera */
+            alpha: number,
+            /** The latitudinal angle of the camera */
+            beta: number,
+            /** The radius of the camera from its target */
+            radius: number,
+            /** Define the camera target (the messh it should follow) */
+            target: Nullable<AbstractMesh>, scene: Scene);
         private _follow;
         /** @hidden */
 
@@ -8308,7 +8155,7 @@ interface VRDisplay extends EventTarget {
 }
 declare var VRDisplay: {
     prototype: VRDisplay;
-    new (): VRDisplay;
+    new(): VRDisplay;
 };
 interface VRLayer {
     leftBounds?: number[] | Float32Array | null;
@@ -8724,12 +8571,12 @@ declare module BABYLON {
          * @param length length of the ray
          */
         constructor(
-        /** origin point */
-        origin: Vector3, 
-        /** direction */
-        direction: Vector3, 
-        /** length of the ray */
-        length?: number);
+            /** origin point */
+            origin: Vector3,
+            /** direction */
+            direction: Vector3,
+            /** length of the ray */
+            length?: number);
         /**
          * Checks if the ray intersects a box
          * @param minimum bound of the box
@@ -9516,14 +9363,14 @@ declare module BABYLON.Debug {
          * @param renderingGroupId defines the rendering group id to use with the viewer
          */
         constructor(
-        /** defines the skeleton to render */
-        skeleton: Skeleton, 
-        /** defines the mesh attached to the skeleton */
-        mesh: AbstractMesh, scene: Scene, 
-        /** defines a boolean indicating if bones matrices must be forced to update before rendering (true by default)  */
-        autoUpdateBonesMatrices?: boolean, 
-        /** defines the rendering group id to use with the viewer */
-        renderingGroupId?: number);
+            /** defines the skeleton to render */
+            skeleton: Skeleton,
+            /** defines the mesh attached to the skeleton */
+            mesh: AbstractMesh, scene: Scene,
+            /** defines a boolean indicating if bones matrices must be forced to update before rendering (true by default)  */
+            autoUpdateBonesMatrices?: boolean,
+            /** defines the rendering group id to use with the viewer */
+            renderingGroupId?: number);
         /** Gets or sets a boolean indicating if the viewer is enabled */
         isEnabled: boolean;
         private _getBonePosition;
@@ -9753,7 +9600,7 @@ declare module BABYLON {
         /**
          * Hidden
          */
-private static _TextureLoaders: IInternalTextureLoader[];
+        private static _TextureLoaders: IInternalTextureLoader[];
         /** Defines that alpha blending is disabled */
         static readonly ALPHA_DISABLE: number;
         /** Defines that alpha blending to SRC ALPHA * SRC + DEST */
@@ -11847,31 +11694,31 @@ interface WebGLQuery extends WebGLObject {
 }
 declare var WebGLQuery: {
     prototype: WebGLQuery;
-    new (): WebGLQuery;
+    new(): WebGLQuery;
 };
 interface WebGLSampler extends WebGLObject {
 }
 declare var WebGLSampler: {
     prototype: WebGLSampler;
-    new (): WebGLSampler;
+    new(): WebGLSampler;
 };
 interface WebGLSync extends WebGLObject {
 }
 declare var WebGLSync: {
     prototype: WebGLSync;
-    new (): WebGLSync;
+    new(): WebGLSync;
 };
 interface WebGLTransformFeedback extends WebGLObject {
 }
 declare var WebGLTransformFeedback: {
     prototype: WebGLTransformFeedback;
-    new (): WebGLTransformFeedback;
+    new(): WebGLTransformFeedback;
 };
 interface WebGLVertexArrayObject extends WebGLObject {
 }
 declare var WebGLVertexArrayObject: {
     prototype: WebGLVertexArrayObject;
-    new (): WebGLVertexArrayObject;
+    new(): WebGLVertexArrayObject;
 };
 
 declare module BABYLON {
@@ -11907,14 +11754,14 @@ declare module BABYLON {
          * @param event Defines the related dom event
          */
         constructor(
-        /**
-         * Defines the type of event (BABYLON.KeyboardEventTypes)
-         */
-        type: number, 
-        /**
-         * Defines the related dom event
-         */
-        event: KeyboardEvent);
+            /**
+             * Defines the type of event (BABYLON.KeyboardEventTypes)
+             */
+            type: number,
+            /**
+             * Defines the related dom event
+             */
+            event: KeyboardEvent);
     }
     /**
      * This class is used to store keyboard related info for the onPreKeyboardObservable event.
@@ -11940,14 +11787,14 @@ declare module BABYLON {
          * @param event Defines the related dom event
          */
         constructor(
-        /**
-         * Defines the type of event (BABYLON.KeyboardEventTypes)
-         */
-        type: number, 
-        /**
-         * Defines the related dom event
-         */
-        event: KeyboardEvent);
+            /**
+             * Defines the type of event (BABYLON.KeyboardEventTypes)
+             */
+            type: number,
+            /**
+             * Defines the related dom event
+             */
+            event: KeyboardEvent);
     }
 }
 
@@ -12003,14 +11850,14 @@ declare module BABYLON {
          * @param event Defines the related dom event
          */
         constructor(
-        /**
-         * Defines the type of event (BABYLON.PointerEventTypes)
-         */
-        type: number, 
-        /**
-         * Defines the related dom event
-         */
-        event: PointerEvent | MouseWheelEvent);
+            /**
+             * Defines the type of event (BABYLON.PointerEventTypes)
+             */
+            type: number,
+            /**
+             * Defines the related dom event
+             */
+            event: PointerEvent | MouseWheelEvent);
     }
     /**
      * This class is used to store pointer related info for the onPrePointerObservable event.
@@ -12053,11 +11900,11 @@ declare module BABYLON {
          * @param event Defines the related dom event
          * @param pickInfo Defines the picking info associated to the info (if any)\
          */
-        constructor(type: number, event: PointerEvent | MouseWheelEvent, 
-        /**
-         * Defines the picking info associated to the info (if any)\
-         */
-        pickInfo: Nullable<PickingInfo>);
+        constructor(type: number, event: PointerEvent | MouseWheelEvent,
+            /**
+             * Defines the picking info associated to the info (if any)\
+             */
+            pickInfo: Nullable<PickingInfo>);
     }
 }
 
@@ -12080,14 +11927,14 @@ declare module BABYLON {
          * @param y The y component of the gamepad control stick value
          */
         constructor(
-        /**
-         * The x component of the control stick
-         */
-        x: number, 
-        /**
-         * The y component of the control stick
-         */
-        y: number);
+            /**
+             * The x component of the control stick
+             */
+            x: number,
+            /**
+             * The y component of the control stick
+             */
+            y: number);
     }
     /**
      * An interface which manages callbacks for gamepad button changes
@@ -12181,18 +12028,18 @@ declare module BABYLON {
          * @param rightStickY The y component of the right joystick
          */
         constructor(
-        /**
-         * The id of the gamepad
-         */
-        id: string, 
-        /**
-         * The index of the gamepad
-         */
-        index: number, 
-        /**
-         * The browser gamepad
-         */
-        browserGamepad: any, leftStickX?: number, leftStickY?: number, rightStickX?: number, rightStickY?: number);
+            /**
+             * The id of the gamepad
+             */
+            id: string,
+            /**
+             * The index of the gamepad
+             */
+            index: number,
+            /**
+             * The browser gamepad
+             */
+            browserGamepad: any, leftStickX?: number, leftStickY?: number, rightStickX?: number, rightStickY?: number);
         /**
          * Callback triggered when the left joystick has changed
          * @param callback
@@ -12772,9 +12619,9 @@ declare module BABYLON {
         private static _PivotTranslation;
         private static _PivotTmpVector;
         /** @hidden */
-private static _RemoveAndStorePivotPoint(mesh: AbstractMesh): void;
+        private static _RemoveAndStorePivotPoint(mesh: AbstractMesh): void;
         /** @hidden */
-private static _RestorePivotPoint(mesh: AbstractMesh): void;
+        private static _RestorePivotPoint(mesh: AbstractMesh): void;
         /**
          * Creates an BoundingBoxGizmo
          * @param gizmoLayer The utility layer the gizmo will be added to
@@ -12861,8 +12708,8 @@ declare module BABYLON {
          * @param gizmoLayer The utility layer the gizmo will be added to
          */
         constructor(
-        /** The utility layer the gizmo will be added to */
-        gizmoLayer?: UtilityLayerRenderer);
+            /** The utility layer the gizmo will be added to */
+            gizmoLayer?: UtilityLayerRenderer);
         private _tempVector;
         /**
          * @hidden
@@ -13636,10 +13483,10 @@ declare module BABYLON {
          * @param engine Defines the engine to instrument
          */
         constructor(
-        /**
-         * Define the instrumented engine.
-         */
-        engine: Engine);
+            /**
+             * Define the instrumented engine.
+             */
+            engine: Engine);
         /**
          * Dispose and release associated resources.
          */
@@ -13819,10 +13666,10 @@ declare module BABYLON {
          * @param scene Defines the scene to instrument
          */
         constructor(
-        /**
-         * Defines the scene to instrument
-         */
-        scene: Scene);
+            /**
+             * Defines the scene to instrument
+             */
+            scene: Scene);
         /**
          * Dispose and release associated resources.
          */
@@ -13895,14 +13742,14 @@ declare module BABYLON {
          * @param system Define the `lensFlareSystem` this flare is part of
          */
         constructor(
-        /**
-         * Define the size of the lens flare in the system (a floating value between 0 and 1)
-         */
-        size: number, 
-        /**
-         * Define the position of the lens flare in the system. (a floating value between -1 and 1). A value of 0 is located on the emitter. A value greater than 0 is beyond the emitter and a value lesser than 0 is behind.
-         */
-        position: number, color: Color3, imgUrl: string, system: LensFlareSystem);
+            /**
+             * Define the size of the lens flare in the system (a floating value between 0 and 1)
+             */
+            size: number,
+            /**
+             * Define the position of the lens flare in the system. (a floating value between -1 and 1). A value of 0 is located on the emitter. A value greater than 0 is beyond the emitter and a value lesser than 0 is behind.
+             */
+            position: number, color: Color3, imgUrl: string, system: LensFlareSystem);
         /**
          * Dispose and release the lens flare with its associated resources.
          */
@@ -13964,10 +13811,10 @@ declare module BABYLON {
          * @param scene Define the scene the lens flare system belongs to
          */
         constructor(
-        /**
-         * Define the name of the lens flare system
-         */
-        name: string, emitter: any, scene: Scene);
+            /**
+             * Define the name of the lens flare system
+             */
+            name: string, emitter: any, scene: Scene);
         /**
          * Define if the lens flare system is enabled.
          */
@@ -14207,8 +14054,8 @@ declare module BABYLON {
          * @param scene The scene to use the layer in
          */
         constructor(
-        /** The Friendly of the effect in the scene */
-        name: string, scene: Scene);
+            /** The Friendly of the effect in the scene */
+            name: string, scene: Scene);
         /**
          * Get the effect name of the layer.
          * @return The effect name
@@ -14250,7 +14097,7 @@ declare module BABYLON {
          * Internal use
          * @param mesh The mesh to free.
          */
-disposeMesh(mesh: Mesh): void;
+        disposeMesh(mesh: Mesh): void;
         /**
          * Serializes this layer (Glow or Highlight for example)
          * @returns a serialized layer object
@@ -14949,10 +14796,10 @@ declare module BABYLON {
          * @param color Defines a color for the layer
          */
         constructor(
-        /**
-         * Define the name of the layer.
-         */
-        name: string, imgUrl: Nullable<string>, scene: Nullable<Scene>, isBackground?: boolean, color?: Color4);
+            /**
+             * Define the name of the layer.
+             */
+            name: string, imgUrl: Nullable<string>, scene: Nullable<Scene>, isBackground?: boolean, color?: Color4);
         private _createIndexBuffer;
         /** @hidden */
 
@@ -16094,12 +15941,12 @@ declare module BABYLON {
          * @param total defines the data length to load
          */
         constructor(
-        /** defines if data length to load can be evaluated */
-        lengthComputable: boolean, 
-        /** defines the loaded data length */
-        loaded: number, 
-        /** defines the data length to load */
-        total: number);
+            /** defines if data length to load can be evaluated */
+            lengthComputable: boolean,
+            /** defines the loaded data length */
+            loaded: number,
+            /** defines the data length to load */
+            total: number);
         /**
          * Creates a new SceneLoaderProgressEvent from a ProgressEvent
          * @param event defines the source event
@@ -19815,7 +19662,7 @@ declare module BABYLON {
         /** @hidden */
 
         /** @hidden */
-protected readonly _positions: Nullable<Vector3[]>;
+        protected readonly _positions: Nullable<Vector3[]>;
         /** @hidden */
 
         /** @hidden */
@@ -20506,7 +20353,7 @@ declare module BABYLON {
         /** @hidden */
 
         /** @hidden */
-;
+        ;
         private _isDisposed;
         private _extend;
         private _boundingBias;
@@ -20767,7 +20614,7 @@ declare module BABYLON {
          */
         static RandomId(): string;
         /** @hidden */
-private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
+        private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
         private static _CleanMatricesWeights;
         /**
          * Create a new geometry from persisted data (Using .babylon file format)
@@ -20852,27 +20699,27 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the array of paths to use
-         */
-        pathArray: Vector3[][], 
-        /**
-         * Defines if the last and first points of each path in your pathArray must be joined
-         */
-        closeArray: boolean, 
-        /**
-         * Defines if the last and first points of each path in your pathArray must be joined
-         */
-        closePath: boolean, 
-        /**
-         * Defines the offset between points
-         */
-        offset: number, canBeRegenerated?: boolean, mesh?: Mesh, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the array of paths to use
+             */
+            pathArray: Vector3[][],
+            /**
+             * Defines if the last and first points of each path in your pathArray must be joined
+             */
+            closeArray: boolean,
+            /**
+             * Defines if the last and first points of each path in your pathArray must be joined
+             */
+            closePath: boolean,
+            /**
+             * Defines the offset between points
+             */
+            offset: number, canBeRegenerated?: boolean, mesh?: Mesh,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -20899,15 +20746,15 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the zise of the box (width, height and depth are the same)
-         */
-        size: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the zise of the box (width, height and depth are the same)
+             */
+            size: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -20941,19 +20788,19 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the number of segments to use to create the sphere
-         */
-        segments: number, 
-        /**
-         * Defines the diameter of the sphere
-         */
-        diameter: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the number of segments to use to create the sphere
+             */
+            segments: number,
+            /**
+             * Defines the diameter of the sphere
+             */
+            diameter: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -20987,19 +20834,19 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the radius of the disc
-         */
-        radius: number, 
-        /**
-         * Defines the tesselation factor to apply to the disc
-         */
-        tessellation: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the radius of the disc
+             */
+            radius: number,
+            /**
+             * Defines the tesselation factor to apply to the disc
+             */
+            tessellation: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21046,31 +20893,31 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the height of the cylinder
-         */
-        height: number, 
-        /**
-         * Defines the diameter of the cylinder's top cap
-         */
-        diameterTop: number, 
-        /**
-         * Defines the diameter of the cylinder's bottom cap
-         */
-        diameterBottom: number, 
-        /**
-         * Defines the tessellation factor to apply to the cylinder
-         */
-        tessellation: number, 
-        /**
-         * Defines the number of subdivisions to apply to the cylinder (1 by default)
-         */
-        subdivisions?: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the height of the cylinder
+             */
+            height: number,
+            /**
+             * Defines the diameter of the cylinder's top cap
+             */
+            diameterTop: number,
+            /**
+             * Defines the diameter of the cylinder's bottom cap
+             */
+            diameterBottom: number,
+            /**
+             * Defines the tessellation factor to apply to the cylinder
+             */
+            tessellation: number,
+            /**
+             * Defines the number of subdivisions to apply to the cylinder (1 by default)
+             */
+            subdivisions?: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21109,23 +20956,23 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the diameter of the torus
-         */
-        diameter: number, 
-        /**
-         * Defines the thickness of the torus (ie. internal diameter)
-         */
-        thickness: number, 
-        /**
-         * Defines the tesselation factor to apply to the torus
-         */
-        tessellation: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the diameter of the torus
+             */
+            diameter: number,
+            /**
+             * Defines the thickness of the torus (ie. internal diameter)
+             */
+            thickness: number,
+            /**
+             * Defines the tesselation factor to apply to the torus
+             */
+            tessellation: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21159,19 +21006,19 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param canBeRegenerated defines if the geometry supports being regenerated with new parameters (false by default)
          * @param mesh defines the hosting mesh (can be null)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the width of the ground
-         */
-        width: number, 
-        /**
-         * Defines the height of the ground
-         */
-        height: number, 
-        /**
-         * Defines the subdivisions to apply to the ground
-         */
-        subdivisions: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the width of the ground
+             */
+            width: number,
+            /**
+             * Defines the height of the ground
+             */
+            height: number,
+            /**
+             * Defines the subdivisions to apply to the ground
+             */
+            subdivisions: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21226,37 +21073,37 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param canBeRegenerated defines if the geometry supports being regenerated with new parameters (false by default)
          * @param mesh defines the hosting mesh (can be null)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the minimum value on X axis
-         */
-        xmin: number, 
-        /**
-         * Defines the minimum value on Z axis
-         */
-        zmin: number, 
-        /**
-         * Defines the maximum value on X axis
-         */
-        xmax: number, 
-        /**
-         * Defines the maximum value on Z axis
-         */
-        zmax: number, 
-        /**
-         * Defines the subdivisions to apply to the ground
-         */
-        subdivisions: {
-            w: number;
-            h: number;
-        }, 
-        /**
-         * Defines the precision to use when computing the tiles
-         */
-        precision: {
-            w: number;
-            h: number;
-        }, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the minimum value on X axis
+             */
+            xmin: number,
+            /**
+             * Defines the minimum value on Z axis
+             */
+            zmin: number,
+            /**
+             * Defines the maximum value on X axis
+             */
+            xmax: number,
+            /**
+             * Defines the maximum value on Z axis
+             */
+            zmax: number,
+            /**
+             * Defines the subdivisions to apply to the ground
+             */
+            subdivisions: {
+                w: number;
+                h: number;
+            },
+            /**
+             * Defines the precision to use when computing the tiles
+             */
+            precision: {
+                w: number;
+                h: number;
+            }, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21283,15 +21130,15 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the size of the plane (width === height)
-         */
-        size: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the size of the plane (width === height)
+             */
+            size: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21345,35 +21192,35 @@ private static _ImportGeometry(parsedGeometry: any, mesh: Mesh): void;
          * @param mesh defines the hosting mesh (can be null)
          * @param side defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
          */
-        constructor(id: string, scene: Scene, 
-        /**
-         * Defines the radius of the torus knot
-         */
-        radius: number, 
-        /**
-         * Defines the thickness of the torus knot tube
-         */
-        tube: number, 
-        /**
-         * Defines the number of radial segments
-         */
-        radialSegments: number, 
-        /**
-         * Defines the number of tubular segments
-         */
-        tubularSegments: number, 
-        /**
-         * Defines the first number of windings
-         */
-        p: number, 
-        /**
-         * Defines the second number of windings
-         */
-        q: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>, 
-        /**
-         * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
-         */
-        side?: number);
+        constructor(id: string, scene: Scene,
+            /**
+             * Defines the radius of the torus knot
+             */
+            radius: number,
+            /**
+             * Defines the thickness of the torus knot tube
+             */
+            tube: number,
+            /**
+             * Defines the number of radial segments
+             */
+            radialSegments: number,
+            /**
+             * Defines the number of tubular segments
+             */
+            tubularSegments: number,
+            /**
+             * Defines the first number of windings
+             */
+            p: number,
+            /**
+             * Defines the second number of windings
+             */
+            q: number, canBeRegenerated?: boolean, mesh?: Nullable<Mesh>,
+            /**
+             * Defines if the created geometry is double sided or not (default is BABYLON.Mesh.DEFAULTSIDE)
+             */
+            side?: number);
         /** @hidden */
 
         copy(id: string): Geometry;
@@ -21602,7 +21449,7 @@ declare module BABYLON {
          * Returns an array of indices (IndicesArray).
          */
         getIndices(): Nullable<IndicesArray>;
-protected readonly _positions: Nullable<Vector3[]>;
+        protected readonly _positions: Nullable<Vector3[]>;
         /**
          * Sets a new updated BoundingInfo to the mesh.
          * @returns the mesh.
@@ -21684,15 +21531,15 @@ declare module BABYLON {
          * @param useVertexColor defines if this LinesMesh supports vertex color
          * @param useVertexAlpha defines if this LinesMesh supports vertex alpha
          */
-        constructor(name: string, scene?: Nullable<Scene>, parent?: Nullable<Node>, source?: LinesMesh, doNotCloneChildren?: boolean, 
-        /**
-         * If vertex color should be applied to the mesh
-         */
-        useVertexColor?: boolean | undefined, 
-        /**
-         * If vertex alpha should be applied to the mesh
-         */
-        useVertexAlpha?: boolean | undefined);
+        constructor(name: string, scene?: Nullable<Scene>, parent?: Nullable<Node>, source?: LinesMesh, doNotCloneChildren?: boolean,
+            /**
+             * If vertex color should be applied to the mesh
+             */
+            useVertexColor?: boolean | undefined,
+            /**
+             * If vertex alpha should be applied to the mesh
+             */
+            useVertexAlpha?: boolean | undefined);
         /**
          * Returns the string "LineMesh"
          */
@@ -22305,7 +22152,7 @@ declare module BABYLON {
          */
         bakeCurrentTransformIntoVertices(): Mesh;
         /** @hidden */
-protected readonly _positions: Nullable<Vector3[]>;
+        protected readonly _positions: Nullable<Vector3[]>;
         /** @hidden */
 
         /** @hidden */
@@ -24092,10 +23939,10 @@ declare module BABYLON {
          * @param mesh defines the mesh to use to render this level
          */
         constructor(
-        /** Defines the distance where this level should star being displayed */
-        distance: number, 
-        /** Defines the mesh to use to render this level */
-        mesh: Nullable<Mesh>);
+            /** Defines the distance where this level should star being displayed */
+            distance: number,
+            /** Defines the mesh to use to render this level */
+            mesh: Nullable<Mesh>);
     }
 }
 
@@ -24151,12 +23998,12 @@ declare module BABYLON {
          * @param optimizeMesh already optimized mesh
          */
         constructor(
-        /** expected quality */
-        quality: number, 
-        /** distance when this optimized version should be used */
-        distance: number, 
-        /** already optimized mesh  */
-        optimizeMesh?: boolean | undefined);
+            /** expected quality */
+            quality: number,
+            /** distance when this optimized version should be used */
+            distance: number,
+            /** already optimized mesh  */
+            optimizeMesh?: boolean | undefined);
     }
     /**
      * Interface used to define a simplification task
@@ -24447,16 +24294,16 @@ declare module BABYLON {
          * @param createBoundingBox defines if bounding box should be created for this submesh
          */
         constructor(
-        /** the material index to use */
-        materialIndex: number, 
-        /** vertex index start */
-        verticesStart: number, 
-        /** vertices count */
-        verticesCount: number, 
-        /** index start */
-        indexStart: number, 
-        /** indices count */
-        indexCount: number, mesh: AbstractMesh, renderingMesh?: Mesh, createBoundingBox?: boolean);
+            /** the material index to use */
+            materialIndex: number,
+            /** vertex index start */
+            verticesStart: number,
+            /** vertices count */
+            verticesCount: number,
+            /** index start */
+            indexStart: number,
+            /** indices count */
+            indexCount: number, mesh: AbstractMesh, renderingMesh?: Mesh, createBoundingBox?: boolean);
         /**
          * Returns true if this submesh covers the entire parent mesh
          * @ignorenaming
@@ -25420,18 +25267,18 @@ declare module BABYLON {
          * @param b defines the blue component (between 0 and 1, default is 0)
          */
         constructor(
-        /**
-         * Defines the red component (between 0 and 1, default is 0)
-         */
-        r?: number, 
-        /**
-         * Defines the green component (between 0 and 1, default is 0)
-         */
-        g?: number, 
-        /**
-         * Defines the blue component (between 0 and 1, default is 0)
-         */
-        b?: number);
+            /**
+             * Defines the red component (between 0 and 1, default is 0)
+             */
+            r?: number,
+            /**
+             * Defines the green component (between 0 and 1, default is 0)
+             */
+            g?: number,
+            /**
+             * Defines the blue component (between 0 and 1, default is 0)
+             */
+            b?: number);
         /**
          * Creates a string with the Color3 current values
          * @returns the string representation of the Color3 object
@@ -25726,22 +25573,22 @@ declare module BABYLON {
          * @param a defines the alpha component (between 0 and 1, default is 1)
          */
         constructor(
-        /**
-         * Defines the red component (between 0 and 1, default is 0)
-         */
-        r?: number, 
-        /**
-         * Defines the green component (between 0 and 1, default is 0)
-         */
-        g?: number, 
-        /**
-         * Defines the blue component (between 0 and 1, default is 0)
-         */
-        b?: number, 
-        /**
-         * Defines the alpha component (between 0 and 1, default is 1)
-         */
-        a?: number);
+            /**
+             * Defines the red component (between 0 and 1, default is 0)
+             */
+            r?: number,
+            /**
+             * Defines the green component (between 0 and 1, default is 0)
+             */
+            g?: number,
+            /**
+             * Defines the blue component (between 0 and 1, default is 0)
+             */
+            b?: number,
+            /**
+             * Defines the alpha component (between 0 and 1, default is 1)
+             */
+            a?: number);
         /**
          * Adds in place the given Color4 values to the current Color4 object
          * @param right defines the second operand
@@ -25959,10 +25806,10 @@ declare module BABYLON {
          * @param y defines the second coordinate
          */
         constructor(
-        /** defines the first coordinate */
-        x?: number, 
-        /** defines the second coordinate */
-        y?: number);
+            /** defines the first coordinate */
+            x?: number,
+            /** defines the second coordinate */
+            y?: number);
         /**
          * Gets a string with the Vector2 coordinates
          * @returns a string with the Vector2 coordinates
@@ -26341,18 +26188,18 @@ declare module BABYLON {
          * @param z defines the third coordinates (on Z axis)
          */
         constructor(
-        /**
-         * Defines the first coordinates (on X axis)
-         */
-        x?: number, 
-        /**
-         * Defines the second coordinates (on Y axis)
-         */
-        y?: number, 
-        /**
-         * Defines the third coordinates (on Z axis)
-         */
-        z?: number);
+            /**
+             * Defines the first coordinates (on X axis)
+             */
+            x?: number,
+            /**
+             * Defines the second coordinates (on Y axis)
+             */
+            y?: number,
+            /**
+             * Defines the third coordinates (on Z axis)
+             */
+            z?: number);
         /**
          * Creates a string representation of the Vector3
          * @returns a string with the Vector3 coordinates.
@@ -26992,14 +26839,14 @@ declare module BABYLON {
          * @param w w value of the vector
          */
         constructor(
-        /** x value of the vector */
-        x: number, 
-        /** y value of the vector */
-        y: number, 
-        /** z value of the vector */
-        z: number, 
-        /** w value of the vector */
-        w: number);
+            /** x value of the vector */
+            x: number,
+            /** y value of the vector */
+            y: number,
+            /** z value of the vector */
+            z: number,
+            /** w value of the vector */
+            w: number);
         /**
          * Returns the string with the Vector4 coordinates.
          * @returns a string containing all the vector values
@@ -27508,14 +27355,14 @@ declare module BABYLON {
          * @param w defines the fourth component (1.0 by default)
          */
         constructor(
-        /** defines the first component (0 by default) */
-        x?: number, 
-        /** defines the second component (0 by default) */
-        y?: number, 
-        /** defines the third component (0 by default) */
-        z?: number, 
-        /** defines the fourth component (1.0 by default) */
-        w?: number);
+            /** defines the first component (0 by default) */
+            x?: number,
+            /** defines the second component (0 by default) */
+            y?: number,
+            /** defines the third component (0 by default) */
+            z?: number,
+            /** defines the fourth component (1.0 by default) */
+            w?: number);
         /**
          * Gets a string representation for the current quaternion
          * @returns a string with the Quaternion coordinates
@@ -28664,14 +28511,14 @@ declare module BABYLON {
          * @param height defines the viewport height
          */
         constructor(
-        /** viewport left coordinate */
-        x: number, 
-        /** viewport top coordinate */
-        y: number, 
-        /**viewport width */
-        width: number, 
-        /** viewport height */
-        height: number);
+            /** viewport left coordinate */
+            x: number,
+            /** viewport top coordinate */
+            y: number,
+            /**viewport width */
+            width: number,
+            /** viewport height */
+            height: number);
         /**
          * Creates a new viewport using absolute sizing (from 0-> width, 0-> height instead of 0->1)
          * @param renderWidthOrEngine defines either an engine or the rendering width
@@ -28856,12 +28703,12 @@ declare module BABYLON {
          * @param endPoint Defines the end point of the arc
          */
         constructor(
-        /** Defines the start point of the arc */
-        startPoint: Vector2, 
-        /** Defines the mid point of the arc */
-        midPoint: Vector2, 
-        /** Defines the end point of the arc */
-        endPoint: Vector2);
+            /** Defines the start point of the arc */
+            startPoint: Vector2,
+            /** Defines the mid point of the arc */
+            midPoint: Vector2,
+            /** Defines the end point of the arc */
+            endPoint: Vector2);
     }
     /**
      * Represents a 2D path made up of multiple 2D points
@@ -28948,10 +28795,10 @@ declare module BABYLON {
         * @param raw (optional, default false) : boolean, if true the returned Path3D isn't normalized. Useful to depict path acceleration or speed.
         */
         constructor(
-        /**
-         * an array of Vector3, the curve axis of the Path3D
-         */
-        path: Vector3[], firstNormal?: Nullable<Vector3>, raw?: boolean);
+            /**
+             * an array of Vector3, the curve axis of the Path3D
+             */
+            path: Vector3[], firstNormal?: Nullable<Vector3>, raw?: boolean);
         /**
          * Returns the Path3D array of successive Vector3 designing its curve.
          * @returns the Path3D array of successive Vector3 designing its curve.
@@ -29073,10 +28920,10 @@ declare module BABYLON {
          * @param normal the normal of the vertex (defaut: 0,1,0)
          */
         constructor(
-        /** the position of the vertex (defaut: 0,0,0) */
-        position?: Vector3, 
-        /** the normal of the vertex (defaut: 0,1,0) */
-        normal?: Vector3);
+            /** the position of the vertex (defaut: 0,0,0) */
+            position?: Vector3,
+            /** the normal of the vertex (defaut: 0,1,0) */
+            normal?: Vector3);
         /**
          * Clones the PositionNormalVertex
          * @returns the cloned PositionNormalVertex
@@ -29100,12 +28947,12 @@ declare module BABYLON {
          * @param uv the uv of the vertex (default: 0,0)
          */
         constructor(
-        /** the position of the vertex (defaut: 0,0,0) */
-        position?: Vector3, 
-        /** the normal of the vertex (defaut: 0,1,0) */
-        normal?: Vector3, 
-        /** the uv of the vertex (default: 0,0) */
-        uv?: Vector2);
+            /** the position of the vertex (defaut: 0,0,0) */
+            position?: Vector3,
+            /** the normal of the vertex (defaut: 0,1,0) */
+            normal?: Vector3,
+            /** the uv of the vertex (default: 0,0) */
+            uv?: Vector2);
         /**
          * Clones the PositionNormalTextureVertex
          * @returns the cloned PositionNormalTextureVertex
@@ -29317,8 +29164,8 @@ declare module BABYLON {
          * @param influence defines the influence to use
          */
         constructor(
-        /** defines the name of the target */
-        name: string, influence?: number, scene?: Nullable<Scene>);
+            /** defines the name of the target */
+            name: string, influence?: number, scene?: Nullable<Scene>);
         /**
          * Gets a boolean defining if the target contains position data
          */
@@ -30966,10 +30813,10 @@ declare module BABYLON {
          * @param particleSystem the particle system the particle belongs to
          */
         constructor(
-        /**
-         * The particle system the particle belongs to.
-         */
-        particleSystem: ParticleSystem);
+            /**
+             * The particle system the particle belongs to.
+             */
+            particleSystem: ParticleSystem);
         private updateCellInfoFromSystem;
         /**
          * Defines how the sprite cell index is updated for the particle
@@ -31381,9 +31228,9 @@ declare module BABYLON {
         private _emitFromParticle;
         private _update;
         /** @hidden */
-private static _GetAttributeNamesOrOptions(isAnimationSheetEnabled?: boolean, isBillboardBased?: boolean, useRampGradients?: boolean): string[];
+        private static _GetAttributeNamesOrOptions(isAnimationSheetEnabled?: boolean, isBillboardBased?: boolean, useRampGradients?: boolean): string[];
         /** @hidden */
-private static _GetEffectCreationOptions(isAnimationSheetEnabled?: boolean): string[];
+        private static _GetEffectCreationOptions(isAnimationSheetEnabled?: boolean): string[];
         /** @hidden */
         private _getEffect;
         /**
@@ -31425,9 +31272,9 @@ private static _GetEffectCreationOptions(isAnimationSheetEnabled?: boolean): str
          */
         serialize(): any;
         /** @hidden */
-private static _Serialize(serializationObject: any, particleSystem: IParticleSystem): void;
+        private static _Serialize(serializationObject: any, particleSystem: IParticleSystem): void;
         /** @hidden */
-private static _Parse(parsedParticleSystem: any, particleSystem: IParticleSystem, scene: Scene, rootUrl: string): void;
+        private static _Parse(parsedParticleSystem: any, particleSystem: IParticleSystem, scene: Scene, rootUrl: string): void;
         /**
          * Parses a JSON object to create a particle system.
          * @param parsedParticleSystem The JSON object to parse
@@ -32124,10 +31971,10 @@ declare module BABYLON {
          * @param particleSystem the particle system to be used by the sub emitter
          */
         constructor(
-        /**
-         * the particle system to be used by the sub emitter
-         */
-        particleSystem: ParticleSystem);
+            /**
+             * the particle system to be used by the sub emitter
+             */
+            particleSystem: ParticleSystem);
         /**
          * Clones the sub emitter
          * @returns the cloned sub emitter
@@ -33035,14 +32882,14 @@ declare module BABYLON {
          * @param _scene The Babylon scene
          */
         constructor(
-        /**
-         * The physics-enabled object used as the physics imposter
-         */
-        object: IPhysicsEnabledObject, 
-        /**
-         * The type of the physics imposter
-         */
-        type: number, _options?: PhysicsImpostorParameters, _scene?: Scene | undefined);
+            /**
+             * The physics-enabled object used as the physics imposter
+             */
+            object: IPhysicsEnabledObject,
+            /**
+             * The type of the physics imposter
+             */
+            type: number, _options?: PhysicsImpostorParameters, _scene?: Scene | undefined);
         /**
          * This function will completly initialize this impostor.
          * It will create a new body - but only if this mesh has no parent.
@@ -33373,14 +33220,14 @@ declare module BABYLON {
          * @param jointData The data for the physics joint
          */
         constructor(
-        /**
-         * The type of the physics joint
-         */
-        type: number, 
-        /**
-         * The data for the physics joint
-         */
-        jointData: PhysicsJointData);
+            /**
+             * The type of the physics joint
+             */
+            type: number,
+            /**
+             * The data for the physics joint
+             */
+            jointData: PhysicsJointData);
         /**
          * Gets the physics joint
          */
@@ -33629,8 +33476,8 @@ declare module BABYLON {
          * @param useFloat defines if HDR data (flaot data) should be used to store colors (false by default)
          */
         constructor(
-        /** defines the name of the probe */
-        name: string, size: number, scene: Scene, generateMipMaps?: boolean, useFloat?: boolean);
+            /** defines the name of the probe */
+            name: string, size: number, scene: Scene, generateMipMaps?: boolean, useFloat?: boolean);
         /** Gets or sets the number of samples to use for multi-sampling (0 by default). Required WebGL2 */
         samples: number;
         /** Gets or sets the refresh rate to use (on every frame by default) */
@@ -34508,8 +34355,8 @@ declare module BABYLON {
          * @param originalScene the original scene that will be rendered on top of
          */
         constructor(
-        /** the original scene that will be rendered on top of */
-        originalScene: Scene);
+            /** the original scene that will be rendered on top of */
+            originalScene: Scene);
         private _notifyObservers;
         /**
          * Renders the utility layers scene on top of the original scene
@@ -34643,9 +34490,9 @@ declare module BABYLON {
          * @param textureType Type of textures used when performing the post process. (default: 0)
          * @param blockCompilation If compilation of the shader should not be done in the constructor. The updateEffect method can be used to compile the shader at a later time. (default: false)
          */
-        constructor(name: string, originalFromInput: PostProcess, blurred: PostProcess, 
-        /** Weight of the bloom to be added to the original input. */
-        weight: number, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, textureType?: number, blockCompilation?: boolean);
+        constructor(name: string, originalFromInput: PostProcess, blurred: PostProcess,
+            /** Weight of the bloom to be added to the original input. */
+            weight: number, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, textureType?: number, blockCompilation?: boolean);
     }
 }
 
@@ -34689,9 +34536,9 @@ declare module BABYLON {
          * @param textureType Type of textures used when performing the post process. (default: 0)
          * @param blockCompilation If compilation of the shader should not be done in the constructor. The updateEffect method can be used to compile the shader at a later time. (default: false)
          */
-        constructor(name: string, 
-        /** The direction in which to blur the image. */
-        direction: Vector2, kernel: number, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, textureType?: number, defines?: string, blockCompilation?: boolean);
+        constructor(name: string,
+            /** The direction in which to blur the image. */
+            direction: Vector2, kernel: number, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, textureType?: number, defines?: string, blockCompilation?: boolean);
         /**
          * Updates the effect with the current post process compile time values and recompiles the shader.
          * @param defines Define statements that should be added at the beginning of the shader. (default: null)
@@ -34851,9 +34698,9 @@ declare module BABYLON {
          * @param reusable If the post process can be reused on the same frame. (default: false)
          * @param textureType Type of textures used when performing the post process. (default: 0)
          */
-        constructor(name: string, 
-        /** Array of 9 values corrisponding to the 3x3 kernel to be applied */
-        kernel: number[], options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, textureType?: number);
+        constructor(name: string,
+            /** Array of 9 values corrisponding to the 3x3 kernel to be applied */
+            kernel: number[], options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, textureType?: number);
         /**
          * Edge detection 0 see https://en.wikipedia.org/wiki/Kernel_(image_processing)
          */
@@ -35101,9 +34948,9 @@ declare module BABYLON {
          * @param engine The engine which the post process will be applied. (default: current engine)
          * @param reusable If the post process can be reused on the same frame. (default: false)
          */
-        constructor(name: string, 
-        /** The matrix to be applied to the image */
-        kernelMatrix: Matrix, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean);
+        constructor(name: string,
+            /** The matrix to be applied to the image */
+            kernelMatrix: Matrix, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean);
     }
 }
 
@@ -35540,8 +35387,8 @@ declare module BABYLON {
          * @param blockCompilation If the shader should not be compiled imediatly. (default: false)
          */
         constructor(
-        /** Name of the PostProcess. */
-        name: string, fragmentUrl: string, parameters: Nullable<string[]>, samplers: Nullable<string[]>, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, defines?: Nullable<string>, textureType?: number, vertexUrl?: string, indexParameters?: any, blockCompilation?: boolean);
+            /** Name of the PostProcess. */
+            name: string, fragmentUrl: string, parameters: Nullable<string[]>, samplers: Nullable<string[]>, options: number | PostProcessOptions, camera: Nullable<Camera>, samplingMode?: number, engine?: Engine, reusable?: boolean, defines?: Nullable<string>, textureType?: number, vertexUrl?: string, indexParameters?: any, blockCompilation?: boolean);
         /**
          * Gets the engine which this post process belongs to.
          * @returns The engine the post process was enabled with.
@@ -35704,13 +35551,13 @@ declare module BABYLON {
          * @param engine The engine which the post process will be applied. (default: current engine)
          * @param reusable If the post process can be reused on the same frame. (default: false)
          */
-        constructor(name: string, refractionTextureUrl: string, 
-        /** the base color of the refraction (used to taint the rendering) */
-        color: Color3, 
-        /** simulated refraction depth */
-        depth: number, 
-        /** the coefficient of the base color (0 to remove base color tainting) */
-        colorLevel: number, options: number | PostProcessOptions, camera: Camera, samplingMode?: number, engine?: Engine, reusable?: boolean);
+        constructor(name: string, refractionTextureUrl: string,
+            /** the base color of the refraction (used to taint the rendering) */
+            color: Color3,
+            /** simulated refraction depth */
+            depth: number,
+            /** the coefficient of the base color (0 to remove base color tainting) */
+            colorLevel: number, options: number | PostProcessOptions, camera: Camera, samplingMode?: number, engine?: Engine, reusable?: boolean);
         /**
          * Disposes of the post process
          * @param camera Camera to dispose post process on
@@ -35797,9 +35644,9 @@ declare module BABYLON {
          * @param engine defines the hosting engine (can be ignore if camera is set)
          * @param textureFormat defines the texture format to use (BABYLON.Engine.TEXTURETYPE_UNSIGNED_INT by default)
          */
-        constructor(name: string, _operator: TonemappingOperator, 
-        /** Defines the required exposure adjustement */
-        exposureAdjustment: number, camera: Camera, samplingMode?: number, engine?: Engine, textureFormat?: number);
+        constructor(name: string, _operator: TonemappingOperator,
+            /** Defines the required exposure adjustement */
+            exposureAdjustment: number, camera: Camera, samplingMode?: number, engine?: Engine, textureFormat?: number);
     }
 }
 
@@ -35991,8 +35838,8 @@ declare module BABYLON {
          * @param manager defines the manager
          */
         constructor(
-        /** defines the name */
-        name: string, manager: ISpriteManager);
+            /** defines the name */
+            name: string, manager: ISpriteManager);
         /**
          * Starts an animation
          * @param from defines the initial key
@@ -36103,8 +35950,8 @@ declare module BABYLON {
          * @param samplingMode defines the smapling mode to use with spritesheet
          */
         constructor(
-        /** defines the manager's name */
-        name: string, imgUrl: string, capacity: number, cellSize: any, scene: Scene, epsilon?: number, samplingMode?: number);
+            /** defines the manager's name */
+            name: string, imgUrl: string, capacity: number, cellSize: any, scene: Scene, epsilon?: number, samplingMode?: number);
         private _appendSpriteVertex;
         /**
          * Intersects the sprites with a ray
@@ -36510,22 +36357,22 @@ declare module BABYLON {
          * @param sceneFilename defines the filename of the scene to load from
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the list of mesh's names you want to load
-         */
-        meshesNames: any, 
-        /**
-         * Defines the root url to use as a base to load your meshes and associated resources
-         */
-        rootUrl: string, 
-        /**
-         * Defines the filename of the scene to load from
-         */
-        sceneFilename: string);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the list of mesh's names you want to load
+             */
+            meshesNames: any,
+            /**
+             * Defines the root url to use as a base to load your meshes and associated resources
+             */
+            rootUrl: string,
+            /**
+             * Defines the filename of the scene to load from
+             */
+            sceneFilename: string);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -36564,14 +36411,14 @@ declare module BABYLON {
          * @param url defines the location of the file to load
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the location of the file to load
-         */
-        url: string);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the location of the file to load
+             */
+            url: string);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -36610,14 +36457,14 @@ declare module BABYLON {
          * @param url defines the location of the file to load
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the location of the file to load
-         */
-        url: string);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the location of the file to load
+             */
+            url: string);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -36656,14 +36503,14 @@ declare module BABYLON {
          * @param url defines the location of the image to load
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the location of the image to load
-         */
-        url: string);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the location of the image to load
+             */
+            url: string);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -36726,26 +36573,26 @@ declare module BABYLON {
          * @param samplingMode defines the sampling mode to use (default is BABYLON.Texture.TRILINEAR_SAMPLINGMODE)
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the location of the file to load
-         */
-        url: string, 
-        /**
-         * Defines if mipmap should not be generated (default is false)
-         */
-        noMipmap?: boolean | undefined, 
-        /**
-         * Defines if texture must be inverted on Y axis (default is false)
-         */
-        invertY?: boolean | undefined, 
-        /**
-         * Defines the sampling mode to use (default is BABYLON.Texture.TRILINEAR_SAMPLINGMODE)
-         */
-        samplingMode?: number);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the location of the file to load
+             */
+            url: string,
+            /**
+             * Defines if mipmap should not be generated (default is false)
+             */
+            noMipmap?: boolean | undefined,
+            /**
+             * Defines if texture must be inverted on Y axis (default is false)
+             */
+            invertY?: boolean | undefined,
+            /**
+             * Defines the sampling mode to use (default is BABYLON.Texture.TRILINEAR_SAMPLINGMODE)
+             */
+            samplingMode?: number);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -36799,26 +36646,26 @@ declare module BABYLON {
          * @param files defines the explicit list of files (undefined by default)
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the location of the files to load (You have to specify the folder where the files are + filename with no extension)
-         */
-        url: string, 
-        /**
-         * Defines the extensions to use to load files (["_px", "_py", "_pz", "_nx", "_ny", "_nz"] by default)
-         */
-        extensions?: string[] | undefined, 
-        /**
-         * Defines if mipmaps should not be generated (default is false)
-         */
-        noMipmap?: boolean | undefined, 
-        /**
-         * Defines the explicit list of files (undefined by default)
-         */
-        files?: string[] | undefined);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the location of the files to load (You have to specify the folder where the files are + filename with no extension)
+             */
+            url: string,
+            /**
+             * Defines the extensions to use to load files (["_px", "_py", "_pz", "_nx", "_ny", "_nz"] by default)
+             */
+            extensions?: string[] | undefined,
+            /**
+             * Defines if mipmaps should not be generated (default is false)
+             */
+            noMipmap?: boolean | undefined,
+            /**
+             * Defines the explicit list of files (undefined by default)
+             */
+            files?: string[] | undefined);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -36882,34 +36729,34 @@ declare module BABYLON {
          * @param reserved Internal use only
          */
         constructor(
-        /**
-         * Defines the name of the task
-         */
-        name: string, 
-        /**
-         * Defines the location of the file to load
-         */
-        url: string, 
-        /**
-         * Defines the desired size (the more it increases the longer the generation will be)
-         */
-        size: number, 
-        /**
-         * Defines if mipmaps should not be generated (default is false)
-         */
-        noMipmap?: boolean, 
-        /**
-         * Specifies whether you want to extract the polynomial harmonics during the generation process (default is true)
-         */
-        generateHarmonics?: boolean, 
-        /**
-         * Specifies if the texture will be use in gamma or linear space (the PBR material requires those texture in linear space, but the standard material would require them in Gamma space) (default is false)
-         */
-        gammaSpace?: boolean, 
-        /**
-         * Internal Use Only
-         */
-        reserved?: boolean);
+            /**
+             * Defines the name of the task
+             */
+            name: string,
+            /**
+             * Defines the location of the file to load
+             */
+            url: string,
+            /**
+             * Defines the desired size (the more it increases the longer the generation will be)
+             */
+            size: number,
+            /**
+             * Defines if mipmaps should not be generated (default is false)
+             */
+            noMipmap?: boolean,
+            /**
+             * Specifies whether you want to extract the polynomial harmonics during the generation process (default is true)
+             */
+            generateHarmonics?: boolean,
+            /**
+             * Specifies if the texture will be use in gamma or linear space (the PBR material requires those texture in linear space, but the standard material would require them in Gamma space) (default is false)
+             */
+            gammaSpace?: boolean,
+            /**
+             * Internal Use Only
+             */
+            reserved?: boolean);
         /**
          * Execute the current task
          * @param scene defines the scene where you want your assets to be loaded
@@ -37510,8 +37357,8 @@ declare module BABYLON {
          * @param textureArrayExpected provision for indicating that data should be a texture array, not implemented
          */
         constructor(
-        /** contents of the KTX container file */
-        arrayBuffer: any, facesExpected: number, threeDExpected?: boolean, textureArrayExpected?: boolean);
+            /** contents of the KTX container file */
+            arrayBuffer: any, facesExpected: number, threeDExpected?: boolean, textureArrayExpected?: boolean);
         /**
          * Revert the endianness of a value.
          * Not as fast hardware based, but will probably never need to use
@@ -37602,18 +37449,18 @@ declare module BABYLON {
          * @param scope defines the current scope used to restore the JS context
          */
         constructor(
-        /**
-         * Defines the callback to call when the observer is notified
-         */
-        callback: (eventData: T, eventState: EventState) => void, 
-        /**
-         * Defines the mask of the observer (used to filter notifications)
-         */
-        mask: number, 
-        /**
-         * Defines the current scope used to restore the JS context
-         */
-        scope?: any);
+            /**
+             * Defines the callback to call when the observer is notified
+             */
+            callback: (eventData: T, eventState: EventState) => void,
+            /**
+             * Defines the mask of the observer (used to filter notifications)
+             */
+            mask: number,
+            /**
+             * Defines the current scope used to restore the JS context
+             */
+            scope?: any);
     }
     /**
      * Represent a list of observers registered to multiple Observables object.
@@ -37891,10 +37738,10 @@ declare module BABYLON {
          * @param desc defines the description associated with the optimization
          */
         constructor(
-        /**
-         * Defines the priority of this optimization (0 by default which means first in the list)
-         */
-        priority?: number);
+            /**
+             * Defines the priority of this optimization (0 by default which means first in the list)
+             */
+            priority?: number);
     }
     /**
      * Defines an optimization used to reduce the size of render target textures
@@ -37925,18 +37772,18 @@ declare module BABYLON {
          * @param step defines the factor (0.5 by default) used to scale down textures bigger than maximum sized allowed.
          */
         constructor(
-        /**
-         * Defines the priority of this optimization (0 by default which means first in the list)
-         */
-        priority?: number, 
-        /**
-         * Defines the maximum sized allowed for textures (1024 is the default value). If a texture is bigger, it will be scaled down using a factor defined by the step parameter
-         */
-        maximumSize?: number, 
-        /**
-         * Defines the factor (0.5 by default) used to scale down textures bigger than maximum sized allowed.
-         */
-        step?: number);
+            /**
+             * Defines the priority of this optimization (0 by default which means first in the list)
+             */
+            priority?: number,
+            /**
+             * Defines the maximum sized allowed for textures (1024 is the default value). If a texture is bigger, it will be scaled down using a factor defined by the step parameter
+             */
+            maximumSize?: number,
+            /**
+             * Defines the factor (0.5 by default) used to scale down textures bigger than maximum sized allowed.
+             */
+            step?: number);
         /**
          * This function will be called by the SceneOptimizer when its priority is reached in order to apply the change required by the current optimization
          * @param scene defines the current scene where to apply this optimization
@@ -37976,18 +37823,18 @@ declare module BABYLON {
          * @param step defines the step to use between two passes (0.5 by default)
          */
         constructor(
-        /**
-         * Defines the priority of this optimization (0 by default which means first in the list)
-         */
-        priority?: number, 
-        /**
-         * Defines the maximum scale to use (2 by default)
-         */
-        maximumScale?: number, 
-        /**
-         * Defines the step to use between two passes (0.5 by default)
-         */
-        step?: number);
+            /**
+             * Defines the priority of this optimization (0 by default which means first in the list)
+             */
+            priority?: number,
+            /**
+             * Defines the maximum scale to use (2 by default)
+             */
+            maximumScale?: number,
+            /**
+             * Defines the step to use between two passes (0.5 by default)
+             */
+            step?: number);
         /**
          * This function will be called by the SceneOptimizer when its priority is reached in order to apply the change required by the current optimization
          * @param scene defines the current scene where to apply this optimization
@@ -38163,14 +38010,14 @@ declare module BABYLON {
          * @param trackerDuration defines the interval between two checkes (2000ms by default)
          */
         constructor(
-        /**
-         * Defines the target frame rate to reach (60 by default)
-         */
-        targetFrameRate?: number, 
-        /**
-         * Defines the interval between two checkes (2000ms by default)
-         */
-        trackerDuration?: number);
+            /**
+             * Defines the target frame rate to reach (60 by default)
+             */
+            targetFrameRate?: number,
+            /**
+             * Defines the interval between two checkes (2000ms by default)
+             */
+            trackerDuration?: number);
         /**
          * Add a new optimization
          * @param optimization defines the SceneOptimization to add to the list of active optimizations
@@ -38563,7 +38410,7 @@ declare module BABYLON {
         /**
          * @hidden
          */
-private static _AddTagTo(obj: any, tag: string): void;
+        private static _AddTagTo(obj: any, tag: string): void;
         /**
          * Removes specific tags from a specific object
          * @param obj defines the object to use
@@ -38573,7 +38420,7 @@ private static _AddTagTo(obj: any, tag: string): void;
         /**
          * @hidden
          */
-private static _RemoveTagFrom(obj: any, tag: string): void;
+        private static _RemoveTagFrom(obj: any, tag: string): void;
         /**
          * Defines if tags hosted on an object match a given query
          * @param obj defines the object to use
@@ -38639,17 +38486,17 @@ declare module BABYLON {
          */
         static UploadContent(texture: InternalTexture, data: Uint8Array): void;
         /** @hidden */
-private static _getImageData8bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
+        private static _getImageData8bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
         /** @hidden */
-private static _getImageData16bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
+        private static _getImageData16bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
         /** @hidden */
-private static _getImageData24bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
+        private static _getImageData24bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
         /** @hidden */
-private static _getImageData32bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
+        private static _getImageData32bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
         /** @hidden */
-private static _getImageDataGrey8bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
+        private static _getImageDataGrey8bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
         /** @hidden */
-private static _getImageDataGrey16bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
+        private static _getImageDataGrey16bits(header: any, palettes: Uint8Array, pixel_data: Uint8Array, y_start: number, y_step: number, y_end: number, x_start: number, x_step: number, x_end: number): Uint8Array;
     }
 }
 
@@ -38736,9 +38583,9 @@ declare module BABYLON {
          * @param message defines the message of the error
          * @param request defines the optional XHR request
          */
-        constructor(message: string, 
-        /** defines the optional XHR request */
-        request?: XMLHttpRequest | undefined);
+        constructor(message: string,
+            /** defines the optional XHR request */
+            request?: XMLHttpRequest | undefined);
     }
     /**
      * Class used to define a retry strategy when error happens while loading assets
@@ -39429,10 +39276,10 @@ declare module BABYLON {
          * @param offset starting offset.
          */
         constructor(
-        /**
-         * Defines the number of iterations for the loop
-         */
-        iterations: number, func: (asyncLoop: AsyncLoop) => void, successCallback: () => void, offset?: number);
+            /**
+             * Defines the number of iterations for the loop
+             */
+            iterations: number, func: (asyncLoop: AsyncLoop) => void, successCallback: () => void, offset?: number);
         /**
          * Execute the next iteration. Must be called after the last iteration was finished.
          */
@@ -39502,7 +39349,7 @@ interface MediaRecorderConstructor {
      * @param stream Defines the stream to record.
      * @param options Defines the options for the recorder available in the type MediaRecorderOptions.
      */
-    new (stream: MediaStream, options?: MediaRecorderOptions): MediaRecorder;
+    new(stream: MediaStream, options?: MediaRecorderOptions): MediaRecorder;
 }
 /**
  * MediaRecoreder object available in some browsers.
@@ -40934,10 +40781,10 @@ declare module BABYLON {
          * @param touchEnabled Defines if touch is enabled or not
          */
         constructor(
-        /**
-         * Define if touch is enabled in the mouse input
-         */
-        touchEnabled?: boolean);
+            /**
+             * Define if touch is enabled in the mouse input
+             */
+            touchEnabled?: boolean);
         /**
          * Attach the input controls to a specific dom element to get the input from.
          * @param element Defines the element the controls should be listened from
@@ -41440,9 +41287,9 @@ declare module BABYLON {
          * @param scene The scene the VRExperienceHelper belongs to.
          * @param webVROptions Options to modify the vr experience helper's behavior.
          */
-        constructor(scene: Scene, 
-        /** Options to modify the vr experience helper's behavior. */
-        webVROptions?: VRExperienceHelperOptions);
+        constructor(scene: Scene,
+            /** Options to modify the vr experience helper's behavior. */
+            webVROptions?: VRExperienceHelperOptions);
         private _onDefaultMeshLoaded;
         private _onResize;
         private _onFullscreenChange;
@@ -42066,9 +41913,9 @@ declare module BABYLON {
          * @param maxBlockCapacity defines the maximum number of meshes you want on your octree's leaves (default: 64)
          * @param maxDepth defines the maximum depth (sub-levels) for your octree. Default value is 2, which means 8 8 8 = 512 blocks :) (This parameter takes precedence over capacity.)
          */
-        constructor(creationFunc: (entry: T, block: OctreeBlock<T>) => void, maxBlockCapacity?: number, 
-        /** Defines the maximum depth (sub-levels) for your octree. Default value is 2, which means 8 8 8 = 512 blocks :) (This parameter takes precedence over capacity.) */
-        maxDepth?: number);
+        constructor(creationFunc: (entry: T, block: OctreeBlock<T>) => void, maxBlockCapacity?: number,
+            /** Defines the maximum depth (sub-levels) for your octree. Default value is 2, which means 8 8 8 = 512 blocks :) (This parameter takes precedence over capacity.) */
+            maxDepth?: number);
         /**
          * Updates the octree by adding blocks for the passed in meshes within the min and max world parameters
          * @param worldMin worldMin for the octree blocks var blockSize = new Vector3((worldMax.x - worldMin.x) / 2, (worldMax.y - worldMin.y) / 2, (worldMax.z - worldMin.z) / 2);
@@ -42105,7 +41952,7 @@ declare module BABYLON {
         /**
          * @hidden
          */
-private static _CreateBlocks<T>(worldMin: Vector3, worldMax: Vector3, entries: T[], maxBlockCapacity: number, currentDepth: number, maxDepth: number, target: IOctreeContainer<T>, creationFunc: (entry: T, block: OctreeBlock<T>) => void): void;
+        private static _CreateBlocks<T>(worldMin: Vector3, worldMax: Vector3, entries: T[], maxBlockCapacity: number, currentDepth: number, maxDepth: number, target: IOctreeContainer<T>, creationFunc: (entry: T, block: OctreeBlock<T>) => void): void;
         /**
          * Adds a mesh into the octree block if it intersects the block
          */
@@ -45314,11 +45161,11 @@ declare module BABYLON {
          */
         sphericalPolynomial: Nullable<SphericalPolynomial>;
         /** @hidden */
-protected readonly _lodTextureHigh: Nullable<BaseTexture>;
+        protected readonly _lodTextureHigh: Nullable<BaseTexture>;
         /** @hidden */
-protected readonly _lodTextureMid: Nullable<BaseTexture>;
+        protected readonly _lodTextureMid: Nullable<BaseTexture>;
         /** @hidden */
-protected readonly _lodTextureLow: Nullable<BaseTexture>;
+        protected readonly _lodTextureLow: Nullable<BaseTexture>;
         /**
          * Dispose the texture and release its associated resources.
          */
@@ -45445,7 +45292,7 @@ declare module BABYLON {
         private _format;
         private _createPolynomials;
         /** @hidden */
-protected readonly _prefiltered: boolean;
+        protected readonly _prefiltered: boolean;
         /**
          * Creates a cube texture from an array of image urls
          * @param files defines an array of image urls
@@ -46255,7 +46102,7 @@ declare module BABYLON {
          */
         clone(): CubeTexture;
         /** @hidden */
-private static _UpdateRGBDAsync(internalTexture: InternalTexture, data: ArrayBufferView[][], sphericalPolynomial: Nullable<SphericalPolynomial>, lodScale: number, lodOffset: number): Promise<void>;
+        private static _UpdateRGBDAsync(internalTexture: InternalTexture, data: ArrayBufferView[][], sphericalPolynomial: Nullable<SphericalPolynomial>, lodScale: number, lodOffset: number): Promise<void>;
     }
 }
 
@@ -46286,11 +46133,11 @@ declare module BABYLON {
          * @param samplingMode define the texture sampling mode (Texture.xxx_SAMPLINGMODE)
          * @param type define the format of the data (int, float... Engine.TEXTURETYPE_xxx)
          */
-        constructor(data: ArrayBufferView, width: number, height: number, 
-        /**
-         * Define the format of the data (RGB, RGBA... Engine.TEXTUREFORMAT_xxx)
-         */
-        format: number, scene: Scene, generateMipMaps?: boolean, invertY?: boolean, samplingMode?: number, type?: number);
+        constructor(data: ArrayBufferView, width: number, height: number,
+            /**
+             * Define the format of the data (RGB, RGBA... Engine.TEXTUREFORMAT_xxx)
+             */
+            format: number, scene: Scene, generateMipMaps?: boolean, invertY?: boolean, samplingMode?: number, type?: number);
         /**
          * Updates the texture underlying data.
          * @param data Define the new data of the texture
@@ -46395,9 +46242,9 @@ declare module BABYLON {
          * @param samplingMode defines the sampling mode to use (BABYLON.Texture.TRILINEAR_SAMPLINGMODE by default)
          * @param textureType defines the texture Type (Engine.TEXTURETYPE_UNSIGNED_INT, Engine.TEXTURETYPE_FLOAT...)
          */
-        constructor(data: ArrayBufferView, width: number, height: number, depth: number, 
-        /** Gets or sets the texture format to use */
-        format: number, scene: Scene, generateMipMaps?: boolean, invertY?: boolean, samplingMode?: number, textureType?: number);
+        constructor(data: ArrayBufferView, width: number, height: number, depth: number,
+            /** Gets or sets the texture format to use */
+            format: number, scene: Scene, generateMipMaps?: boolean, invertY?: boolean, samplingMode?: number, textureType?: number);
         /**
          * Update the texture with new data
          * @param data defines the data to store in the texture
@@ -47361,9 +47208,9 @@ declare module BABYLON {
          * @param angles the cone base angle (PI by default)
          * @param directionRandomizer defines how much to randomize the particle direction [0-1] (default is 0)
          */
-        constructor(radius?: number, angle?: number, 
-        /** defines how much to randomize the particle direction [0-1] (default is 0) */
-        directionRandomizer?: number);
+        constructor(radius?: number, angle?: number,
+            /** defines how much to randomize the particle direction [0-1] (default is 0) */
+            directionRandomizer?: number);
         /**
          * Called by the particle System when the direction is computed for the created particle.
          * @param worldMatrix is the world matrix of the particle system
@@ -47441,22 +47288,22 @@ declare module BABYLON {
         * @param directionRandomizer defines how much to randomize the particle direction [0-1]
         */
         constructor(
-        /**
-         * The radius of the emission cylinder.
-         */
-        radius?: number, 
-        /**
-         * The height of the emission cylinder.
-         */
-        height?: number, 
-        /**
-         * The range of emission [0-1] 0 Surface only, 1 Entire Radius.
-         */
-        radiusRange?: number, 
-        /**
-         * How much to randomize the particle direction [0-1].
-         */
-        directionRandomizer?: number);
+            /**
+             * The radius of the emission cylinder.
+             */
+            radius?: number,
+            /**
+             * The height of the emission cylinder.
+             */
+            height?: number,
+            /**
+             * The range of emission [0-1] 0 Surface only, 1 Entire Radius.
+             */
+            radiusRange?: number,
+            /**
+             * How much to randomize the particle direction [0-1].
+             */
+            directionRandomizer?: number);
         /**
          * Called by the particle System when the direction is computed for the created particle.
          * @param worldMatrix is the world matrix of the particle system
@@ -47523,15 +47370,15 @@ declare module BABYLON {
          * @param direction1 the min limit of the emission direction (up vector by default)
          * @param direction2 the max limit of the emission direction (up vector by default)
          */
-        constructor(radius?: number, height?: number, radiusRange?: number, 
-        /**
-         * The min limit of the emission direction.
-         */
-        direction1?: Vector3, 
-        /**
-         * The max limit of the emission direction.
-         */
-        direction2?: Vector3);
+        constructor(radius?: number, height?: number, radiusRange?: number,
+            /**
+             * The min limit of the emission direction.
+             */
+            direction1?: Vector3,
+            /**
+             * The max limit of the emission direction.
+             */
+            direction2?: Vector3);
         /**
          * Called by the particle System when the direction is computed for the created particle.
          * @param worldMatrix is the world matrix of the particle system
@@ -47597,18 +47444,18 @@ declare module BABYLON {
         * @param directionRandomizer defines how much to randomize the particle direction [0-1]
         */
         constructor(
-        /**
-         * The radius of the emission hemisphere.
-         */
-        radius?: number, 
-        /**
-         * The range of emission [0-1] 0 Surface only, 1 Entire Radius.
-         */
-        radiusRange?: number, 
-        /**
-         * How much to randomize the particle direction [0-1].
-         */
-        directionRandomizer?: number);
+            /**
+             * The radius of the emission hemisphere.
+             */
+            radius?: number,
+            /**
+             * The range of emission [0-1] 0 Surface only, 1 Entire Radius.
+             */
+            radiusRange?: number,
+            /**
+             * How much to randomize the particle direction [0-1].
+             */
+            directionRandomizer?: number);
         /**
          * Called by the particle System when the direction is computed for the created particle.
          * @param worldMatrix is the world matrix of the particle system
@@ -47799,18 +47646,18 @@ declare module BABYLON {
         * @param directionRandomizer defines how much to randomize the particle direction [0-1]
         */
         constructor(
-        /**
-         * The radius of the emission sphere.
-         */
-        radius?: number, 
-        /**
-         * The range of emission [0-1] 0 Surface only, 1 Entire Radius.
-         */
-        radiusRange?: number, 
-        /**
-         * How much to randomize the particle direction [0-1].
-         */
-        directionRandomizer?: number);
+            /**
+             * The radius of the emission sphere.
+             */
+            radius?: number,
+            /**
+             * The range of emission [0-1] 0 Surface only, 1 Entire Radius.
+             */
+            radiusRange?: number,
+            /**
+             * How much to randomize the particle direction [0-1].
+             */
+            directionRandomizer?: number);
         /**
          * Called by the particle System when the direction is computed for the created particle.
          * @param worldMatrix is the world matrix of the particle system
@@ -47875,15 +47722,15 @@ declare module BABYLON {
          * @param direction1 the min limit of the emission direction (up vector by default)
          * @param direction2 the max limit of the emission direction (up vector by default)
          */
-        constructor(radius?: number, 
-        /**
-         * The min limit of the emission direction.
-         */
-        direction1?: Vector3, 
-        /**
-         * The max limit of the emission direction.
-         */
-        direction2?: Vector3);
+        constructor(radius?: number,
+            /**
+             * The min limit of the emission direction.
+             */
+            direction1?: Vector3,
+            /**
+             * The max limit of the emission direction.
+             */
+            direction2?: Vector3);
         /**
          * Called by the particle System when the direction is computed for the created particle.
          * @param worldMatrix is the world matrix of the particle system
@@ -48589,7 +48436,7 @@ declare module BABYLON {
         /** @hidden **/
 
         /** @hidden */
-;
+        ;
         private _size;
         private _currentRefreshId;
         private _refreshRate;
@@ -49702,188 +49549,188 @@ declare module BABYLON.GUI {
         * Interface used to define a control that can receive focus
         */
     export interface IFocusableControl {
-            /**
-                * Function called when the control receives the focus
-                */
-            onFocus(): void;
-            /**
-                * Function called when the control loses the focus
-                */
-            onBlur(): void;
-            /**
-                * Function called to let the control handle keyboard events
-                * @param evt defines the current keyboard event
-                */
-            processKeyboard(evt: KeyboardEvent): void;
-            /**
-                * Function called to get the list of controls that should not steal the focus from this control
-                * @returns an array of controls
-                */
-            keepsFocusWith(): BABYLON.Nullable<Control[]>;
+        /**
+            * Function called when the control receives the focus
+            */
+        onFocus(): void;
+        /**
+            * Function called when the control loses the focus
+            */
+        onBlur(): void;
+        /**
+            * Function called to let the control handle keyboard events
+            * @param evt defines the current keyboard event
+            */
+        processKeyboard(evt: KeyboardEvent): void;
+        /**
+            * Function called to get the list of controls that should not steal the focus from this control
+            * @returns an array of controls
+            */
+        keepsFocusWith(): BABYLON.Nullable<Control[]>;
     }
     /**
         * Class used to create texture to support 2D GUI elements
         * @see http://doc.babylonjs.com/how_to/gui
         */
     export class AdvancedDynamicTexture extends BABYLON.DynamicTexture {
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-;
-            /** @hidden */
-;
-            /** @hidden */
-;
-            /** @hidden */
+        /** @hidden */
+        ;
+        /** @hidden */
+        ;
+        /** @hidden */
+        ;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /**
-                * Gets or sets a boolean defining if alpha is stored as premultiplied
-                */
-            premulAlpha: boolean;
-            /**
-                * Gets or sets a number used to scale rendering size (2 means that the texture will be twice bigger).
-                * Useful when you want more antialiasing
-                */
-            renderScale: number;
-            /** Gets or sets the background color */
-            background: string;
-            /**
-                * Gets or sets the ideal width used to design controls.
-                * The GUI will then rescale everything accordingly
-                * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
-                */
-            idealWidth: number;
-            /**
-                * Gets or sets the ideal height used to design controls.
-                * The GUI will then rescale everything accordingly
-                * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
-                */
-            idealHeight: number;
-            /**
-                * Gets or sets a boolean indicating if the smallest ideal value must be used if idealWidth and idealHeight are both set
-                * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
-                */
-            useSmallestIdeal: boolean;
-            /**
-                * Gets or sets a boolean indicating if adaptive scaling must be used
-                * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
-                */
-            renderAtIdealSize: boolean;
-            /**
-                * Gets the underlying layer used to render the texture when in fullscreen mode
-                */
-            readonly layer: BABYLON.Nullable<BABYLON.Layer>;
-            /**
-                * Gets the root container control
-                */
-            readonly rootContainer: Container;
-            /**
-                * Gets or sets the current focused control
-                */
-            focusedControl: BABYLON.Nullable<IFocusableControl>;
-            /**
-                * Gets or sets a boolean indicating if the texture must be rendered in background or foreground when in fullscreen mode
-                */
-            isForeground: boolean;
-            /**
-                * Creates a new AdvancedDynamicTexture
-                * @param name defines the name of the texture
-                * @param width defines the width of the texture
-                * @param height defines the height of the texture
-                * @param scene defines the hosting scene
-                * @param generateMipMaps defines a boolean indicating if mipmaps must be generated (false by default)
-                * @param samplingMode defines the texture sampling mode (Texture.NEAREST_SAMPLINGMODE by default)
-                */
-            constructor(name: string, width: number | undefined, height: number | undefined, scene: BABYLON.Nullable<BABYLON.Scene>, generateMipMaps?: boolean, samplingMode?: number);
-            /**
-                * Function used to execute a function on all controls
-                * @param func defines the function to execute
-                * @param container defines the container where controls belong. If null the root container will be used
-                */
-            executeOnAllControls(func: (control: Control) => void, container?: Container): void;
-            /**
-                * Marks the texture as dirty forcing a complete update
-                */
-            markAsDirty(): void;
-            /**
-                * Helper function used to create a new style
-                * @returns a new style
-                * @see http://doc.babylonjs.com/how_to/gui#styles
-                */
-            createStyle(): Style;
-            /**
-                * Adds a new control to the root container
-                * @param control defines the control to add
-                * @returns the current texture
-                */
-            addControl(control: Control): AdvancedDynamicTexture;
-            /**
-                * Removes a control from the root container
-                * @param control defines the control to remove
-                * @returns the current texture
-                */
-            removeControl(control: Control): AdvancedDynamicTexture;
-            /**
-                * Release all resources
-                */
-            dispose(): void;
-            /** @hidden */
+        /**
+            * Gets or sets a boolean defining if alpha is stored as premultiplied
+            */
+        premulAlpha: boolean;
+        /**
+            * Gets or sets a number used to scale rendering size (2 means that the texture will be twice bigger).
+            * Useful when you want more antialiasing
+            */
+        renderScale: number;
+        /** Gets or sets the background color */
+        background: string;
+        /**
+            * Gets or sets the ideal width used to design controls.
+            * The GUI will then rescale everything accordingly
+            * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
+            */
+        idealWidth: number;
+        /**
+            * Gets or sets the ideal height used to design controls.
+            * The GUI will then rescale everything accordingly
+            * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
+            */
+        idealHeight: number;
+        /**
+            * Gets or sets a boolean indicating if the smallest ideal value must be used if idealWidth and idealHeight are both set
+            * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
+            */
+        useSmallestIdeal: boolean;
+        /**
+            * Gets or sets a boolean indicating if adaptive scaling must be used
+            * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
+            */
+        renderAtIdealSize: boolean;
+        /**
+            * Gets the underlying layer used to render the texture when in fullscreen mode
+            */
+        readonly layer: BABYLON.Nullable<BABYLON.Layer>;
+        /**
+            * Gets the root container control
+            */
+        readonly rootContainer: Container;
+        /**
+            * Gets or sets the current focused control
+            */
+        focusedControl: BABYLON.Nullable<IFocusableControl>;
+        /**
+            * Gets or sets a boolean indicating if the texture must be rendered in background or foreground when in fullscreen mode
+            */
+        isForeground: boolean;
+        /**
+            * Creates a new AdvancedDynamicTexture
+            * @param name defines the name of the texture
+            * @param width defines the width of the texture
+            * @param height defines the height of the texture
+            * @param scene defines the hosting scene
+            * @param generateMipMaps defines a boolean indicating if mipmaps must be generated (false by default)
+            * @param samplingMode defines the texture sampling mode (Texture.NEAREST_SAMPLINGMODE by default)
+            */
+        constructor(name: string, width: number | undefined, height: number | undefined, scene: BABYLON.Nullable<BABYLON.Scene>, generateMipMaps?: boolean, samplingMode?: number);
+        /**
+            * Function used to execute a function on all controls
+            * @param func defines the function to execute
+            * @param container defines the container where controls belong. If null the root container will be used
+            */
+        executeOnAllControls(func: (control: Control) => void, container?: Container): void;
+        /**
+            * Marks the texture as dirty forcing a complete update
+            */
+        markAsDirty(): void;
+        /**
+            * Helper function used to create a new style
+            * @returns a new style
+            * @see http://doc.babylonjs.com/how_to/gui#styles
+            */
+        createStyle(): Style;
+        /**
+            * Adds a new control to the root container
+            * @param control defines the control to add
+            * @returns the current texture
+            */
+        addControl(control: Control): AdvancedDynamicTexture;
+        /**
+            * Removes a control from the root container
+            * @param control defines the control to remove
+            * @returns the current texture
+            */
+        removeControl(control: Control): AdvancedDynamicTexture;
+        /**
+            * Release all resources
+            */
+        dispose(): void;
+        /** @hidden */
 
-            /**
-                * Get screen coordinates for a vector3
-                * @param position defines the position to project
-                * @param worldMatrix defines the world matrix to use
-                * @returns the projected position
-                */
-            getProjectedPosition(position: BABYLON.Vector3, worldMatrix: BABYLON.Matrix): BABYLON.Vector2;
-            /** @hidden */
+        /**
+            * Get screen coordinates for a vector3
+            * @param position defines the position to project
+            * @param worldMatrix defines the world matrix to use
+            * @returns the projected position
+            */
+        getProjectedPosition(position: BABYLON.Vector3, worldMatrix: BABYLON.Matrix): BABYLON.Vector2;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** Attach to all scene events required to support pointer events */
-            attach(): void;
-            /**
-                * Connect the texture to a hosting mesh to enable interactions
-                * @param mesh defines the mesh to attach to
-                * @param supportPointerMove defines a boolean indicating if pointer move events must be catched as well
-                */
-            attachToMesh(mesh: BABYLON.AbstractMesh, supportPointerMove?: boolean): void;
-            /**
-                * Move the focus to a specific control
-                * @param control defines the control which will receive the focus
-                */
-            moveFocusToControl(control: IFocusableControl): void;
-            /**
-                * Creates a new AdvancedDynamicTexture in projected mode (ie. attached to a mesh)
-                * @param mesh defines the mesh which will receive the texture
-                * @param width defines the texture width (1024 by default)
-                * @param height defines the texture height (1024 by default)
-                * @param supportPointerMove defines a boolean indicating if the texture must capture move events (true by default)
-                * @param onlyAlphaTesting defines a boolean indicating that alpha blending will not be used (only alpha testing) (false by default)
-                * @returns a new AdvancedDynamicTexture
-                */
-            static CreateForMesh(mesh: BABYLON.AbstractMesh, width?: number, height?: number, supportPointerMove?: boolean, onlyAlphaTesting?: boolean): AdvancedDynamicTexture;
-            /**
-                * Creates a new AdvancedDynamicTexture in fullscreen mode.
-                * In this mode the texture will rely on a layer for its rendering.
-                * This allows it to be treated like any other layer.
-                * As such, if you have a multi camera setup, you can set the layerMask on the GUI as well.
-                * LayerMask is set through advancedTexture.layer.layerMask
-                * @param name defines name for the texture
-                * @param foreground defines a boolean indicating if the texture must be rendered in foreground (default is true)
-                * @param scene defines the hsoting scene
-                * @param sampling defines the texture sampling mode (Texture.BILINEAR_SAMPLINGMODE by default)
-                * @returns a new AdvancedDynamicTexture
-                */
-            static CreateFullscreenUI(name: string, foreground?: boolean, scene?: BABYLON.Nullable<BABYLON.Scene>, sampling?: number): AdvancedDynamicTexture;
+        /** Attach to all scene events required to support pointer events */
+        attach(): void;
+        /**
+            * Connect the texture to a hosting mesh to enable interactions
+            * @param mesh defines the mesh to attach to
+            * @param supportPointerMove defines a boolean indicating if pointer move events must be catched as well
+            */
+        attachToMesh(mesh: BABYLON.AbstractMesh, supportPointerMove?: boolean): void;
+        /**
+            * Move the focus to a specific control
+            * @param control defines the control which will receive the focus
+            */
+        moveFocusToControl(control: IFocusableControl): void;
+        /**
+            * Creates a new AdvancedDynamicTexture in projected mode (ie. attached to a mesh)
+            * @param mesh defines the mesh which will receive the texture
+            * @param width defines the texture width (1024 by default)
+            * @param height defines the texture height (1024 by default)
+            * @param supportPointerMove defines a boolean indicating if the texture must capture move events (true by default)
+            * @param onlyAlphaTesting defines a boolean indicating that alpha blending will not be used (only alpha testing) (false by default)
+            * @returns a new AdvancedDynamicTexture
+            */
+        static CreateForMesh(mesh: BABYLON.AbstractMesh, width?: number, height?: number, supportPointerMove?: boolean, onlyAlphaTesting?: boolean): AdvancedDynamicTexture;
+        /**
+            * Creates a new AdvancedDynamicTexture in fullscreen mode.
+            * In this mode the texture will rely on a layer for its rendering.
+            * This allows it to be treated like any other layer.
+            * As such, if you have a multi camera setup, you can set the layerMask on the GUI as well.
+            * LayerMask is set through advancedTexture.layer.layerMask
+            * @param name defines name for the texture
+            * @param foreground defines a boolean indicating if the texture must be rendered in foreground (default is true)
+            * @param scene defines the hsoting scene
+            * @param sampling defines the texture sampling mode (Texture.BILINEAR_SAMPLINGMODE by default)
+            * @returns a new AdvancedDynamicTexture
+            */
+        static CreateFullscreenUI(name: string, foreground?: boolean, scene?: BABYLON.Nullable<BABYLON.Scene>, sampling?: number): AdvancedDynamicTexture;
     }
 }
 declare module BABYLON.GUI {
@@ -49891,104 +49738,104 @@ declare module BABYLON.GUI {
         * Class used to transport BABYLON.Vector2 information for pointer events
         */
     export class Vector2WithInfo extends BABYLON.Vector2 {
-            /** defines the current mouse button index */
-            buttonIndex: number;
-            /**
-                * Creates a new Vector2WithInfo
-                * @param source defines the vector2 data to transport
-                * @param buttonIndex defines the current mouse button index
-                */
-            constructor(source: BABYLON.Vector2, 
+        /** defines the current mouse button index */
+        buttonIndex: number;
+        /**
+            * Creates a new Vector2WithInfo
+            * @param source defines the vector2 data to transport
+            * @param buttonIndex defines the current mouse button index
+            */
+        constructor(source: BABYLON.Vector2,
             /** defines the current mouse button index */
             buttonIndex?: number);
     }
     /** Class used to provide 2D matrix features */
     export class Matrix2D {
-            /** Gets the internal array of 6 floats used to store matrix data */
-            m: Float32Array;
-            /**
-                * Creates a new matrix
-                * @param m00 defines value for (0, 0)
-                * @param m01 defines value for (0, 1)
-                * @param m10 defines value for (1, 0)
-                * @param m11 defines value for (1, 1)
-                * @param m20 defines value for (2, 0)
-                * @param m21 defines value for (2, 1)
-                */
-            constructor(m00: number, m01: number, m10: number, m11: number, m20: number, m21: number);
-            /**
-                * Fills the matrix from direct values
-                * @param m00 defines value for (0, 0)
-                * @param m01 defines value for (0, 1)
-                * @param m10 defines value for (1, 0)
-                * @param m11 defines value for (1, 1)
-                * @param m20 defines value for (2, 0)
-                * @param m21 defines value for (2, 1)
-                * @returns the current modified matrix
-                */
-            fromValues(m00: number, m01: number, m10: number, m11: number, m20: number, m21: number): Matrix2D;
-            /**
-                * Gets matrix determinant
-                * @returns the determinant
-                */
-            determinant(): number;
-            /**
-                * Inverses the matrix and stores it in a target matrix
-                * @param result defines the target matrix
-                * @returns the current matrix
-                */
-            invertToRef(result: Matrix2D): Matrix2D;
-            /**
-                * Multiplies the current matrix with another one
-                * @param other defines the second operand
-                * @param result defines the target matrix
-                * @returns the current matrix
-                */
-            multiplyToRef(other: Matrix2D, result: Matrix2D): Matrix2D;
-            /**
-                * Applies the current matrix to a set of 2 floats and stores the result in a vector2
-                * @param x defines the x coordinate to transform
-                * @param y defines the x coordinate to transform
-                * @param result defines the target vector2
-                * @returns the current matrix
-                */
-            transformCoordinates(x: number, y: number, result: BABYLON.Vector2): Matrix2D;
-            /**
-                * Creates an identity matrix
-                * @returns a new matrix
-                */
-            static Identity(): Matrix2D;
-            /**
-                * Creates a translation matrix and stores it in a target matrix
-                * @param x defines the x coordinate of the translation
-                * @param y defines the y coordinate of the translation
-                * @param result defines the target matrix
-                */
-            static TranslationToRef(x: number, y: number, result: Matrix2D): void;
-            /**
-                * Creates a scaling matrix and stores it in a target matrix
-                * @param x defines the x coordinate of the scaling
-                * @param y defines the y coordinate of the scaling
-                * @param result defines the target matrix
-                */
-            static ScalingToRef(x: number, y: number, result: Matrix2D): void;
-            /**
-                * Creates a rotation matrix and stores it in a target matrix
-                * @param angle defines the rotation angle
-                * @param result defines the target matrix
-                */
-            static RotationToRef(angle: number, result: Matrix2D): void;
-            /**
-                * Composes a matrix from translation, rotation, scaling and parent matrix and stores it in a target matrix
-                * @param tx defines the x coordinate of the translation
-                * @param ty defines the y coordinate of the translation
-                * @param angle defines the rotation angle
-                * @param scaleX defines the x coordinate of the scaling
-                * @param scaleY defines the y coordinate of the scaling
-                * @param parentMatrix defines the parent matrix to multiply by (can be null)
-                * @param result defines the target matrix
-                */
-            static ComposeToRef(tx: number, ty: number, angle: number, scaleX: number, scaleY: number, parentMatrix: BABYLON.Nullable<Matrix2D>, result: Matrix2D): void;
+        /** Gets the internal array of 6 floats used to store matrix data */
+        m: Float32Array;
+        /**
+            * Creates a new matrix
+            * @param m00 defines value for (0, 0)
+            * @param m01 defines value for (0, 1)
+            * @param m10 defines value for (1, 0)
+            * @param m11 defines value for (1, 1)
+            * @param m20 defines value for (2, 0)
+            * @param m21 defines value for (2, 1)
+            */
+        constructor(m00: number, m01: number, m10: number, m11: number, m20: number, m21: number);
+        /**
+            * Fills the matrix from direct values
+            * @param m00 defines value for (0, 0)
+            * @param m01 defines value for (0, 1)
+            * @param m10 defines value for (1, 0)
+            * @param m11 defines value for (1, 1)
+            * @param m20 defines value for (2, 0)
+            * @param m21 defines value for (2, 1)
+            * @returns the current modified matrix
+            */
+        fromValues(m00: number, m01: number, m10: number, m11: number, m20: number, m21: number): Matrix2D;
+        /**
+            * Gets matrix determinant
+            * @returns the determinant
+            */
+        determinant(): number;
+        /**
+            * Inverses the matrix and stores it in a target matrix
+            * @param result defines the target matrix
+            * @returns the current matrix
+            */
+        invertToRef(result: Matrix2D): Matrix2D;
+        /**
+            * Multiplies the current matrix with another one
+            * @param other defines the second operand
+            * @param result defines the target matrix
+            * @returns the current matrix
+            */
+        multiplyToRef(other: Matrix2D, result: Matrix2D): Matrix2D;
+        /**
+            * Applies the current matrix to a set of 2 floats and stores the result in a vector2
+            * @param x defines the x coordinate to transform
+            * @param y defines the x coordinate to transform
+            * @param result defines the target vector2
+            * @returns the current matrix
+            */
+        transformCoordinates(x: number, y: number, result: BABYLON.Vector2): Matrix2D;
+        /**
+            * Creates an identity matrix
+            * @returns a new matrix
+            */
+        static Identity(): Matrix2D;
+        /**
+            * Creates a translation matrix and stores it in a target matrix
+            * @param x defines the x coordinate of the translation
+            * @param y defines the y coordinate of the translation
+            * @param result defines the target matrix
+            */
+        static TranslationToRef(x: number, y: number, result: Matrix2D): void;
+        /**
+            * Creates a scaling matrix and stores it in a target matrix
+            * @param x defines the x coordinate of the scaling
+            * @param y defines the y coordinate of the scaling
+            * @param result defines the target matrix
+            */
+        static ScalingToRef(x: number, y: number, result: Matrix2D): void;
+        /**
+            * Creates a rotation matrix and stores it in a target matrix
+            * @param angle defines the rotation angle
+            * @param result defines the target matrix
+            */
+        static RotationToRef(angle: number, result: Matrix2D): void;
+        /**
+            * Composes a matrix from translation, rotation, scaling and parent matrix and stores it in a target matrix
+            * @param tx defines the x coordinate of the translation
+            * @param ty defines the y coordinate of the translation
+            * @param angle defines the rotation angle
+            * @param scaleX defines the x coordinate of the scaling
+            * @param scaleY defines the y coordinate of the scaling
+            * @param parentMatrix defines the parent matrix to multiply by (can be null)
+            * @param result defines the target matrix
+            */
+        static ComposeToRef(tx: number, ty: number, angle: number, scaleX: number, scaleY: number, parentMatrix: BABYLON.Nullable<Matrix2D>, result: Matrix2D): void;
     }
 }
 declare module BABYLON.GUI {
@@ -49996,46 +49843,46 @@ declare module BABYLON.GUI {
         * Class used to store 2D control sizes
         */
     export class Measure {
+        /** defines left coordinate */
+        left: number;
+        /** defines top coordinate  */
+        top: number;
+        /** defines width dimension  */
+        width: number;
+        /** defines height dimension */
+        height: number;
+        /**
+            * Creates a new measure
+            * @param left defines left coordinate
+            * @param top defines top coordinate
+            * @param width defines width dimension
+            * @param height defines height dimension
+            */
+        constructor(
             /** defines left coordinate */
-            left: number;
+            left: number,
             /** defines top coordinate  */
-            top: number;
+            top: number,
             /** defines width dimension  */
-            width: number;
-            /** defines height dimension */
-            height: number;
-            /**
-                * Creates a new measure
-                * @param left defines left coordinate
-                * @param top defines top coordinate
-                * @param width defines width dimension
-                * @param height defines height dimension
-                */
-            constructor(
-            /** defines left coordinate */
-            left: number, 
-            /** defines top coordinate  */
-            top: number, 
-            /** defines width dimension  */
-            width: number, 
+            width: number,
             /** defines height dimension */
             height: number);
-            /**
-                * Copy from another measure
-                * @param other defines the other measure to copy from
-                */
-            copyFrom(other: Measure): void;
-            /**
-                * Check equality between this measure and another one
-                * @param other defines the other measures
-                * @returns true if both measures are equals
-                */
-            isEqualsTo(other: Measure): boolean;
-            /**
-                * Creates an empty measure
-                * @returns a new measure
-                */
-            static Empty(): Measure;
+        /**
+            * Copy from another measure
+            * @param other defines the other measure to copy from
+            */
+        copyFrom(other: Measure): void;
+        /**
+            * Check equality between this measure and another one
+            * @param other defines the other measures
+            * @returns true if both measures are equals
+            */
+        isEqualsTo(other: Measure): boolean;
+        /**
+            * Creates an empty measure
+            * @returns a new measure
+            */
+        static Empty(): Measure;
     }
 }
 declare module BABYLON.GUI {
@@ -50044,30 +49891,30 @@ declare module BABYLON.GUI {
         * The point can be pure 2D coordinates, a mesh or a control
         */
     export class MultiLinePoint {
-            /** @hidden */
+        /** @hidden */
 
-            /**
-                * Creates a new MultiLinePoint
-                * @param multiLine defines the source MultiLine object
-                */
-            constructor(multiLine: MultiLine);
-            /** Gets or sets x coordinate */
-            x: string | number;
-            /** Gets or sets y coordinate */
-            y: string | number;
-            /** Gets or sets the control associated with this point */
-            control: BABYLON.Nullable<Control>;
-            /** Gets or sets the mesh associated with this point */
-            mesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
-            /** Resets links */
-            resetLinks(): void;
-            /**
-                * Gets a translation vector
-                * @returns the translation vector
-                */
-            translate(): BABYLON.Vector2;
-            /** Release associated resources */
-            dispose(): void;
+        /**
+            * Creates a new MultiLinePoint
+            * @param multiLine defines the source MultiLine object
+            */
+        constructor(multiLine: MultiLine);
+        /** Gets or sets x coordinate */
+        x: string | number;
+        /** Gets or sets y coordinate */
+        y: string | number;
+        /** Gets or sets the control associated with this point */
+        control: BABYLON.Nullable<Control>;
+        /** Gets or sets the mesh associated with this point */
+        mesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
+        /** Resets links */
+        resetLinks(): void;
+        /**
+            * Gets a translation vector
+            * @returns the translation vector
+            */
+        translate(): BABYLON.Vector2;
+        /** Release associated resources */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -50076,35 +49923,35 @@ declare module BABYLON.GUI {
         * Only support font related properties so far
         */
     export class Style implements BABYLON.IDisposable {
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /**
-                * BABYLON.Observable raised when the style values are changed
-                */
-            onChangedObservable: BABYLON.Observable<Style>;
-            /**
-                * Creates a new style object
-                * @param host defines the AdvancedDynamicTexture which hosts this style
-                */
-            constructor(host: AdvancedDynamicTexture);
-            /**
-                * Gets or sets the font size
-                */
-            fontSize: string | number;
-            /**
-                * Gets or sets the font family
-                */
-            fontFamily: string;
-            /**
-                * Gets or sets the font style
-                */
-            fontStyle: string;
-            /** Gets or sets font weight */
-            fontWeight: string;
-            /** Dispose all associated resources */
-            dispose(): void;
+        /**
+            * BABYLON.Observable raised when the style values are changed
+            */
+        onChangedObservable: BABYLON.Observable<Style>;
+        /**
+            * Creates a new style object
+            * @param host defines the AdvancedDynamicTexture which hosts this style
+            */
+        constructor(host: AdvancedDynamicTexture);
+        /**
+            * Gets or sets the font size
+            */
+        fontSize: string | number;
+        /**
+            * Gets or sets the font family
+            */
+        fontFamily: string;
+        /**
+            * Gets or sets the font style
+            */
+        fontStyle: string;
+        /** Gets or sets font weight */
+        fontWeight: string;
+        /** Dispose all associated resources */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -50112,61 +49959,61 @@ declare module BABYLON.GUI {
         * Class used to specific a value and its associated unit
         */
     export class ValueAndUnit {
+        /** defines the unit to store */
+        unit: number;
+        /** defines a boolean indicating if the value can be negative */
+        negativeValueAllowed: boolean;
+        /**
+            * Gets or sets a value indicating that this value will not scale accordingly with adaptive scaling property
+            * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
+            */
+        ignoreAdaptiveScaling: boolean;
+        /**
+            * Creates a new ValueAndUnit
+            * @param value defines the value to store
+            * @param unit defines the unit to store
+            * @param negativeValueAllowed defines a boolean indicating if the value can be negative
+            */
+        constructor(value: number,
             /** defines the unit to store */
-            unit: number;
-            /** defines a boolean indicating if the value can be negative */
-            negativeValueAllowed: boolean;
-            /**
-                * Gets or sets a value indicating that this value will not scale accordingly with adaptive scaling property
-                * @see http://doc.babylonjs.com/how_to/gui#adaptive-scaling
-                */
-            ignoreAdaptiveScaling: boolean;
-            /**
-                * Creates a new ValueAndUnit
-                * @param value defines the value to store
-                * @param unit defines the unit to store
-                * @param negativeValueAllowed defines a boolean indicating if the value can be negative
-                */
-            constructor(value: number, 
-            /** defines the unit to store */
-            unit?: number, 
+            unit?: number,
             /** defines a boolean indicating if the value can be negative */
             negativeValueAllowed?: boolean);
-            /** Gets a boolean indicating if the value is a percentage */
-            readonly isPercentage: boolean;
-            /** Gets a boolean indicating if the value is store as pixel */
-            readonly isPixel: boolean;
-            /** Gets direct internal value */
-            readonly internalValue: number;
-            /**
-                * Gets value as pixel
-                * @param host defines the root host
-                * @param refValue defines the reference value for percentages
-                * @returns the value as pixel
-                */
-            getValueInPixel(host: AdvancedDynamicTexture, refValue: number): number;
-            /**
-                * Gets the value accordingly to its unit
-                * @param host  defines the root host
-                * @returns the value
-                */
-            getValue(host: AdvancedDynamicTexture): number;
-            /**
-                * Gets a string representation of the value
-                * @param host defines the root host
-                * @returns a string
-                */
-            toString(host: AdvancedDynamicTexture): string;
-            /**
-                * Store a value parsed from a string
-                * @param source defines the source string
-                * @returns true if the value was successfully parsed
-                */
-            fromString(source: string | number): boolean;
-            /** UNITMODE_PERCENTAGE */
-            static readonly UNITMODE_PERCENTAGE: number;
-            /** UNITMODE_PIXEL */
-            static readonly UNITMODE_PIXEL: number;
+        /** Gets a boolean indicating if the value is a percentage */
+        readonly isPercentage: boolean;
+        /** Gets a boolean indicating if the value is store as pixel */
+        readonly isPixel: boolean;
+        /** Gets direct internal value */
+        readonly internalValue: number;
+        /**
+            * Gets value as pixel
+            * @param host defines the root host
+            * @param refValue defines the reference value for percentages
+            * @returns the value as pixel
+            */
+        getValueInPixel(host: AdvancedDynamicTexture, refValue: number): number;
+        /**
+            * Gets the value accordingly to its unit
+            * @param host  defines the root host
+            * @returns the value
+            */
+        getValue(host: AdvancedDynamicTexture): number;
+        /**
+            * Gets a string representation of the value
+            * @param host defines the root host
+            * @returns a string
+            */
+        toString(host: AdvancedDynamicTexture): string;
+        /**
+            * Store a value parsed from a string
+            * @param source defines the source string
+            * @returns true if the value was successfully parsed
+            */
+        fromString(source: string | number): boolean;
+        /** UNITMODE_PERCENTAGE */
+        static readonly UNITMODE_PERCENTAGE: number;
+        /** UNITMODE_PIXEL */
+        static readonly UNITMODE_PIXEL: number;
     }
 }
 declare module BABYLON.GUI {
@@ -50179,53 +50026,53 @@ declare module BABYLON.GUI {
         * @see http://doc.babylonjs.com/how_to/gui3d
         */
     export class GUI3DManager implements BABYLON.IDisposable {
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-;
-            /** @hidden */
-;
-            /**
-                * BABYLON.Observable raised when the point picked by the pointer events changed
-                */
-            onPickedPointChangedObservable: BABYLON.Observable<BABYLON.Nullable<BABYLON.Vector3>>;
-            /** @hidden */
-;
-            /** Gets the hosting scene */
-            readonly scene: BABYLON.Scene;
-            /** Gets associated utility layer */
-            readonly utilityLayer: BABYLON.Nullable<BABYLON.UtilityLayerRenderer>;
-            /**
-                * Creates a new GUI3DManager
-                * @param scene
-                */
-            constructor(scene?: BABYLON.Scene);
-            /**
-                * Gets the root container
-                */
-            readonly rootContainer: Container3D;
-            /**
-                * Gets a boolean indicating if the given control is in the root child list
-                * @param control defines the control to check
-                * @returns true if the control is in the root child list
-                */
-            containsControl(control: Control3D): boolean;
-            /**
-                * Adds a control to the root child list
-                * @param control defines the control to add
-                * @returns the current manager
-                */
-            addControl(control: Control3D): GUI3DManager;
-            /**
-                * Removes a control from the root child list
-                * @param control defines the control to remove
-                * @returns the current container
-                */
-            removeControl(control: Control3D): GUI3DManager;
-            /**
-                * Releases all associated resources
-                */
-            dispose(): void;
+        /** @hidden */
+        ;
+        /** @hidden */
+        ;
+        /**
+            * BABYLON.Observable raised when the point picked by the pointer events changed
+            */
+        onPickedPointChangedObservable: BABYLON.Observable<BABYLON.Nullable<BABYLON.Vector3>>;
+        /** @hidden */
+        ;
+        /** Gets the hosting scene */
+        readonly scene: BABYLON.Scene;
+        /** Gets associated utility layer */
+        readonly utilityLayer: BABYLON.Nullable<BABYLON.UtilityLayerRenderer>;
+        /**
+            * Creates a new GUI3DManager
+            * @param scene
+            */
+        constructor(scene?: BABYLON.Scene);
+        /**
+            * Gets the root container
+            */
+        readonly rootContainer: Container3D;
+        /**
+            * Gets a boolean indicating if the given control is in the root child list
+            * @param control defines the control to check
+            * @returns true if the control is in the root child list
+            */
+        containsControl(control: Control3D): boolean;
+        /**
+            * Adds a control to the root child list
+            * @param control defines the control to add
+            * @returns the current manager
+            */
+        addControl(control: Control3D): GUI3DManager;
+        /**
+            * Removes a control from the root child list
+            * @param control defines the control to remove
+            * @returns the current container
+            */
+        removeControl(control: Control3D): GUI3DManager;
+        /**
+            * Releases all associated resources
+            */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -50233,14 +50080,14 @@ declare module BABYLON.GUI {
         * Class used to transport BABYLON.Vector3 information for pointer events
         */
     export class Vector3WithInfo extends BABYLON.Vector3 {
-            /** defines the current mouse button index */
-            buttonIndex: number;
-            /**
-                * Creates a new Vector3WithInfo
-                * @param source defines the vector3 data to transport
-                * @param buttonIndex defines the current mouse button index
-                */
-            constructor(source: BABYLON.Vector3, 
+        /** defines the current mouse button index */
+        buttonIndex: number;
+        /**
+            * Creates a new Vector3WithInfo
+            * @param source defines the vector3 data to transport
+            * @param buttonIndex defines the current mouse button index
+            */
+        constructor(source: BABYLON.Vector3,
             /** defines the current mouse button index */
             buttonIndex?: number);
     }
@@ -50250,69 +50097,69 @@ declare module BABYLON.GUI {
         * Class used to create 2D buttons
         */
     export class Button extends Rectangle {
-            name?: string | undefined;
-            /**
-                * Function called to generate a pointer enter animation
-                */
-            pointerEnterAnimation: () => void;
-            /**
-                * Function called to generate a pointer out animation
-                */
-            pointerOutAnimation: () => void;
-            /**
-                * Function called to generate a pointer down animation
-                */
-            pointerDownAnimation: () => void;
-            /**
-                * Function called to generate a pointer up animation
-                */
-            pointerUpAnimation: () => void;
-            /**
-                * Creates a new Button
-                * @param name defines the name of the button
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            /** @hidden */
+        name?: string | undefined;
+        /**
+            * Function called to generate a pointer enter animation
+            */
+        pointerEnterAnimation: () => void;
+        /**
+            * Function called to generate a pointer out animation
+            */
+        pointerOutAnimation: () => void;
+        /**
+            * Function called to generate a pointer down animation
+            */
+        pointerDownAnimation: () => void;
+        /**
+            * Function called to generate a pointer up animation
+            */
+        pointerUpAnimation: () => void;
+        /**
+            * Creates a new Button
+            * @param name defines the name of the button
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /**
-                * Creates a new button made with an image and a text
-                * @param name defines the name of the button
-                * @param text defines the text of the button
-                * @param imageUrl defines the url of the image
-                * @returns a new Button
-                */
-            static CreateImageButton(name: string, text: string, imageUrl: string): Button;
-            /**
-                * Creates a new button made with an image
-                * @param name defines the name of the button
-                * @param imageUrl defines the url of the image
-                * @returns a new Button
-                */
-            static CreateImageOnlyButton(name: string, imageUrl: string): Button;
-            /**
-                * Creates a new button made with a text
-                * @param name defines the name of the button
-                * @param text defines the text of the button
-                * @returns a new Button
-                */
-            static CreateSimpleButton(name: string, text: string): Button;
-            /**
-                * Creates a new button made with an image and a centered text
-                * @param name defines the name of the button
-                * @param text defines the text of the button
-                * @param imageUrl defines the url of the image
-                * @returns a new Button
-                */
-            static CreateImageWithCenterTextButton(name: string, text: string, imageUrl: string): Button;
+        /**
+            * Creates a new button made with an image and a text
+            * @param name defines the name of the button
+            * @param text defines the text of the button
+            * @param imageUrl defines the url of the image
+            * @returns a new Button
+            */
+        static CreateImageButton(name: string, text: string, imageUrl: string): Button;
+        /**
+            * Creates a new button made with an image
+            * @param name defines the name of the button
+            * @param imageUrl defines the url of the image
+            * @returns a new Button
+            */
+        static CreateImageOnlyButton(name: string, imageUrl: string): Button;
+        /**
+            * Creates a new button made with a text
+            * @param name defines the name of the button
+            * @param text defines the text of the button
+            * @returns a new Button
+            */
+        static CreateSimpleButton(name: string, text: string): Button;
+        /**
+            * Creates a new button made with an image and a centered text
+            * @param name defines the name of the button
+            * @param text defines the text of the button
+            * @param imageUrl defines the url of the image
+            * @returns a new Button
+            */
+        static CreateImageWithCenterTextButton(name: string, text: string, imageUrl: string): Button;
     }
 }
 declare module BABYLON.GUI {
@@ -50320,61 +50167,61 @@ declare module BABYLON.GUI {
         * Class used to represent a 2D checkbox
         */
     export class Checkbox extends Control {
-            name?: string | undefined;
-            /** Gets or sets border thickness  */
-            thickness: number;
-            /**
-                * BABYLON.Observable raised when isChecked property changes
-                */
-            onIsCheckedChangedObservable: BABYLON.Observable<boolean>;
-            /** Gets or sets a value indicating the ratio between overall size and check size */
-            checkSizeRatio: number;
-            /** Gets or sets background color */
-            background: string;
-            /** Gets or sets a boolean indicating if the checkbox is checked or not */
-            isChecked: boolean;
-            /**
-                * Creates a new CheckBox
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            /** @hidden */
+        name?: string | undefined;
+        /** Gets or sets border thickness  */
+        thickness: number;
+        /**
+            * BABYLON.Observable raised when isChecked property changes
+            */
+        onIsCheckedChangedObservable: BABYLON.Observable<boolean>;
+        /** Gets or sets a value indicating the ratio between overall size and check size */
+        checkSizeRatio: number;
+        /** Gets or sets background color */
+        background: string;
+        /** Gets or sets a boolean indicating if the checkbox is checked or not */
+        isChecked: boolean;
+        /**
+            * Creates a new CheckBox
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /**
-                * Utility function to easily create a checkbox with a header
-                * @param title defines the label to use for the header
-                * @param onValueChanged defines the callback to call when value changes
-                * @returns a StackPanel containing the checkbox and a textBlock
-                */
-            static AddCheckBoxWithHeader(title: string, onValueChanged: (value: boolean) => void): StackPanel;
+        /**
+            * Utility function to easily create a checkbox with a header
+            * @param title defines the label to use for the header
+            * @param onValueChanged defines the callback to call when value changes
+            * @returns a StackPanel containing the checkbox and a textBlock
+            */
+        static AddCheckBoxWithHeader(title: string, onValueChanged: (value: boolean) => void): StackPanel;
     }
 }
 declare module BABYLON.GUI {
     /** Class used to create color pickers */
     export class ColorPicker extends Control {
-            name?: string | undefined;
-            /**
-                * BABYLON.Observable raised when the value changes
-                */
-            onValueChangedObservable: BABYLON.Observable<BABYLON.Color3>;
-            /** Gets or sets the color of the color picker */
-            value: BABYLON.Color3;
-            /** Gets or sets control width */
-            width: string | number;
-            /** Gets or sets control height */
-            height: string | number;
-            /** Gets or sets control size */
-            size: string | number;
-            /**
-                * Creates a new ColorPicker
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            /** @hidden */
+        name?: string | undefined;
+        /**
+            * BABYLON.Observable raised when the value changes
+            */
+        onValueChangedObservable: BABYLON.Observable<BABYLON.Color3>;
+        /** Gets or sets the color of the color picker */
+        value: BABYLON.Color3;
+        /** Gets or sets control width */
+        width: string | number;
+        /** Gets or sets control height */
+        height: string | number;
+        /** Gets or sets control size */
+        size: string | number;
+        /**
+            * Creates a new ColorPicker
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        /** @hidden */
 
 
 
@@ -50387,86 +50234,86 @@ declare module BABYLON.GUI {
         * @see http://doc.babylonjs.com/how_to/gui#containers
         */
     export class Container extends Control {
-            name?: string | undefined;
-            /** @hidden */
-            protected _children: Control[];
-            /** @hidden */
-            protected _measureForChildren: Measure;
-            /** @hidden */
-            protected _background: string;
-            /** @hidden */
-            protected _adaptWidthToChildren: boolean;
-            /** @hidden */
-            protected _adaptHeightToChildren: boolean;
-            /** Gets or sets a boolean indicating if the container should try to adapt to its children height */
-            adaptHeightToChildren: boolean;
-            /** Gets or sets a boolean indicating if the container should try to adapt to its children width */
-            adaptWidthToChildren: boolean;
-            /** Gets or sets background color */
-            background: string;
-            /** Gets the list of children */
-            readonly children: Control[];
-            /**
-                * Creates a new Container
-                * @param name defines the name of the container
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
+        name?: string | undefined;
+        /** @hidden */
+        protected _children: Control[];
+        /** @hidden */
+        protected _measureForChildren: Measure;
+        /** @hidden */
+        protected _background: string;
+        /** @hidden */
+        protected _adaptWidthToChildren: boolean;
+        /** @hidden */
+        protected _adaptHeightToChildren: boolean;
+        /** Gets or sets a boolean indicating if the container should try to adapt to its children height */
+        adaptHeightToChildren: boolean;
+        /** Gets or sets a boolean indicating if the container should try to adapt to its children width */
+        adaptWidthToChildren: boolean;
+        /** Gets or sets background color */
+        background: string;
+        /** Gets the list of children */
+        readonly children: Control[];
+        /**
+            * Creates a new Container
+            * @param name defines the name of the container
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
 
-            /**
-                * Gets a child using its name
-                * @param name defines the child name to look for
-                * @returns the child control if found
-                */
-            getChildByName(name: string): BABYLON.Nullable<Control>;
-            /**
-                * Gets a child using its type and its name
-                * @param name defines the child name to look for
-                * @param type defines the child type to look for
-                * @returns the child control if found
-                */
-            getChildByType(name: string, type: string): BABYLON.Nullable<Control>;
-            /**
-                * Search for a specific control in children
-                * @param control defines the control to look for
-                * @returns true if the control is in child list
-                */
-            containsControl(control: Control): boolean;
-            /**
-                * Adds a new control to the current container
-                * @param control defines the control to add
-                * @returns the current container
-                */
-            addControl(control: BABYLON.Nullable<Control>): Container;
-            /**
-                * Removes all controls from the current container
-                * @returns the current container
-                */
-            clearControls(): Container;
-            /**
-                * Removes a control from the current container
-                * @param control defines the control to remove
-                * @returns the current container
-                */
-            removeControl(control: Control): Container;
-            /** @hidden */
+        /**
+            * Gets a child using its name
+            * @param name defines the child name to look for
+            * @returns the child control if found
+            */
+        getChildByName(name: string): BABYLON.Nullable<Control>;
+        /**
+            * Gets a child using its type and its name
+            * @param name defines the child name to look for
+            * @param type defines the child type to look for
+            * @returns the child control if found
+            */
+        getChildByType(name: string, type: string): BABYLON.Nullable<Control>;
+        /**
+            * Search for a specific control in children
+            * @param control defines the control to look for
+            * @returns true if the control is in child list
+            */
+        containsControl(control: Control): boolean;
+        /**
+            * Adds a new control to the current container
+            * @param control defines the control to add
+            * @returns the current container
+            */
+        addControl(control: BABYLON.Nullable<Control>): Container;
+        /**
+            * Removes all controls from the current container
+            * @returns the current container
+            */
+        clearControls(): Container;
+        /**
+            * Removes a control from the current container
+            * @param control defines the control to remove
+            * @returns the current container
+            */
+        removeControl(control: Control): Container;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-            protected _localDraw(context: CanvasRenderingContext2D): void;
-            /** @hidden */
+        /** @hidden */
+        protected _localDraw(context: CanvasRenderingContext2D): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-            protected _clipForChildren(context: CanvasRenderingContext2D): void;
-            /** @hidden */
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            /** Releases associated resources */
-            dispose(): void;
+        /** @hidden */
+        protected _clipForChildren(context: CanvasRenderingContext2D): void;
+        /** @hidden */
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        /** Releases associated resources */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -50475,433 +50322,433 @@ declare module BABYLON.GUI {
         * @see http://doc.babylonjs.com/how_to/gui#controls
         */
     export class Control {
-            /** defines the name of the control */
-            name?: string | undefined;
-            /** @hidden */
+        /** defines the name of the control */
+        name?: string | undefined;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** Gets or sets the control parent */
-            parent: BABYLON.Nullable<Container>;
-            /** @hidden */
+        /** Gets or sets the control parent */
+        parent: BABYLON.Nullable<Container>;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-            protected _fontOffset: {
-                    ascent: number;
-                    height: number;
-                    descent: number;
-            };
-            /** @hidden */
-            protected _horizontalAlignment: number;
-            /** @hidden */
-            protected _verticalAlignment: number;
-            /** @hidden */
+        /** @hidden */
+        protected _fontOffset: {
+            ascent: number;
+            height: number;
+            descent: number;
+        };
+        /** @hidden */
+        protected _horizontalAlignment: number;
+        /** @hidden */
+        protected _verticalAlignment: number;
+        /** @hidden */
 
-            /** @hidden */
-            protected _cachedParentMeasure: Measure;
-            /** @hidden */
+        /** @hidden */
+        protected _cachedParentMeasure: Measure;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-            protected _invertTransformMatrix: Matrix2D;
-            /** @hidden */
-            protected _transformedPosition: BABYLON.Vector2;
-            /** @hidden */
+        /** @hidden */
+        protected _invertTransformMatrix: Matrix2D;
+        /** @hidden */
+        protected _transformedPosition: BABYLON.Vector2;
+        /** @hidden */
 
-            protected _isEnabled: boolean;
-            protected _disabledColor: string;
-            /** @hidden */
+        protected _isEnabled: boolean;
+        protected _disabledColor: string;
+        /** @hidden */
 
-            /** Gets or sets a boolean indicating if the control can be hit with pointer events */
-            isHitTestVisible: boolean;
-            /** Gets or sets a boolean indicating if the control can block pointer events */
-            isPointerBlocker: boolean;
-            /** Gets or sets a boolean indicating if the control can be focusable */
-            isFocusInvisible: boolean;
-            /** Gets or sets a value indicating the offset to apply on X axis to render the shadow */
-            shadowOffsetX: number;
-            /** Gets or sets a value indicating the offset to apply on Y axis to render the shadow */
-            shadowOffsetY: number;
-            /** Gets or sets a value indicating the amount of blur to use to render the shadow */
-            shadowBlur: number;
-            /** Gets or sets a value indicating the color of the shadow (black by default ie. "#000") */
-            shadowColor: string;
-            /** Gets or sets the cursor to use when the control is hovered */
-            hoverCursor: string;
-            /** @hidden */
-            protected _linkOffsetX: ValueAndUnit;
-            /** @hidden */
-            protected _linkOffsetY: ValueAndUnit;
-            /** Gets the control type name */
-            readonly typeName: string;
-            /**
-             * An event triggered when the pointer move over the control.
-             */
-            onPointerMoveObservable: BABYLON.Observable<BABYLON.Vector2>;
-            /**
-             * An event triggered when the pointer move out of the control.
-             */
-            onPointerOutObservable: BABYLON.Observable<Control>;
-            /**
-             * An event triggered when the pointer taps the control
-             */
-            onPointerDownObservable: BABYLON.Observable<Vector2WithInfo>;
-            /**
-             * An event triggered when pointer up
-             */
-            onPointerUpObservable: BABYLON.Observable<Vector2WithInfo>;
-            /**
-             * An event triggered when a control is clicked on
-             */
-            onPointerClickObservable: BABYLON.Observable<Vector2WithInfo>;
-            /**
-             * An event triggered when pointer enters the control
-             */
-            onPointerEnterObservable: BABYLON.Observable<Control>;
-            /**
-             * An event triggered when the control is marked as dirty
-             */
-            onDirtyObservable: BABYLON.Observable<Control>;
-            /**
-            * An event triggered after the control is drawn
+        /** Gets or sets a boolean indicating if the control can be hit with pointer events */
+        isHitTestVisible: boolean;
+        /** Gets or sets a boolean indicating if the control can block pointer events */
+        isPointerBlocker: boolean;
+        /** Gets or sets a boolean indicating if the control can be focusable */
+        isFocusInvisible: boolean;
+        /** Gets or sets a value indicating the offset to apply on X axis to render the shadow */
+        shadowOffsetX: number;
+        /** Gets or sets a value indicating the offset to apply on Y axis to render the shadow */
+        shadowOffsetY: number;
+        /** Gets or sets a value indicating the amount of blur to use to render the shadow */
+        shadowBlur: number;
+        /** Gets or sets a value indicating the color of the shadow (black by default ie. "#000") */
+        shadowColor: string;
+        /** Gets or sets the cursor to use when the control is hovered */
+        hoverCursor: string;
+        /** @hidden */
+        protected _linkOffsetX: ValueAndUnit;
+        /** @hidden */
+        protected _linkOffsetY: ValueAndUnit;
+        /** Gets the control type name */
+        readonly typeName: string;
+        /**
+         * An event triggered when the pointer move over the control.
+         */
+        onPointerMoveObservable: BABYLON.Observable<BABYLON.Vector2>;
+        /**
+         * An event triggered when the pointer move out of the control.
+         */
+        onPointerOutObservable: BABYLON.Observable<Control>;
+        /**
+         * An event triggered when the pointer taps the control
+         */
+        onPointerDownObservable: BABYLON.Observable<Vector2WithInfo>;
+        /**
+         * An event triggered when pointer up
+         */
+        onPointerUpObservable: BABYLON.Observable<Vector2WithInfo>;
+        /**
+         * An event triggered when a control is clicked on
+         */
+        onPointerClickObservable: BABYLON.Observable<Vector2WithInfo>;
+        /**
+         * An event triggered when pointer enters the control
+         */
+        onPointerEnterObservable: BABYLON.Observable<Control>;
+        /**
+         * An event triggered when the control is marked as dirty
+         */
+        onDirtyObservable: BABYLON.Observable<Control>;
+        /**
+        * An event triggered after the control is drawn
+        */
+        onAfterDrawObservable: BABYLON.Observable<Control>;
+        /** Gets or set information about font offsets (used to render and align text) */
+        fontOffset: {
+            ascent: number;
+            height: number;
+            descent: number;
+        };
+        /** Gets or sets alpha value for the control (1 means opaque and 0 means entirely transparent) */
+        alpha: number;
+        /** Gets or sets a value indicating the scale factor on X axis (1 by default)
+            * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         */
+        scaleX: number;
+        /** Gets or sets a value indicating the scale factor on Y axis (1 by default)
+            * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         */
+        scaleY: number;
+        /** Gets or sets the rotation angle (0 by default)
+            * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         */
+        rotation: number;
+        /** Gets or sets the transformation center on Y axis (0 by default)
+            * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         */
+        transformCenterY: number;
+        /** Gets or sets the transformation center on X axis (0 by default)
+            * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
+         */
+        transformCenterX: number;
+        /**
+            * Gets or sets the horizontal alignment
+            * @see http://doc.babylonjs.com/how_to/gui#alignments
             */
-            onAfterDrawObservable: BABYLON.Observable<Control>;
-            /** Gets or set information about font offsets (used to render and align text) */
-            fontOffset: {
-                    ascent: number;
-                    height: number;
-                    descent: number;
-            };
-            /** Gets or sets alpha value for the control (1 means opaque and 0 means entirely transparent) */
-            alpha: number;
-            /** Gets or sets a value indicating the scale factor on X axis (1 by default)
-                * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
-             */
-            scaleX: number;
-            /** Gets or sets a value indicating the scale factor on Y axis (1 by default)
-                * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
-             */
-            scaleY: number;
-            /** Gets or sets the rotation angle (0 by default)
-                * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
-             */
-            rotation: number;
-            /** Gets or sets the transformation center on Y axis (0 by default)
-                * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
-             */
-            transformCenterY: number;
-            /** Gets or sets the transformation center on X axis (0 by default)
-                * @see http://doc.babylonjs.com/how_to/gui#rotation-and-scaling
-             */
-            transformCenterX: number;
-            /**
-                * Gets or sets the horizontal alignment
-                * @see http://doc.babylonjs.com/how_to/gui#alignments
-                */
-            horizontalAlignment: number;
-            /**
-                * Gets or sets the vertical alignment
-                * @see http://doc.babylonjs.com/how_to/gui#alignments
-                */
-            verticalAlignment: number;
-            /**
-                * Gets or sets control width
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            width: string | number;
-            /**
-                * Gets control width in pixel
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly widthInPixels: number;
-            /**
-                * Gets or sets control height
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            height: string | number;
-            /**
-                * Gets control height in pixel
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly heightInPixels: number;
-            /** Gets or set font family */
-            fontFamily: string;
-            /** Gets or sets font style */
-            fontStyle: string;
-            /** Gets or sets font weight */
-            fontWeight: string;
-            /**
-                * Gets or sets style
-                * @see http://doc.babylonjs.com/how_to/gui#styles
-                */
-            style: BABYLON.Nullable<Style>;
-            /** @hidden */
-protected readonly _isFontSizeInPercentage: boolean;
-            /** Gets font size in pixels */
-            readonly fontSizeInPixels: number;
-            /** Gets or sets font size */
-            fontSize: string | number;
-            /** Gets or sets foreground color */
-            color: string;
-            /** Gets or sets z index which is used to reorder controls on the z axis */
-            zIndex: number;
-            /** Gets or sets a boolean indicating if the control can be rendered */
-            notRenderable: boolean;
-            /** Gets or sets a boolean indicating if the control is visible */
-            isVisible: boolean;
-            /** Gets a boolean indicating that the control needs to update its rendering */
-            readonly isDirty: boolean;
-            /**
-                * Gets the current linked mesh (or null if none)
-                */
-            readonly linkedMesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
-            /**
-                * Gets or sets a value indicating the padding to use on the left of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            paddingLeft: string | number;
-            /**
-                * Gets a value indicating the padding in pixels to use on the left of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly paddingLeftInPixels: number;
-            /**
-                * Gets or sets a value indicating the padding to use on the right of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            paddingRight: string | number;
-            /**
-                * Gets a value indicating the padding in pixels to use on the right of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly paddingRightInPixels: number;
-            /**
-                * Gets or sets a value indicating the padding to use on the top of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            paddingTop: string | number;
-            /**
-                * Gets a value indicating the padding in pixels to use on the top of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly paddingTopInPixels: number;
-            /**
-                * Gets or sets a value indicating the padding to use on the bottom of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            paddingBottom: string | number;
-            /**
-                * Gets a value indicating the padding in pixels to use on the bottom of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly paddingBottomInPixels: number;
-            /**
-                * Gets or sets a value indicating the left coordinate of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            left: string | number;
-            /**
-                * Gets a value indicating the left coordinate in pixels of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly leftInPixels: number;
-            /**
-                * Gets or sets a value indicating the top coordinate of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            top: string | number;
-            /**
-                * Gets a value indicating the top coordinate in pixels of the control
-                * @see http://doc.babylonjs.com/how_to/gui#position-and-size
-                */
-            readonly topInPixels: number;
-            /**
-                * Gets or sets a value indicating the offset on X axis to the linked mesh
-                * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
-                */
-            linkOffsetX: string | number;
-            /**
-                * Gets a value indicating the offset in pixels on X axis to the linked mesh
-                * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
-                */
-            readonly linkOffsetXInPixels: number;
-            /**
-                * Gets or sets a value indicating the offset on Y axis to the linked mesh
-                * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
-                */
-            linkOffsetY: string | number;
-            /**
-                * Gets a value indicating the offset in pixels on Y axis to the linked mesh
-                * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
-                */
-            readonly linkOffsetYInPixels: number;
-            /** Gets the center coordinate on X axis */
-            readonly centerX: number;
-            /** Gets the center coordinate on Y axis */
-            readonly centerY: number;
-            /** Gets or sets if control is Enabled*/
-            isEnabled: boolean;
-            /** Gets or sets background color of control if it's disabled*/
-            disabledColor: string;
-            /**
-                * Creates a new control
-                * @param name defines the name of the control
-                */
-            constructor(
+        horizontalAlignment: number;
+        /**
+            * Gets or sets the vertical alignment
+            * @see http://doc.babylonjs.com/how_to/gui#alignments
+            */
+        verticalAlignment: number;
+        /**
+            * Gets or sets control width
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        width: string | number;
+        /**
+            * Gets control width in pixel
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly widthInPixels: number;
+        /**
+            * Gets or sets control height
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        height: string | number;
+        /**
+            * Gets control height in pixel
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly heightInPixels: number;
+        /** Gets or set font family */
+        fontFamily: string;
+        /** Gets or sets font style */
+        fontStyle: string;
+        /** Gets or sets font weight */
+        fontWeight: string;
+        /**
+            * Gets or sets style
+            * @see http://doc.babylonjs.com/how_to/gui#styles
+            */
+        style: BABYLON.Nullable<Style>;
+        /** @hidden */
+        protected readonly _isFontSizeInPercentage: boolean;
+        /** Gets font size in pixels */
+        readonly fontSizeInPixels: number;
+        /** Gets or sets font size */
+        fontSize: string | number;
+        /** Gets or sets foreground color */
+        color: string;
+        /** Gets or sets z index which is used to reorder controls on the z axis */
+        zIndex: number;
+        /** Gets or sets a boolean indicating if the control can be rendered */
+        notRenderable: boolean;
+        /** Gets or sets a boolean indicating if the control is visible */
+        isVisible: boolean;
+        /** Gets a boolean indicating that the control needs to update its rendering */
+        readonly isDirty: boolean;
+        /**
+            * Gets the current linked mesh (or null if none)
+            */
+        readonly linkedMesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
+        /**
+            * Gets or sets a value indicating the padding to use on the left of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        paddingLeft: string | number;
+        /**
+            * Gets a value indicating the padding in pixels to use on the left of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly paddingLeftInPixels: number;
+        /**
+            * Gets or sets a value indicating the padding to use on the right of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        paddingRight: string | number;
+        /**
+            * Gets a value indicating the padding in pixels to use on the right of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly paddingRightInPixels: number;
+        /**
+            * Gets or sets a value indicating the padding to use on the top of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        paddingTop: string | number;
+        /**
+            * Gets a value indicating the padding in pixels to use on the top of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly paddingTopInPixels: number;
+        /**
+            * Gets or sets a value indicating the padding to use on the bottom of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        paddingBottom: string | number;
+        /**
+            * Gets a value indicating the padding in pixels to use on the bottom of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly paddingBottomInPixels: number;
+        /**
+            * Gets or sets a value indicating the left coordinate of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        left: string | number;
+        /**
+            * Gets a value indicating the left coordinate in pixels of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly leftInPixels: number;
+        /**
+            * Gets or sets a value indicating the top coordinate of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        top: string | number;
+        /**
+            * Gets a value indicating the top coordinate in pixels of the control
+            * @see http://doc.babylonjs.com/how_to/gui#position-and-size
+            */
+        readonly topInPixels: number;
+        /**
+            * Gets or sets a value indicating the offset on X axis to the linked mesh
+            * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
+            */
+        linkOffsetX: string | number;
+        /**
+            * Gets a value indicating the offset in pixels on X axis to the linked mesh
+            * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
+            */
+        readonly linkOffsetXInPixels: number;
+        /**
+            * Gets or sets a value indicating the offset on Y axis to the linked mesh
+            * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
+            */
+        linkOffsetY: string | number;
+        /**
+            * Gets a value indicating the offset in pixels on Y axis to the linked mesh
+            * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
+            */
+        readonly linkOffsetYInPixels: number;
+        /** Gets the center coordinate on X axis */
+        readonly centerX: number;
+        /** Gets the center coordinate on Y axis */
+        readonly centerY: number;
+        /** Gets or sets if control is Enabled*/
+        isEnabled: boolean;
+        /** Gets or sets background color of control if it's disabled*/
+        disabledColor: string;
+        /**
+            * Creates a new control
+            * @param name defines the name of the control
+            */
+        constructor(
             /** defines the name of the control */
             name?: string | undefined);
-            /** @hidden */
-            protected _getTypeName(): string;
-            /** @hidden */
+        /** @hidden */
+        protected _getTypeName(): string;
+        /** @hidden */
 
-            /**
-                * Determines if a container is an ascendant of the current control
-                * @param container defines the container to look for
-                * @returns true if the container is one of the ascendant of the control
-                */
-            isAscendant(container: Control): boolean;
-            /**
-                * Gets coordinates in local control space
-                * @param globalCoordinates defines the coordinates to transform
-                * @returns the new coordinates in local space
-                */
-            getLocalCoordinates(globalCoordinates: BABYLON.Vector2): BABYLON.Vector2;
-            /**
-                * Gets coordinates in local control space
-                * @param globalCoordinates defines the coordinates to transform
-                * @param result defines the target vector2 where to store the result
-                * @returns the current control
-                */
-            getLocalCoordinatesToRef(globalCoordinates: BABYLON.Vector2, result: BABYLON.Vector2): Control;
-            /**
-                * Gets coordinates in parent local control space
-                * @param globalCoordinates defines the coordinates to transform
-                * @returns the new coordinates in parent local space
-                */
-            getParentLocalCoordinates(globalCoordinates: BABYLON.Vector2): BABYLON.Vector2;
-            /**
-                * Move the current control to a vector3 position projected onto the screen.
-                * @param position defines the target position
-                * @param scene defines the hosting scene
-                */
-            moveToVector3(position: BABYLON.Vector3, scene: BABYLON.Scene): void;
-            /**
-                * Link current control with a target mesh
-                * @param mesh defines the mesh to link with
-                * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
-                */
-            linkWithMesh(mesh: BABYLON.Nullable<BABYLON.AbstractMesh>): void;
-            /** @hidden */
+        /**
+            * Determines if a container is an ascendant of the current control
+            * @param container defines the container to look for
+            * @returns true if the container is one of the ascendant of the control
+            */
+        isAscendant(container: Control): boolean;
+        /**
+            * Gets coordinates in local control space
+            * @param globalCoordinates defines the coordinates to transform
+            * @returns the new coordinates in local space
+            */
+        getLocalCoordinates(globalCoordinates: BABYLON.Vector2): BABYLON.Vector2;
+        /**
+            * Gets coordinates in local control space
+            * @param globalCoordinates defines the coordinates to transform
+            * @param result defines the target vector2 where to store the result
+            * @returns the current control
+            */
+        getLocalCoordinatesToRef(globalCoordinates: BABYLON.Vector2, result: BABYLON.Vector2): Control;
+        /**
+            * Gets coordinates in parent local control space
+            * @param globalCoordinates defines the coordinates to transform
+            * @returns the new coordinates in parent local space
+            */
+        getParentLocalCoordinates(globalCoordinates: BABYLON.Vector2): BABYLON.Vector2;
+        /**
+            * Move the current control to a vector3 position projected onto the screen.
+            * @param position defines the target position
+            * @param scene defines the hosting scene
+            */
+        moveToVector3(position: BABYLON.Vector3, scene: BABYLON.Scene): void;
+        /**
+            * Link current control with a target mesh
+            * @param mesh defines the mesh to link with
+            * @see http://doc.babylonjs.com/how_to/gui#tracking-positions
+            */
+        linkWithMesh(mesh: BABYLON.Nullable<BABYLON.AbstractMesh>): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-            protected _transform(context: CanvasRenderingContext2D): void;
-            /** @hidden */
-            protected _applyStates(context: CanvasRenderingContext2D): void;
-            /** @hidden */
-            protected _processMeasures(parentMeasure: Measure, context: CanvasRenderingContext2D): boolean;
-            /** @hidden */
-            protected _clip(context: CanvasRenderingContext2D): void;
-            /** @hidden */
+        /** @hidden */
+        protected _transform(context: CanvasRenderingContext2D): void;
+        /** @hidden */
+        protected _applyStates(context: CanvasRenderingContext2D): void;
+        /** @hidden */
+        protected _processMeasures(parentMeasure: Measure, context: CanvasRenderingContext2D): boolean;
+        /** @hidden */
+        protected _clip(context: CanvasRenderingContext2D): void;
+        /** @hidden */
 
-            /** @hidden */
-            protected _computeAlignment(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            /** @hidden */
-            protected _preMeasure(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            /** @hidden */
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            /** @hidden */
+        /** @hidden */
+        protected _computeAlignment(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        /** @hidden */
+        protected _preMeasure(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        /** @hidden */
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        /** @hidden */
 
-            /**
-                * Tests if a given coordinates belong to the current control
-                * @param x defines x coordinate to test
-                * @param y defines y coordinate to test
-                * @returns true if the coordinates are inside the control
-                */
-            contains(x: number, y: number): boolean;
-            /** @hidden */
+        /**
+            * Tests if a given coordinates belong to the current control
+            * @param x defines x coordinate to test
+            * @param y defines y coordinate to test
+            * @returns true if the coordinates are inside the control
+            */
+        contains(x: number, y: number): boolean;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** Releases associated resources */
-            dispose(): void;
-            /** HORIZONTAL_ALIGNMENT_LEFT */
-            static readonly HORIZONTAL_ALIGNMENT_LEFT: number;
-            /** HORIZONTAL_ALIGNMENT_RIGHT */
-            static readonly HORIZONTAL_ALIGNMENT_RIGHT: number;
-            /** HORIZONTAL_ALIGNMENT_CENTER */
-            static readonly HORIZONTAL_ALIGNMENT_CENTER: number;
-            /** VERTICAL_ALIGNMENT_TOP */
-            static readonly VERTICAL_ALIGNMENT_TOP: number;
-            /** VERTICAL_ALIGNMENT_BOTTOM */
-            static readonly VERTICAL_ALIGNMENT_BOTTOM: number;
-            /** VERTICAL_ALIGNMENT_CENTER */
-            static readonly VERTICAL_ALIGNMENT_CENTER: number;
-            /** @hidden */
-private static _GetFontOffset(font: string): {
-                    ascent: number;
-                    height: number;
-                    descent: number;
-            };
-            /**
-                * Creates a stack panel that can be used to render headers
-                * @param control defines the control to associate with the header
-                * @param text defines the text of the header
-                * @param size defines the size of the header
-                * @param options defines options used to configure the header
-                * @returns a new StackPanel
-                * @ignore
-                * @hidden
-                */
-            static AddHeader: (control: Control, text: string, size: string | number, options: {
-                    isHorizontal: boolean;
-                    controlFirst: boolean;
-            }) => any;
-            /** @hidden */
-            protected static drawEllipse(x: number, y: number, width: number, height: number, context: CanvasRenderingContext2D): void;
+        /** Releases associated resources */
+        dispose(): void;
+        /** HORIZONTAL_ALIGNMENT_LEFT */
+        static readonly HORIZONTAL_ALIGNMENT_LEFT: number;
+        /** HORIZONTAL_ALIGNMENT_RIGHT */
+        static readonly HORIZONTAL_ALIGNMENT_RIGHT: number;
+        /** HORIZONTAL_ALIGNMENT_CENTER */
+        static readonly HORIZONTAL_ALIGNMENT_CENTER: number;
+        /** VERTICAL_ALIGNMENT_TOP */
+        static readonly VERTICAL_ALIGNMENT_TOP: number;
+        /** VERTICAL_ALIGNMENT_BOTTOM */
+        static readonly VERTICAL_ALIGNMENT_BOTTOM: number;
+        /** VERTICAL_ALIGNMENT_CENTER */
+        static readonly VERTICAL_ALIGNMENT_CENTER: number;
+        /** @hidden */
+        private static _GetFontOffset(font: string): {
+            ascent: number;
+            height: number;
+            descent: number;
+        };
+        /**
+            * Creates a stack panel that can be used to render headers
+            * @param control defines the control to associate with the header
+            * @param text defines the text of the header
+            * @param size defines the size of the header
+            * @param options defines options used to configure the header
+            * @returns a new StackPanel
+            * @ignore
+            * @hidden
+            */
+        static AddHeader: (control: Control, text: string, size: string | number, options: {
+            isHorizontal: boolean;
+            controlFirst: boolean;
+        }) => any;
+        /** @hidden */
+        protected static drawEllipse(x: number, y: number, width: number, height: number, context: CanvasRenderingContext2D): void;
     }
 }
 declare module BABYLON.GUI {
     /** Class used to create 2D ellipse containers */
     export class Ellipse extends Container {
-            name?: string | undefined;
-            /** Gets or sets border thickness */
-            thickness: number;
-            /**
-                * Creates a new Ellipse
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _localDraw(context: CanvasRenderingContext2D): void;
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            protected _clipForChildren(context: CanvasRenderingContext2D): void;
+        name?: string | undefined;
+        /** Gets or sets border thickness */
+        thickness: number;
+        /**
+            * Creates a new Ellipse
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        protected _localDraw(context: CanvasRenderingContext2D): void;
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        protected _clipForChildren(context: CanvasRenderingContext2D): void;
     }
 }
 declare module BABYLON.GUI {
@@ -50909,74 +50756,74 @@ declare module BABYLON.GUI {
         * Class used to create a 2D grid container
         */
     export class Grid extends Container {
-            name?: string | undefined;
-            /** Gets the list of children */
-            readonly children: Control[];
-            /**
-                * Adds a new row to the grid
-                * @param height defines the height of the row (either in pixel or a value between 0 and 1)
-                * @param isPixel defines if the height is expressed in pixel (or in percentage)
-                * @returns the current grid
-                */
-            addRowDefinition(height: number, isPixel?: boolean): Grid;
-            /**
-                * Adds a new column to the grid
-                * @param width defines the width of the column (either in pixel or a value between 0 and 1)
-                * @param isPixel defines if the width is expressed in pixel (or in percentage)
-                * @returns the current grid
-                */
-            addColumnDefinition(width: number, isPixel?: boolean): Grid;
-            /**
-                * Update a row definition
-                * @param index defines the index of the row to update
-                * @param height defines the height of the row (either in pixel or a value between 0 and 1)
-                * @param isPixel defines if the weight is expressed in pixel (or in percentage)
-                * @returns the current grid
-                */
-            setRowDefinition(index: number, height: number, isPixel?: boolean): Grid;
-            /**
-                * Update a column definition
-                * @param index defines the index of the column to update
-                * @param width defines the width of the column (either in pixel or a value between 0 and 1)
-                * @param isPixel defines if the width is expressed in pixel (or in percentage)
-                * @returns the current grid
-                */
-            setColumnDefinition(index: number, width: number, isPixel?: boolean): Grid;
-            /**
-                * Remove a column definition at specified index
-                * @param index defines the index of the column to remove
-                * @returns the current grid
-                */
-            removeColumnDefinition(index: number): Grid;
-            /**
-                * Remove a row definition at specified index
-                * @param index defines the index of the row to remove
-                * @returns the current grid
-                */
-            removeRowDefinition(index: number): Grid;
-            /**
-                * Adds a new control to the current grid
-                * @param control defines the control to add
-                * @param row defines the row where to add the control (0 by default)
-                * @param column defines the column where to add the control (0 by default)
-                * @returns the current grid
-                */
-            addControl(control: Control, row?: number, column?: number): Grid;
-            /**
-                * Removes a control from the current container
-                * @param control defines the control to remove
-                * @returns the current container
-                */
-            removeControl(control: Control): Container;
-            /**
-                * Creates a new Grid
-                * @param name defines control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            /** Releases associated resources */
-            dispose(): void;
+        name?: string | undefined;
+        /** Gets the list of children */
+        readonly children: Control[];
+        /**
+            * Adds a new row to the grid
+            * @param height defines the height of the row (either in pixel or a value between 0 and 1)
+            * @param isPixel defines if the height is expressed in pixel (or in percentage)
+            * @returns the current grid
+            */
+        addRowDefinition(height: number, isPixel?: boolean): Grid;
+        /**
+            * Adds a new column to the grid
+            * @param width defines the width of the column (either in pixel or a value between 0 and 1)
+            * @param isPixel defines if the width is expressed in pixel (or in percentage)
+            * @returns the current grid
+            */
+        addColumnDefinition(width: number, isPixel?: boolean): Grid;
+        /**
+            * Update a row definition
+            * @param index defines the index of the row to update
+            * @param height defines the height of the row (either in pixel or a value between 0 and 1)
+            * @param isPixel defines if the weight is expressed in pixel (or in percentage)
+            * @returns the current grid
+            */
+        setRowDefinition(index: number, height: number, isPixel?: boolean): Grid;
+        /**
+            * Update a column definition
+            * @param index defines the index of the column to update
+            * @param width defines the width of the column (either in pixel or a value between 0 and 1)
+            * @param isPixel defines if the width is expressed in pixel (or in percentage)
+            * @returns the current grid
+            */
+        setColumnDefinition(index: number, width: number, isPixel?: boolean): Grid;
+        /**
+            * Remove a column definition at specified index
+            * @param index defines the index of the column to remove
+            * @returns the current grid
+            */
+        removeColumnDefinition(index: number): Grid;
+        /**
+            * Remove a row definition at specified index
+            * @param index defines the index of the row to remove
+            * @returns the current grid
+            */
+        removeRowDefinition(index: number): Grid;
+        /**
+            * Adds a new control to the current grid
+            * @param control defines the control to add
+            * @param row defines the row where to add the control (0 by default)
+            * @param column defines the column where to add the control (0 by default)
+            * @returns the current grid
+            */
+        addControl(control: Control, row?: number, column?: number): Grid;
+        /**
+            * Removes a control from the current container
+            * @param control defines the control to remove
+            * @returns the current container
+            */
+        removeControl(control: Control): Container;
+        /**
+            * Creates a new Grid
+            * @param name defines control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        /** Releases associated resources */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -50984,71 +50831,71 @@ declare module BABYLON.GUI {
         * Class used to create 2D images
         */
     export class Image extends Control {
-            name?: string | undefined;
-            /**
-                * Gets or sets the left coordinate in the source image
-                */
-            sourceLeft: number;
-            /**
-                * Gets or sets the top coordinate in the source image
-                */
-            sourceTop: number;
-            /**
-                * Gets or sets the width to capture in the source image
-                */
-            sourceWidth: number;
-            /**
-                * Gets or sets the height to capture in the source image
-                */
-            sourceHeight: number;
-            /**
-                * Gets or sets a boolean indicating if the image can force its container to adapt its size
-                * @see http://doc.babylonjs.com/how_to/gui#image
-                */
-            autoScale: boolean;
-            /** Gets or sets the streching mode used by the image */
-            stretch: number;
-            /**
-                * Gets or sets the internal DOM image used to render the control
-                */
-            domImage: HTMLImageElement;
-            /**
-                * Gets or sets image source url
-                */
-            source: BABYLON.Nullable<string>;
-            /**
-                * Gets or sets the cell width to use when animation sheet is enabled
-                * @see http://doc.babylonjs.com/how_to/gui#image
-                */
-            cellWidth: number;
-            /**
-                * Gets or sets the cell height to use when animation sheet is enabled
-                * @see http://doc.babylonjs.com/how_to/gui#image
-                */
-            cellHeight: number;
-            /**
-                * Gets or sets the cell id to use (this will turn on the animation sheet mode)
-                * @see http://doc.babylonjs.com/how_to/gui#image
-                */
-            cellId: number;
-            /**
-                * Creates a new Image
-                * @param name defines the control name
-                * @param url defines the image url
-                */
-            constructor(name?: string | undefined, url?: BABYLON.Nullable<string>);
-            protected _getTypeName(): string;
-            /** Force the control to synchronize with its content */
-            synchronizeSizeWithContent(): void;
+        name?: string | undefined;
+        /**
+            * Gets or sets the left coordinate in the source image
+            */
+        sourceLeft: number;
+        /**
+            * Gets or sets the top coordinate in the source image
+            */
+        sourceTop: number;
+        /**
+            * Gets or sets the width to capture in the source image
+            */
+        sourceWidth: number;
+        /**
+            * Gets or sets the height to capture in the source image
+            */
+        sourceHeight: number;
+        /**
+            * Gets or sets a boolean indicating if the image can force its container to adapt its size
+            * @see http://doc.babylonjs.com/how_to/gui#image
+            */
+        autoScale: boolean;
+        /** Gets or sets the streching mode used by the image */
+        stretch: number;
+        /**
+            * Gets or sets the internal DOM image used to render the control
+            */
+        domImage: HTMLImageElement;
+        /**
+            * Gets or sets image source url
+            */
+        source: BABYLON.Nullable<string>;
+        /**
+            * Gets or sets the cell width to use when animation sheet is enabled
+            * @see http://doc.babylonjs.com/how_to/gui#image
+            */
+        cellWidth: number;
+        /**
+            * Gets or sets the cell height to use when animation sheet is enabled
+            * @see http://doc.babylonjs.com/how_to/gui#image
+            */
+        cellHeight: number;
+        /**
+            * Gets or sets the cell id to use (this will turn on the animation sheet mode)
+            * @see http://doc.babylonjs.com/how_to/gui#image
+            */
+        cellId: number;
+        /**
+            * Creates a new Image
+            * @param name defines the control name
+            * @param url defines the image url
+            */
+        constructor(name?: string | undefined, url?: BABYLON.Nullable<string>);
+        protected _getTypeName(): string;
+        /** Force the control to synchronize with its content */
+        synchronizeSizeWithContent(): void;
 
-            /** STRETCH_NONE */
-            static readonly STRETCH_NONE: number;
-            /** STRETCH_FILL */
-            static readonly STRETCH_FILL: number;
-            /** STRETCH_UNIFORM */
-            static readonly STRETCH_UNIFORM: number;
-            /** STRETCH_EXTEND */
-            static readonly STRETCH_EXTEND: number;
+        /** STRETCH_NONE */
+        static readonly STRETCH_NONE: number;
+        /** STRETCH_FILL */
+        static readonly STRETCH_FILL: number;
+        /** STRETCH_UNIFORM */
+        static readonly STRETCH_UNIFORM: number;
+        /** STRETCH_EXTEND */
+        static readonly STRETCH_EXTEND: number;
     }
 }
 declare module BABYLON.GUI {
@@ -51056,74 +50903,74 @@ declare module BABYLON.GUI {
         * Class used to create input text control
         */
     export class InputText extends Control implements IFocusableControl {
-            name?: string | undefined;
-            /** @hidden */
+        name?: string | undefined;
+        /** @hidden */
 
-            /** Gets or sets a string representing the message displayed on mobile when the control gets the focus */
-            promptMessage: string;
-            /** BABYLON.Observable raised when the text changes */
-            onTextChangedObservable: BABYLON.Observable<InputText>;
-            /** BABYLON.Observable raised just before an entered character is to be added */
-            onBeforeKeyAddObservable: BABYLON.Observable<InputText>;
-            /** BABYLON.Observable raised when the control gets the focus */
-            onFocusObservable: BABYLON.Observable<InputText>;
-            /** BABYLON.Observable raised when the control loses the focus */
-            onBlurObservable: BABYLON.Observable<InputText>;
-            /** Gets or sets the maximum width allowed by the control */
-            maxWidth: string | number;
-            /** Gets the maximum width allowed by the control in pixels */
-            readonly maxWidthInPixels: number;
-            /** Gets or sets control margin */
-            margin: string;
-            /** Gets control margin in pixels */
-            readonly marginInPixels: number;
-            /** Gets or sets a boolean indicating if the control can auto stretch its width to adapt to the text */
-            autoStretchWidth: boolean;
-            /** Gets or sets border thickness */
-            thickness: number;
-            /** Gets or sets the background color when focused */
-            focusedBackground: string;
-            /** Gets or sets the background color */
-            background: string;
-            /** Gets or sets the placeholder color */
-            placeholderColor: string;
-            /** Gets or sets the text displayed when the control is empty */
-            placeholderText: string;
-            /** Gets or sets the dead key flag */
-            deadKey: boolean;
-            /** Gets or sets if the current key should be added */
-            addKey: boolean;
-            /** Gets or sets the value of the current key being entered */
-            currentKey: string;
-            /** Gets or sets the text displayed in the control */
-            text: string;
-            /** Gets or sets control width */
-            width: string | number;
-            /**
-                * Creates a new InputText
-                * @param name defines the control name
-                * @param text defines the text of the control
-                */
-            constructor(name?: string | undefined, text?: string);
-            /** @hidden */
-            onBlur(): void;
-            /** @hidden */
-            onFocus(): void;
-            protected _getTypeName(): string;
-            /**
-                * Function called to get the list of controls that should not steal the focus from this control
-                * @returns an array of controls
-                */
-            keepsFocusWith(): BABYLON.Nullable<Control[]>;
-            /** @hidden */
-            processKey(keyCode: number, key?: string): void;
-            /** @hidden */
-            processKeyboard(evt: KeyboardEvent): void;
+        /** Gets or sets a string representing the message displayed on mobile when the control gets the focus */
+        promptMessage: string;
+        /** BABYLON.Observable raised when the text changes */
+        onTextChangedObservable: BABYLON.Observable<InputText>;
+        /** BABYLON.Observable raised just before an entered character is to be added */
+        onBeforeKeyAddObservable: BABYLON.Observable<InputText>;
+        /** BABYLON.Observable raised when the control gets the focus */
+        onFocusObservable: BABYLON.Observable<InputText>;
+        /** BABYLON.Observable raised when the control loses the focus */
+        onBlurObservable: BABYLON.Observable<InputText>;
+        /** Gets or sets the maximum width allowed by the control */
+        maxWidth: string | number;
+        /** Gets the maximum width allowed by the control in pixels */
+        readonly maxWidthInPixels: number;
+        /** Gets or sets control margin */
+        margin: string;
+        /** Gets control margin in pixels */
+        readonly marginInPixels: number;
+        /** Gets or sets a boolean indicating if the control can auto stretch its width to adapt to the text */
+        autoStretchWidth: boolean;
+        /** Gets or sets border thickness */
+        thickness: number;
+        /** Gets or sets the background color when focused */
+        focusedBackground: string;
+        /** Gets or sets the background color */
+        background: string;
+        /** Gets or sets the placeholder color */
+        placeholderColor: string;
+        /** Gets or sets the text displayed when the control is empty */
+        placeholderText: string;
+        /** Gets or sets the dead key flag */
+        deadKey: boolean;
+        /** Gets or sets if the current key should be added */
+        addKey: boolean;
+        /** Gets or sets the value of the current key being entered */
+        currentKey: string;
+        /** Gets or sets the text displayed in the control */
+        text: string;
+        /** Gets or sets control width */
+        width: string | number;
+        /**
+            * Creates a new InputText
+            * @param name defines the control name
+            * @param text defines the text of the control
+            */
+        constructor(name?: string | undefined, text?: string);
+        /** @hidden */
+        onBlur(): void;
+        /** @hidden */
+        onFocus(): void;
+        protected _getTypeName(): string;
+        /**
+            * Function called to get the list of controls that should not steal the focus from this control
+            * @returns an array of controls
+            */
+        keepsFocusWith(): BABYLON.Nullable<Control[]>;
+        /** @hidden */
+        processKey(keyCode: number, key?: string): void;
+        /** @hidden */
+        processKeyboard(evt: KeyboardEvent): void;
 
 
 
-            protected _beforeRenderText(text: string): string;
-            dispose(): void;
+        protected _beforeRenderText(text: string): string;
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -51137,46 +50984,46 @@ declare module BABYLON.GUI {
 declare module BABYLON.GUI {
     /** Class used to render 2D lines */
     export class Line extends Control {
-            name?: string | undefined;
-            /** Gets or sets the dash pattern */
-            dash: Array<number>;
-            /** Gets or sets the control connected with the line end */
-            connectedControl: Control;
-            /** Gets or sets start coordinates on X axis */
-            x1: string | number;
-            /** Gets or sets start coordinates on Y axis */
-            y1: string | number;
-            /** Gets or sets end coordinates on X axis */
-            x2: string | number;
-            /** Gets or sets end coordinates on Y axis */
-            y2: string | number;
-            /** Gets or sets line width */
-            lineWidth: number;
-            /** Gets or sets horizontal alignment */
-            horizontalAlignment: number;
-            /** Gets or sets vertical alignment */
-            verticalAlignment: number;
-            /**
-                * Creates a new Line
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
+        name?: string | undefined;
+        /** Gets or sets the dash pattern */
+        dash: Array<number>;
+        /** Gets or sets the control connected with the line end */
+        connectedControl: Control;
+        /** Gets or sets start coordinates on X axis */
+        x1: string | number;
+        /** Gets or sets start coordinates on Y axis */
+        y1: string | number;
+        /** Gets or sets end coordinates on X axis */
+        x2: string | number;
+        /** Gets or sets end coordinates on Y axis */
+        y2: string | number;
+        /** Gets or sets line width */
+        lineWidth: number;
+        /** Gets or sets horizontal alignment */
+        horizontalAlignment: number;
+        /** Gets or sets vertical alignment */
+        verticalAlignment: number;
+        /**
+            * Creates a new Line
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
 
 
-            protected _computeAlignment(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            /**
-                * Move one end of the line given 3D cartesian coordinates.
-                * @param position Targeted world position
-                * @param scene BABYLON.Scene
-                * @param end (opt) Set to true to assign x2 and y2 coordinates of the line. Default assign to x1 and y1.
-                */
-            moveToVector3(position: BABYLON.Vector3, scene: BABYLON.Scene, end?: boolean): void;
-            /**
-                * Move one end of the line to a position in screen absolute space.
-                * @param projectedPosition Position in screen absolute space (X, Y)
-                * @param end (opt) Set to true to assign x2 and y2 coordinates of the line. Default assign to x1 and y1.
-                */
+        protected _computeAlignment(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        /**
+            * Move one end of the line given 3D cartesian coordinates.
+            * @param position Targeted world position
+            * @param scene BABYLON.Scene
+            * @param end (opt) Set to true to assign x2 and y2 coordinates of the line. Default assign to x1 and y1.
+            */
+        moveToVector3(position: BABYLON.Vector3, scene: BABYLON.Scene, end?: boolean): void;
+        /**
+            * Move one end of the line to a position in screen absolute space.
+            * @param projectedPosition Position in screen absolute space (X, Y)
+            * @param end (opt) Set to true to assign x2 and y2 coordinates of the line. Default assign to x1 and y1.
+            */
 
     }
 }
@@ -51185,63 +51032,63 @@ declare module BABYLON.GUI {
         * Class used to create multi line control
         */
     export class MultiLine extends Control {
-            name?: string | undefined;
-            /**
-                * Creates a new MultiLine
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            /** Gets or sets dash pattern */
-            dash: Array<number>;
-            /**
-                * Gets point stored at specified index
-                * @param index defines the index to look for
-                * @returns the requested point if found
-                */
-            getAt(index: number): MultiLinePoint;
-            /** Function called when a point is updated */
-            onPointUpdate: () => void;
-            /**
-                * Adds new points to the point collection
-                * @param items defines the list of items (mesh, control or 2d coordiantes) to add
-                * @returns the list of created MultiLinePoint
-                */
-            add(...items: (AbstractMesh | Control | {
-                    x: string | number;
-                    y: string | number;
-            })[]): MultiLinePoint[];
-            /**
-                * Adds a new point to the point collection
-                * @param item defines the item (mesh, control or 2d coordiantes) to add
-                * @returns the created MultiLinePoint
-                */
-            push(item?: (AbstractMesh | Control | {
-                    x: string | number;
-                    y: string | number;
-            })): MultiLinePoint;
-            /**
-                * Remove a specific value or point from the active point collection
-                * @param value defines the value or point to remove
-                */
-            remove(value: number | MultiLinePoint): void;
-            /**
-                * Resets this object to initial state (no point)
-                */
-            reset(): void;
-            /**
-                * Resets all links
-                */
-            resetLinks(): void;
-            /** Gets or sets line width */
-            lineWidth: number;
-            horizontalAlignment: number;
-            verticalAlignment: number;
-            protected _getTypeName(): string;
+        name?: string | undefined;
+        /**
+            * Creates a new MultiLine
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        /** Gets or sets dash pattern */
+        dash: Array<number>;
+        /**
+            * Gets point stored at specified index
+            * @param index defines the index to look for
+            * @returns the requested point if found
+            */
+        getAt(index: number): MultiLinePoint;
+        /** Function called when a point is updated */
+        onPointUpdate: () => void;
+        /**
+            * Adds new points to the point collection
+            * @param items defines the list of items (mesh, control or 2d coordiantes) to add
+            * @returns the list of created MultiLinePoint
+            */
+        add(...items: (AbstractMesh | Control | {
+            x: string | number;
+            y: string | number;
+        })[]): MultiLinePoint[];
+        /**
+            * Adds a new point to the point collection
+            * @param item defines the item (mesh, control or 2d coordiantes) to add
+            * @returns the created MultiLinePoint
+            */
+        push(item?: (AbstractMesh | Control | {
+            x: string | number;
+            y: string | number;
+        })): MultiLinePoint;
+        /**
+            * Remove a specific value or point from the active point collection
+            * @param value defines the value or point to remove
+            */
+        remove(value: number | MultiLinePoint): void;
+        /**
+            * Resets this object to initial state (no point)
+            */
+        reset(): void;
+        /**
+            * Resets all links
+            */
+        resetLinks(): void;
+        /** Gets or sets line width */
+        lineWidth: number;
+        horizontalAlignment: number;
+        verticalAlignment: number;
+        protected _getTypeName(): string;
 
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
 
-            protected _computeAlignment(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            dispose(): void;
+        protected _computeAlignment(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -51249,36 +51096,36 @@ declare module BABYLON.GUI {
         * Class used to create radio button controls
         */
     export class RadioButton extends Control {
-            name?: string | undefined;
-            /** Gets or sets border thickness */
-            thickness: number;
-            /** Gets or sets group name */
-            group: string;
-            /** BABYLON.Observable raised when isChecked is changed */
-            onIsCheckedChangedObservable: BABYLON.Observable<boolean>;
-            /** Gets or sets a value indicating the ratio between overall size and check size */
-            checkSizeRatio: number;
-            /** Gets or sets background color */
-            background: string;
-            /** Gets or sets a boolean indicating if the checkbox is checked or not */
-            isChecked: boolean;
-            /**
-                * Creates a new RadioButton
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
+        name?: string | undefined;
+        /** Gets or sets border thickness */
+        thickness: number;
+        /** Gets or sets group name */
+        group: string;
+        /** BABYLON.Observable raised when isChecked is changed */
+        onIsCheckedChangedObservable: BABYLON.Observable<boolean>;
+        /** Gets or sets a value indicating the ratio between overall size and check size */
+        checkSizeRatio: number;
+        /** Gets or sets background color */
+        background: string;
+        /** Gets or sets a boolean indicating if the checkbox is checked or not */
+        isChecked: boolean;
+        /**
+            * Creates a new RadioButton
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
 
 
-            /**
-                * Utility function to easily create a radio button with a header
-                * @param title defines the label to use for the header
-                * @param group defines the group to use for the radio button
-                * @param isChecked defines the initial state of the radio button
-                * @param onValueChanged defines the callback to call when value changes
-                * @returns a StackPanel containing the radio button and a textBlock
-                */
-            static AddRadioButtonWithHeader(title: string, group: string, isChecked: boolean, onValueChanged: (button: RadioButton, value: boolean) => void): StackPanel;
+        /**
+            * Utility function to easily create a radio button with a header
+            * @param title defines the label to use for the header
+            * @param group defines the group to use for the radio button
+            * @param isChecked defines the initial state of the radio button
+            * @param onValueChanged defines the callback to call when value changes
+            * @returns a StackPanel containing the radio button and a textBlock
+            */
+        static AddRadioButtonWithHeader(title: string, group: string, isChecked: boolean, onValueChanged: (button: RadioButton, value: boolean) => void): StackPanel;
     }
 }
 declare module BABYLON.GUI {
@@ -51286,20 +51133,20 @@ declare module BABYLON.GUI {
         * Class used to create a 2D stack panel container
         */
     export class StackPanel extends Container {
-            name?: string | undefined;
-            /** Gets or sets a boolean indicating if the stack panel is vertical or horizontal*/
-            isVertical: boolean;
-            /** Gets or sets panel width */
-            width: string | number;
-            /** Gets or sets panel height */
-            height: string | number;
-            /**
-                * Creates a new StackPanel
-                * @param name defines control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _preMeasure(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        name?: string | undefined;
+        /** Gets or sets a boolean indicating if the stack panel is vertical or horizontal*/
+        isVertical: boolean;
+        /** Gets or sets panel width */
+        width: string | number;
+        /** Gets or sets panel height */
+        height: string | number;
+        /**
+            * Creates a new StackPanel
+            * @param name defines control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        protected _preMeasure(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
     }
 }
 declare module BABYLON.GUI {
@@ -51307,173 +51154,173 @@ declare module BABYLON.GUI {
         * which contains groups of radio buttons
      */
     export class SelectorGroup {
-            /** name of SelectorGroup */
-            name: string;
-            /**
-                * Creates a new SelectorGroup
-                * @param name of group, used as a group heading
-                */
-            constructor(
+        /** name of SelectorGroup */
+        name: string;
+        /**
+            * Creates a new SelectorGroup
+            * @param name of group, used as a group heading
+            */
+        constructor(
             /** name of SelectorGroup */
             name: string);
-            /** Gets the groupPanel of the SelectorGroup  */
-            readonly groupPanel: StackPanel;
-            /** Gets the selectors array */
-            readonly selectors: StackPanel[];
-            /** Gets and sets the group header */
-            header: string;
-            /** @hidden*/
+        /** Gets the groupPanel of the SelectorGroup  */
+        readonly groupPanel: StackPanel;
+        /** Gets the selectors array */
+        readonly selectors: StackPanel[];
+        /** Gets and sets the group header */
+        header: string;
+        /** @hidden*/
 
-            /** Removes the selector at the given position
-             * @param selectorNb the position of the selector within the group
-            */
-            removeSelector(selectorNb: number): void;
+        /** Removes the selector at the given position
+         * @param selectorNb the position of the selector within the group
+        */
+        removeSelector(selectorNb: number): void;
     }
     /** Class used to create a CheckboxGroup
         * which contains groups of checkbox buttons
      */
     export class CheckboxGroup extends SelectorGroup {
-            /** Adds a checkbox as a control
-                * @param text is the label for the selector
-                * @param func is the function called when the Selector is checked
-                * @param checked is true when Selector is checked
-                */
-            addCheckbox(text: string, func?: (s: boolean) => void, checked?: boolean): void;
-            /** @hidden */
+        /** Adds a checkbox as a control
+            * @param text is the label for the selector
+            * @param func is the function called when the Selector is checked
+            * @param checked is true when Selector is checked
+            */
+        addCheckbox(text: string, func?: (s: boolean) => void, checked?: boolean): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
     }
     /** Class used to create a RadioGroup
         * which contains groups of radio buttons
      */
     export class RadioGroup extends SelectorGroup {
-            /** Adds a radio button as a control
-                * @param label is the label for the selector
-                * @param func is the function called when the Selector is checked
-                * @param checked is true when Selector is checked
-                */
-            addRadio(label: string, func?: (n: number) => void, checked?: boolean): void;
-            /** @hidden */
+        /** Adds a radio button as a control
+            * @param label is the label for the selector
+            * @param func is the function called when the Selector is checked
+            * @param checked is true when Selector is checked
+            */
+        addRadio(label: string, func?: (n: number) => void, checked?: boolean): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
     }
     /** Class used to create a SliderGroup
         * which contains groups of slider buttons
      */
     export class SliderGroup extends SelectorGroup {
-            /**
-                * Adds a slider to the SelectorGroup
-                * @param label is the label for the SliderBar
-                * @param func is the function called when the Slider moves
-                * @param unit is a string describing the units used, eg degrees or metres
-                * @param min is the minimum value for the Slider
-                * @param max is the maximum value for the Slider
-                * @param value is the start value for the Slider between min and max
-                * @param onValueChange is the function used to format the value displayed, eg radians to degrees
-                */
-            addSlider(label: string, func?: (v: number) => void, unit?: string, min?: number, max?: number, value?: number, onValueChange?: (v: number) => number): void;
-            /** @hidden */
+        /**
+            * Adds a slider to the SelectorGroup
+            * @param label is the label for the SliderBar
+            * @param func is the function called when the Slider moves
+            * @param unit is a string describing the units used, eg degrees or metres
+            * @param min is the minimum value for the Slider
+            * @param max is the maximum value for the Slider
+            * @param value is the start value for the Slider between min and max
+            * @param onValueChange is the function used to format the value displayed, eg radians to degrees
+            */
+        addSlider(label: string, func?: (v: number) => void, unit?: string, min?: number, max?: number, value?: number, onValueChange?: (v: number) => number): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
     }
     /** Class used to hold the controls for the checkboxes, radio buttons and sliders
         * @see http://doc.babylonjs.com/how_to/selector
      */
     export class SelectionPanel extends Rectangle {
+        /** name of SelectionPanel */
+        name: string;
+        /** an array of SelectionGroups */
+        groups: SelectorGroup[];
+        /**
+         * Creates a new SelectionPanel
+         * @param name of SelectionPanel
+         * @param groups is an array of SelectionGroups
+         */
+        constructor(
             /** name of SelectionPanel */
-            name: string;
-            /** an array of SelectionGroups */
-            groups: SelectorGroup[];
-            /**
-             * Creates a new SelectionPanel
-             * @param name of SelectionPanel
-             * @param groups is an array of SelectionGroups
-             */
-            constructor(
-            /** name of SelectionPanel */
-            name: string, 
+            name: string,
             /** an array of SelectionGroups */
             groups?: SelectorGroup[]);
-            protected _getTypeName(): string;
-            /** Gets or sets the headerColor */
-            headerColor: string;
-            /** Gets or sets the button color */
-            buttonColor: string;
-            /** Gets or sets the label color */
-            labelColor: string;
-            /** Gets or sets the button background */
-            buttonBackground: string;
-            /** Gets or sets the color of separator bar */
-            barColor: string;
-            /** Gets or sets the height of separator bar */
-            barHeight: string;
-            /** Gets or sets the height of spacers*/
-            spacerHeight: string;
-            /** Add a group to the selection panel
-                * @param group is the selector group to add
-                */
-            addGroup(group: SelectorGroup): void;
-            /** Remove the group from the given position
-                * @param groupNb is the position of the group in the list
-                */
-            removeGroup(groupNb: number): void;
-            /** Change a group header label
-                * @param label is the new group header label
-                * @param groupNb is the number of the group to relabel
-                * */
-            setHeaderName(label: string, groupNb: number): void;
-            /** Change selector label to the one given
-                * @param label is the new selector label
-                * @param groupNb is the number of the groupcontaining the selector
-                * @param selectorNb is the number of the selector within a group to relabel
-                * */
-            relabel(label: string, groupNb: number, selectorNb: number): void;
-            /** For a given group position remove the selector at the given position
-                * @param groupNb is the number of the group to remove the selector from
-                * @param selectorNb is the number of the selector within the group
-                */
-            removeFromGroupSelector(groupNb: number, selectorNb: number): void;
-            /** For a given group position of correct type add a checkbox button
-                * @param groupNb is the number of the group to remove the selector from
-                * @param label is the label for the selector
-                * @param func is the function called when the Selector is checked
-                * @param checked is true when Selector is checked
-                */
-            addToGroupCheckbox(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
-            /** For a given group position of correct type add a radio button
-                * @param groupNb is the number of the group to remove the selector from
-                * @param label is the label for the selector
-                * @param func is the function called when the Selector is checked
-                * @param checked is true when Selector is checked
-                */
-            addToGroupRadio(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
-            /**
-                * For a given slider group add a slider
-                * @param groupNb is the number of the group to add the slider to
-                * @param label is the label for the Slider
-                * @param func is the function called when the Slider moves
-                * @param unit is a string describing the units used, eg degrees or metres
-                * @param min is the minimum value for the Slider
-                * @param max is the maximum value for the Slider
-                * @param value is the start value for the Slider between min and max
-                * @param onVal is the function used to format the value displayed, eg radians to degrees
-                */
-            addToGroupSlider(groupNb: number, label: string, func?: () => void, unit?: string, min?: number, max?: number, value?: number, onVal?: (v: number) => number): void;
+        protected _getTypeName(): string;
+        /** Gets or sets the headerColor */
+        headerColor: string;
+        /** Gets or sets the button color */
+        buttonColor: string;
+        /** Gets or sets the label color */
+        labelColor: string;
+        /** Gets or sets the button background */
+        buttonBackground: string;
+        /** Gets or sets the color of separator bar */
+        barColor: string;
+        /** Gets or sets the height of separator bar */
+        barHeight: string;
+        /** Gets or sets the height of spacers*/
+        spacerHeight: string;
+        /** Add a group to the selection panel
+            * @param group is the selector group to add
+            */
+        addGroup(group: SelectorGroup): void;
+        /** Remove the group from the given position
+            * @param groupNb is the position of the group in the list
+            */
+        removeGroup(groupNb: number): void;
+        /** Change a group header label
+            * @param label is the new group header label
+            * @param groupNb is the number of the group to relabel
+            * */
+        setHeaderName(label: string, groupNb: number): void;
+        /** Change selector label to the one given
+            * @param label is the new selector label
+            * @param groupNb is the number of the groupcontaining the selector
+            * @param selectorNb is the number of the selector within a group to relabel
+            * */
+        relabel(label: string, groupNb: number, selectorNb: number): void;
+        /** For a given group position remove the selector at the given position
+            * @param groupNb is the number of the group to remove the selector from
+            * @param selectorNb is the number of the selector within the group
+            */
+        removeFromGroupSelector(groupNb: number, selectorNb: number): void;
+        /** For a given group position of correct type add a checkbox button
+            * @param groupNb is the number of the group to remove the selector from
+            * @param label is the label for the selector
+            * @param func is the function called when the Selector is checked
+            * @param checked is true when Selector is checked
+            */
+        addToGroupCheckbox(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
+        /** For a given group position of correct type add a radio button
+            * @param groupNb is the number of the group to remove the selector from
+            * @param label is the label for the selector
+            * @param func is the function called when the Selector is checked
+            * @param checked is true when Selector is checked
+            */
+        addToGroupRadio(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
+        /**
+            * For a given slider group add a slider
+            * @param groupNb is the number of the group to add the slider to
+            * @param label is the label for the Slider
+            * @param func is the function called when the Slider moves
+            * @param unit is a string describing the units used, eg degrees or metres
+            * @param min is the minimum value for the Slider
+            * @param max is the maximum value for the Slider
+            * @param value is the start value for the Slider between min and max
+            * @param onVal is the function used to format the value displayed, eg radians to degrees
+            */
+        addToGroupSlider(groupNb: number, label: string, func?: () => void, unit?: string, min?: number, max?: number, value?: number, onVal?: (v: number) => number): void;
     }
 }
 declare module BABYLON.GUI {
@@ -51481,97 +51328,97 @@ declare module BABYLON.GUI {
         * Enum that determines the text-wrapping mode to use.
         */
     export enum TextWrapping {
-            /**
-                * Clip the text when it's larger than Control.width; this is the default mode.
-                */
-            Clip = 0,
-            /**
-                * Wrap the text word-wise, i.e. try to add line-breaks at word boundary to fit within Control.width.
-                */
-            WordWrap = 1,
-            /**
-                * Ellipsize the text, i.e. shrink with trailing … when text is larger than Control.width.
-                */
-            Ellipsis = 2
+        /**
+            * Clip the text when it's larger than Control.width; this is the default mode.
+            */
+        Clip = 0,
+        /**
+            * Wrap the text word-wise, i.e. try to add line-breaks at word boundary to fit within Control.width.
+            */
+        WordWrap = 1,
+        /**
+            * Ellipsize the text, i.e. shrink with trailing … when text is larger than Control.width.
+            */
+        Ellipsis = 2
     }
     /**
         * Class used to create text block control
         */
     export class TextBlock extends Control {
-            /**
-                * Defines the name of the control
-                */
-            name?: string | undefined;
-            /**
-             * An event triggered after the text is changed
-             */
-            onTextChangedObservable: BABYLON.Observable<TextBlock>;
-            /**
-             * An event triggered after the text was broken up into lines
-             */
-            onLinesReadyObservable: BABYLON.Observable<TextBlock>;
-            /**
-                * Return the line list (you may need to use the onLinesReadyObservable to make sure the list is ready)
-                */
-            readonly lines: any[];
-            /**
-             * Gets or sets an boolean indicating that the TextBlock will be resized to fit container
-             */
-            resizeToFit: boolean;
-            /**
-             * Gets or sets a boolean indicating if text must be wrapped
-             */
-            textWrapping: TextWrapping | boolean;
-            /**
-             * Gets or sets text to display
-             */
-            text: string;
-            /**
-             * Gets or sets text horizontal alignment (BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER by default)
-             */
-            textHorizontalAlignment: number;
-            /**
-             * Gets or sets text vertical alignment (BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER by default)
-             */
-            textVerticalAlignment: number;
-            /**
-             * Gets or sets line spacing value
-             */
-            lineSpacing: string | number;
-            /**
-             * Gets or sets outlineWidth of the text to display
-             */
-            outlineWidth: number;
-            /**
-             * Gets or sets outlineColor of the text to display
-             */
-            outlineColor: string;
-            /**
-                * Creates a new TextBlock object
-                * @param name defines the name of the control
-                * @param text defines the text to display (emptry string by default)
-                */
-            constructor(
+        /**
+            * Defines the name of the control
+            */
+        name?: string | undefined;
+        /**
+         * An event triggered after the text is changed
+         */
+        onTextChangedObservable: BABYLON.Observable<TextBlock>;
+        /**
+         * An event triggered after the text was broken up into lines
+         */
+        onLinesReadyObservable: BABYLON.Observable<TextBlock>;
+        /**
+            * Return the line list (you may need to use the onLinesReadyObservable to make sure the list is ready)
+            */
+        readonly lines: any[];
+        /**
+         * Gets or sets an boolean indicating that the TextBlock will be resized to fit container
+         */
+        resizeToFit: boolean;
+        /**
+         * Gets or sets a boolean indicating if text must be wrapped
+         */
+        textWrapping: TextWrapping | boolean;
+        /**
+         * Gets or sets text to display
+         */
+        text: string;
+        /**
+         * Gets or sets text horizontal alignment (BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER by default)
+         */
+        textHorizontalAlignment: number;
+        /**
+         * Gets or sets text vertical alignment (BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER by default)
+         */
+        textVerticalAlignment: number;
+        /**
+         * Gets or sets line spacing value
+         */
+        lineSpacing: string | number;
+        /**
+         * Gets or sets outlineWidth of the text to display
+         */
+        outlineWidth: number;
+        /**
+         * Gets or sets outlineColor of the text to display
+         */
+        outlineColor: string;
+        /**
+            * Creates a new TextBlock object
+            * @param name defines the name of the control
+            * @param text defines the text to display (emptry string by default)
+            */
+        constructor(
             /**
                 * Defines the name of the control
                 */
             name?: string | undefined, text?: string);
-            protected _getTypeName(): string;
-            /** @hidden */
+        protected _getTypeName(): string;
+        /** @hidden */
 
-            protected _applyStates(context: CanvasRenderingContext2D): void;
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            protected _breakLines(refWidth: number, context: CanvasRenderingContext2D): object[];
-            protected _parseLine(line: string | undefined, context: CanvasRenderingContext2D): object;
-            protected _parseLineEllipsis(line: string | undefined, width: number, context: CanvasRenderingContext2D): object;
-            protected _parseLineWordWrap(line: string | undefined, width: number, context: CanvasRenderingContext2D): object[];
-            protected _renderLines(context: CanvasRenderingContext2D): void;
-            /**
-                * Given a width constraint applied on the text block, find the expected height
-                * @returns expected height
-                */
-            computeExpectedHeight(): number;
-            dispose(): void;
+        protected _applyStates(context: CanvasRenderingContext2D): void;
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        protected _breakLines(refWidth: number, context: CanvasRenderingContext2D): object[];
+        protected _parseLine(line: string | undefined, context: CanvasRenderingContext2D): object;
+        protected _parseLineEllipsis(line: string | undefined, width: number, context: CanvasRenderingContext2D): object;
+        protected _parseLineWordWrap(line: string | undefined, width: number, context: CanvasRenderingContext2D): object[];
+        protected _renderLines(context: CanvasRenderingContext2D): void;
+        /**
+            * Given a width constraint applied on the text block, find the expected height
+            * @returns expected height
+            */
+        computeExpectedHeight(): number;
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -51579,88 +51426,88 @@ declare module BABYLON.GUI {
         * Class used to store key control properties
         */
     export class KeyPropertySet {
-            /** Width */
-            width?: string;
-            /** Height */
-            height?: string;
-            /** Left padding */
-            paddingLeft?: string;
-            /** Right padding */
-            paddingRight?: string;
-            /** Top padding */
-            paddingTop?: string;
-            /** Bottom padding */
-            paddingBottom?: string;
-            /** Foreground color */
-            color?: string;
-            /** Background color */
-            background?: string;
+        /** Width */
+        width?: string;
+        /** Height */
+        height?: string;
+        /** Left padding */
+        paddingLeft?: string;
+        /** Right padding */
+        paddingRight?: string;
+        /** Top padding */
+        paddingTop?: string;
+        /** Bottom padding */
+        paddingBottom?: string;
+        /** Foreground color */
+        color?: string;
+        /** Background color */
+        background?: string;
     }
     /**
         * Class used to create virtual keyboard
         */
     export class VirtualKeyboard extends StackPanel {
-            /** BABYLON.Observable raised when a key is pressed */
-            onKeyPressObservable: BABYLON.Observable<string>;
-            /** Gets or sets default key button width */
-            defaultButtonWidth: string;
-            /** Gets or sets default key button height */
-            defaultButtonHeight: string;
-            /** Gets or sets default key button left padding */
-            defaultButtonPaddingLeft: string;
-            /** Gets or sets default key button right padding */
-            defaultButtonPaddingRight: string;
-            /** Gets or sets default key button top padding */
-            defaultButtonPaddingTop: string;
-            /** Gets or sets default key button bottom padding */
-            defaultButtonPaddingBottom: string;
-            /** Gets or sets default key button foreground color */
-            defaultButtonColor: string;
-            /** Gets or sets default key button background color */
-            defaultButtonBackground: string;
-            /** Gets or sets shift button foreground color */
-            shiftButtonColor: string;
-            /** Gets or sets shift button thickness*/
-            selectedShiftThickness: number;
-            /** Gets shift key state */
-            shiftState: number;
-            protected _getTypeName(): string;
-            /**
-                * Adds a new row of keys
-                * @param keys defines the list of keys to add
-                * @param propertySets defines the associated property sets
-                */
-            addKeysRow(keys: Array<string>, propertySets?: Array<KeyPropertySet>): void;
-            /**
-                * Set the shift key to a specific state
-                * @param shiftState defines the new shift state
-                */
-            applyShiftState(shiftState: number): void;
-            /** Gets the input text control currently attached to the keyboard */
-            readonly connectedInputText: BABYLON.Nullable<InputText>;
-            /**
-                * Connects the keyboard with an input text control
-                *
-                * @param input defines the target control
-                */
-            connect(input: InputText): void;
-            /**
-                * Disconnects the keyboard from connected InputText controls
-                *
-                * @param input optionally defines a target control, otherwise all are disconnected
-                */
-            disconnect(input?: InputText): void;
-            /**
-                * Release all resources
-                */
-            dispose(): void;
-            /**
-                * Creates a new keyboard using a default layout
-                *
-                * @param name defines control name
-                * @returns a new VirtualKeyboard
-                */
-            static CreateDefaultLayout(name?: string): VirtualKeyboard;
+        /** BABYLON.Observable raised when a key is pressed */
+        onKeyPressObservable: BABYLON.Observable<string>;
+        /** Gets or sets default key button width */
+        defaultButtonWidth: string;
+        /** Gets or sets default key button height */
+        defaultButtonHeight: string;
+        /** Gets or sets default key button left padding */
+        defaultButtonPaddingLeft: string;
+        /** Gets or sets default key button right padding */
+        defaultButtonPaddingRight: string;
+        /** Gets or sets default key button top padding */
+        defaultButtonPaddingTop: string;
+        /** Gets or sets default key button bottom padding */
+        defaultButtonPaddingBottom: string;
+        /** Gets or sets default key button foreground color */
+        defaultButtonColor: string;
+        /** Gets or sets default key button background color */
+        defaultButtonBackground: string;
+        /** Gets or sets shift button foreground color */
+        shiftButtonColor: string;
+        /** Gets or sets shift button thickness*/
+        selectedShiftThickness: number;
+        /** Gets shift key state */
+        shiftState: number;
+        protected _getTypeName(): string;
+        /**
+            * Adds a new row of keys
+            * @param keys defines the list of keys to add
+            * @param propertySets defines the associated property sets
+            */
+        addKeysRow(keys: Array<string>, propertySets?: Array<KeyPropertySet>): void;
+        /**
+            * Set the shift key to a specific state
+            * @param shiftState defines the new shift state
+            */
+        applyShiftState(shiftState: number): void;
+        /** Gets the input text control currently attached to the keyboard */
+        readonly connectedInputText: BABYLON.Nullable<InputText>;
+        /**
+            * Connects the keyboard with an input text control
+            *
+            * @param input defines the target control
+            */
+        connect(input: InputText): void;
+        /**
+            * Disconnects the keyboard from connected InputText controls
+            *
+            * @param input optionally defines a target control, otherwise all are disconnected
+            */
+        disconnect(input?: InputText): void;
+        /**
+            * Release all resources
+            */
+        dispose(): void;
+        /**
+            * Creates a new keyboard using a default layout
+            *
+            * @param name defines control name
+            * @returns a new VirtualKeyboard
+            */
+        static CreateDefaultLayout(name?: string): VirtualKeyboard;
     }
 }
 declare module BABYLON.GUI {
@@ -51668,40 +51515,40 @@ declare module BABYLON.GUI {
         * Class used to create slider controls
         */
     export class Slider extends Control {
-            name?: string | undefined;
-            /** BABYLON.Observable raised when the sldier value changes */
-            onValueChangedObservable: BABYLON.Observable<number>;
-            /** Gets or sets border color */
-            borderColor: string;
-            /** Gets or sets background color */
-            background: string;
-            /** Gets or sets main bar offset */
-            barOffset: string | number;
-            /** Gets main bar offset in pixels*/
-            readonly barOffsetInPixels: number;
-            /** Gets or sets thumb width */
-            thumbWidth: string | number;
-            /** Gets thumb width in pixels */
-            readonly thumbWidthInPixels: number;
-            /** Gets or sets minimum value */
-            minimum: number;
-            /** Gets or sets maximum value */
-            maximum: number;
-            /** Gets or sets current value */
-            value: number;
-            /**Gets or sets a boolean indicating if the slider should be vertical or horizontal */
-            isVertical: boolean;
-            /** Gets or sets a boolean indicating if the thumb should be round or square */
-            isThumbCircle: boolean;
-            /** Gets or sets a value indicating if the thumb can go over main bar extends */
-            isThumbClamped: boolean;
-            /**
-                * Creates a new Slider
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _getThumbThickness(type: string, backgroundLength: number): number;
+        name?: string | undefined;
+        /** BABYLON.Observable raised when the sldier value changes */
+        onValueChangedObservable: BABYLON.Observable<number>;
+        /** Gets or sets border color */
+        borderColor: string;
+        /** Gets or sets background color */
+        background: string;
+        /** Gets or sets main bar offset */
+        barOffset: string | number;
+        /** Gets main bar offset in pixels*/
+        readonly barOffsetInPixels: number;
+        /** Gets or sets thumb width */
+        thumbWidth: string | number;
+        /** Gets thumb width in pixels */
+        readonly thumbWidthInPixels: number;
+        /** Gets or sets minimum value */
+        minimum: number;
+        /** Gets or sets maximum value */
+        maximum: number;
+        /** Gets or sets current value */
+        value: number;
+        /**Gets or sets a boolean indicating if the slider should be vertical or horizontal */
+        isVertical: boolean;
+        /** Gets or sets a boolean indicating if the thumb should be round or square */
+        isThumbCircle: boolean;
+        /** Gets or sets a value indicating if the thumb can go over main bar extends */
+        isThumbClamped: boolean;
+        /**
+            * Creates a new Slider
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        protected _getThumbThickness(type: string, backgroundLength: number): number;
 
 
 
@@ -51711,53 +51558,53 @@ declare module BABYLON.GUI {
 declare module BABYLON.GUI {
     /** Class used to create rectangle container */
     export class Rectangle extends Container {
-            name?: string | undefined;
-            /** Gets or sets border thickness */
-            thickness: number;
-            /** Gets or sets the corner radius angle */
-            cornerRadius: number;
-            /**
-                * Creates a new Rectangle
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _localDraw(context: CanvasRenderingContext2D): void;
-            protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            protected _clipForChildren(context: CanvasRenderingContext2D): void;
+        name?: string | undefined;
+        /** Gets or sets border thickness */
+        thickness: number;
+        /** Gets or sets the corner radius angle */
+        cornerRadius: number;
+        /**
+            * Creates a new Rectangle
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
+        protected _getTypeName(): string;
+        protected _localDraw(context: CanvasRenderingContext2D): void;
+        protected _additionalProcessing(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+        protected _clipForChildren(context: CanvasRenderingContext2D): void;
     }
 }
 declare module BABYLON.GUI {
     /** Class used to render a grid  */
     export class DisplayGrid extends Control {
-            name?: string | undefined;
-            /** Gets or sets a boolean indicating if minor lines must be rendered (true by default)) */
-            displayMinorLines: boolean;
-            /** Gets or sets a boolean indicating if major lines must be rendered (true by default)) */
-            displayMajorLines: boolean;
-            /** Gets or sets background color (Black by default) */
-            background: string;
-            /** Gets or sets the width of each cell (20 by default) */
-            cellWidth: number;
-            /** Gets or sets the height of each cell (20 by default) */
-            cellHeight: number;
-            /** Gets or sets the tickness of minor lines (1 by default) */
-            minorLineTickness: number;
-            /** Gets or sets the color of minor lines (DarkGray by default) */
-            minorLineColor: string;
-            /** Gets or sets the tickness of major lines (2 by default) */
-            majorLineTickness: number;
-            /** Gets or sets the color of major lines (White by default) */
-            majorLineColor: string;
-            /** Gets or sets the frequency of major lines (default is 1 every 5 minor lines)*/
-            majorLineFrequency: number;
-            /**
-                * Creates a new GridDisplayRectangle
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
+        name?: string | undefined;
+        /** Gets or sets a boolean indicating if minor lines must be rendered (true by default)) */
+        displayMinorLines: boolean;
+        /** Gets or sets a boolean indicating if major lines must be rendered (true by default)) */
+        displayMajorLines: boolean;
+        /** Gets or sets background color (Black by default) */
+        background: string;
+        /** Gets or sets the width of each cell (20 by default) */
+        cellWidth: number;
+        /** Gets or sets the height of each cell (20 by default) */
+        cellHeight: number;
+        /** Gets or sets the tickness of minor lines (1 by default) */
+        minorLineTickness: number;
+        /** Gets or sets the color of minor lines (DarkGray by default) */
+        minorLineColor: string;
+        /** Gets or sets the tickness of major lines (2 by default) */
+        majorLineTickness: number;
+        /** Gets or sets the color of major lines (White by default) */
+        majorLineColor: string;
+        /** Gets or sets the frequency of major lines (default is 1 every 5 minor lines)*/
+        majorLineFrequency: number;
+        /**
+            * Creates a new GridDisplayRectangle
+            * @param name defines the control name
+            */
+        constructor(name?: string | undefined);
 
-            protected _getTypeName(): string;
+        protected _getTypeName(): string;
     }
 }
 declare module BABYLON.GUI {
@@ -51772,13 +51619,13 @@ declare module BABYLON.GUI {
         * Class used as a root to all buttons
         */
     export class AbstractButton3D extends Control3D {
-            /**
-                * Creates a new button
-                * @param name defines the control name
-                */
-            constructor(name?: string);
-            protected _getTypeName(): string;
-            protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
+        /**
+            * Creates a new button
+            * @param name defines the control name
+            */
+        constructor(name?: string);
+        protected _getTypeName(): string;
+        protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
     }
 }
 declare module BABYLON.GUI {
@@ -51786,40 +51633,40 @@ declare module BABYLON.GUI {
         * Class used to create a button in 3D
         */
     export class Button3D extends AbstractButton3D {
-            /** @hidden */
-            protected _currentMaterial: BABYLON.Material;
-            /**
-                * Gets or sets the texture resolution used to render content (512 by default)
-                */
-            contentResolution: BABYLON.int;
-            /**
-                * Gets or sets the texture scale ratio used to render content (2 by default)
-                */
-            contentScaleRatio: number;
-            protected _disposeFacadeTexture(): void;
-            protected _resetContent(): void;
-            /**
-                * Creates a new button
-                * @param name defines the control name
-                */
-            constructor(name?: string);
-            /**
-                * Gets or sets the GUI 2D content used to display the button's facade
-                */
-            content: Control;
-            /**
-                * Apply the facade texture (created from the content property).
-                * This function can be overloaded by child classes
-                * @param facadeTexture defines the AdvancedDynamicTexture to use
-                */
-            protected _applyFacade(facadeTexture: AdvancedDynamicTexture): void;
-            protected _getTypeName(): string;
-            protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
-            protected _affectMaterial(mesh: BABYLON.AbstractMesh): void;
-            /**
-                * Releases all associated resources
-                */
-            dispose(): void;
+        /** @hidden */
+        protected _currentMaterial: BABYLON.Material;
+        /**
+            * Gets or sets the texture resolution used to render content (512 by default)
+            */
+        contentResolution: BABYLON.int;
+        /**
+            * Gets or sets the texture scale ratio used to render content (2 by default)
+            */
+        contentScaleRatio: number;
+        protected _disposeFacadeTexture(): void;
+        protected _resetContent(): void;
+        /**
+            * Creates a new button
+            * @param name defines the control name
+            */
+        constructor(name?: string);
+        /**
+            * Gets or sets the GUI 2D content used to display the button's facade
+            */
+        content: Control;
+        /**
+            * Apply the facade texture (created from the content property).
+            * This function can be overloaded by child classes
+            * @param facadeTexture defines the AdvancedDynamicTexture to use
+            */
+        protected _applyFacade(facadeTexture: AdvancedDynamicTexture): void;
+        protected _getTypeName(): string;
+        protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
+        protected _affectMaterial(mesh: BABYLON.AbstractMesh): void;
+        /**
+            * Releases all associated resources
+            */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -51827,67 +51674,67 @@ declare module BABYLON.GUI {
         * Class used to create containers for controls
         */
     export class Container3D extends Control3D {
-            /**
-                * Gets the list of child controls
-                */
-            protected _children: Control3D[];
-            /**
-                * Gets the list of child controls
-                */
-            readonly children: Array<Control3D>;
-            /**
-                * Gets or sets a boolean indicating if the layout must be blocked (default is false).
-                * This is helpful to optimize layout operation when adding multiple children in a row
-                */
-            blockLayout: boolean;
-            /**
-                * Creates a new container
-                * @param name defines the container name
-                */
-            constructor(name?: string);
-            /**
-                * Force the container to update the layout. Please note that it will not take blockLayout property in account
-                * @returns the current container
-                */
-            updateLayout(): Container3D;
-            /**
-                * Gets a boolean indicating if the given control is in the children of this control
-                * @param control defines the control to check
-                * @returns true if the control is in the child list
-                */
-            containsControl(control: Control3D): boolean;
-            /**
-                * Adds a control to the children of this control
-                * @param control defines the control to add
-                * @returns the current container
-                */
-            addControl(control: Control3D): Container3D;
-            /**
-                * This function will be called everytime a new control is added
-                */
-            protected _arrangeChildren(): void;
-            protected _createNode(scene: BABYLON.Scene): BABYLON.Nullable<BABYLON.TransformNode>;
-            /**
-                * Removes a control from the children of this control
-                * @param control defines the control to remove
-                * @returns the current container
-                */
-            removeControl(control: Control3D): Container3D;
-            protected _getTypeName(): string;
-            /**
-                * Releases all associated resources
-                */
-            dispose(): void;
-            /** Control rotation will remain unchanged  */
-            static readonly UNSET_ORIENTATION: number;
-            /** Control will rotate to make it look at sphere central axis */
-            static readonly FACEORIGIN_ORIENTATION: number;
-            /** Control will rotate to make it look back at sphere central axis */
-            static readonly FACEORIGINREVERSED_ORIENTATION: number;
-            /** Control will rotate to look at z axis (0, 0, 1) */
-            static readonly FACEFORWARD_ORIENTATION: number;
-            /** Control will rotate to look at negative z axis (0, 0, -1) */
-            static readonly FACEFORWARDREVERSED_ORIENTATION: number;
+        /**
+            * Gets the list of child controls
+            */
+        protected _children: Control3D[];
+        /**
+            * Gets the list of child controls
+            */
+        readonly children: Array<Control3D>;
+        /**
+            * Gets or sets a boolean indicating if the layout must be blocked (default is false).
+            * This is helpful to optimize layout operation when adding multiple children in a row
+            */
+        blockLayout: boolean;
+        /**
+            * Creates a new container
+            * @param name defines the container name
+            */
+        constructor(name?: string);
+        /**
+            * Force the container to update the layout. Please note that it will not take blockLayout property in account
+            * @returns the current container
+            */
+        updateLayout(): Container3D;
+        /**
+            * Gets a boolean indicating if the given control is in the children of this control
+            * @param control defines the control to check
+            * @returns true if the control is in the child list
+            */
+        containsControl(control: Control3D): boolean;
+        /**
+            * Adds a control to the children of this control
+            * @param control defines the control to add
+            * @returns the current container
+            */
+        addControl(control: Control3D): Container3D;
+        /**
+            * This function will be called everytime a new control is added
+            */
+        protected _arrangeChildren(): void;
+        protected _createNode(scene: BABYLON.Scene): BABYLON.Nullable<BABYLON.TransformNode>;
+        /**
+            * Removes a control from the children of this control
+            * @param control defines the control to remove
+            * @returns the current container
+            */
+        removeControl(control: Control3D): Container3D;
+        protected _getTypeName(): string;
+        /**
+            * Releases all associated resources
+            */
+        dispose(): void;
+        /** Control rotation will remain unchanged  */
+        static readonly UNSET_ORIENTATION: number;
+        /** Control will rotate to make it look at sphere central axis */
+        static readonly FACEORIGIN_ORIENTATION: number;
+        /** Control will rotate to make it look back at sphere central axis */
+        static readonly FACEORIGINREVERSED_ORIENTATION: number;
+        /** Control will rotate to look at z axis (0, 0, 1) */
+        static readonly FACEFORWARD_ORIENTATION: number;
+        /** Control will rotate to look at negative z axis (0, 0, -1) */
+        static readonly FACEFORWARDREVERSED_ORIENTATION: number;
     }
 }
 declare module BABYLON.GUI {
@@ -51895,138 +51742,138 @@ declare module BABYLON.GUI {
         * Class used as base class for controls
         */
     export class Control3D implements BABYLON.IDisposable, BABYLON.IBehaviorAware<Control3D> {
-            /** Defines the control name */
-            name?: string | undefined;
-            /** @hidden */
+        /** Defines the control name */
+        name?: string | undefined;
+        /** @hidden */
 
-            /** Gets or sets the control position  in world space */
-            position: BABYLON.Vector3;
-            /** Gets or sets the control scaling  in world space */
-            scaling: BABYLON.Vector3;
-            /** Callback used to start pointer enter animation */
-            pointerEnterAnimation: () => void;
-            /** Callback used to start pointer out animation */
-            pointerOutAnimation: () => void;
-            /** Callback used to start pointer down animation */
-            pointerDownAnimation: () => void;
-            /** Callback used to start pointer up animation */
-            pointerUpAnimation: () => void;
-            /**
-             * An event triggered when the pointer move over the control
-             */
-            onPointerMoveObservable: BABYLON.Observable<BABYLON.Vector3>;
-            /**
-                * An event triggered when the pointer move out of the control
-                */
-            onPointerOutObservable: BABYLON.Observable<Control3D>;
-            /**
-                * An event triggered when the pointer taps the control
-                */
-            onPointerDownObservable: BABYLON.Observable<Vector3WithInfo>;
-            /**
-                * An event triggered when pointer is up
-                */
-            onPointerUpObservable: BABYLON.Observable<Vector3WithInfo>;
-            /**
-                * An event triggered when a control is clicked on (with a mouse)
-                */
-            onPointerClickObservable: BABYLON.Observable<Vector3WithInfo>;
-            /**
-                * An event triggered when pointer enters the control
-                */
-            onPointerEnterObservable: BABYLON.Observable<Control3D>;
-            /**
-                * Gets or sets the parent container
-                */
-            parent: BABYLON.Nullable<Container3D>;
-            /**
-                * Gets the list of attached behaviors
-                * @see http://doc.babylonjs.com/features/behaviour
-                */
-            readonly behaviors: BABYLON.Behavior<Control3D>[];
-            /**
-                * Attach a behavior to the control
-                * @see http://doc.babylonjs.com/features/behaviour
-                * @param behavior defines the behavior to attach
-                * @returns the current control
-                */
-            addBehavior(behavior: BABYLON.Behavior<Control3D>): Control3D;
-            /**
-                * Remove an attached behavior
-                * @see http://doc.babylonjs.com/features/behaviour
-                * @param behavior defines the behavior to attach
-                * @returns the current control
-                */
-            removeBehavior(behavior: BABYLON.Behavior<Control3D>): Control3D;
-            /**
-                * Gets an attached behavior by name
-                * @param name defines the name of the behavior to look for
-                * @see http://doc.babylonjs.com/features/behaviour
-                * @returns null if behavior was not found else the requested behavior
-                */
-            getBehaviorByName(name: string): BABYLON.Nullable<BABYLON.Behavior<Control3D>>;
-            /** Gets or sets a boolean indicating if the control is visible */
-            isVisible: boolean;
-            /**
-                * Creates a new control
-                * @param name defines the control name
-                */
-            constructor(
+        /** Gets or sets the control position  in world space */
+        position: BABYLON.Vector3;
+        /** Gets or sets the control scaling  in world space */
+        scaling: BABYLON.Vector3;
+        /** Callback used to start pointer enter animation */
+        pointerEnterAnimation: () => void;
+        /** Callback used to start pointer out animation */
+        pointerOutAnimation: () => void;
+        /** Callback used to start pointer down animation */
+        pointerDownAnimation: () => void;
+        /** Callback used to start pointer up animation */
+        pointerUpAnimation: () => void;
+        /**
+         * An event triggered when the pointer move over the control
+         */
+        onPointerMoveObservable: BABYLON.Observable<BABYLON.Vector3>;
+        /**
+            * An event triggered when the pointer move out of the control
+            */
+        onPointerOutObservable: BABYLON.Observable<Control3D>;
+        /**
+            * An event triggered when the pointer taps the control
+            */
+        onPointerDownObservable: BABYLON.Observable<Vector3WithInfo>;
+        /**
+            * An event triggered when pointer is up
+            */
+        onPointerUpObservable: BABYLON.Observable<Vector3WithInfo>;
+        /**
+            * An event triggered when a control is clicked on (with a mouse)
+            */
+        onPointerClickObservable: BABYLON.Observable<Vector3WithInfo>;
+        /**
+            * An event triggered when pointer enters the control
+            */
+        onPointerEnterObservable: BABYLON.Observable<Control3D>;
+        /**
+            * Gets or sets the parent container
+            */
+        parent: BABYLON.Nullable<Container3D>;
+        /**
+            * Gets the list of attached behaviors
+            * @see http://doc.babylonjs.com/features/behaviour
+            */
+        readonly behaviors: BABYLON.Behavior<Control3D>[];
+        /**
+            * Attach a behavior to the control
+            * @see http://doc.babylonjs.com/features/behaviour
+            * @param behavior defines the behavior to attach
+            * @returns the current control
+            */
+        addBehavior(behavior: BABYLON.Behavior<Control3D>): Control3D;
+        /**
+            * Remove an attached behavior
+            * @see http://doc.babylonjs.com/features/behaviour
+            * @param behavior defines the behavior to attach
+            * @returns the current control
+            */
+        removeBehavior(behavior: BABYLON.Behavior<Control3D>): Control3D;
+        /**
+            * Gets an attached behavior by name
+            * @param name defines the name of the behavior to look for
+            * @see http://doc.babylonjs.com/features/behaviour
+            * @returns null if behavior was not found else the requested behavior
+            */
+        getBehaviorByName(name: string): BABYLON.Nullable<BABYLON.Behavior<Control3D>>;
+        /** Gets or sets a boolean indicating if the control is visible */
+        isVisible: boolean;
+        /**
+            * Creates a new control
+            * @param name defines the control name
+            */
+        constructor(
             /** Defines the control name */
             name?: string | undefined);
-            /**
-                * Gets a string representing the class name
-                */
-            readonly typeName: string;
-            protected _getTypeName(): string;
-            /**
-                * Gets the transform node used by this control
-                */
-            readonly node: BABYLON.Nullable<BABYLON.TransformNode>;
-            /**
-                * Gets the mesh used to render this control
-                */
-            readonly mesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
-            /**
-                * Link the control as child of the given node
-                * @param node defines the node to link to. Use null to unlink the control
-                * @returns the current control
-                */
-            linkToTransformNode(node: BABYLON.Nullable<BABYLON.TransformNode>): Control3D;
-            /** @hidden **/
+        /**
+            * Gets a string representing the class name
+            */
+        readonly typeName: string;
+        protected _getTypeName(): string;
+        /**
+            * Gets the transform node used by this control
+            */
+        readonly node: BABYLON.Nullable<BABYLON.TransformNode>;
+        /**
+            * Gets the mesh used to render this control
+            */
+        readonly mesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
+        /**
+            * Link the control as child of the given node
+            * @param node defines the node to link to. Use null to unlink the control
+            * @returns the current control
+            */
+        linkToTransformNode(node: BABYLON.Nullable<BABYLON.TransformNode>): Control3D;
+        /** @hidden **/
 
-            /**
-                * Node creation.
-                * Can be overriden by children
-                * @param scene defines the scene where the node must be attached
-                * @returns the attached node or null if none. Must return a BABYLON.Mesh or BABYLON.AbstractMesh if there is an atttached visible object
-                */
-            protected _createNode(scene: BABYLON.Scene): BABYLON.Nullable<BABYLON.TransformNode>;
-            /**
-                * Affect a material to the given mesh
-                * @param mesh defines the mesh which will represent the control
-                */
-            protected _affectMaterial(mesh: BABYLON.AbstractMesh): void;
-            /** @hidden */
+        /**
+            * Node creation.
+            * Can be overriden by children
+            * @param scene defines the scene where the node must be attached
+            * @returns the attached node or null if none. Must return a BABYLON.Mesh or BABYLON.AbstractMesh if there is an atttached visible object
+            */
+        protected _createNode(scene: BABYLON.Scene): BABYLON.Nullable<BABYLON.TransformNode>;
+        /**
+            * Affect a material to the given mesh
+            * @param mesh defines the mesh which will represent the control
+            */
+        protected _affectMaterial(mesh: BABYLON.AbstractMesh): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /** @hidden */
-            forcePointerUp(pointerId?: BABYLON.Nullable<number>): void;
-            /** @hidden */
+        /** @hidden */
+        forcePointerUp(pointerId?: BABYLON.Nullable<number>): void;
+        /** @hidden */
 
-            /** @hidden */
+        /** @hidden */
 
-            /**
-                * Releases all associated resources
-                */
-            dispose(): void;
+        /**
+            * Releases all associated resources
+            */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52034,11 +51881,11 @@ declare module BABYLON.GUI {
         * Class used to create a container panel deployed on the surface of a cylinder
         */
     export class CylinderPanel extends VolumeBasedPanel {
-            /**
-                * Gets or sets the radius of the cylinder where to project controls (5 by default)
-                */
-            radius: BABYLON.float;
-            protected _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
+        /**
+            * Gets or sets the radius of the cylinder where to project controls (5 by default)
+            */
+        radius: BABYLON.float;
+        protected _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52046,47 +51893,47 @@ declare module BABYLON.GUI {
         * Class used to create a holographic button in 3D
         */
     export class HolographicButton extends Button3D {
-            /**
-                * Text to be displayed on the tooltip shown when hovering on the button. When set to null tooltip is disabled. (Default: null)
-                */
-            tooltipText: BABYLON.Nullable<string>;
-            /**
-                * Gets or sets text for the button
-                */
-            text: string;
-            /**
-                * Gets or sets the image url for the button
-                */
-            imageUrl: string;
-            /**
-                * Gets the back material used by this button
-                */
-            readonly backMaterial: FluentMaterial;
-            /**
-                * Gets the front material used by this button
-                */
-            readonly frontMaterial: FluentMaterial;
-            /**
-                * Gets the plate material used by this button
-                */
-            readonly plateMaterial: BABYLON.StandardMaterial;
-            /**
-                * Gets a boolean indicating if this button shares its material with other HolographicButtons
-                */
-            readonly shareMaterials: boolean;
-            /**
-                * Creates a new button
-                * @param name defines the control name
-                */
-            constructor(name?: string, shareMaterials?: boolean);
-            protected _getTypeName(): string;
-            protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
-            protected _applyFacade(facadeTexture: AdvancedDynamicTexture): void;
-            protected _affectMaterial(mesh: BABYLON.Mesh): void;
-            /**
-                * Releases all associated resources
-                */
-            dispose(): void;
+        /**
+            * Text to be displayed on the tooltip shown when hovering on the button. When set to null tooltip is disabled. (Default: null)
+            */
+        tooltipText: BABYLON.Nullable<string>;
+        /**
+            * Gets or sets text for the button
+            */
+        text: string;
+        /**
+            * Gets or sets the image url for the button
+            */
+        imageUrl: string;
+        /**
+            * Gets the back material used by this button
+            */
+        readonly backMaterial: FluentMaterial;
+        /**
+            * Gets the front material used by this button
+            */
+        readonly frontMaterial: FluentMaterial;
+        /**
+            * Gets the plate material used by this button
+            */
+        readonly plateMaterial: BABYLON.StandardMaterial;
+        /**
+            * Gets a boolean indicating if this button shares its material with other HolographicButtons
+            */
+        readonly shareMaterials: boolean;
+        /**
+            * Creates a new button
+            * @param name defines the control name
+            */
+        constructor(name?: string, shareMaterials?: boolean);
+        protected _getTypeName(): string;
+        protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
+        protected _applyFacade(facadeTexture: AdvancedDynamicTexture): void;
+        protected _affectMaterial(mesh: BABYLON.Mesh): void;
+        /**
+            * Releases all associated resources
+            */
+        dispose(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52094,17 +51941,17 @@ declare module BABYLON.GUI {
         * Class used to create an interactable object. It's a 3D button using a mesh coming from the current scene
         */
     export class MeshButton3D extends Button3D {
-            /** @hidden */
-            protected _currentMesh: BABYLON.Mesh;
-            /**
-                * Creates a new 3D button based on a mesh
-                * @param mesh mesh to become a 3D button
-                * @param name defines the control name
-                */
-            constructor(mesh: BABYLON.Mesh, name?: string);
-            protected _getTypeName(): string;
-            protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
-            protected _affectMaterial(mesh: BABYLON.AbstractMesh): void;
+        /** @hidden */
+        protected _currentMesh: BABYLON.Mesh;
+        /**
+            * Creates a new 3D button based on a mesh
+            * @param mesh mesh to become a 3D button
+            * @param name defines the control name
+            */
+        constructor(mesh: BABYLON.Mesh, name?: string);
+        protected _getTypeName(): string;
+        protected _createNode(scene: BABYLON.Scene): BABYLON.TransformNode;
+        protected _affectMaterial(mesh: BABYLON.AbstractMesh): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52120,12 +51967,12 @@ declare module BABYLON.GUI {
         * Class used to create a container panel where items get randomized planar mapping
         */
     export class ScatterPanel extends VolumeBasedPanel {
-            /**
-                * Gets or sets the number of iteration to use to scatter the controls (100 by default)
-                */
-            iteration: BABYLON.float;
-            protected _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
-            protected _finalProcessing(): void;
+        /**
+            * Gets or sets the number of iteration to use to scatter the controls (100 by default)
+            */
+        iteration: BABYLON.float;
+        protected _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
+        protected _finalProcessing(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52133,11 +51980,11 @@ declare module BABYLON.GUI {
         * Class used to create a container panel deployed on the surface of a sphere
         */
     export class SpherePanel extends VolumeBasedPanel {
-            /**
-                * Gets or sets the radius of the sphere where to project controls (5 by default)
-                */
-            radius: BABYLON.float;
-            protected _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
+        /**
+            * Gets or sets the radius of the sphere where to project controls (5 by default)
+            */
+        radius: BABYLON.float;
+        protected _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52145,20 +51992,20 @@ declare module BABYLON.GUI {
         * Class used to create a stack panel in 3D on XY plane
         */
     export class StackPanel3D extends Container3D {
-            /**
-                * Gets or sets a boolean indicating if the stack panel is vertical or horizontal (horizontal by default)
-                */
-            isVertical: boolean;
-            /**
-                * Gets or sets the distance between elements
-                */
-            margin: number;
-            /**
-                * Creates new StackPanel
-                * @param isVertical
-                */
-            constructor(isVertical?: boolean);
-            protected _arrangeChildren(): void;
+        /**
+            * Gets or sets a boolean indicating if the stack panel is vertical or horizontal (horizontal by default)
+            */
+        isVertical: boolean;
+        /**
+            * Gets or sets the distance between elements
+            */
+        margin: number;
+        /**
+            * Creates new StackPanel
+            * @param isVertical
+            */
+        constructor(isVertical?: boolean);
+        protected _arrangeChildren(): void;
     }
 }
 declare module BABYLON.GUI {
@@ -52166,125 +52013,125 @@ declare module BABYLON.GUI {
         * Abstract class used to create a container panel deployed on the surface of a volume
         */
     export abstract class VolumeBasedPanel extends Container3D {
-            protected _cellWidth: number;
-            protected _cellHeight: number;
-            /**
-                * Gets or sets the distance between elements
-                */
-            margin: number;
-            /**
-                * Gets or sets the orientation to apply to all controls (BABYLON.Container3D.FaceOriginReversedOrientation by default)
-             * | Value | Type                                | Description |
-             * | ----- | ----------------------------------- | ----------- |
-             * | 0     | UNSET_ORIENTATION                   |  Control rotation will remain unchanged |
-             * | 1     | FACEORIGIN_ORIENTATION              |  Control will rotate to make it look at sphere central axis |
-             * | 2     | FACEORIGINREVERSED_ORIENTATION      |  Control will rotate to make it look back at sphere central axis |
-             * | 3     | FACEFORWARD_ORIENTATION             |  Control will rotate to look at z axis (0, 0, 1) |
-             * | 4     | FACEFORWARDREVERSED_ORIENTATION     |  Control will rotate to look at negative z axis (0, 0, -1) |
-                */
-            orientation: number;
-            /**
-                * Gets or sets the number of columns requested (10 by default).
-                * The panel will automatically compute the number of rows based on number of child controls.
-                */
-            columns: BABYLON.int;
-            /**
-                * Gets or sets a the number of rows requested.
-                * The panel will automatically compute the number of columns based on number of child controls.
-                */
-            rows: BABYLON.int;
-            /**
-                * Creates new VolumeBasedPanel
-                */
-            constructor();
-            protected _arrangeChildren(): void;
-            /** Child classes must implement this function to provide correct control positioning */
-            protected abstract _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
-            /** Child classes can implement this function to provide additional processing */
-            protected _finalProcessing(): void;
+        protected _cellWidth: number;
+        protected _cellHeight: number;
+        /**
+            * Gets or sets the distance between elements
+            */
+        margin: number;
+        /**
+            * Gets or sets the orientation to apply to all controls (BABYLON.Container3D.FaceOriginReversedOrientation by default)
+         * | Value | Type                                | Description |
+         * | ----- | ----------------------------------- | ----------- |
+         * | 0     | UNSET_ORIENTATION                   |  Control rotation will remain unchanged |
+         * | 1     | FACEORIGIN_ORIENTATION              |  Control will rotate to make it look at sphere central axis |
+         * | 2     | FACEORIGINREVERSED_ORIENTATION      |  Control will rotate to make it look back at sphere central axis |
+         * | 3     | FACEFORWARD_ORIENTATION             |  Control will rotate to look at z axis (0, 0, 1) |
+         * | 4     | FACEFORWARDREVERSED_ORIENTATION     |  Control will rotate to look at negative z axis (0, 0, -1) |
+            */
+        orientation: number;
+        /**
+            * Gets or sets the number of columns requested (10 by default).
+            * The panel will automatically compute the number of rows based on number of child controls.
+            */
+        columns: BABYLON.int;
+        /**
+            * Gets or sets a the number of rows requested.
+            * The panel will automatically compute the number of columns based on number of child controls.
+            */
+        rows: BABYLON.int;
+        /**
+            * Creates new VolumeBasedPanel
+            */
+        constructor();
+        protected _arrangeChildren(): void;
+        /** Child classes must implement this function to provide correct control positioning */
+        protected abstract _mapGridNode(control: Control3D, nodePosition: BABYLON.Vector3): void;
+        /** Child classes can implement this function to provide additional processing */
+        protected _finalProcessing(): void;
     }
 }
 declare module BABYLON.GUI {
     /** @hidden */
     export class FluentMaterialDefines extends BABYLON.MaterialDefines {
-            INNERGLOW: boolean;
-            BORDER: boolean;
-            HOVERLIGHT: boolean;
-            TEXTURE: boolean;
-            constructor();
+        INNERGLOW: boolean;
+        BORDER: boolean;
+        HOVERLIGHT: boolean;
+        TEXTURE: boolean;
+        constructor();
     }
     /**
         * Class used to render controls with fluent desgin
         */
     export class FluentMaterial extends BABYLON.PushMaterial {
-            /**
-                * Gets or sets inner glow intensity. A value of 0 means no glow (default is 0.5)
-                */
-            innerGlowColorIntensity: number;
-            /**
-                * Gets or sets the inner glow color (white by default)
-                */
-            innerGlowColor: BABYLON.Color3;
-            /**
-                * Gets or sets alpha value (default is 1.0)
-                */
-            alpha: number;
-            /**
-                * Gets or sets the albedo color (Default is BABYLON.Color3(0.3, 0.35, 0.4))
-                */
-            albedoColor: BABYLON.Color3;
-            /**
-                * Gets or sets a boolean indicating if borders must be rendered (default is false)
-                */
-            renderBorders: boolean;
-            /**
-                * Gets or sets border width (default is 0.5)
-                */
-            borderWidth: number;
-            /**
-                * Gets or sets a value indicating the smoothing value applied to border edges (0.02 by default)
-                */
-            edgeSmoothingValue: number;
-            /**
-                * Gets or sets the minimum value that can be applied to border width (default is 0.1)
-                */
-            borderMinValue: number;
-            /**
-                * Gets or sets a boolean indicating if hover light must be rendered (default is false)
-                */
-            renderHoverLight: boolean;
-            /**
-                * Gets or sets the radius used to render the hover light (default is 1.0)
-                */
-            hoverRadius: number;
-            /**
-                * Gets or sets the color used to render the hover light (default is BABYLON.Color4(0.3, 0.3, 0.3, 1.0))
-                */
-            hoverColor: BABYLON.Color4;
-            /**
-                * Gets or sets the hover light position in world space (default is BABYLON.Vector3.Zero())
-                */
-            hoverPosition: BABYLON.Vector3;
-            /** Gets or sets the texture to use for albedo color */
-            albedoTexture: BABYLON.Nullable<BABYLON.BaseTexture>;
-            /**
-                * Creates a new Fluent material
-                * @param name defines the name of the material
-                * @param scene defines the hosting scene
-                */
-            constructor(name: string, scene: BABYLON.Scene);
-            needAlphaBlending(): boolean;
-            needAlphaTesting(): boolean;
-            getAlphaTestTexture(): BABYLON.Nullable<BABYLON.BaseTexture>;
-            isReadyForSubMesh(mesh: BABYLON.AbstractMesh, subMesh: BABYLON.SubMesh, useInstances?: boolean): boolean;
-            bindForSubMesh(world: BABYLON.Matrix, mesh: BABYLON.Mesh, subMesh: BABYLON.SubMesh): void;
-            getActiveTextures(): BABYLON.BaseTexture[];
-            hasTexture(texture: BABYLON.BaseTexture): boolean;
-            dispose(forceDisposeEffect?: boolean): void;
-            clone(name: string): FluentMaterial;
-            serialize(): any;
-            getClassName(): string;
-            static Parse(source: any, scene: BABYLON.Scene, rootUrl: string): FluentMaterial;
+        /**
+            * Gets or sets inner glow intensity. A value of 0 means no glow (default is 0.5)
+            */
+        innerGlowColorIntensity: number;
+        /**
+            * Gets or sets the inner glow color (white by default)
+            */
+        innerGlowColor: BABYLON.Color3;
+        /**
+            * Gets or sets alpha value (default is 1.0)
+            */
+        alpha: number;
+        /**
+            * Gets or sets the albedo color (Default is BABYLON.Color3(0.3, 0.35, 0.4))
+            */
+        albedoColor: BABYLON.Color3;
+        /**
+            * Gets or sets a boolean indicating if borders must be rendered (default is false)
+            */
+        renderBorders: boolean;
+        /**
+            * Gets or sets border width (default is 0.5)
+            */
+        borderWidth: number;
+        /**
+            * Gets or sets a value indicating the smoothing value applied to border edges (0.02 by default)
+            */
+        edgeSmoothingValue: number;
+        /**
+            * Gets or sets the minimum value that can be applied to border width (default is 0.1)
+            */
+        borderMinValue: number;
+        /**
+            * Gets or sets a boolean indicating if hover light must be rendered (default is false)
+            */
+        renderHoverLight: boolean;
+        /**
+            * Gets or sets the radius used to render the hover light (default is 1.0)
+            */
+        hoverRadius: number;
+        /**
+            * Gets or sets the color used to render the hover light (default is BABYLON.Color4(0.3, 0.3, 0.3, 1.0))
+            */
+        hoverColor: BABYLON.Color4;
+        /**
+            * Gets or sets the hover light position in world space (default is BABYLON.Vector3.Zero())
+            */
+        hoverPosition: BABYLON.Vector3;
+        /** Gets or sets the texture to use for albedo color */
+        albedoTexture: BABYLON.Nullable<BABYLON.BaseTexture>;
+        /**
+            * Creates a new Fluent material
+            * @param name defines the name of the material
+            * @param scene defines the hosting scene
+            */
+        constructor(name: string, scene: BABYLON.Scene);
+        needAlphaBlending(): boolean;
+        needAlphaTesting(): boolean;
+        getAlphaTestTexture(): BABYLON.Nullable<BABYLON.BaseTexture>;
+        isReadyForSubMesh(mesh: BABYLON.AbstractMesh, subMesh: BABYLON.SubMesh, useInstances?: boolean): boolean;
+        bindForSubMesh(world: BABYLON.Matrix, mesh: BABYLON.Mesh, subMesh: BABYLON.SubMesh): void;
+        getActiveTextures(): BABYLON.BaseTexture[];
+        hasTexture(texture: BABYLON.BaseTexture): boolean;
+        dispose(forceDisposeEffect?: boolean): void;
+        clone(name: string): FluentMaterial;
+        serialize(): any;
+        getClassName(): string;
+        static Parse(source: any, scene: BABYLON.Scene, rootUrl: string): FluentMaterial;
     }
 }
 
@@ -52379,9 +52226,9 @@ declare module BABYLON {
      */
     class GLTFFileLoader implements IDisposable, ISceneLoaderPluginAsync, ISceneLoaderPluginFactory {
         /** @hidden */
-private static _CreateGLTFLoaderV1: (parent: GLTFFileLoader) => IGLTFLoader;
+        private static _CreateGLTFLoaderV1: (parent: GLTFFileLoader) => IGLTFLoader;
         /** @hidden */
-private static _CreateGLTFLoaderV2: (parent: GLTFFileLoader) => IGLTFLoader;
+        private static _CreateGLTFLoaderV2: (parent: GLTFFileLoader) => IGLTFLoader;
         /**
          * Raised when the asset has been parsed
          */
@@ -53524,7 +53371,7 @@ declare module BABYLON.GLTF2.Exporter {
         /**
          * Stores all the generated material information, which represents the appearance of each primitive
          */
-;
+        ;
         /**
          * Stores all the generated texture information, which is referenced by glTF materials
          */
@@ -53557,9 +53404,9 @@ declare module BABYLON.GLTF2.Exporter {
          * is the image data
          */
 
-         /**
-         * Stores a map of the unique id of a node to its index in the node array
-         */
+        /**
+        * Stores a map of the unique id of a node to its index in the node array
+        */
         private _nodeMap;
         /**
          * Specifies if the Babylon scene should be converted to right-handed on export
@@ -53933,7 +53780,7 @@ declare module BABYLON.GLTF2.Exporter {
          * @param oneMinusSpecularStrength one minus the specular strength
          * @returns metallic value
          */
-private static _SolveMetallic(diffuse: number, specular: number, oneMinusSpecularStrength: number): number;
+        private static _SolveMetallic(diffuse: number, specular: number, oneMinusSpecularStrength: number): number;
         /**
          * Gets the glTF alpha mode from the Babylon Material
          * @param babylonMaterial Babylon Material
@@ -54146,7 +53993,7 @@ declare module BABYLON.GLTF2.Exporter {
          * @param useQuaternion - Specifies if quaternions are used.
          * @returns nullable IAnimationData
          */
-private static _CreateNodeAnimation(babylonTransformNode: TransformNode, animation: Animation, animationChannelTargetPath: AnimationChannelTargetPath, convertToRightHandedSystem: boolean, useQuaternion: boolean, animationSampleRate: number): Nullable<_IAnimationData>;
+        private static _CreateNodeAnimation(babylonTransformNode: TransformNode, animation: Animation, animationChannelTargetPath: AnimationChannelTargetPath, convertToRightHandedSystem: boolean, useQuaternion: boolean, animationSampleRate: number): Nullable<_IAnimationData>;
         private static _DeduceAnimationInfo;
         /**
          * @ignore
@@ -54161,7 +54008,7 @@ private static _CreateNodeAnimation(babylonTransformNode: TransformNode, animati
          * @param accessors
          * @param convertToRightHandedSystem
          */
-private static _CreateNodeAnimationFromTransformNodeAnimations(babylonTransformNode: TransformNode, runtimeGLTFAnimation: IAnimation, idleGLTFAnimations: IAnimation[], nodeMap: {
+        private static _CreateNodeAnimationFromTransformNodeAnimations(babylonTransformNode: TransformNode, runtimeGLTFAnimation: IAnimation, idleGLTFAnimations: IAnimation[], nodeMap: {
             [key: number]: number;
         }, nodes: INode[], binaryWriter: _BinaryWriter, bufferViews: IBufferView[], accessors: IAccessor[], convertToRightHandedSystem: boolean, animationSampleRate: number): void;
         /**
@@ -54176,7 +54023,7 @@ private static _CreateNodeAnimationFromTransformNodeAnimations(babylonTransformN
          * @param accessors
          * @param convertToRightHandedSystem
          */
-private static _CreateNodeAnimationFromAnimationGroups(babylonScene: Scene, glTFAnimations: IAnimation[], nodeMap: {
+        private static _CreateNodeAnimationFromAnimationGroups(babylonScene: Scene, glTFAnimations: IAnimation[], nodeMap: {
             [key: number]: number;
         }, nodes: INode[], binaryWriter: _BinaryWriter, bufferViews: IBufferView[], accessors: IAccessor[], convertToRightHandedSystem: boolean, animationSampleRate: number): void;
         private static AddAnimation;
@@ -54276,7 +54123,7 @@ declare module BABYLON.GLTF2.Exporter {
          * @param name name of the buffer view
          * @returns bufferView for glTF
          */
-private static _CreateBufferView(bufferIndex: number, byteOffset: number, byteLength: number, byteStride?: number, name?: string): IBufferView;
+        private static _CreateBufferView(bufferIndex: number, byteOffset: number, byteLength: number, byteStride?: number, name?: string): IBufferView;
         /**
          * Creates an accessor based on the supplied arguments
          * @param bufferviewIndex The index of the bufferview referenced by this accessor
@@ -54289,7 +54136,7 @@ private static _CreateBufferView(bufferIndex: number, byteOffset: number, byteLe
          * @param max Maximum value of each component in this attribute
          * @returns accessor for glTF
          */
-private static _CreateAccessor(bufferviewIndex: number, name: string, type: AccessorType, componentType: AccessorComponentType, count: number, byteOffset: Nullable<number>, min: Nullable<number[]>, max: Nullable<number[]>): IAccessor;
+        private static _CreateAccessor(bufferviewIndex: number, name: string, type: AccessorType, componentType: AccessorComponentType, count: number, byteOffset: Nullable<number>, min: Nullable<number[]>, max: Nullable<number[]>): IAccessor;
         /**
          * Calculates the minimum and maximum values of an array of position floats
          * @param positions Positions array of a mesh
@@ -54297,7 +54144,7 @@ private static _CreateAccessor(bufferviewIndex: number, name: string, type: Acce
          * @param vertexCount Number of vertices to check for min and max values
          * @returns min number array and max number array
          */
-private static _CalculateMinMaxPositions(positions: FloatArray, vertexStart: number, vertexCount: number, convertToRightHandedSystem: boolean): {
+        private static _CalculateMinMaxPositions(positions: FloatArray, vertexStart: number, vertexCount: number, convertToRightHandedSystem: boolean): {
             min: number[];
             max: number[];
         };
@@ -54306,54 +54153,54 @@ private static _CalculateMinMaxPositions(positions: FloatArray, vertexStart: num
          * @param vector vector3 array
          * @returns right-handed Vector3
          */
-private static _GetRightHandedPositionVector3(vector: Vector3): Vector3;
+        private static _GetRightHandedPositionVector3(vector: Vector3): Vector3;
         /**
          * Converts a Vector3 to right-handed
          * @param vector Vector3 to convert to right-handed
          */
-private static _GetRightHandedPositionVector3FromRef(vector: Vector3): void;
+        private static _GetRightHandedPositionVector3FromRef(vector: Vector3): void;
         /**
          * Converts a three element number array to right-handed
          * @param vector number array to convert to right-handed
          */
-private static _GetRightHandedPositionArray3FromRef(vector: number[]): void;
+        private static _GetRightHandedPositionArray3FromRef(vector: number[]): void;
         /**
          * Converts a new right-handed Vector3
          * @param vector vector3 array
          * @returns right-handed Vector3
          */
-private static _GetRightHandedNormalVector3(vector: Vector3): Vector3;
+        private static _GetRightHandedNormalVector3(vector: Vector3): Vector3;
         /**
          * Converts a Vector3 to right-handed
          * @param vector Vector3 to convert to right-handed
          */
-private static _GetRightHandedNormalVector3FromRef(vector: Vector3): void;
+        private static _GetRightHandedNormalVector3FromRef(vector: Vector3): void;
         /**
          * Converts a three element number array to right-handed
          * @param vector number array to convert to right-handed
          */
-private static _GetRightHandedNormalArray3FromRef(vector: number[]): void;
+        private static _GetRightHandedNormalArray3FromRef(vector: number[]): void;
         /**
          * Converts a Vector4 to right-handed
          * @param vector Vector4 to convert to right-handed
          */
-private static _GetRightHandedVector4FromRef(vector: Vector4): void;
+        private static _GetRightHandedVector4FromRef(vector: Vector4): void;
         /**
          * Converts a Vector4 to right-handed
          * @param vector Vector4 to convert to right-handed
          */
-private static _GetRightHandedArray4FromRef(vector: number[]): void;
+        private static _GetRightHandedArray4FromRef(vector: number[]): void;
         /**
          * Converts a Quaternion to right-handed
          * @param quaternion Source quaternion to convert to right-handed
          */
-private static _GetRightHandedQuaternionFromRef(quaternion: Quaternion): void;
+        private static _GetRightHandedQuaternionFromRef(quaternion: Quaternion): void;
         /**
          * Converts a Quaternion to right-handed
          * @param quaternion Source quaternion to convert to right-handed
          */
-private static _GetRightHandedQuaternionArrayFromRef(quaternion: number[]): void;
-private static _NormalizeTangentFromRef(tangent: Vector4): void;
+        private static _GetRightHandedQuaternionArrayFromRef(quaternion: number[]): void;
+        private static _NormalizeTangentFromRef(tangent: Vector4): void;
     }
 }
 
@@ -54694,7 +54541,7 @@ declare module BABYLON.GLTF2 {
             [key: string]: any;
         };
         /**
-         * Application-Specific data 
+         * Application-Specific data
          */
         extras?: any;
     }

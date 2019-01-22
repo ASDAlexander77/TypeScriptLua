@@ -137,6 +137,21 @@ extern "C"
         return 1;
     }
 
+    static int bindBuffer(lua_State *L)
+    {
+        const GLenum target = luaL_checkinteger(L, 1);
+        const GLuint val = luaL_checkinteger(L, 2);
+        glBindBuffer(target, val);
+        
+        int error = errorCheck(L);
+        if (error) 
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
     typedef struct ConstPair {
         const char *name;
         GLint val;
@@ -144,7 +159,8 @@ extern "C"
 
     static const struct ConstPair consts[] = {
         {"DOUBLE", GL_DOUBLE},
-        {"DEPTH", GL_DEPTH}
+        {"DEPTH", GL_DEPTH},
+        {"ARRAY_BUFFER", GL_ARRAY_BUFFER}
     };
 
     static void AddConstsGL(lua_State *L)
@@ -165,6 +181,7 @@ extern "C"
         {"clear", clear},
         {"clearColor", clearColor},
         {"createBuffer", createBuffer},
+        {"bindBuffer", bindBuffer},
         {NULL, NULL} /* sentinel */
     };
 

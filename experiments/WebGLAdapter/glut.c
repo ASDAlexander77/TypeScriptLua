@@ -144,6 +144,47 @@ extern "C"
         return 0;
     }
 
+    // Timer
+    static int luaTimerFunctionReference = LUA_NOREF;
+    static void timerCallback(GLint value)
+    {
+        if (luaTimerFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaTimerFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, value);
+        lua_call(global_L, 1, 0);
+    }
+
+    static int timerFuncGLUT(lua_State *L)
+    {
+        GLint msecs = luaL_checkinteger(L, 1);
+        if (!lua_isfunction(L, 2))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 2);
+        }
+
+        if (luaTimerFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaTimerFunctionReference);
+        }
+
+        lua_pushvalue(L, 2);
+        luaTimerFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        // 3)
+        GLint value = luaL_checkinteger(L, 3);
+
+        glutTimerFunc(msecs, timerCallback, value);
+
+        return 0;
+    }    
+
     static postRedisplayGLUT(lua_State *L)
     {
         glutPostRedisplay();
@@ -194,6 +235,7 @@ extern "C"
         {"createWindow", createWindowGLUT},
         {"display", displayFuncGLUT},
         {"idle", idleFuncGLUT},
+        {"timer", timerFuncGLUT},
         {"mainLoop", mainLoopGLUT},
         {"postRedisplay", postRedisplayGLUT},
         {"swapBuffers", swapBuffersGLUT},

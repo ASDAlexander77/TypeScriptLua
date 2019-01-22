@@ -1,8 +1,12 @@
 {
 	"folders": [
 		{
-			"name": "BABYLON",
+			"name": "Babylon.JS Client",
 			"path": "./BABYLON"
+		},
+		{
+			"name": "Babylon.JS",
+			"path": "../thirdparty/Babylon.js/src"
 		},
 		{
 			"name": "JSLib",
