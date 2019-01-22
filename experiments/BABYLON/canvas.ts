@@ -50,6 +50,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     blitFramebuffer(srcX0: number, srcY0: number, srcX1: number, srcY1: number,
+        // @ts-ignore
         dstX0: number, dstY0: number, dstX1: number, dstY1: number, mask: number, filter: number): void {
         throw new Error('Method not implemented.');
     }
@@ -123,12 +124,14 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         pixels: ImageBitmap | ImageData | HTMLVideoElement | HTMLImageElement | HTMLCanvasElement): void;
     // @ts-ignore
     texImage3D(target: any, level: any, internalformat: any, width: any, height: any, depth: any, border: any,
+        // @ts-ignore
         format: any, type: any, pixels: any, offset?: any) {
         throw new Error('Method not implemented.');
     }
 
     // @ts-ignore
     compressedTexImage3D(target: number, level: number, internalformat: number, width: number, height: number,
+        // @ts-ignore
         depth: number, border: number, data: ArrayBufferView, offset?: number, length?: number): void {
         throw new Error('Method not implemented.');
     }
@@ -292,24 +295,28 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     compressedTexImage2D(target: number, level: number, internalformat: number, width: number, height: number,
+        // @ts-ignore
         border: number, data: ArrayBufferView): void {
         throw new Error('Method not implemented.');
     }
 
     // @ts-ignore
     compressedTexSubImage2D(target: number, level: number, xoffset: number, yoffset: number, width: number,
+        // @ts-ignore
         height: number, format: number, data: ArrayBufferView): void {
         throw new Error('Method not implemented.');
     }
 
     // @ts-ignore
     copyTexImage2D(target: number, level: number, internalformat: number, x: number, y: number, width: number,
+        // @ts-ignore
         height: number, border: number): void {
         throw new Error('Method not implemented.');
     }
 
     // @ts-ignore
     copyTexSubImage2D(target: number, level: number, xoffset: number, yoffset: number, x: number, y: number,
+        // @ts-ignore
         width: number, height: number): void {
         throw new Error('Method not implemented.');
     }
