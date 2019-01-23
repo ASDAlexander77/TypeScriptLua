@@ -166,7 +166,8 @@ extern "C"
             len = luaL_checkinteger(L, 2);
             if (lua_type(L, 3) == LUA_TSTRING || lua_istable(L, 3)) 
             {
-                data = ((Table*) lua_topointer(L, 3))->array;
+                // not implemented yet
+                return luaL_error(L, "bufferData error: target - %d, len - %d, data - %d, data[0] - %d, data.f[0] - %f, data[1] - %d, data.f[1] - %f, flags - %d", target, len, data, ((int*)data)[0], ((float*)data)[0], ((int*)data)[1], ((float*)data)[1], flags);
             }
             else 
             {
@@ -177,9 +178,8 @@ extern "C"
         } 
         else if (lua_type(L, 2) == LUA_TSTRING || lua_istable(L, 2)) 
         {
-            Table* t = (Table*) lua_topointer(L, 2);
-            data = t->array;
-            len = t->sizearray * 4;
+            // not implemented yet
+            return luaL_error(L, "bufferData error: target - %d, len - %d, data - %d, data[0] - %d, data.f[0] - %f, data[1] - %d, data.f[1] - %f, flags - %d", target, len, data, ((int*)data)[0], ((float*)data)[0], ((int*)data)[1], ((float*)data)[1], flags);
             flags = luaL_checkinteger(L, 3);
         } 
         else 
@@ -187,9 +187,6 @@ extern "C"
             return luaL_argerror(L, 2, "Bad argument, <number>, <number>?, <table>, <number>");
         }
 
-        return luaL_error(L, "bufferData error: target - %d, len - %d, data - %d, data[0] - %d, data.f[0] - %f, data[1] - %d, data.f[1] - %f, flags - %d", target, len, data, ((int*)data)[0], ((float*)data)[0], ((int*)data)[1], ((float*)data)[1], flags);
-
-/*
         glBufferStorage(target, len, data, flags);
 
         int error = errorCheck(L);
@@ -199,7 +196,6 @@ extern "C"
         }
 
         return 0;
-*/        
     }
 
     typedef struct ConstPair
