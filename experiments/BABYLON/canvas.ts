@@ -250,7 +250,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     bufferData(target: number, sizeOrData: number | BufferSource, usage: number): void;
     // @ts-ignore
     bufferData(target: any, data: any, usage: any) {
-        throw new Error('Method not implemented.');
+        // should be called directly from super.bufferData
+        gl.bufferData(target, data.byteLength, data.data, usage);
     }
 
     // @ts-ignore

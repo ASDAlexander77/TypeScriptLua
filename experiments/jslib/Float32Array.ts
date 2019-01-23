@@ -4,8 +4,8 @@ module JS {
 
         public static BYTES_PER_ELEMENT = 4;
 
-        public constructor(size: number) {
-            super(size, Float32Array.BYTES_PER_ELEMENT);
+        public constructor(sizeOrData: number | Array<number>) {
+            super(sizeOrData, Float32Array.BYTES_PER_ELEMENT);
         }
     }
 

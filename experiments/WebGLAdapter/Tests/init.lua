@@ -16,6 +16,10 @@ glut.display(function ()
     -- === test ===
     local vbo = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
+    local data = {}
+    data[0] = 1
+    data[1] = 2
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
     -- === end of test ===
 
     gl.clear(gl.COLOR, gl.DEPTH)

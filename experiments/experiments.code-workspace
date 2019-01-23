@@ -15,6 +15,10 @@
 		{
 			"name": "WebGL Lua adapter",
 			"path": "./WebGLAdapter"
+		},
+		{
+			"name": "ArrayBuffer adapter",
+			"path": "./ArrayBufferAdapter"
 		}
 	],
     "settings": {
