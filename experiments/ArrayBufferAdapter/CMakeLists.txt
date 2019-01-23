@@ -49,9 +49,13 @@ else()
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 -Wfatal-errors -fno-stack-protector -fno-common ${EXTRA_C_FLAGS}")
 endif()
 
+file(GLOB ARRAY_BUFFER_SRC
+    "${PROJECT_SOURCE_DIR}/array_buffer.c"
+)
+
 include_directories("${PROJECT_SOURCE_DIR}/../../thirdparty/lua/src/")
 
-add_library (array_buffer SHARED ${WEBGL_SRC})
+add_library (array_buffer SHARED ${ARRAY_BUFFER_SRC})
 target_link_libraries (array_buffer ${LUA_LIBRARY})
 
 add_custom_command(TARGET array_buffer POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:array_buffer> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:array_buffer>") 

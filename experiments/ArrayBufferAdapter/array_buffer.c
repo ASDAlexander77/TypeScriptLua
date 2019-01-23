@@ -17,50 +17,63 @@ extern "C"
 {
 #endif
 
-    typedef ArrayContainer {
-        size_t bytesSize,
-        size_t count,
-        size_t elementSize,
-        unsigned char[1] data
-    }
+    typedef struct ArrayContainerType {
+        size_t bytesLength;
+        size_t count;
+        size_t elementSize;
+        unsigned char data[1];
+    } ArrayContainer;
 
     static int new (lua_State *L)
     {
-        size_t count = luaL_checkint(L, 1);
-        size_t elementSize = luaL_checkint(L, 2);
+        size_t count = luaL_checkinteger(L, 1);
+        size_t elementSize = luaL_checkinteger(L, 2);
         size_t nbytes = sizeof(ArrayContainer) + count * sizeof(elementSize);
         ArrayContainer *a = (ArrayContainer *)lua_newuserdata(L, nbytes);
         a->bytesLength = nbytes;
-        a->count = n;
+        a->count = count;
         a->elementSize = elementSize;
         return 1; /* new userdatum is already on the stack */
     }
 
+    static int set (lua_State *L)                                                
+    {                                                                                   
+        ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);                     
+        int index = luaL_checkinteger(L, 2);                                            
+        double value = luaL_checknumber(L, 3);                                          
+                                                                                        
+        luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      
+        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      
+                                                                                        
+        ((double*)(&a->data))[index] = value;
+        return 0;                                                                       
+    }
+
     // === Double ===
-#define SET(type, name)                                                                 \
+#define SET(type__, name)                                                               \
     static int set_##name (lua_State *L)                                                \
     {                                                                                   \
         ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);                     \
-        int index = luaL_checkint(L, 2);                                                \
-        type value = luaL_checknumber(L, 3);                                            \
+        int index = luaL_checkinteger(L, 2);                                            \
+        type__ value = luaL_checknumber(L, 3);                                          \
                                                                                         \
         luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      \
-        luaL_argcheck(L, 0 <= index && index < a->size, 2, "index out of range");       \
+        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      \
                                                                                         \
-        ((*type)a->values)[index] = value;                                              \
+        ((type__*)(&a->data))[index] = value;                                           \
         return 0;                                                                       \
     }
 
-#define GET(type, name)                                                                 \
+#define GET(type__, name)                                                               \
     static int get_##name (lua_State *L)                                                \
     {                                                                                   \
         ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);                     \
-        int index = luaL_checkint(L, 2);                                                \
+        int index = luaL_checkinteger(L, 2);                                                \
                                                                                         \
         luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      \
-        luaL_argcheck(L, 0 <= index && index < a->size, 2, "index out of range");       \
+        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      \
                                                                                         \
-        lua_pushnumber(L, ((*type)a->values)[index]);                                   \
+        lua_pushnumber(L, ((type__*)(&a->data))[index]);                                \
         return 1;                                                                       \
     }
 
@@ -101,7 +114,7 @@ GET(double, double)
     static int getData (lua_State *L)
     {
         ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);
-        lua_pushlightuserdata(a->data);
+        lua_pushlightuserdata(L, a->data);
         return 1; /* new userdatum is already on the stack */
     }
 
@@ -127,7 +140,6 @@ GET(double, double)
     LIBRARY_API int luaopen_array_buffer(lua_State *L)
     {
         luaL_newlib(L, array_buffer);
-        AddConstsGL(L);
         return 1;
     }
 
