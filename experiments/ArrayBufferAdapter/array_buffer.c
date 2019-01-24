@@ -49,6 +49,18 @@ extern "C"
         return 0;                                                                       
     }
 
+    static int get (lua_State *L)                                                
+    {                                                                                   
+        ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);                     
+        int index = luaL_checkinteger(L, 2);                                             
+                                                                                        
+        luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      
+        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      
+                                                                                        
+        lua_pushnumber(L, ((double*)(&a->data))[index]);                                
+        return 1;                                                                       
+    }
+
     // === Double ===
 #define SET(type__, name)                                                               \
     static int set_##name (lua_State *L)                                                \

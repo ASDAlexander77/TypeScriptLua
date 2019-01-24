@@ -5,15 +5,41 @@ module JS {
         byteLength: number;
         data: number[];
 
-        protected constructor(sizeOrData: number | number[], protected sizePerElement: number) {
-            if (typeof(sizeOrData) == 'number') {
-                this.size = sizeOrData;
-                this.byteLength = sizeOrData * sizePerElement;
+        public buffer: ArrayBuffer;
+
+        public constructor(
+            sizeOrData: number | number[],
+            protected sizePerElement: number,
+            protected get: (b: any, i: number) => number, protected set: (b: any, i: number, val: number) => void) {
+
+            if (!array_buffer) {
+                // @ts-ignore
+                import array_buffer from 'array_buffer';
+            }
+
+            let data;
+            const isSize = typeof(sizeOrData) == 'number';
+            if (isSize) {
+                this.size = <number>sizeOrData;
+                this.byteLength = <number>sizeOrData * sizePerElement;
             } else {
-                this.data = sizeOrData;
+                data = sizeOrData;
                 this.size = ArrayHelper.getLength(sizeOrData);
                 this.byteLength = this.size * sizePerElement;
             }
+
+            this.buffer = new ArrayBuffer(this.byteLength);
+            if (!isSize) {
+                // copy data
+                const bufferNative = this.buffer.bufferNativeInstance;
+
+                const setFunc = this.set;
+                let index = 0;
+                for (const val of data) {
+                    setFunc(bufferNative, index++, val);
+                }
+            }
+
         }
     }
 

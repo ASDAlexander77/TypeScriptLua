@@ -123,7 +123,7 @@ export class Emitter {
             return getmethod(t);                                    \
         }                                                           \
                                                                     \
-        return rawget(t, k) || rawget(t, "__proto") && t.__proto[k]; \
+        return rawget(t, k) || rawget(t, "__proto") && t.__proto[k];\
     }                                                               \
                                                                     \
     __set_static_call__ = __set_static_call__ || function (t, k, v) {\
