@@ -152,6 +152,11 @@ extern "C"
         return 0;
     }
 
+    typedef struct ArrayContainerType {
+        size_t bytesLength;
+        unsigned char data[1];
+    } ArrayContainer;
+
     static int bufferData(lua_State *L)
     {
         GLenum target;
@@ -161,31 +166,18 @@ extern "C"
 
         target = luaL_checkinteger(L, 1);
 
-        if (lua_isnumber(L, 2))
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
         {
-            len = luaL_checkinteger(L, 2);
-            if (lua_type(L, 3) == LUA_TSTRING || lua_istable(L, 3)) 
-            {
-                // not implemented yet
-                return luaL_error(L, "bufferData error: target - %d, len - %d, data - %d, data[0] - %d, data.f[0] - %f, data[1] - %d, data.f[1] - %f, flags - %d", target, len, data, ((int*)data)[0], ((float*)data)[0], ((int*)data)[1], ((float*)data)[1], flags);
-            }
-            else 
-            {
-                return luaL_argerror(L, 3, "Bad argument, <number>, <number>?, <table>, <number>");
-            }
-
-            flags = luaL_checkinteger(L, 4);
-        } 
-        else if (lua_type(L, 2) == LUA_TSTRING || lua_istable(L, 2)) 
-        {
-            // not implemented yet
-            return luaL_error(L, "bufferData error: target - %d, len - %d, data - %d, data[0] - %d, data.f[0] - %f, data[1] - %d, data.f[1] - %f, flags - %d", target, len, data, ((int*)data)[0], ((float*)data)[0], ((int*)data)[1], ((float*)data)[1], flags);
-            flags = luaL_checkinteger(L, 3);
+            ArrayContainer* userdata = lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            data = &userdata->data;
         } 
         else 
         {
-            return luaL_argerror(L, 2, "Bad argument, <number>, <number>?, <table>, <number>");
+            return luaL_argerror(L, 2, "Bad argument, <number>, <user_data>, <number>");
         }
+
+        flags = luaL_checkinteger(L, 3);
 
         glBufferStorage(target, len, data, flags);
 
