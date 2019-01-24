@@ -22,36 +22,41 @@ module JS {
             }
 
             // set/get
+            let setFunc;
+            let getFunc;
             switch (type) {
                 case 'int8':
-                    this.get = array_buffer.getInt8;
-                    this.set = array_buffer.setInt8;
+                    getFunc = array_buffer.getInt8;
+                    setFunc = array_buffer.setInt8;
                     break;
                 case 'int16':
-                    this.get = array_buffer.getInt16;
-                    this.set = array_buffer.setInt16;
+                    getFunc = array_buffer.getInt16;
+                    setFunc = array_buffer.setInt16;
                     break;
                 case 'int32':
-                    this.get = array_buffer.getInt32;
-                    this.set = array_buffer.setInt32;
+                    getFunc = array_buffer.getInt32;
+                    setFunc = array_buffer.setInt32;
                     break;
                 case 'int64':
-                    this.get = array_buffer.getInt64;
-                    this.set = array_buffer.setInt64;
+                    getFunc = array_buffer.getInt64;
+                    setFunc = array_buffer.setInt64;
                     break;
                 case 'float':
-                    this.get = array_buffer.getFloat;
-                    this.set = array_buffer.setFloat;
+                    getFunc = array_buffer.getFloat;
+                    setFunc = array_buffer.setFloat;
                     break;
                 case 'double':
-                    this.get = array_buffer.getDouble;
-                    this.set = array_buffer.setDouble;
+                    getFunc = array_buffer.getDouble;
+                    setFunc = array_buffer.setDouble;
                     break;
                 default:
-                    this.get = array_buffer.get;
-                    this.set = array_buffer.set;
+                    getFunc = array_buffer.get;
+                    setFunc = array_buffer.set;
                     break;
             }
+
+            this.get = getFunc;
+            this.set = setFunc;
 
             let data;
             // tslint:disable-next-line:triple-equals
@@ -70,7 +75,6 @@ module JS {
                 // copy data
                 const bufferNative = this.buffer.bufferNativeInstance;
 
-                const setFunc = this.set;
                 let index = 0;
                 // @ts-ignore
                 for (const val of data) {
