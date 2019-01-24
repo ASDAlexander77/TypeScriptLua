@@ -11,7 +11,7 @@ module JS {
                 import array_buffer from 'array_buffer';
             }
 
-            if (array_buffer) {
+            if (!array_buffer) {
                 throw new Error('array_buffer module is not available');
             }
 

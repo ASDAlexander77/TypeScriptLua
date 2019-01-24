@@ -7,7 +7,7 @@ module JS {
 
         public constructor(sizeOrData: number | Array<number>) {
             // @ts-ignore
-            super(sizeOrData, Float32Array.BYTES_PER_ELEMENT, Flota32Array.TYPE);
+            super(sizeOrData, Float32Array.BYTES_PER_ELEMENT, Float32Array.TYPE);
         }
     }
 

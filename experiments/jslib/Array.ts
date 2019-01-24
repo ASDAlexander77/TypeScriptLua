@@ -6,7 +6,7 @@ module JS {
 
     export class ArrayHelper {
         @len
-        public static getLength(_this: any[]): number {
+        public getLength(this: any[]): number {
             // implemented in the compiler
             throw 0;
         }
@@ -30,7 +30,7 @@ module JS {
         public pop() {
             const l = this.length;
             if (l === 0) {
-                throw 'Out of items';
+                throw new Error('Out of items');
             }
 
             if (l === 1) {
@@ -97,7 +97,7 @@ module JS {
             }
 
             if (items) {
-                const length_ = ArrayHelper.getLength(items);
+                const length_ = (<ArrayHelper>items).getLength();
                 for (let i = 0; i < length_; i++) {
                     const ind = i + index;
                     if (ind == 0) {

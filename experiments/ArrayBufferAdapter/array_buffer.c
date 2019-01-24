@@ -19,20 +19,15 @@ extern "C"
 
     typedef struct ArrayContainerType {
         size_t bytesLength;
-        size_t count;
-        size_t elementSize;
         unsigned char data[1];
     } ArrayContainer;
 
     static int new (lua_State *L)
     {
-        size_t count = luaL_checkinteger(L, 1);
-        size_t elementSize = luaL_checkinteger(L, 2);
-        size_t nbytes = sizeof(ArrayContainer) + count * sizeof(elementSize);
-        ArrayContainer *a = (ArrayContainer *)lua_newuserdata(L, nbytes);
-        a->bytesLength = nbytes;
-        a->count = count;
-        a->elementSize = elementSize;
+        size_t bytes = luaL_checkinteger(L, 1);
+        size_t totalBytes = sizeof(ArrayContainer) + bytes;
+        ArrayContainer *a = (ArrayContainer *)lua_newuserdata(L, totalBytes);
+        a->bytesLength = bytes;
         return 1; /* new userdatum is already on the stack */
     }
 
@@ -43,7 +38,7 @@ extern "C"
         double value = luaL_checknumber(L, 3);                                          
                                                                                         
         luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      
-        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      
+        luaL_argcheck(L, 0 <= index && (index * sizeof(double)) < a->bytesLength, 2, "index out of range");      
                                                                                         
         ((double*)(&a->data))[index] = value;
         return 0;                                                                       
@@ -55,7 +50,7 @@ extern "C"
         int index = luaL_checkinteger(L, 2);                                             
                                                                                         
         luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      
-        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      
+        luaL_argcheck(L, 0 <= index && (index * sizeof(double)) < a->bytesLength, 2, "index out of range");      
                                                                                         
         lua_pushnumber(L, ((double*)(&a->data))[index]);                                
         return 1;                                                                       
@@ -70,7 +65,7 @@ extern "C"
         type__ value = luaL_checknumber(L, 3);                                          \
                                                                                         \
         luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      \
-        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      \
+        luaL_argcheck(L, 0 <= index && (index * sizeof(type__)) < a->bytesLength, 2, "index out of range"); \
                                                                                         \
         ((type__*)(&a->data))[index] = value;                                           \
         return 0;                                                                       \
@@ -83,7 +78,7 @@ extern "C"
         int index = luaL_checkinteger(L, 2);                                                \
                                                                                         \
         luaL_argcheck(L, a != NULL, 1, "'array_buffer' expected");                      \
-        luaL_argcheck(L, 0 <= index && index < a->count, 2, "index out of range");      \
+        luaL_argcheck(L, 0 <= index && (index * sizeof(type__)) < a->bytesLength, 2, "index out of range"); \
                                                                                         \
         lua_pushnumber(L, ((type__*)(&a->data))[index]);                                \
         return 1;                                                                       \
@@ -106,14 +101,6 @@ GET(float, float)
 
 SET(double, double)
 GET(double, double)
-
-    static int getCount (lua_State *L) 
-    {
-        ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);
-        luaL_argcheck(L, a != NULL, 1, "`array' expected");
-        lua_pushnumber(L, a->count);
-        return 1;
-    }    
 
     static int getBytesLength (lua_State *L) 
     {
@@ -146,7 +133,6 @@ GET(double, double)
         {"getFloat", get_float},
         {"setDouble", set_double},
         {"getDouble", get_double},
-        {"count", getCount},        
         {"bytesLength", getBytesLength},        
         {"data", getData},        
         {NULL, NULL} /* sentinel */
