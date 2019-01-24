@@ -7,17 +7,54 @@ module JS {
 
         public buffer: ArrayBuffer;
 
+        protected get: (b: any, i: number) => number;
+        protected set: (b: any, i: number, val: number) => void;
+
         public constructor(
             sizeOrData: number | number[],
             protected sizePerElement: number,
-            protected get: (b: any, i: number) => number, protected set: (b: any, i: number, val: number) => void) {
+            protected type: string,
+            ) {
 
             if (!array_buffer) {
                 // @ts-ignore
                 import array_buffer from 'array_buffer';
             }
 
+            // set/get
+            switch (type) {
+                case 'int8':
+                    this.get = array_buffer.getInt8;
+                    this.set = array_buffer.setInt8;
+                    break;
+                case 'int16':
+                    this.get = array_buffer.getInt16;
+                    this.set = array_buffer.setInt16;
+                    break;
+                case 'int32':
+                    this.get = array_buffer.getInt32;
+                    this.set = array_buffer.setInt32;
+                    break;
+                case 'int64':
+                    this.get = array_buffer.getInt64;
+                    this.set = array_buffer.setInt64;
+                    break;
+                case 'float':
+                    this.get = array_buffer.getFloat;
+                    this.set = array_buffer.setFloat;
+                    break;
+                case 'double':
+                    this.get = array_buffer.getDouble;
+                    this.set = array_buffer.setDouble;
+                    break;
+                default:
+                    this.get = array_buffer.get;
+                    this.set = array_buffer.set;
+                    break;
+            }
+
             let data;
+            // tslint:disable-next-line:triple-equals
             const isSize = typeof(sizeOrData) == 'number';
             if (isSize) {
                 this.size = <number>sizeOrData;
@@ -35,10 +72,15 @@ module JS {
 
                 const setFunc = this.set;
                 let index = 0;
+                // @ts-ignore
                 for (const val of data) {
                     setFunc(bufferNative, index++, val);
                 }
             }
+
+        }
+
+        public static getGetter() {
 
         }
     }

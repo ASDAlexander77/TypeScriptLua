@@ -89,8 +89,8 @@ extern "C"
         return 1;                                                                       \
     }
 
-SET(unsigned char, byte)
-GET(unsigned char, byte)
+SET(unsigned char, int8)
+GET(unsigned char, int8)
 
 SET(short, int16)
 GET(short, int16)
@@ -134,6 +134,8 @@ GET(double, double)
         {"new", new},
         {"set", set_double},
         {"get", get_double},
+        {"set8", set_int8},
+        {"get8", get_int8},
         {"set16", set_int16},
         {"get16", get_int16},
         {"set32", set_int32},
@@ -142,6 +144,8 @@ GET(double, double)
         {"get64", get_int64},
         {"setFloat", set_float},
         {"getFloat", get_float},
+        {"setDouble", set_double},
+        {"getDouble", get_double},
         {"count", getCount},        
         {"bytesLength", getBytesLength},        
         {"data", getData},        
