@@ -179,7 +179,7 @@ extern "C"
 
         flags = luaL_checkinteger(L, 3);
 
-        glBufferStorage(target, len, data, flags);
+        glBufferData(target, len, data, flags);
 
         int error = errorCheck(L);
         if (error)

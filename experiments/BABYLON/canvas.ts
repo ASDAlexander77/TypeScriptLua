@@ -203,7 +203,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     bindBuffer(target: number, buffer: WebGLBuffer): void {
-        gl.bindBuffer(target, buffer.references);
+        gl.bindBuffer(target, buffer ? buffer.references : 0);
     }
 
     // @ts-ignore
