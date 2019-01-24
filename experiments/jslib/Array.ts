@@ -6,7 +6,7 @@ module JS {
 
     export class ArrayHelper {
         @len
-        public getLength(this: any[]): number {
+        public static getLength(_this: any[]): number {
             // implemented in the compiler
             throw 0;
         }
@@ -97,7 +97,7 @@ module JS {
             }
 
             if (items) {
-                const length_ = (<ArrayHelper>items).getLength();
+                const length_ = ArrayHelper.getLength(items);
                 for (let i = 0; i < length_; i++) {
                     const ind = i + index;
                     if (ind == 0) {

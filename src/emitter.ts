@@ -400,15 +400,17 @@ export class Emitter {
                 m => m.expression.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>m.expression).text === 'len');
 
         if (len) {
+            const firstParam = (<ts.MethodDeclaration>location).parameters[0];
+            const operand = firstParam ? <ts.Identifier>firstParam.name : ts.createThis();
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
             return <ts.NodeArray<ts.Statement>><any>
                 [<ts.Statement>ts.createReturn(
                     ts.createBinary(
-                        ts.createPropertyAccess(ts.createThis(), lengthMemeber),
+                        ts.createPropertyAccess(operand, lengthMemeber),
                         ts.SyntaxKind.PlusToken,
                         ts.createConditional(
-                            ts.createElementAccess(ts.createThis(), ts.createNumericLiteral('0')),
+                            ts.createElementAccess(operand, ts.createNumericLiteral('0')),
                             ts.createNumericLiteral('1'),
                             ts.createNumericLiteral('0'))))
                 ];
