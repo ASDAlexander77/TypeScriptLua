@@ -205,6 +205,36 @@ extern "C"
         return 0;
     }
 
+    static int enable(lua_State *L)
+    {
+        const GLenum cap = luaL_checknumber(L, 1);
+
+        glEnable(cap);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int disable(lua_State *L)
+    {
+        const GLenum cap = luaL_checknumber(L, 1);
+
+        glDisable(cap);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
     typedef struct ConstPair
     {
         const char *name;
@@ -532,6 +562,8 @@ extern "C"
         {"bindBuffer", bindBuffer},
         {"bufferData", bufferData},
         {"depthMask", depthMask},
+        {"enable", enable},
+        {"disable", disable},
         {NULL, NULL} /* sentinel */
     };
 

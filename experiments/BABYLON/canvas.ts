@@ -410,7 +410,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     disable(cap: number): void {
-        throw new Error('Method not implemented.');
+        gl.disable(cap);
     }
 
     // @ts-ignore
@@ -430,7 +430,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     enable(cap: number): void {
-        throw new Error('Method not implemented.');
+        gl.enable(cap);
     }
 
     // @ts-ignore
