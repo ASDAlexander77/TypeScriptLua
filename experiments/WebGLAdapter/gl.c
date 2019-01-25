@@ -190,6 +190,21 @@ extern "C"
         return 0;
     }
 
+    static int depthMask(lua_State *L)
+    {
+        const GLboolean flag = lua_toboolean(L, 1);
+
+        glDepthMask(flag);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
     typedef struct ConstPair
     {
         const char *name;
@@ -516,6 +531,7 @@ extern "C"
         {"createBuffer", createBuffer},
         {"bindBuffer", bindBuffer},
         {"bufferData", bufferData},
+        {"depthMask", depthMask},
         {NULL, NULL} /* sentinel */
     };
 

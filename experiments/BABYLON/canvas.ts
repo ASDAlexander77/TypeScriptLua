@@ -395,7 +395,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     depthMask(flag: boolean): void {
-        throw new Error('Method not implemented.');
+        gl.depthMask(flag);
     }
 
     // @ts-ignore
