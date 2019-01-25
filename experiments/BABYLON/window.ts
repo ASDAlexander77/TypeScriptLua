@@ -27,17 +27,17 @@ export default class WindowEx {
     }
 
     // @ts-ignore
-    public addEventListener(eventName: string, cb: any, flag: boolean): void {
+    public static addEventListener(eventName: string, cb: any, flag: boolean): void {
     }
 
-    public setTimeout(funct: any, millisec: number) {
+    public static setTimeout(funct: any, millisec: number) {
         if (funct) {
             // funct();
             glut.timer(millisec, funct, 0);
         }
     }
 
-    public loop() {
+    public static loop() {
         glut.mainLoop();
     }
 }
