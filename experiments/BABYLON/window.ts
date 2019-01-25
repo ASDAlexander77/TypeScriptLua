@@ -1,5 +1,6 @@
 // @ts-ignore
 import glut from 'glut';
+declare var gl: any;
 
 export default class WindowEx {
     innerWidth = 640;
@@ -18,6 +19,7 @@ export default class WindowEx {
             gl.clearColor(0.5, 1.0, 0.2, 1.0);
             gl.flush();
             */
+
             glut.swapBuffers();
         });
 

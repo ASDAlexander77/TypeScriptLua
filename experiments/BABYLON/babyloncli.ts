@@ -141,4 +141,5 @@ class Runner {
 
 new Runner().run();
 
+// @ts-ignore
 window.loop();
