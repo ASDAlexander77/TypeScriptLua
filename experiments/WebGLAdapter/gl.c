@@ -167,6 +167,23 @@ extern "C"
         return 1;
     }
 
+    static int createShader(lua_State *L)
+    {
+        const GLenum type = luaL_checkinteger(L, 1);
+
+        GLuint val = glCreateShader(type);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, val);
+
+        return 1;
+    }    
+
     static int bindBuffer(lua_State *L)
     {
         const GLenum target = luaL_checkinteger(L, 1);
@@ -689,6 +706,7 @@ extern "C"
         {"clearDepth", clearDepth},
         {"clearStencil", clearStencil},
         {"createBuffer", createBuffer},
+        {"createShader", createShader},
         {"bindBuffer", bindBuffer},
         {"bufferData", bufferData},
         {"bufferSubData", bufferSubData},

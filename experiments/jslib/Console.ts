@@ -1,4 +1,5 @@
 declare var print: any;
+declare var error: any;
 
 module JS {
 
@@ -8,6 +9,9 @@ module JS {
             print(...params);
         }
 
+        public static error(...params: any[]) {
+            error(...params);
+        }
     }
 
 }
