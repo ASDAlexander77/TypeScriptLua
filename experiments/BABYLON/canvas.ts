@@ -250,13 +250,12 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     bufferData(target: number, sizeOrData: number | BufferSource, usage: number): void;
     // @ts-ignore
     bufferData(target: any, data: any, usage: any) {
-        // should be called directly from super.bufferData
         gl.bufferData(target, data.buffer.bufferNativeInstance, usage);
     }
 
     // @ts-ignore
     bufferSubData(target: number, offset: number, data: BufferSource): void {
-        throw new Error('Method not implemented.');
+        gl.bufferSubData(target, offset, (<any>data).buffer.bufferNativeInstance);
     }
 
     // @ts-ignore
@@ -266,22 +265,22 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     clear(mask: number): void {
-        throw new Error('Method not implemented.');
+        gl.clear(mask);
     }
 
     // @ts-ignore
     clearColor(red: number, green: number, blue: number, alpha: number): void {
-        throw new Error('Method not implemented.');
+        gl.clearColor(red, green, blue, alpha);
     }
 
     // @ts-ignore
     clearDepth(depth: number): void {
-        throw new Error('Method not implemented.');
+        gl.clearDepth(depth);
     }
 
     // @ts-ignore
     clearStencil(s: number): void {
-        throw new Error('Method not implemented.');
+        gl.clearStencil(s);
     }
 
     // @ts-ignore
@@ -390,7 +389,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     depthFunc(func: number): void {
-        throw new Error('Method not implemented.');
+        gl.depthFunc(func);
     }
 
     // @ts-ignore
@@ -719,7 +718,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     stencilFunc(func: number, ref: number, mask: number): void {
-        throw new Error('Method not implemented.');
+        gl.stencilFunc(func, ref, mask);
     }
 
     // @ts-ignore
@@ -729,7 +728,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     stencilMask(mask: number): void {
-        throw new Error('Method not implemented.');
+        gl.stencilMask(mask);
     }
 
     // @ts-ignore
@@ -739,7 +738,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     stencilOp(fail: number, zfail: number, zpass: number): void {
-        throw new Error('Method not implemented.');
+        gl.stencilOp(fail, zfail, zpass);
     }
 
     // @ts-ignore

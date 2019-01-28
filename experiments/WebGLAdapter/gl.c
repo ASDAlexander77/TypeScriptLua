@@ -120,6 +120,36 @@ extern "C"
 
         return 0;
     }
+    
+    static int clearDepth(lua_State *L)
+    {
+        const GLclampd depth = luaL_checkinteger(L, 1);
+
+        glClearDepth(depth);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int clearStencil(lua_State *L)
+    {
+        const GLint s = luaL_checkinteger(L, 1);
+
+        glClearStencil(s);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
 
     static int createBuffer(lua_State *L)
     {
@@ -190,6 +220,39 @@ extern "C"
         return 0;
     }
 
+    static int bufferSubData(lua_State *L)
+    {
+        GLenum target;
+        GLintptr offset;
+        size_t len;
+        const char *data;
+        GLbitfield flags;
+
+        target = luaL_checkinteger(L, 1);
+        offset = luaL_checkinteger(L, 2);
+
+        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = lua_topointer(L, 3);
+            len = userdata->bytesLength;
+            data = &userdata->data;
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument, <number>, <number>, <user_data>");
+        }
+
+        glBufferSubData(target, offset, len, data);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
     static int depthMask(lua_State *L)
     {
         const GLboolean flag = lua_toboolean(L, 1);
@@ -204,6 +267,70 @@ extern "C"
 
         return 0;
     }
+
+    static int depthFunc(lua_State *L)
+    {
+        const GLenum func = luaL_checkinteger(L, 1);
+
+        glDepthFunc(func);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int stencilMask(lua_State *L)
+    {
+        const GLuint mask = luaL_checkinteger(L, 1);
+
+        glStencilMask(mask);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }       
+
+    static int stencilFunc(lua_State *L)
+    {
+        const GLenum func = luaL_checkinteger(L, 1);
+ 	    const GLint ref = luaL_checkinteger(L, 2);
+ 	    const GLuint mask = luaL_checkinteger(L, 2);
+
+        glStencilFunc(func, ref, mask);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }      
+
+    static int stencilOp(lua_State *L)
+    {
+        const GLenum sfail = luaL_checkinteger(L, 1);
+ 	    const GLenum dpfail = luaL_checkinteger(L, 2);
+ 	    const GLenum dppass = luaL_checkinteger(L, 2);
+
+        glStencilOp(sfail, dpfail, dppass);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }        
 
     static int enable(lua_State *L)
     {
@@ -517,6 +644,7 @@ extern "C"
         {"TRIANGLES", GL_TRIANGLES},
         {"TRIANGLE_FAN", GL_TRIANGLE_FAN},
         {"TRIANGLE_STRIP", GL_TRIANGLE_STRIP},
+        {"UNIFORM_BUFFER", GL_UNIFORM_BUFFER},
         {"UNPACK_ALIGNMENT", GL_UNPACK_ALIGNMENT},
         //{"UNPACK_COLORSPACE_CONVERSION_WEBGL", GL_UNPACK_COLORSPACE_CONVERSION_WEBGL},
         //{"UNPACK_FLIP_Y_WEBGL", GL_UNPACK_FLIP_Y_WEBGL},
@@ -558,10 +686,17 @@ extern "C"
         {"flush", flush},
         {"clear", clear},
         {"clearColor", clearColor},
+        {"clearDepth", clearDepth},
+        {"clearStencil", clearStencil},
         {"createBuffer", createBuffer},
         {"bindBuffer", bindBuffer},
         {"bufferData", bufferData},
+        {"bufferSubData", bufferSubData},
         {"depthMask", depthMask},
+        {"depthFunc", depthFunc},
+        {"stencilMask", stencilMask},
+        {"stencilFunc", stencilFunc},
+        {"stencilOp", stencilOp},
         {"enable", enable},
         {"disable", disable},
         {NULL, NULL} /* sentinel */
