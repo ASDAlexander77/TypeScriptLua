@@ -29,22 +29,31 @@ extern "C"
             switch (error)
             {
             case GL_INVALID_ENUM:
+                printf("GL error: enumeration parameter is not a legal enumeration for that function");
                 return luaL_error(L, "GL error: enumeration parameter is not a legal enumeration for that function");
             case GL_INVALID_VALUE:
+                printf("GL error: value parameter is not a legal value for that function");
                 return luaL_error(L, "GL error: value parameter is not a legal value for that function");
             case GL_INVALID_OPERATION:
+                printf("GL error: the set of state for a command is not legal for the parameters given to that command");
                 return luaL_error(L, "GL error: the set of state for a command is not legal for the parameters given to that command");
             case GL_STACK_OVERFLOW:
+                printf("GL error: the set of state for a command is not legal for the parameters given to that command");
                 return luaL_error(L, "GL error: stack pushing operation cannot be done because it would overflow the limit of that stack's size");
             case GL_STACK_UNDERFLOW:
+                printf("GL error: stack popping operation cannot be done because the stack is already at its lowest point");
                 return luaL_error(L, "GL error: stack popping operation cannot be done because the stack is already at its lowest point");
             case GL_OUT_OF_MEMORY:
+                printf("GL error: performing an operation that can allocate memory, and the memory cannot be allocated");
                 return luaL_error(L, "GL error: performing an operation that can allocate memory, and the memory cannot be allocated");
             case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
+                printf("GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete");
                 return luaL_error(L, "GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete");
             case GL_TABLE_TOO_LARGE:
+                printf("GL error: Table is too large");
                 return luaL_error(L, "GL error: Table is too large");
             default:
+                printf("GL error: Error %d", error);
                 return luaL_error(L, "GL error: Error %d", error);
             }
         }
@@ -262,7 +271,7 @@ extern "C"
             return error;
         }
 
-        lua_pushstring(L, "%s", result);
+        lua_pushstring(L, result);
 
         return 1; 
     }  
@@ -361,6 +370,92 @@ extern "C"
 
         return 0;
     }        
+
+    static int getUniformBlockIndex(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+        const char* uniformBlockName = luaL_checkstring(L, 2);
+
+        const GLuint result = glGetUniformBlockIndex(program, uniformBlockName);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, result);
+
+        return 1;        
+    }
+
+    static int uniformBlockBinding(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint uniformBlockIndex = luaL_checkinteger(L, 2);
+        const GLuint uniformBlockBindingValue = luaL_checkinteger(L, 3);
+
+        glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBindingValue);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int getUniformLocation(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+        const char* name = luaL_checkstring(L, 2);
+
+        GLint result = glGetUniformLocation(program, name);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, result);
+
+        return 1;
+    }  
+
+    static int getAttribLocation(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+        const char* name = luaL_checkstring(L, 2);
+
+        GLint result = glGetAttribLocation(program, name);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, result);
+
+        return 1; 
+    }      
+
+    static int useProgram(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+
+        glUseProgram(program);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
 
     static int bindBuffer(lua_State *L)
     {
@@ -898,6 +993,11 @@ extern "C"
         {"getProgramParameter", getProgramParameter},
         {"deleteShader", deleteShader},
         {"deleteProgram", deleteProgram},
+        {"getUniformBlockIndex", getUniformBlockIndex},
+        {"uniformBlockBinding", uniformBlockBinding},
+        {"getUniformLocation", getUniformLocation},
+        {"getAttribLocation", getAttribLocation},
+        {"useProgram", useProgram},
         {"depthMask", depthMask},
         {"depthFunc", depthFunc},
         {"stencilMask", stencilMask},

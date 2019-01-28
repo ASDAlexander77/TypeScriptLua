@@ -65,14 +65,13 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getUniformBlockIndex(program: WebGLProgram, uniformBlockName: string): number {
-        throw new Error('Method not implemented.');
+        return _gl.getUniformBlockIndex(program ? (<any>program).value : 0, uniformBlockName);
     }
 
-    // @ts-ignore
-    uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBinding: number): void {
-        throw new Error('Method not implemented.');
+    uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBindingValue: number): void {
+        // TODO: find out error
+        //_gl.uniformBlockBinding(program ? (<any>program).value : 0, uniformBlockIndex, uniformBlockBindingValue);
     }
 
     // @ts-ignore
@@ -468,7 +467,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     getAttribLocation(program: WebGLProgram, name: string): number {
-        throw new Error('Method not implemented.');
+        return _gl.getAttribLocation(program ? (<any>program).value : 0, name);
     }
 
     // @ts-ignore
@@ -592,9 +591,11 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation {
-        throw new Error('Method not implemented.');
+        // TODO: fix error
+        //const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
+        //return <WebGLProgram>{ value: val };
+        return <WebGLProgram>{ value: 0 };
     }
 
     // @ts-ignore
@@ -854,7 +855,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     useProgram(program: WebGLProgram): void {
-        throw new Error('Method not implemented.');
+        _gl.useProgram(program ? (<any>program).value : 0);
     }
 
     // @ts-ignore
