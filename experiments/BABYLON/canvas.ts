@@ -33,14 +33,15 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
-    createVertexArray() {
-        throw new Error('Method not implemented.');
+    createVertexArray(): WebGLVertexArrayObject {
+        // TODO: fix it
+        // const val = _gl.createVertexArray();
+        // return <WebGLVertexArrayObject> { value: val };
+        return  <WebGLVertexArrayObject> { value: 0 };
     }
 
-    // @ts-ignore
     bindVertexArray(vao?: WebGLVertexArrayObject): void {
-        throw new Error('Method not implemented.');
+        _gl.bindVertexArray(vao ? (<any>vao).value : 0);
     }
 
     // @ts-ignore
@@ -62,7 +63,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     bindBufferBase(target: number, index: number, buffer: WebGLBuffer): void {
-        throw new Error('Method not implemented.');
+        _gl.bindBufferBase(target, index, buffer.references);
     }
 
     getUniformBlockIndex(program: WebGLProgram, uniformBlockName: string): number {
@@ -71,7 +72,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBindingValue: number): void {
         // TODO: find out error
-        //_gl.uniformBlockBinding(program ? (<any>program).value : 0, uniformBlockIndex, uniformBlockBindingValue);
+        // _gl.uniformBlockBinding(program ? (<any>program).value : 0, uniformBlockIndex, uniformBlockBindingValue);
     }
 
     // @ts-ignore
@@ -593,8 +594,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation {
         // TODO: fix error
-        //const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
-        //return <WebGLProgram>{ value: val };
+        // const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
+        // return <WebGLProgram>{ value: val };
         return <WebGLProgram>{ value: 0 };
     }
 
@@ -840,23 +841,23 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     uniformMatrix2fv(location: WebGLUniformLocation, transpose: boolean, value: Float32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniformMatrix2fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
     }
 
     // @ts-ignore
     uniformMatrix3fv(location: WebGLUniformLocation, transpose: boolean, value: Float32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniformMatrix3fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
     }
 
-    // @ts-ignore
     uniformMatrix4fv(location: WebGLUniformLocation, transpose: boolean, value: Float32List): void {
-        throw new Error('Method not implemented.');
+        // TODO: error
+        // _gl.uniformMatrix4fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
     }
 
     // @ts-ignore
     useProgram(program: WebGLProgram): void {
         // TODO: error
-        //_gl.useProgram(program ? (<any>program).value : 0);
+        // _gl.useProgram(program ? (<any>program).value : 0);
     }
 
     // @ts-ignore

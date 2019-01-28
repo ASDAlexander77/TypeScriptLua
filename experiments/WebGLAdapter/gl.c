@@ -457,11 +457,57 @@ extern "C"
         return 0;
     }     
 
+    static int createVertexArray(lua_State *L)
+    {
+        GLuint arrays;
+        glCreateVertexArrays(1, &arrays);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, arrays);
+
+        return 1;
+    }        
+
+    static int bindVertexArray(lua_State *L)
+    {
+        const GLuint array = luaL_checkinteger(L, 1) ;
+        glBindVertexArray(array);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;        
+    }
+
     static int bindBuffer(lua_State *L)
     {
         const GLenum target = luaL_checkinteger(L, 1);
-        const GLuint val = luaL_checkinteger(L, 2);
-        glBindBuffer(target, val);
+        const GLuint buffer = luaL_checkinteger(L, 2);
+        glBindBuffer(target, buffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int bindBufferBase(lua_State *L)
+    {
+        const GLenum target = luaL_checkinteger(L, 1);
+        const GLuint index = luaL_checkinteger(L, 2);
+        const GLuint buffer = luaL_checkinteger(L, 3);
+        glBindBufferBase(target, index, buffer);
 
         int error = errorCheck(L);
         if (error)
@@ -533,6 +579,99 @@ extern "C"
         }
 
         glBufferSubData(target, offset, len, data);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+    
+    static int uniformMatrix2fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        const GLboolean transpose = lua_toboolean(L, 2);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniformMatrix2fv(location, count, transpose, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }   
+
+    static int uniformMatrix3fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        const GLboolean transpose = lua_toboolean(L, 2);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniformMatrix3fv(location, count, transpose, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int uniformMatrix4fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        const GLboolean transpose = lua_toboolean(L, 2);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniformMatrix4fv(location, count, transpose, value);
 
         int error = errorCheck(L);
         if (error)
@@ -980,6 +1119,7 @@ extern "C"
         {"clearStencil", clearStencil},
         {"createBuffer", createBuffer},
         {"bindBuffer", bindBuffer},
+        {"bindBufferBase", bindBufferBase},
         {"bufferData", bufferData},
         {"bufferSubData", bufferSubData},
         {"createShader", createShader},
@@ -998,6 +1138,11 @@ extern "C"
         {"getUniformLocation", getUniformLocation},
         {"getAttribLocation", getAttribLocation},
         {"useProgram", useProgram},
+        {"createVertexArray", createVertexArray},
+        {"bindVertexArray", bindVertexArray},
+        {"uniformMatrix2fv", uniformMatrix2fv},
+        {"uniformMatrix3fv", uniformMatrix3fv},
+        {"uniformMatrix4fv", uniformMatrix4fv},
         {"depthMask", depthMask},
         {"depthFunc", depthFunc},
         {"stencilMask", stencilMask},
