@@ -2923,7 +2923,7 @@ export class Emitter {
         let isLastMethodArgumentCallOrSpreadElement = parent && parent.kind === ts.SyntaxKind.SpreadElement;
         if (!isLastMethodArgumentCallOrSpreadElement
             && parent
-            && parent.kind === ts.SyntaxKind.CallExpression) {
+            && (parent.kind === ts.SyntaxKind.CallExpression || parent.kind === ts.SyntaxKind.NewExpression)) {
             // check if it last call method argument
             const callMethod = <ts.CallExpression>parent;
             if (callMethod.arguments.length > 0 && callMethod.arguments[callMethod.arguments.length - 1] === node) {
