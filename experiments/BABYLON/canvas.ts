@@ -1,8 +1,8 @@
 // @ts-ignore
-import gl from 'webgl';
+import _gl from 'webgl';
 
 // @ts-ignore
-export default class Canvas extends gl implements WebGLRenderingContext {
+export default class Canvas extends _gl implements WebGLRenderingContext {
 
     canvas: HTMLCanvasElement;
     drawingBufferHeight: number;
@@ -11,7 +11,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     // @ts-ignore
     constructor() {
         /* init GL */
-        gl.init();
+        _gl.init();
     }
 
     // @ts-ignore
@@ -193,7 +193,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     attachShader(program: WebGLProgram, shader: WebGLShader): void {
-        throw new Error('Method not implemented.');
+        _gl.attachShader(program ? (<any>program).value : 0, shader ? (<any>shader).value : 0);
     }
 
     // @ts-ignore
@@ -202,7 +202,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     bindBuffer(target: number, buffer: WebGLBuffer): void {
-        gl.bindBuffer(target, buffer ? buffer.references : 0);
+        _gl.bindBuffer(target, buffer ? buffer.references : 0);
     }
 
     // @ts-ignore
@@ -247,11 +247,11 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     bufferData(target: number, sizeOrData: number | BufferSource, usage: number): void;
     bufferData(target: any, data: any, usage: any) {
-        gl.bufferData(target, data.buffer.bufferNativeInstance, usage);
+        _gl.bufferData(target, data.buffer.bufferNativeInstance, usage);
     }
 
     bufferSubData(target: number, offset: number, data: BufferSource): void {
-        gl.bufferSubData(target, offset, (<any>data).buffer.bufferNativeInstance);
+        _gl.bufferSubData(target, offset, (<any>data).buffer.bufferNativeInstance);
     }
 
     // @ts-ignore
@@ -260,19 +260,19 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     clear(mask: number): void {
-        gl.clear(mask);
+        _gl.clear(mask);
     }
 
     clearColor(red: number, green: number, blue: number, alpha: number): void {
-        gl.clearColor(red, green, blue, alpha);
+        _gl.clearColor(red, green, blue, alpha);
     }
 
     clearDepth(depth: number): void {
-        gl.clearDepth(depth);
+        _gl.clearDepth(depth);
     }
 
     clearStencil(s: number): void {
-        gl.clearStencil(s);
+        _gl.clearStencil(s);
     }
 
     // @ts-ignore
@@ -280,9 +280,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     compileShader(shader: WebGLShader): void {
-        throw new Error('Method not implemented.');
+        _gl.compileShader((<any>shader).value);
     }
 
     // @ts-ignore
@@ -314,7 +313,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     createBuffer(): WebGLBuffer {
-        const val = gl.createBuffer();
+        const val = _gl.createBuffer();
         return <WebGLBuffer>{ references: val };
     }
 
@@ -325,7 +324,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     createProgram(): WebGLProgram {
-        throw new Error('Method not implemented.');
+        const val = _gl.createProgram();
+        return <WebGLProgram>{ value: val };
     }
 
     // @ts-ignore
@@ -334,8 +334,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     createShader(type: number): WebGLShader {
-        const val = gl.createShader(type);
-        return <WebGLShader>{ references: val };
+        const val = _gl.createShader(type);
+        return <WebGLShader>{ value: val };
     }
 
     // @ts-ignore
@@ -358,9 +358,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     deleteProgram(program: WebGLProgram): void {
-        throw new Error('Method not implemented.');
+        _gl.deleteProgram(program ? (<any>program).value : 0);
     }
 
     // @ts-ignore
@@ -368,9 +367,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     deleteShader(shader: WebGLShader): void {
-        throw new Error('Method not implemented.');
+        _gl.deleteShader(shader ? (<any>shader).value : 0);
     }
 
     // @ts-ignore
@@ -379,11 +377,11 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     depthFunc(func: number): void {
-        gl.depthFunc(func);
+        _gl.depthFunc(func);
     }
 
     depthMask(flag: boolean): void {
-        gl.depthMask(flag);
+        _gl.depthMask(flag);
     }
 
     // @ts-ignore
@@ -397,7 +395,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     disable(cap: number): void {
-        gl.disable(cap);
+        _gl.disable(cap);
     }
 
     // @ts-ignore
@@ -416,7 +414,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     enable(cap: number): void {
-        gl.enable(cap);
+        _gl.enable(cap);
     }
 
     // @ts-ignore
@@ -430,7 +428,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
     }
 
     flush(): void {
-        gl.flush();
+        _gl.flush();
     }
 
     // @ts-ignore
@@ -552,9 +550,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getProgramParameter(program: WebGLProgram, pname: number) {
-        throw new Error('Method not implemented.');
+        return _gl.getProgramParameter(program ? (<any>program).value : 0, pname);
     }
 
     // @ts-ignore
@@ -562,14 +559,12 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getShaderInfoLog(shader: WebGLShader): string {
-        throw new Error('Method not implemented.');
+        return _gl.getShaderInfoLog(shader ? (<any>shader).value : 0);
     }
 
-    // @ts-ignore
     getShaderParameter(shader: WebGLShader, pname: number) {
-        throw new Error('Method not implemented.');
+        return _gl.getShaderParameter(shader ? (<any>shader).value : 0, pname);
     }
 
     // @ts-ignore
@@ -662,9 +657,8 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     linkProgram(program: WebGLProgram): void {
-        throw new Error('Method not implemented.');
+        _gl.linkProgram(program ? (<any>program).value : 0);
     }
 
     // @ts-ignore
@@ -697,14 +691,13 @@ export default class Canvas extends gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     shaderSource(shader: WebGLShader, source: string): void {
-        throw new Error('Method not implemented.');
+        _gl.shaderSource(shader ? (<any>shader).value : 0, source);
     }
 
     // @ts-ignore
     stencilFunc(func: number, ref: number, mask: number): void {
-        gl.stencilFunc(func, ref, mask);
+        _gl.stencilFunc(func, ref, mask);
     }
 
     // @ts-ignore
@@ -714,7 +707,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     stencilMask(mask: number): void {
-        gl.stencilMask(mask);
+        _gl.stencilMask(mask);
     }
 
     // @ts-ignore
@@ -724,7 +717,7 @@ export default class Canvas extends gl implements WebGLRenderingContext {
 
     // @ts-ignore
     stencilOp(fail: number, zfail: number, zpass: number): void {
-        gl.stencilOp(fail, zfail, zpass);
+        _gl.stencilOp(fail, zfail, zpass);
     }
 
     // @ts-ignore

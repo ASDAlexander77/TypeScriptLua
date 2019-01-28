@@ -184,6 +184,184 @@ extern "C"
         return 1;
     }    
 
+    static int shaderSource(lua_State *L)
+    {
+        const GLuint shader = luaL_checkinteger(L, 1);
+        const char* line = luaL_checkstring(L, 2);
+	    const GLint length = luaL_len(L, 2);
+
+	    glShaderSource(shader, 1, &line, &length);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int compileShader(lua_State *L)
+    {
+        const GLuint value = luaL_checkinteger(L, 1);
+
+	    glCompileShader(value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int getShaderParameter(lua_State *L)
+    {
+        const GLuint shader = luaL_checkinteger(L, 1);
+        const GLenum pname = luaL_checkinteger(L, 2);
+
+        GLint val;
+        glGetShaderiv(shader, pname, &val);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, val);
+
+        return 1;
+    }      
+
+    static int getShaderInfoLog(lua_State *L)
+    {
+        const GLuint shader = luaL_checkinteger(L, 1);
+
+        GLint val;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &val);
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        if (val == -1 || val == 0)  
+        {
+            // XXX GL Error? should never happen.
+            lua_pushstring(L, "");
+            return 1;
+        }
+
+        char* result = (char *)lua_newuserdata(L, val + 1);
+        glGetShaderInfoLog(shader, val, &val, result);
+        error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushstring(L, "%s", result);
+
+        return 1; 
+    }  
+
+    static int createProgram(lua_State *L)
+    {
+        GLuint val = glCreateProgram();
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, val);
+
+        return 1;
+    }    
+
+    static int attachShader(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint shader = luaL_checkinteger(L, 2);
+
+        glAttachShader(program, shader);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int linkProgram(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+
+        glLinkProgram(program);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }        
+
+    static int getProgramParameter(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+        const GLenum pname = luaL_checkinteger(L, 2);
+
+        GLint val;
+        glGetProgramiv(program, pname, &val);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushnumber(L, val);
+
+        return 1;
+    }        
+
+    static int deleteShader(lua_State *L)
+    {
+        const GLuint shader = luaL_checkinteger(L, 1);
+
+        glDeleteShader(shader);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }        
+
+    static int deleteProgram(lua_State *L)
+    {
+        const GLuint program = luaL_checkinteger(L, 1);
+
+        glDeleteProgram(program);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }        
+
     static int bindBuffer(lua_State *L)
     {
         const GLenum target = luaL_checkinteger(L, 1);
@@ -706,10 +884,20 @@ extern "C"
         {"clearDepth", clearDepth},
         {"clearStencil", clearStencil},
         {"createBuffer", createBuffer},
-        {"createShader", createShader},
         {"bindBuffer", bindBuffer},
         {"bufferData", bufferData},
         {"bufferSubData", bufferSubData},
+        {"createShader", createShader},
+        {"shaderSource", shaderSource},
+        {"compileShader", compileShader},
+        {"getShaderParameter", getShaderParameter},
+        {"getShaderInfoLog", getShaderInfoLog},
+        {"createProgram", createProgram},
+        {"attachShader", attachShader},
+        {"linkProgram", linkProgram},
+        {"getProgramParameter", getProgramParameter},
+        {"deleteShader", deleteShader},
+        {"deleteProgram", deleteProgram},
         {"depthMask", depthMask},
         {"depthFunc", depthFunc},
         {"stencilMask", stencilMask},
