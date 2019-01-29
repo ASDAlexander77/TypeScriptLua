@@ -13,6 +13,10 @@ cd win64
 cmake -Wno-dev -f ..\.. -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=%Mode%
 rem @call "%VS150COMNTOOLS%\..\..\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
 "%VS150COMNTOOLS%\..\..\MSBuild\15.0\Bin\MSBuild" ALL_BUILD.vcxproj /m:8 /p:Configuration=%Mode% /p:Platform="x64"
+IF "%Mode%" NEQ "Debug" GOTO :skip_debug_copy
+copy %Mode%\glutd.dll ..\..\..\..\__dist\glut.dll
+copy %Mode%\webgld.dll ..\..\..\..\__dist\webgl.dll
+:skip_debug_copy
 GOTO :end
 :mingw32
 IF NOT EXIST __build MKDIR __build
