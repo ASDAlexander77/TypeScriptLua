@@ -377,6 +377,11 @@ extern "C"
         const char* uniformBlockName = luaL_checkstring(L, 2);
 
         const GLuint result = glGetUniformBlockIndex(program, uniformBlockName);
+        if (result == GL_INVALID_INDEX) 
+        {
+            printf("GL error: glGetUniformBlockIndex returns GL_INVALID_INDEX.");
+            return luaL_error(L, "GL error: glGetUniformBlockIndex returns GL_INVALID_INDEX");            
+        }
 
         int error = errorCheck(L);
         if (error)

@@ -673,10 +673,13 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         let objects = new Array<any>();
         let paths = new Array<any>();
         let currentObject: any = {};
+        let isStringContinue = false;
+        let isBigStringContinue = false;
+        let previousStringName = '';
         await this.defaultDebugProcessStage((line) => {
             // parse output
             let values = variableDeclatation.exec(line);
-            if (values) {
+            if (values && !isBigStringContinue) {
                 const level = values[1].length;
                 let name = values[2];
                 let path = name;
@@ -697,9 +700,21 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                     value = value.substr(0, value.length - 1);
                 }
 
-                const isString = value.startsWith('\"');
+                let isString = value.startsWith('\"');
+                isStringContinue = value.endsWith('\\');
                 if (isString) {
                     value = value.substr(1, value.length - 2);
+                }
+
+                isString = value.startsWith('[[');
+                if (isString) {
+                    isStringContinue = true;
+                    isBigStringContinue = true;
+                    value = value.substr(2, value.length - 2);
+                }
+
+                if (isStringContinue) {
+                    previousStringName = name;
                 }
 
                 if (variableType === VariableTypes.SingleVariable && paths.length > 0) {
@@ -747,7 +762,33 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                     };
                 }
             } else {
-                const end = endOfObject.exec(line);
+
+                let isEndOfBigString = false;
+                if (isStringContinue) {
+                    const endOfLine = line.endsWith(']];') || line.endsWith('\";');
+                    let value;
+                    if (endOfLine) {
+                        value = line.substr(0, line.length - 1);
+                    } else {
+                        value = line;
+                    }
+
+                    if (value.endsWith('\"')) {
+                        value = value.substr(0, value.length - 1);
+                        isStringContinue = value.endsWith('\\');
+                    }
+
+                    if (value.endsWith(']]')) {
+                        value = value.substr(0, value.length - 2);
+                        isStringContinue = false;
+                        isBigStringContinue = false;
+                        isEndOfBigString = true;
+                    }
+
+                    currentObject[previousStringName].value += "\n" + value;
+                }
+
+                const end = !isEndOfBigString && endOfObject.exec(line);
                 if (end) {
                     // end of object '};'
                     currentObject = objects.pop();

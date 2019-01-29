@@ -34,7 +34,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     createVertexArray(): WebGLVertexArrayObject {
-        // TODO: fix it
         // const val = _gl.createVertexArray();
         // return <WebGLVertexArrayObject> { value: val };
         return  <WebGLVertexArrayObject> { value: 0 };
@@ -71,8 +70,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBindingValue: number): void {
-        // TODO: find out error
-        // _gl.uniformBlockBinding(program ? (<any>program).value : 0, uniformBlockIndex, uniformBlockBindingValue);
+        _gl.uniformBlockBinding(program ? (<any>program).value : 0, uniformBlockIndex, uniformBlockBindingValue);
     }
 
     // @ts-ignore
