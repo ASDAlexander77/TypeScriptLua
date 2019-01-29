@@ -85,7 +85,7 @@ class Runner {
         // this.engine = new BABYLON.NullEngine();
 
         const basicVertexShader =
-            '+++///---****attribute vec4 position; \n\
+            'attribute vec4 position; \n\
 			uniform mat4 world; \n\
 			uniform mat4 view; \n\
 			uniform mat4 viewProjection; \n\
@@ -95,8 +95,7 @@ class Runner {
 			}\n';
 
         const basicPixelShader =
-            'xxx...///---+++   \
-            #ifdef GL_ES \n\
+            '#ifdef GL_ES \n\
 			precision mediump float; \n\
 			#endif \n\
             \n\
