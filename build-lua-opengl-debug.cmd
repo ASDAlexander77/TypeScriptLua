@@ -19,7 +19,12 @@ cd thirdparty\freeglut-build\
 @call build.cmd win64 Debug
 cd ..\..\..\..
 
-rem Building MoonGLUT
+rem Building Array Adapter
+cd experiments\ArrayBufferAdapter
+@call build.cmd win64 Debug
+cd ..\..\..\..
+
+rem Building GLUT
 cd experiments\WebGLAdapter
 @call build.cmd win64 Debug
 cd ..\..\..\..

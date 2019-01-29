@@ -13,6 +13,10 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4049 /ignore:4217")
 
     set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/win64/${CMAKE_BUILD_TYPE}/lua53.lib")
+
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set (CMAKE_DEBUG_POSTFIX d)	
+    endif()
 else()
     if (CMAKE_SYSTEM_NAME STREQUAL "Android")
     	SET(MYCFLAGS "-DLUA_USE_LINUX")
