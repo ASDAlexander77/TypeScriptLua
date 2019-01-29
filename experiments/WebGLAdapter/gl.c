@@ -70,6 +70,24 @@ extern "C"
             return luaL_error(L, "glewInit error: %s", glewGetErrorString(err));
         }
 
+        printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+
+        if (!glewIsSupported(
+            "GL_VERSION_2_0 "
+            "GL_EXT_framebuffer_object "
+            "GL_ARB_vertex_program "
+            "GL_ARB_fragment_program "
+            ))
+        {
+            printf("Unable to load extensions\nGL_VERSION_2_0\nGL_EXT_framebuffer_object\nGL_ARB_vertex_program\nGL_ARB_fragment_program");
+            printf("Supported extensions: %s\n", glGetString(GL_EXTENSIONS));
+            return luaL_error(
+                L, 
+                "Unable to load extensions: GL_VERSION_2_0, GL_EXT_framebuffer_object, GL_ARB_vertex_program, GL_ARB_fragment_program. OpenGL Version:%s, Supported extensions:%s", 
+                glGetString(GL_VERSION), 
+                glGetString(GL_EXTENSIONS));
+        }
+
         int error = errorCheck(L);
         if (error)
         {
@@ -202,6 +220,8 @@ extern "C"
         const GLuint shader = luaL_checkinteger(L, 1);
         const char* line = luaL_checkstring(L, 2);
 	    const GLint length = luaL_len(L, 2);
+
+        printf("GL shaderSource: len:%d, %s", length, line);
 
 	    glShaderSource(shader, 1, &line, &length);
 
