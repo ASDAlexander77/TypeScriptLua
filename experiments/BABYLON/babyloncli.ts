@@ -85,24 +85,24 @@ class Runner {
         // this.engine = new BABYLON.NullEngine();
 
         const basicVertexShader =
-            'attribute vec4 position; \
-			// Uniforms \
-			uniform mat4 world; \
-			uniform mat4 view; \
-			uniform mat4 viewProjection; \
-			 \
-			void main() { \
-				gl_Position = viewProjection * world * position; \
-			}';
+            'attribute vec4 position; \n\
+			// Uniforms \n\
+			uniform mat4 world; \n\
+			uniform mat4 view; \n\
+			uniform mat4 viewProjection; \n\
+            \n\
+			void main() { \n\
+				gl_Position = viewProjection * world * position; \n\
+			}\n';
 
         const basicPixelShader =
-            '#ifdef GL_ES \
-			precision mediump float; \
-			#endif \
-			 \
-			void main(void) { \
-			    gl_FragColor = vec4(1.,1.,1.,1.); \
-			}';
+            '#ifdef GL_ES \n\
+			precision mediump float; \n\
+			#endif \n\
+            \n\
+			void main(void) { \n\
+			    gl_FragColor = vec4(1.,1.,1.,1.); \n\
+			}\n';
 
         BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
         BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;

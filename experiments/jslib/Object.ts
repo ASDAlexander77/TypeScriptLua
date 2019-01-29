@@ -8,7 +8,7 @@ module JS {
 
         public static create(proto: any): any {
             if (!proto) {
-                throw 'Prototype can\'t be undefined or null';
+                throw new Error('Prototype can\'t be undefined or null');
             }
 
             const obj = <any>{};
@@ -21,7 +21,7 @@ module JS {
 
         public static freeze(obj: any) {
             obj.__newindex = function (table: any) {
-                throw 'Object is read-only';
+                throw new Error('Object is read-only');
             };
 
             setmetatable(obj, obj);
@@ -29,8 +29,14 @@ module JS {
 
         public static keys(obj: any): Array<any> {
             const a = new Array<any>();
-            for (const k in obj) {
-                a.push(k);
+            let current = obj;
+            while (current) {
+                // tslint:disable-next-line:forin
+                for (const k in current) {
+                    a.push(k);
+                }
+
+                current = current.__proto;
             }
 
             return a;
