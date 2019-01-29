@@ -763,7 +763,7 @@ extern "C"
 
     static int enable(lua_State *L)
     {
-        const GLenum cap = luaL_checknumber(L, 1);
+        const GLenum cap = luaL_checkinteger(L, 1);
 
         glEnable(cap);
 
@@ -778,9 +778,149 @@ extern "C"
 
     static int disable(lua_State *L)
     {
-        const GLenum cap = luaL_checknumber(L, 1);
+        const GLenum cap = luaL_checkinteger(L, 1);
 
         glDisable(cap);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int uniform1i(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLint x = luaL_checkinteger(L, 2);
+
+        glUniform1i(location, x);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int uniform2i(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLint x = luaL_checkinteger(L, 2);
+        const GLint y = luaL_checkinteger(L, 3);
+
+        glUniform2i(location, x, y);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
+    static int uniform3i(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLint x = luaL_checkinteger(L, 2);
+        const GLint y = luaL_checkinteger(L, 3);
+        const GLint z = luaL_checkinteger(L, 4);
+
+        glUniform3i(location, x, y, z);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int uniform4i(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLint x = luaL_checkinteger(L, 2);
+        const GLint y = luaL_checkinteger(L, 3);
+        const GLint z = luaL_checkinteger(L, 4);
+        const GLint w = luaL_checkinteger(L, 5);
+
+        glUniform4i(location, x, y, z, w);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int uniform1f(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLfloat x = luaL_checknumber(L, 2);
+
+        glUniform1f(location, x);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int uniform2f(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLfloat x = luaL_checknumber(L, 2);
+        const GLfloat y = luaL_checknumber(L, 3);
+
+        glUniform2f(location, x, y);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
+    static int uniform3f(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLfloat x = luaL_checknumber(L, 2);
+        const GLfloat y = luaL_checknumber(L, 3);
+        const GLfloat z = luaL_checknumber(L, 4);
+
+        glUniform3f(location, x, y, z);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int uniform4f(lua_State *L)
+    {
+        const GLint location = luaL_checkinteger(L, 1);
+        const GLfloat x = luaL_checknumber(L, 2);
+        const GLfloat y = luaL_checknumber(L, 3);
+        const GLfloat z = luaL_checknumber(L, 4);
+        const GLfloat w = luaL_checknumber(L, 5);
+
+        glUniform4f(location, x, y, z, w);
 
         int error = errorCheck(L);
         if (error)
@@ -1150,6 +1290,14 @@ extern "C"
         {"stencilOp", stencilOp},
         {"enable", enable},
         {"disable", disable},
+        {"uniform1i", uniform1i},
+        {"uniform2i", uniform2i},
+        {"uniform3i", uniform3i},
+        {"uniform4i", uniform4i},
+        {"uniform1f", uniform1f},
+        {"uniform2f", uniform2f},
+        {"uniform3f", uniform3f},
+        {"uniform4f", uniform4f},
         {NULL, NULL} /* sentinel */
     };
 

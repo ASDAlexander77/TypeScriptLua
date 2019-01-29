@@ -759,9 +759,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform1f(location: WebGLUniformLocation, x: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform1f(location ? (<any>location).value : 0, x);
     }
 
     // @ts-ignore
@@ -769,9 +768,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform1i(location: WebGLUniformLocation, x: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform1i(location ? (<any>location).value : 0, x);
     }
 
     // @ts-ignore
@@ -779,9 +777,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform2f(location: WebGLUniformLocation, x: number, y: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform2f(location ? (<any>location).value : 0, x, y);
     }
 
     // @ts-ignore
@@ -789,9 +786,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform2i(location: WebGLUniformLocation, x: number, y: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform2i(location ? (<any>location).value : 0, x, y);
     }
 
     // @ts-ignore
@@ -799,9 +795,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform3f(location: WebGLUniformLocation, x: number, y: number, z: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform3f(location ? (<any>location).value : 0, x, y, z);
     }
 
     // @ts-ignore
@@ -809,9 +804,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform3i(location: WebGLUniformLocation, x: number, y: number, z: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform3i(location ? (<any>location).value : 0, x, y, z);
     }
 
     // @ts-ignore
@@ -819,9 +813,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     uniform4f(location: WebGLUniformLocation, x: number, y: number, z: number, w: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform4f(location ? (<any>location).value : 0, x, y, z, w);
     }
 
     // @ts-ignore
@@ -831,7 +824,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     uniform4i(location: WebGLUniformLocation, x: number, y: number, z: number, w: number): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform4i(location ? (<any>location).value : 0, x, y, z, w);
     }
 
     // @ts-ignore
