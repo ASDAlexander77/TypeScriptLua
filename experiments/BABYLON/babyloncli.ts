@@ -84,6 +84,10 @@ class Runner {
             this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
         // this.engine = new BABYLON.NullEngine();
 
+        // TODO: debug options
+        this.engine.disableUniformBuffers = true;
+        this.engine.validateShaderPrograms = true;
+
         const basicVertexShader =
             'attribute vec4 position; \n\
 			uniform mat4 world; \n\

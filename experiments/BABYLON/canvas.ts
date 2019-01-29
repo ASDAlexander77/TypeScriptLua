@@ -844,7 +844,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     validateProgram(program: WebGLProgram): void {
-        throw new Error('Method not implemented.');
+        _gl.validateProgram(program ? (<any>program).value : 0);
     }
 
     // @ts-ignore
