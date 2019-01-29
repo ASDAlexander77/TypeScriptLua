@@ -34,9 +34,10 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     createVertexArray(): WebGLVertexArrayObject {
-        // const val = _gl.createVertexArray();
-        // return <WebGLVertexArrayObject> { value: val };
-        return  <WebGLVertexArrayObject> { value: 0 };
+        const val = _gl.createVertexArray();
+        if (val > 0) {
+            return <WebGLVertexArrayObject> { value: val };
+        }
     }
 
     bindVertexArray(vao?: WebGLVertexArrayObject): void {
@@ -323,7 +324,9 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     // @ts-ignore
     createProgram(): WebGLProgram {
         const val = _gl.createProgram();
-        return <WebGLProgram>{ value: val };
+        if (val > 0) {
+            return <WebGLProgram>{ value: val };
+        }
     }
 
     // @ts-ignore
@@ -333,7 +336,9 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createShader(type: number): WebGLShader {
         const val = _gl.createShader(type);
-        return <WebGLShader>{ value: val };
+        if (val > 0) {
+            return <WebGLShader>{ value: val };
+        }
     }
 
     // @ts-ignore
@@ -408,8 +413,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     drawElements(mode: number, count: number, type: number, offset: number): void {
-        // TODO: fix error
-        //_gl.drawElements(mode, count, type, offset);
+        _gl.drawElements(mode, count, type, offset);
     }
 
     enable(cap: number): void {
@@ -592,10 +596,10 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation {
-        // TODO: fix error
-        // const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
-        // return <WebGLProgram>{ value: val };
-        return <WebGLProgram>{ value: 0 };
+        const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
+        if (val > 0) {
+            return <WebGLProgram>{ value: val };
+        }
     }
 
     // @ts-ignore
@@ -791,8 +795,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     uniform3f(location: WebGLUniformLocation, x: number, y: number, z: number): void {
-        // TODO: fix error
-        // _gl.uniform3f(location ? (<any>location).value : 0, x, y, z);
+        _gl.uniform3f(location ? (<any>location).value : 0, x, y, z);
     }
 
     uniform3fv(location: WebGLUniformLocation, v: Float32List): void {
@@ -823,25 +826,20 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.uniform4iv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
-    // @ts-ignore
     uniformMatrix2fv(location: WebGLUniformLocation, transpose: boolean, value: Float32List): void {
         _gl.uniformMatrix2fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
     }
 
-    // @ts-ignore
     uniformMatrix3fv(location: WebGLUniformLocation, transpose: boolean, value: Float32List): void {
         _gl.uniformMatrix3fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
     }
 
     uniformMatrix4fv(location: WebGLUniformLocation, transpose: boolean, value: Float32List): void {
-        // TODO: error
-        // _gl.uniformMatrix4fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
+        _gl.uniformMatrix4fv(location ? (<any>location).value : 0, transpose, (<any>value).buffer.bufferNativeInstance);
     }
 
-    // @ts-ignore
     useProgram(program: WebGLProgram): void {
-        // TODO: error
-        // _gl.useProgram(program ? (<any>program).value : 0);
+        _gl.useProgram(program ? (<any>program).value : 0);
     }
 
     // @ts-ignore

@@ -181,6 +181,10 @@ extern "C"
         const GLenum type = luaL_checkinteger(L, 1);
 
         GLuint val = glCreateShader(type);
+        if (!val) {
+            printf("GL error: glCreateShader: an error occurs creating the shader object.");
+            return luaL_error(L, "GL error: glCreateShader: an error occurs creating the shader object.");            
+        }
 
         int error = errorCheck(L);
         if (error)
