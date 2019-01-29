@@ -9,7 +9,12 @@ IF "%1" NEQ "win64" GOTO :mingw32
 cd ..\glew-2.2.0\build\vc15
 @call "%VS150COMNTOOLS%\..\..\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
 "%VS150COMNTOOLS%\..\..\MSBuild\15.0\Bin\MSBuild" glew_shared.vcxproj /m:8 /p:Configuration=%Mode% /p:Platform="x64"
-copy ..\..\bin\Release\x64\glew32.dll ..\..\..\..\__dist
+IF "%Mode%" NEQ "Debug" GOTO :skip_debug_copy
+copy ..\..\bin\%Mode%\x64\glew32d.dll ..\..\..\..\__dist\glew32d.dll
+copy ..\..\bin\%Mode%\x64\glew32d.dll ..\..\..\..\__dist\glew32.dll
+:skip_debug_copy
+GOTO :end
+copy ..\..\bin\%Mode%\x64\glew32.dll ..\..\..\..\__dist
 GOTO :end
 :mingw32
 IF NOT EXIST __build MKDIR __build
