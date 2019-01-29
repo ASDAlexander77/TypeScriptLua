@@ -931,6 +931,294 @@ extern "C"
         return 0;
     }    
 
+    static int uniform1iv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLint* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLint);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform1iv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }   
+
+    static int uniform2iv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLint* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLint);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform2iv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int uniform3iv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLint* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLint);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform3iv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
+    static int uniform4iv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLint* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLint);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform4iv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int uniform1fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform1fv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }   
+
+    static int uniform2fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform2fv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int uniform3fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform3fv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
+    static int uniform4fv(lua_State *L)
+    {
+        const location = luaL_checkinteger(L, 1);
+        GLfloat* value;
+        GLsizei count;
+        GLsizei len;
+
+        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        {
+            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            len = userdata->bytesLength;
+            value = &userdata->data;
+            count = len / sizeof(GLfloat);
+        } 
+        else 
+        {
+            return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
+        }        
+
+        glUniform4fv(location, count, value);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }  
+
+    static int cullFace(lua_State *L)
+    {
+        const GLenum mode = luaL_checkinteger(L, 1);
+
+        glCullFace(mode);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int frontFace(lua_State *L)
+    {
+        const GLenum mode = luaL_checkinteger(L, 1);
+
+        glFrontFace(mode);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int drawElements(lua_State *L)
+    {
+        const GLenum mode = luaL_checkinteger(L, 1);
+        const GLsizei count = luaL_checkinteger(L, 1);
+        const GLenum type = luaL_checkinteger(L, 1);
+        const GLvoid * indices = luaL_checkinteger(L, 1);
+
+        glDrawElements(mode, count, type, indices);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }        
+
     typedef struct ConstPair
     {
         const char *name;
@@ -1294,10 +1582,21 @@ extern "C"
         {"uniform2i", uniform2i},
         {"uniform3i", uniform3i},
         {"uniform4i", uniform4i},
+        {"uniform1iv", uniform1iv},
+        {"uniform2iv", uniform2iv},
+        {"uniform3iv", uniform3iv},
+        {"uniform4iv", uniform4iv},
         {"uniform1f", uniform1f},
         {"uniform2f", uniform2f},
         {"uniform3f", uniform3f},
         {"uniform4f", uniform4f},
+        {"uniform1fv", uniform1fv},
+        {"uniform2fv", uniform2fv},
+        {"uniform3fv", uniform3fv},
+        {"uniform4fv", uniform4fv},
+        {"cullFace", cullFace},
+        {"frontFace", frontFace},
+        {"drawElements", drawElements},
         {NULL, NULL} /* sentinel */
     };
 

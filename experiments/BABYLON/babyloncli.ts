@@ -74,8 +74,6 @@ import Canvas from './canvas';
 declare var window: WindowEx;
 window = new WindowEx();
 
-// xcopy /S D:\Git\Babylon.js\src\*.lua D:\Dev\TypeScriptLUA\__build\win64\lua\Debug\BABYLON\
-
 class Runner {
     private canvas: any;
     private engine: any;

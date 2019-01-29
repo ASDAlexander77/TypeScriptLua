@@ -345,7 +345,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     cullFace(mode: number): void {
-        throw new Error('Method not implemented.');
+        _gl.cullFace(mode);
     }
 
     // @ts-ignore
@@ -410,7 +410,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     drawElements(mode: number, count: number, type: number, offset: number): void {
-        throw new Error('Method not implemented.');
+        // TODO: fix error
+        //_gl.drawElements(mode, count, type, offset);
     }
 
     enable(cap: number): void {
@@ -443,7 +444,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     frontFace(mode: number): void {
-        throw new Error('Method not implemented.');
+        _gl.frontFace(mode);
     }
 
     // @ts-ignore
@@ -763,73 +764,65 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.uniform1f(location ? (<any>location).value : 0, x);
     }
 
-    // @ts-ignore
     uniform1fv(location: WebGLUniformLocation, v: Float32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform1fv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     uniform1i(location: WebGLUniformLocation, x: number): void {
         _gl.uniform1i(location ? (<any>location).value : 0, x);
     }
 
-    // @ts-ignore
     uniform1iv(location: WebGLUniformLocation, v: Int32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform1iv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     uniform2f(location: WebGLUniformLocation, x: number, y: number): void {
         _gl.uniform2f(location ? (<any>location).value : 0, x, y);
     }
 
-    // @ts-ignore
     uniform2fv(location: WebGLUniformLocation, v: Float32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform2fv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     uniform2i(location: WebGLUniformLocation, x: number, y: number): void {
         _gl.uniform2i(location ? (<any>location).value : 0, x, y);
     }
 
-    // @ts-ignore
     uniform2iv(location: WebGLUniformLocation, v: Int32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform2iv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     uniform3f(location: WebGLUniformLocation, x: number, y: number, z: number): void {
-        _gl.uniform3f(location ? (<any>location).value : 0, x, y, z);
+        // TODO: fix error
+        // _gl.uniform3f(location ? (<any>location).value : 0, x, y, z);
     }
 
-    // @ts-ignore
     uniform3fv(location: WebGLUniformLocation, v: Float32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform3fv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     uniform3i(location: WebGLUniformLocation, x: number, y: number, z: number): void {
         _gl.uniform3i(location ? (<any>location).value : 0, x, y, z);
     }
 
-    // @ts-ignore
     uniform3iv(location: WebGLUniformLocation, v: Int32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform3iv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     uniform4f(location: WebGLUniformLocation, x: number, y: number, z: number, w: number): void {
         _gl.uniform4f(location ? (<any>location).value : 0, x, y, z, w);
     }
 
-    // @ts-ignore
     uniform4fv(location: WebGLUniformLocation, v: Float32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform4fv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
-    // @ts-ignore
     uniform4i(location: WebGLUniformLocation, x: number, y: number, z: number, w: number): void {
         _gl.uniform4i(location ? (<any>location).value : 0, x, y, z, w);
     }
 
-    // @ts-ignore
     uniform4iv(location: WebGLUniformLocation, v: Int32List): void {
-        throw new Error('Method not implemented.');
+        _gl.uniform4iv(location ? (<any>location).value : 0, (<any>v).buffer.bufferNativeInstance);
     }
 
     // @ts-ignore
