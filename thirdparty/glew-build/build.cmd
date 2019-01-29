@@ -8,7 +8,7 @@ SET Mode=Release
 IF "%1" NEQ "win64" GOTO :mingw32
 cd ..\glew-2.2.0\build\vc15
 @call "%VS150COMNTOOLS%\..\..\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
-"%VS150COMNTOOLS%\..\..\MSBuild\15.0\Bin\MSBuild" glew_shared.vcxproj /m:8 /p:Configuration=Release /p:Platform="x64"
+"%VS150COMNTOOLS%\..\..\MSBuild\15.0\Bin\MSBuild" glew_shared.vcxproj /m:8 /p:Configuration=%Mode% /p:Platform="x64"
 copy ..\..\bin\Release\x64\glew32.dll ..\..\..\..\__dist
 GOTO :end
 :mingw32

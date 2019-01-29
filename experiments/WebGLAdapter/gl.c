@@ -1,3 +1,7 @@
+#if DEBUG
+#define _DEBUG
+#endif
+
 #include <GL/glew.h>
 
 #ifdef __cplusplus
@@ -379,6 +383,10 @@ extern "C"
 
         GLint val;
         glGetProgramiv(program, pname, &val);
+
+#if _DEBUG
+        printf("getProgramParameter(%d:%d) = %d", program, pname, val);
+#endif
 
         int error = errorCheck(L);
         if (error)

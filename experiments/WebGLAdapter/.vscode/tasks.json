@@ -2,10 +2,39 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build WebGL Wrapper",
+            "label": "Build WebGL Wrapper (Release)",
             "type": "shell",
             "command": "${workspaceFolder}/build.cmd",
             "args": ["win64", "Release"],
+            "problemMatcher":{
+                "owner": "cpp",
+                "fileLocation":"absolute",
+                "pattern": {
+                    "regexp": "^\\s*([A-Za-z].*)\\((.*)\\):\\s(error|warning)\\s(.*)$",
+                    "file": 1,
+                    "location": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
+        {
+            "label": "Build WebGL Wrapper (Debug)",
+            "type": "shell",
+            "command": "${workspaceFolder}/build.cmd",
+            "args": ["win64", "Debug"],
             "problemMatcher":{
                 "owner": "cpp",
                 "fileLocation":"absolute",
