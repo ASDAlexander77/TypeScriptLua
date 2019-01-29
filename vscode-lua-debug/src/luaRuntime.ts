@@ -763,7 +763,6 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 }
             } else {
 
-                let isEndOfBigString = false;
                 if (isStringContinue) {
                     const endOfLine = line.endsWith(']];') || line.endsWith('\";');
                     let value;
@@ -782,13 +781,12 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         value = value.substr(0, value.length - 2);
                         isStringContinue = false;
                         isBigStringContinue = false;
-                        isEndOfBigString = true;
                     }
 
                     currentObject[previousStringName].value += "\n" + value;
                 }
 
-                const end = !isEndOfBigString && endOfObject.exec(line);
+                const end = !isBigStringContinue && endOfObject.exec(line);
                 if (end) {
                     // end of object '};'
                     currentObject = objects.pop();
