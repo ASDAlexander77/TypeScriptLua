@@ -85,12 +85,12 @@ export class Emitter {
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
-    __instanceof = __instanceof || function(inst, type) {           \
+    __instanceof = __instanceof || function(inst:object, type:object) { \
         if (!inst) {                                                \
             return false;                                           \
         }                                                           \
                                                                     \
-        let mt;                                                     \
+        let mt:object;                                              \
         switch (__type(inst)) {                                     \
             case "table":                                           \
                 mt = inst.__proto;                                  \
@@ -118,7 +118,7 @@ export class Emitter {
     }                                                               \
                                                                     \
     __get_static_call__ = __get_static_call__ || function (t, k) {  \
-        const getmethod = rawget(t, "__get__")[k];                  \
+        const getmethod:object = rawget(t, "__get__")[k];           \
         if (getmethod) {                                            \
             return getmethod(t);                                    \
         }                                                           \
@@ -127,7 +127,7 @@ export class Emitter {
     }                                                               \
                                                                     \
     __set_static_call__ = __set_static_call__ || function (t, k, v) {\
-        const setmethod = rawget(t, "__set__")[k];                  \
+        const setmethod:object = rawget(t, "__set__")[k];           \
         if (setmethod) {                                            \
             setmethod(t, v);                                        \
             return;                                                 \
@@ -137,10 +137,10 @@ export class Emitter {
     }                                                               \
                                                                     \
     __get_call__ = __get_call__ || function (t, k) {                \
-        let proto = t.__proto;                                      \
+        let proto:object = t.__proto;                               \
         while (proto) {                                             \
-            let get_ = proto.__get__;                               \
-            const getmethod = get_ && get_[k];                      \
+            let get_:object = proto.__get__;                        \
+            const getmethod:object = get_ && get_[k];               \
             if (getmethod) {                                        \
                 return getmethod(t);                                \
             }                                                       \
@@ -152,10 +152,10 @@ export class Emitter {
     }                                                               \
                                                                     \
     __set_call__ = __set_call__ || function (t, k, v) {             \
-        let proto = t.__proto;                                      \
+        let proto:object = t.__proto;                               \
         while (proto) {                                             \
-            let set_ = proto.__set__;                               \
-            const setmethod = set_ && set_[k];                      \
+            let set_:object = proto.__set__;                        \
+            const setmethod:object = set_ && set_[k];               \
             if (setmethod) {                                        \
                 setmethod(t, v);                                    \
                 return;                                             \
@@ -167,7 +167,7 @@ export class Emitter {
         rawset(t, k, v);                                            \
     }                                                               \
                                                                     \
-    __wrapper = __wrapper || function(method: any, _this: any) {    \
+    __wrapper = __wrapper || function(method: object, _this: object) { \
         if (!method) {                                              \
             return method;                                          \
         }                                                           \
@@ -177,7 +177,7 @@ export class Emitter {
         };                                                          \
     }                                                               \
                                                                     \
-    __bind = __bind || function(method: any, _this: any, ...prependParams: any[]) { \
+    __bind = __bind || function(method: object, _this: object, ...prependParams: any[]) { \
         if (!method) {                                              \
             return method;                                          \
         }                                                           \
