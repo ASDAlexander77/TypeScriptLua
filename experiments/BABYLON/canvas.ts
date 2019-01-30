@@ -403,7 +403,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     disableVertexAttribArray(index: number): void {
-        throw new Error('Method not implemented.');
+        _gl.disableVertexAttribArray(index);
     }
 
     // @ts-ignore
@@ -420,9 +420,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.enable(cap);
     }
 
-    // @ts-ignore
     enableVertexAttribArray(index: number): void {
-        throw new Error('Method not implemented.');
+        _gl.enableVertexAttribArray(index);
     }
 
     // @ts-ignore
@@ -543,9 +542,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getParameter(pname: number) {
-        return 0;
+        return _gl.getParameter(pname);
     }
 
     // @ts-ignore
@@ -887,9 +885,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     vertexAttribPointer(index: number, size: number, type: number, normalized: boolean, stride: number, offset: number): void {
-        throw new Error('Method not implemented.');
+        _gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }
 
     // @ts-ignore

@@ -294,6 +294,116 @@ extern "C"
         return 0;
     }
 
+    static int getParameter(lua_State *L)
+    {
+        const GLenum pname = luaL_checkinteger(L, 1);
+
+#if _DEBUG
+            printf("getParameter %d ... getting value as int\n", pname);
+#endif   
+
+        GLint valint;
+        glGetIntegerv(pname, &valint);
+        if (glGetError() != GL_INVALID_ENUM) {
+            int error = errorCheck(L);
+            if (error)
+            {
+                return error;
+            }
+
+#if _DEBUG
+            printf("getParameter %d (int) = %d\n", pname, valint);
+#endif            
+
+            lua_pushinteger(L, valint);
+            return 1;
+        }
+
+#if _DEBUG
+            printf("getParameter %d ... getting value as int64\n", pname);
+#endif   
+
+        GLint64 valint64;
+        glGetInteger64v(pname, &valint64);
+        if (glGetError() != GL_INVALID_ENUM) {
+            int error = errorCheck(L);
+            if (error)
+            {
+                return error;
+            }
+
+#if _DEBUG
+            printf("getParameter %d (int64) = %d\n", pname, valint64);
+#endif            
+
+            lua_pushinteger(L, valint64);
+            return 1;
+        }
+
+#if _DEBUG
+            printf("getParameter %d ... getting value as float\n", pname);
+#endif   
+
+        GLfloat valfloat;
+        glGetFloatv(pname, &valfloat);
+        if (glGetError() != GL_INVALID_ENUM) {
+            int error = errorCheck(L);
+            if (error)
+            {
+                return error;
+            }
+
+#if _DEBUG
+            printf("getParameter %d (float) = %f\n", pname, valfloat);
+#endif     
+
+            lua_pushnumber(L, valfloat);
+            return 1;
+        }
+
+#if _DEBUG
+            printf("getParameter %d ... getting value as double\n", pname);
+#endif   
+
+        GLdouble valdouble;
+        glGetDoublev(pname, &valdouble);
+        if (glGetError() != GL_INVALID_ENUM) {
+            int error = errorCheck(L);
+            if (error)
+            {
+                return error;
+            }
+
+#if _DEBUG
+            printf("getParameter %d (double) = %f\n", pname, valdouble);
+#endif                 
+
+            lua_pushnumber(L, valdouble);
+            return 1;
+        }
+
+#if _DEBUG
+            printf("getParameter %d ... getting value as string\n", pname);
+#endif   
+
+        const char* str = glGetString(pname);
+        if (glGetError() != GL_INVALID_ENUM && str) {
+#if _DEBUG
+            printf("getParameter %d (str) = %s\n", pname, str);
+#endif      
+ 
+            lua_pushstring(L, str);
+            return 1;
+        }
+
+#if _DEBUG
+        printf("getParameter %s (no value)\n", pname);
+#endif   
+        lua_pushinteger(L, 0);
+
+        return 1;
+    }      
+
     static int getShaderParameter(lua_State *L)
     {
         const GLuint shader = luaL_checkinteger(L, 1);
@@ -560,16 +670,9 @@ extern "C"
             glCreateVertexArrays(1, &arrays);
         } else {
 #if _DEBUG        
-        printf("glGenVertexArrays + glBindVertexArray...\n");
+        printf("glGenVertexArrays...\n");
 #endif               
             glGenVertexArrays(1, &arrays);
-            int error = errorCheck(L);
-            if (error)
-            {
-                return error;
-            }
-
-            glBindVertexArray(arrays);
         }
 
 #if _DEBUG        
@@ -600,6 +703,54 @@ extern "C"
 
         return 0;        
     }
+
+    static int enableVertexAttribArray(lua_State *L)
+    {
+        const GLuint array = luaL_checkinteger(L, 1) ;
+        glEnableVertexAttribArray(array);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;        
+    }
+
+    static int disableVertexAttribArray(lua_State *L)
+    {
+        const GLuint array = luaL_checkinteger(L, 1) ;
+        glDisableVertexAttribArray(array);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;        
+    }    
+
+    static int vertexAttribPointer(lua_State *L)
+    {
+        const GLuint index = luaL_checkinteger(L, 1);
+ 	    const GLint size = luaL_checkinteger(L, 2);
+ 	    const GLenum type = luaL_checkinteger(L, 3);
+        const GLboolean normalized = lua_toboolean(L, 4);
+ 	    const GLsizei stride = luaL_checkinteger(L, 5);
+ 	    const GLvoid * pointer = luaL_checkinteger(L, 6);
+
+        glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;        
+    }    
 
     static int bindBuffer(lua_State *L)
     {
@@ -1667,6 +1818,7 @@ extern "C"
         {"createShader", createShader},
         {"shaderSource", shaderSource},
         {"compileShader", compileShader},
+        {"getParameter", getParameter},
         {"getShaderParameter", getShaderParameter},
         {"getShaderInfoLog", getShaderInfoLog},
         {"createProgram", createProgram},
@@ -1683,6 +1835,9 @@ extern "C"
         {"validateProgram", validateProgram},
         {"createVertexArray", createVertexArray},
         {"bindVertexArray", bindVertexArray},
+        {"enableVertexAttribArray", enableVertexAttribArray},
+        {"disableVertexAttribArray", disableVertexAttribArray},
+        {"vertexAttribPointer", vertexAttribPointer},
         {"uniformMatrix2fv", uniformMatrix2fv},
         {"uniformMatrix3fv", uniformMatrix3fv},
         {"uniformMatrix4fv", uniformMatrix4fv},
