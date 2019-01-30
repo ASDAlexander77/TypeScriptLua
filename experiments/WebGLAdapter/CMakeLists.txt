@@ -16,6 +16,8 @@ if (MSVC)
 
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set (CMAKE_DEBUG_POSTFIX d)	
+    else()
+	set (CMAKE_DEBUG_POSTFIX "")	
     endif()
 
 else()
