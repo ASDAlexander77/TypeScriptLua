@@ -34,47 +34,47 @@ extern "C"
             {
             case GL_INVALID_ENUM:
 #if _DEBUG
-                printf("GL error: enumeration parameter is not a legal enumeration for that function");
+                printf("GL error: enumeration parameter is not a legal enumeration for that function\n");
 #endif                
                 return luaL_error(L, "GL error: enumeration parameter is not a legal enumeration for that function");
             case GL_INVALID_VALUE:
 #if _DEBUG
-                printf("GL error: value parameter is not a legal value for that function");
+                printf("GL error: value parameter is not a legal value for that function\n");
 #endif                
                 return luaL_error(L, "GL error: value parameter is not a legal value for that function");
             case GL_INVALID_OPERATION:
 #if _DEBUG
-                printf("GL error: the set of state for a command is not legal for the parameters given to that command");
+                printf("GL error: the set of state for a command is not legal for the parameters given to that command\n");
 #endif                
                 return luaL_error(L, "GL error: the set of state for a command is not legal for the parameters given to that command");
             case GL_STACK_OVERFLOW:
 #if _DEBUG
-                printf("GL error: the set of state for a command is not legal for the parameters given to that command");
+                printf("GL error: the set of state for a command is not legal for the parameters given to that command\n");
 #endif                
                 return luaL_error(L, "GL error: stack pushing operation cannot be done because it would overflow the limit of that stack's size");
             case GL_STACK_UNDERFLOW:
 #if _DEBUG
-                printf("GL error: stack popping operation cannot be done because the stack is already at its lowest point");
+                printf("GL error: stack popping operation cannot be done because the stack is already at its lowest point\n");
 #endif                
                 return luaL_error(L, "GL error: stack popping operation cannot be done because the stack is already at its lowest point");
             case GL_OUT_OF_MEMORY:
 #if _DEBUG
-                printf("GL error: performing an operation that can allocate memory, and the memory cannot be allocated");
+                printf("GL error: performing an operation that can allocate memory, and the memory cannot be allocated\n");
 #endif                
                 return luaL_error(L, "GL error: performing an operation that can allocate memory, and the memory cannot be allocated");
             case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
 #if _DEBUG
-                printf("GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete");
+                printf("GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete\n");
 #endif                
                 return luaL_error(L, "GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete");
             case GL_TABLE_TOO_LARGE:
 #if _DEBUG
-                printf("GL error: Table is too large");
+                printf("GL error: Table is too large\n");
 #endif                
                 return luaL_error(L, "GL error: Table is too large");
             default:
 #if _DEBUG
-                printf("GL error: Error %d", error);
+                printf("GL error: Error %d\n", error);
 #endif                
                 return luaL_error(L, "GL error: Error %d", error);
             }
@@ -84,6 +84,13 @@ extern "C"
     }
 
     // === public
+    static int majorVersion = 1;
+    static int minorVersion = 0;
+
+    static int higherOrEqual(int major, int minor) {
+        return majorVersion > major || majorVersion == major && minorVersion >= minor;
+    }
+
     static int initGL(lua_State *L)
     {
         GLenum err = glewInit();
@@ -92,8 +99,16 @@ extern "C"
             return luaL_error(L, "glewInit error: %s", glewGetErrorString(err));
         }
 
+        const char* version = glGetString(GL_VERSION);
+        if (version && version[0] != NULL) {
+            majorVersion = version[0] - '0';
+            if (version[1] == '.' && version[2] != NULL) {
+                minorVersion = version[2] - '0';
+            }
+        }
+
 #if _DEBUG
-        printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+        printf("OpenGL Version: %s(%d.%d)\n", version, majorVersion, minorVersion);
 #endif
 
         if (!glewIsSupported(
@@ -104,7 +119,7 @@ extern "C"
             ))
         {
 #if _DEBUG
-            printf("Unable to load extensions\nGL_VERSION_2_0\nGL_EXT_framebuffer_object\nGL_ARB_vertex_program\nGL_ARB_fragment_program");
+            printf("Unable to load extensions\nGL_VERSION_2_0\nGL_EXT_framebuffer_object\nGL_ARB_vertex_program\nGL_ARB_fragment_program\n");
             printf("Supported extensions: %s\n", glGetString(GL_EXTENSIONS));
 #endif
             return luaL_error(
@@ -227,7 +242,7 @@ extern "C"
         GLuint val = glCreateShader(type);
         if (!val) {
 #if _DEBUG
-            printf("GL error: glCreateShader: an error occurs creating the shader object.");
+            printf("GL error: glCreateShader: an error occurs creating the shader object.\n");
 #endif            
             return luaL_error(L, "GL error: glCreateShader: an error occurs creating the shader object.");            
         }
@@ -250,7 +265,7 @@ extern "C"
 	    const GLint length = luaL_len(L, 2);
 
 #if _DEBUG
-        printf("GL shaderSource: len:%d, %.100s...", length, line);
+        printf("GL shaderSource: len:%d, %.100s...\n", length, line);
 #endif        
 
 	    glShaderSource(shader, 1, &line, &length);
@@ -385,7 +400,7 @@ extern "C"
         glGetProgramiv(program, pname, &val);
 
 #if _DEBUG
-        printf("getProgramParameter(%d:%d) = %d", program, pname, val);
+        printf("getProgramParameter(%d:%d) = %d\n", program, pname, val);
 #endif
 
         int error = errorCheck(L);
@@ -437,7 +452,7 @@ extern "C"
         const GLuint result = glGetUniformBlockIndex(program, uniformBlockName);
         if (result == GL_INVALID_INDEX) 
         {
-            printf("GL error: glGetUniformBlockIndex: (%s) returns GL_INVALID_INDEX.", uniformBlockName);
+            printf("GL error: glGetUniformBlockIndex: (%s) returns GL_INVALID_INDEX.\n", uniformBlockName);
             return luaL_error(L, "GL error: glGetUniformBlockIndex (%s) returns GL_INVALID_INDEX", uniformBlockName);            
         }
 
@@ -538,7 +553,28 @@ extern "C"
     static int createVertexArray(lua_State *L)
     {
         GLuint arrays;
-        glCreateVertexArrays(1, &arrays);
+        if (higherOrEqual(4, 5)) {
+#if _DEBUG        
+        printf("createVertexArray...\n");
+#endif             
+            glCreateVertexArrays(1, &arrays);
+        } else {
+#if _DEBUG        
+        printf("glGenVertexArrays + glBindVertexArray...\n");
+#endif               
+            glGenVertexArrays(1, &arrays);
+            int error = errorCheck(L);
+            if (error)
+            {
+                return error;
+            }
+
+            glBindVertexArray(arrays);
+        }
+
+#if _DEBUG        
+        printf("createVertexArray... result: %d\n", arrays);
+#endif        
 
         int error = errorCheck(L);
         if (error)
