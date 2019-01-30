@@ -930,11 +930,19 @@ extern "C"
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat);
+
+#if _DEBUG
+        printf("glUniformMatrix4fv count=%d, size=%d (len=%d))\n", count, sizeof(GLfloat), len);
+#endif            
         } 
         else 
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
         }        
+
+#if _DEBUG
+        printf("glUniformMatrix4fv (location=%d, count=%d(len=%d), value=%d)\n", location, count, len, value);
+#endif
 
         glUniformMatrix4fv(location, count, transpose, value);
 

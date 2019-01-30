@@ -321,7 +321,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     createProgram(): WebGLProgram {
         const val = _gl.createProgram();
         if (val > 0) {
@@ -337,7 +336,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     createShader(type: number): WebGLShader {
         const val = _gl.createShader(type);
         if (val > 0) {
-            return <WebGLShader>{ value: val };
+            return <WebGLShader>{ value: val, type: type };
         }
     }
 
@@ -596,7 +595,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation {
         const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
         if (val > 0) {
-            return <WebGLProgram>{ value: val };
+            return <WebGLUniformLocation>{ value: val, name: name };
         }
     }
 
