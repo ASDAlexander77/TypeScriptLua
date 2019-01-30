@@ -24,6 +24,6 @@ class RegExp {
     }
 
     public __getLuaPattern(): string {
-        return string.gsub(this.pattern, '\\', '%%');
+        return string.gsub(string.gsub(string.gsub(this.pattern, '%+%?', '+'), '%*%?', '*'), '\\', '%%');
     }
 }

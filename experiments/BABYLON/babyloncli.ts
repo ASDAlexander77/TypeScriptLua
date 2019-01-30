@@ -107,10 +107,8 @@ class Runner {
 			    gl_FragColor = vec4(1.,1.,1.,1.); \n\
 			}\n';
 
-        //BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
-        //BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
-        BABYLON.Effect.ShadersStore['defaultVertexShader'] = 'asd123';
-        BABYLON.Effect.ShadersStore['defaultPixelShader'] = 'asd123';
+        BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
+        BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
     }
 
     createScene() {
