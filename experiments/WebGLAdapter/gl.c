@@ -867,7 +867,7 @@ extern "C"
             ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
-            count = len / sizeof(GLfloat);
+            count = len / sizeof(GLfloat) / 4 /*to get couint of matrixes*/;
         } 
         else 
         {
@@ -898,7 +898,7 @@ extern "C"
             ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
-            count = len / sizeof(GLfloat);
+            count = len / sizeof(GLfloat) / 9 /*to get couint of matrixes*/;
         } 
         else 
         {
@@ -929,7 +929,7 @@ extern "C"
             ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
-            count = len / sizeof(GLfloat);
+            count = len / sizeof(GLfloat) / 16 /*to get couint of matrixes*/;
 
 #if _DEBUG
         printf("glUniformMatrix4fv count=%d, size=%d (len=%d))\n", count, sizeof(GLfloat), len);
