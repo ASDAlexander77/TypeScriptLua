@@ -10,6 +10,11 @@ export class TypeInfo {
         return this.getTypeOfNode(node) === typeName;
     }
 
+    public isTypesOfNode(node: ts.Node, typeNames: string[]) {
+        const res = this.getTypeOfNode(node);
+        return typeNames.some(t => t === res);
+    }
+
     public getTypeOfNode(node: ts.Node) {
         if (!node) {
             return undefined;
@@ -28,6 +33,8 @@ export class TypeInfo {
                 typeName = 'number';
             } else if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
                 typeName = 'boolean';
+            } else if (node.kind === ts.SyntaxKind.NullKeyword) {
+                typeName = 'null';
             } else {
                 const detectType = this.resolver.getTypeAtLocation(node);
                 typeName =

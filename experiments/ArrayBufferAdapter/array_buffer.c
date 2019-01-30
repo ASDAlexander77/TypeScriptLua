@@ -106,7 +106,7 @@ GET(double, double)
     {
         ArrayContainer *a = (ArrayContainer *)lua_touserdata(L, 1);
         luaL_argcheck(L, a != NULL, 1, "`array' expected");
-        lua_pushnumber(L, a->bytesLength);
+        lua_pushinteger(L, a->bytesLength);
         return 1;
     }      
 

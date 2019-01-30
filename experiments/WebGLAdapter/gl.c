@@ -215,7 +215,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, val);
+        lua_pushinteger(L, val);
 
         return 1;
     }
@@ -238,7 +238,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, val);
+        lua_pushinteger(L, val);
 
         return 1;
     }    
@@ -293,7 +293,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, val);
+        lua_pushinteger(L, val);
 
         return 1;
     }      
@@ -340,7 +340,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, val);
+        lua_pushinteger(L, val);
 
         return 1;
     }    
@@ -394,7 +394,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, val);
+        lua_pushinteger(L, val);
 
         return 1;
     }        
@@ -447,7 +447,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, result);
+        lua_pushinteger(L, result);
 
         return 1;        
     }
@@ -482,7 +482,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, result);
+        lua_pushinteger(L, result);
 
         return 1;
     }  
@@ -500,7 +500,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, result);
+        lua_pushinteger(L, result);
 
         return 1; 
     }      
@@ -546,7 +546,7 @@ extern "C"
             return error;
         }
 
-        lua_pushnumber(L, arrays);
+        lua_pushinteger(L, arrays);
 
         return 1;
     }        

@@ -39,6 +39,13 @@ export class Preprocessor {
                 newExpression = this.preprocessConditionalExpression(<ts.ConditionalExpression>node);
                 break;
 
+            case ts.SyntaxKind.PrefixUnaryExpression:
+                if ((<ts.PrefixUnaryExpression>node).operator === ts.SyntaxKind.ExclamationToken) {
+                    newExpression = this.preprocessNotExpression(<ts.PrefixUnaryExpression>node);
+                }
+
+                break;
+
             case ts.SyntaxKind.PropertyAccessExpression:
                 newExpression = this.preprocessPropertyAccessExpression(<ts.PropertyAccessExpression>node);
                 break;
@@ -57,7 +64,7 @@ export class Preprocessor {
 
     private preprocessWhileDoIf(node: ts.Statement) {
         const expressionStatement = <any>node;
-        if (this.typeInfo.isTypeOfNode(expressionStatement.expression, 'number')) {
+        if (this.typeInfo.isTypesOfNode(expressionStatement.expression, ['number', 'any'])) {
             const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
             newCondition.parent = expressionStatement.expression.parent;
             expressionStatement.expression = newCondition;
@@ -65,10 +72,20 @@ export class Preprocessor {
     }
 
     private preprocessConditionalExpression(conditionStatement: ts.ConditionalExpression): ts.Expression {
-        if (this.typeInfo.isTypeOfNode(conditionStatement.condition, 'number')) {
+        if (this.typeInfo.isTypesOfNode(conditionStatement.condition, ['number', 'any'])) {
             const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
             newCondition.parent = conditionStatement;
             conditionStatement.condition = newCondition;
+        }
+
+        return undefined;
+    }
+
+    private preprocessNotExpression(prefixUnaryExpression: ts.PrefixUnaryExpression): ts.Expression {
+        if (this.typeInfo.isTypesOfNode(prefixUnaryExpression.operand, ['number', 'any'])) {
+            const newCondition = ts.createBinary(prefixUnaryExpression.operand, ts.SyntaxKind.BarBarToken, ts.createFalse());
+            newCondition.parent = prefixUnaryExpression;
+            prefixUnaryExpression.operand = <ts.UnaryExpression><any>newCondition;
         }
 
         return undefined;

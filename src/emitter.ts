@@ -2564,8 +2564,9 @@ export class Emitter {
                 this.processExpression(node.left);
 
                 // fix when 0 is true in LUA
+                // TODO: move it into "Preprocess logic"
                 if (!(<any>node).__fix_not_required) {
-                    if (this.typeInfo.isTypeOfNode(node.left, 'number')) {
+                    if (this.typeInfo.isTypesOfNode(node.left, ['number', 'any'])) {
                         const op1 = this.functionContext.stack.peek();
 
                         this.functionContext.newLocalScope(node);

@@ -1,9 +1,12 @@
 import './JS';
 
-function addStr(source: string): string {
-    source = "precision highp float;\n" + source;
-    return source;
-}
+console.log(!null);
+console.log(!0);
+console.log(!1);
 
-console.log(addStr("!!!! line here"));
-
+var i:any = null;
+console.log(!i);
+i = 0;
+console.log(!i);
+i = 1;
+console.log(!i);

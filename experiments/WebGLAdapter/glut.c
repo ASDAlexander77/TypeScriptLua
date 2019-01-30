@@ -69,7 +69,7 @@ extern "C"
 
         int windowId = glutCreateWindow(name ? name : "GLUT Window");
 
-        lua_pushnumber(L, windowId);
+        lua_pushinteger(L, windowId);
 
         return 1;
     }
