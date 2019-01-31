@@ -1477,9 +1477,9 @@ extern "C"
     static int drawElements(lua_State *L)
     {
         const GLenum mode = luaL_checkinteger(L, 1);
-        const GLsizei count = luaL_checkinteger(L, 1);
-        const GLenum type = luaL_checkinteger(L, 1);
-        const GLvoid * indices = luaL_checkinteger(L, 1);
+        const GLsizei count = luaL_checkinteger(L, 2);
+        const GLenum type = luaL_checkinteger(L, 3);
+        const GLvoid * indices = luaL_checkinteger(L, 4);
 
         glDrawElements(mode, count, type, indices);
 
