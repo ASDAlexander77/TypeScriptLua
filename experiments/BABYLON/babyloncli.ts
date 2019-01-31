@@ -89,6 +89,7 @@ class Runner {
         // TODO: debug options
         this.engine.disableUniformBuffers = true;
         this.engine.validateShaderPrograms = true;
+        BABYLON.Engine.ShadersRepository = 'Shaders/';
 
         /*
         const basicVertexShader =

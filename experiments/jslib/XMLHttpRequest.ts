@@ -43,7 +43,7 @@ module JS {
             this.readyState = XMLHttpRequest.LOADING;
             const file = table.pack(io.open(this.url, 'r'));
             if (file[1]) {
-                this.responseText = file.read('*all');
+                this.responseText = file[1].read('*all');
                 this.status = 200;
             } else {
                 this.status = 404;
