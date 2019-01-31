@@ -1,12 +1,4 @@
 import './JS';
 
-console.log(!null);
-console.log(!0);
-console.log(!1);
-
-var i:any = null;
-console.log(!i);
-i = 0;
-console.log(!i);
-i = 1;
-console.log(!i);
+console.log("1234567890".substring(5));
+console.log("ASDASD".toLowerCase());

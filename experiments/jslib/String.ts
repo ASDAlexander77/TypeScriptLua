@@ -16,7 +16,7 @@ module JS {
         }
 
         public static substring(constString: string, begin?: number, end?: number): string {
-            return string.sub(constString, (begin || 0) + 1, (end || 0) + 1);
+            return string.sub(constString, (begin || 0) + 1, end ? end + 1 : null);
         }
 
         public static indexOf(constString: string, pattern: string, begin?: number): number {

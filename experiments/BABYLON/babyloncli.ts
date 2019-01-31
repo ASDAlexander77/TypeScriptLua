@@ -68,6 +68,8 @@ import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraPointersInput';
 import './BABYLON/Cameras/babylon_arcRotateCameraInputsManager';
 import './BABYLON/Cameras/babylon_arcRotateCamera';
 
+import './BABYLON/Tools/babylon_filesInput';
+
 import WindowEx from './window';
 import Canvas from './canvas';
 
@@ -111,8 +113,6 @@ class Runner {
         BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
         BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
         */
-
-       BABYLON.Engine.ShadersRepository = 'file://./' + BABYLON.Engine.ShadersRepository;
     }
 
     createScene() {
