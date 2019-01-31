@@ -678,7 +678,8 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         let previousStringName = '';
         await this.defaultDebugProcessStage((line) => {
             // parse output
-            let values = variableDeclatation.exec(line);
+            variableDeclatation.lastIndex = 0;
+            let values = !isBigStringContinue && variableDeclatation.exec(line);
             if (values && !isBigStringContinue) {
                 const level = values[1].length;
                 let name = values[2];
