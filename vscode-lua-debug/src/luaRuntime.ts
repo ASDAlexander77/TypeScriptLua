@@ -713,6 +713,12 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                     value = value.substr(2, value.length - 2);
                 }
 
+                if (value.endsWith(']]')) {
+                    value = value.substr(0, value.length - 2);
+                    isStringContinue = false;
+                    isBigStringContinue = false;
+                }
+
                 if (isStringContinue) {
                     previousStringName = name;
                 }
