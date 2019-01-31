@@ -26,6 +26,14 @@ module JS {
         public static search(constString: string, pattern: RegExp, begin?: number): number {
             return table.pack(string.find(constString, pattern.__getLuaPattern(), (begin || 0) + 1))[1] || -1;
         }
+
+        public static toLowerCase(constString: string): string {
+            return string.lower(constString);
+        }
+
+        public static toUpperCase(constString: string): string {
+            return string.upper(constString);
+        }
     }
 
     export class String {
@@ -59,6 +67,16 @@ module JS {
 
         public indexOf(pattern: string, begin?: number): number {
             return StringHelper.indexOf(this.constString, pattern, begin);
+        }
+
+        public toLowerCase(): String {
+            // tslint:disable-next-line:no-construct
+            return new String(StringHelper.toLowerCase(this.constString));
+        }
+
+        public toUpperCase(): String {
+            // tslint:disable-next-line:no-construct
+            return new String(StringHelper.toUpperCase(this.constString));
         }
 
         public get length(): number {

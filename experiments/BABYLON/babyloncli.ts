@@ -111,6 +111,8 @@ class Runner {
         BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
         BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
         */
+
+       BABYLON.Engine.ShadersRepository = 'file://./' + BABYLON.Engine.ShadersRepository;
     }
 
     createScene() {
