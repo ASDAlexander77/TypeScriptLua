@@ -12,6 +12,7 @@ module JS {
         public readyState: number;
         public responseType: string;
         public status: number;
+        public statusText: string;
         public responseText: string;
 
         private callbacks: Map<any>;
@@ -40,12 +41,13 @@ module JS {
 
         public send(body?: string) {
             this.readyState = XMLHttpRequest.LOADING;
-            const file = io.open(this.url, 'r');
-            if (file) {
+            const file = table.pack(io.open(this.url, 'r'));
+            if (file[1]) {
                 this.responseText = file.read('*all');
                 this.status = 200;
             } else {
                 this.status = 404;
+                this.statusText = file[2];
             }
 
             this.readyState = XMLHttpRequest.DONE;
