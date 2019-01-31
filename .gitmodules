@@ -1,15 +1,9 @@
-[submodule "thirdparty/moongl"]
-	path = thirdparty/moongl
-	url = https://github.com/stetre/moongl.git
 [submodule "thirdparty/Babylon.js"]
 	path = thirdparty/Babylon.js
 	url = https://github.com/BabylonJS/Babylon.js.git
 [submodule "thirdparty/glew"]
 	path = thirdparty/glew
 	url = https://github.com/nigels-com/glew.git
-[submodule "thirdparty/moonglut"]
-	path = thirdparty/moonglut
-	url = https://github.com/stetre/moonglut.git
 [submodule "thirdparty/pcre2"]
 	path = thirdparty/pcre2
 	url = https://github.com/svn2github/pcre2
