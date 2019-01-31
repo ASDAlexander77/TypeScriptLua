@@ -23,7 +23,7 @@ module JS {
         }
 
         public addEventListener(eventName: string, cb: any, flag?: boolean): void {
-            if (this.callbacks) {
+            if (!this.callbacks) {
                 this.callbacks = {};
             }
 
@@ -41,13 +41,23 @@ module JS {
         public send(body?: string) {
             this.readyState = XMLHttpRequest.LOADING;
             const file = io.open(this.url, 'r');
-            this.responseText = file.read('*all');
-            this.status = 200;
+            if (file) {
+                this.responseText = file.read('*all');
+                this.status = 200;
+            } else {
+                this.status = 404;
+            }
+
             this.readyState = XMLHttpRequest.DONE;
 
-            const cb = this.callbacks['readystatechange'];
-            if (cb) {
-                cb();
+            const readystatechangeCallback = this.callbacks['readystatechange'];
+            if (readystatechangeCallback) {
+                readystatechangeCallback();
+            }
+
+            const loadendCallback = this.callbacks['loadend'];
+            if (loadendCallback) {
+                loadendCallback();
             }
         }
     }
