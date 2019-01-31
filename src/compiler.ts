@@ -4,6 +4,50 @@ import { spawn } from 'cross-spawn';
 import { Emitter } from './emitter';
 import { Helpers } from './helpers';
 
+export enum ForegroundColorEscapeSequences {
+    Grey = '\u001b[90m',
+    Red = '\u001b[91m',
+    Green = '\u001b[92m',
+    Yellow = '\u001b[93m',
+    Blue = '\u001b[94m',
+    Pink = '\u001b[95m',
+    Cyan = '\u001b[96m',
+    White = '\u001b[97m'
+}
+export enum BackgroundColorEscapeSequences {
+    Grey = '\u001b[100m',
+    Red = '\u001b[101m',
+    Green = '\u001b[102m',
+    Yellow = '\u001b[103m',
+    Blue = '\u001b[104m',
+    Pink = '\u001b[105m',
+    Cyan = '\u001b[106m',
+    White = '\u001b[107m'
+}
+export enum BoldForegroundColorEscapeSequences {
+    Grey = '\u001b[90;1m',
+    Red = '\u001b[91;1m',
+    Green = '\u001b[92;1m',
+    Yellow = '\u001b[93;1m',
+    Blue = '\u001b[94;1m',
+    Pink = '\u001b[95;1m',
+    Cyan = '\u001b[96;1m',
+    White = '\u001b[97;1m'
+}
+export enum BoldBackgroundColorEscapeSequences {
+    Grey = '\u001b[100;1m',
+    Red = '\u001b[101;1m',
+    Green = '\u001b[102;1m',
+    Yellow = '\u001b[103;1m',
+    Blue = '\u001b[104;1m',
+    Pink = '\u001b[105;1m',
+    Cyan = '\u001b[106;1m',
+    White = '\u001b[107;1m'
+}
+const underlineStyleSequence = '\u001b[4m';
+const gutterStyleSequence = '\u001b[7m';
+const resetEscapeSequence = '\u001b[0m';
+
 export class Run {
 
     private formatHost: ts.FormatDiagnosticsHost;
@@ -115,6 +159,7 @@ export class Run {
                   cmdLineOptions);
             };
 
+            console.log(ForegroundColorEscapeSequences.Cyan + 'Watching...' + resetEscapeSequence);
             ts.createWatchProgram(watchCompilingHost);
         }
     }
@@ -124,23 +169,32 @@ export class Run {
         const category = ts.DiagnosticCategory[diagnostic.category];
 
         let action;
+        let color;
         switch (<ts.DiagnosticCategory>diagnostic.category) {
             case ts.DiagnosticCategory.Warning:
                 action = console.warn;
+                color = ForegroundColorEscapeSequences.Yellow;
                 break;
             case ts.DiagnosticCategory.Error:
                 action = console.error;
+                color = ForegroundColorEscapeSequences.Red;
                 break;
             case ts.DiagnosticCategory.Suggestion:
                 action = console.warn;
+                color = ForegroundColorEscapeSequences.White;
                 break;
             case ts.DiagnosticCategory.Message:
                 action = console.log;
+                color = resetEscapeSequence;
                 break;
         }
 
         action(category, this.formatHost.getNewLine());
-        action(category, diagnostic.code, ':', ts.flattenDiagnosticMessageText(diagnostic.messageText, this.formatHost.getNewLine()));
+        action(
+            category,
+            diagnostic.code,
+            ':',
+            ts.flattenDiagnosticMessageText(color + diagnostic.messageText + resetEscapeSequence, this.formatHost.getNewLine()));
     }
 
     private reportWatchStatusChanged(diagnostic: ts.Diagnostic) {
@@ -150,7 +204,7 @@ export class Run {
     private generateBinary(
         program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions, cmdLineOptions: any) {
 
-        console.log('Generating binary files...');
+        console.log(ForegroundColorEscapeSequences.Pink + 'Generating binary files...' + resetEscapeSequence);
 
         const sourceFiles = program.getSourceFiles();
 
@@ -164,13 +218,32 @@ export class Run {
                 if (fileVersion) {
                     const latestVersion = this.versions[s.fileName];
                     if (latestVersion && latestVersion >= fileVersion) {
+                        console.log(
+                            'File: '
+                            + ForegroundColorEscapeSequences.White
+                            + s.fileName
+                            + resetEscapeSequence
+                            + ' current version:'
+                            + fileVersion
+                            + ', last version:'
+                            + latestVersion
+                            + '. '
+                            + ForegroundColorEscapeSequences.Red
+                            + 'Skipped.'
+                            + resetEscapeSequence);
                         return;
                     }
 
                     this.versions[s.fileName] = fileVersion;
                 }
 
-                console.log('File: ' + s.fileName);
+                console.log(
+                    ForegroundColorEscapeSequences.Cyan
+                    + 'Processing File: '
+                    + resetEscapeSequence
+                    + ForegroundColorEscapeSequences.White
+                    + s.fileName
+                    + resetEscapeSequence);
                 const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
 
                 emitter.processNode(s);
@@ -179,7 +252,13 @@ export class Run {
                 const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
                 const fileName = Helpers.correctFileNameForLua(fileNamnNoExt.concat('.', outputExtention));
 
-                console.log('Writing to file ' + fileName);
+                console.log(
+                    ForegroundColorEscapeSequences.Cyan
+                    + 'Writing to file: '
+                    + resetEscapeSequence
+                    + ForegroundColorEscapeSequences.White
+                    + s.fileName
+                    + resetEscapeSequence);
 
                 fs.writeFileSync(fileName, emitter.writer.getBytes());
             });
@@ -190,19 +269,25 @@ export class Run {
                 if (paths && paths.length > 0) {
                     (<any>s).__path = paths[0];
                     emitter.processNode(s);
-                    console.log('File: ' + s.fileName);
+                    console.log('File: ' + ForegroundColorEscapeSequences.White + s.fileName + resetEscapeSequence);
                 }
             });
 
             const fileName = (emitter.fileModuleName || 'out').replace(/\./g, '_') + '.' + outputExtention;
 
-            console.log('Writing to file ' + fileName);
+            console.log(
+                ForegroundColorEscapeSequences.Cyan
+                + 'Writing to file '
+                + resetEscapeSequence
+                + ForegroundColorEscapeSequences.White
+                + fileName
+                + resetEscapeSequence);
 
             emitter.save();
             fs.writeFileSync(fileName, emitter.writer.getBytes());
         }
 
-        console.log('Binary files have been generated...');
+        console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
     }
 
     public test(sources: string[], cmdLineOptions?: any): string {

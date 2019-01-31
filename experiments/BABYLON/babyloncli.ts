@@ -88,6 +88,7 @@ class Runner {
         this.engine.disableUniformBuffers = true;
         this.engine.validateShaderPrograms = true;
 
+        /*
         const basicVertexShader =
             'attribute vec4 position; \n\
 			uniform mat4 world; \n\
@@ -109,6 +110,7 @@ class Runner {
 
         BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
         BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
+        */
     }
 
     createScene() {
