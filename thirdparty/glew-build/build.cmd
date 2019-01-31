@@ -13,7 +13,6 @@ IF "%Mode%" NEQ "Debug" GOTO :skip_debug_copy
 copy ..\..\bin\%Mode%\x64\glew32d.dll ..\..\..\..\__dist\glew32d.dll
 copy ..\..\bin\%Mode%\x64\glew32d.dll ..\..\..\..\__dist\glew32.dll
 :skip_debug_copy
-GOTO :end
 copy ..\..\bin\%Mode%\x64\glew32.dll ..\..\..\..\__dist
 GOTO :end
 :mingw32

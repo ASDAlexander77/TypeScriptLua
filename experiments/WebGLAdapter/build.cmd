@@ -1,3 +1,5 @@
+IF "%VS150COMNTOOLS%" EQU "" set VS150COMNTOOLS=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\
+
 IF "%1" EQU "Release" GOTO :set_release
 IF "%2" EQU "Release" GOTO :set_release
 SET Mode=Debug
