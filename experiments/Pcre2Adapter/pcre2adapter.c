@@ -49,7 +49,7 @@ extern "C"
         return 1; /* new userdatum is already on the stack */
     }
 
-    static int regexec_wrapper (lua_State *L)
+    static int regtest_wrapper (lua_State *L)
     {
         regex_t* preg = (regex_t *)lua_touserdata(L, 1);
         const char* data = luaL_checkstring(L, 2);   
@@ -72,6 +72,56 @@ extern "C"
         return 1;
     }    
 
+    static int regexec_wrapper (lua_State *L)
+    {
+        regex_t* preg = (regex_t *)lua_touserdata(L, 1);
+        const char* data = luaL_checkstring(L, 2);   
+
+        size_t nmatch = 1;
+        pcre2_pattern_info(preg, PCRE2_INFO_CAPTURECOUNT, &nmatch);
+        regmatch_t pmatch[100];       
+
+        int result = regexec(preg, data, nmatch, &pmatch, 0);
+        if (result != 0 && result != REG_NOMATCH) {
+            char msgbuf[255];
+            regerror(result, preg, &msgbuf, sizeof(msgbuf));
+
+#if _DEBUG
+            printf("RegExp execute error: %s\n", msgbuf);
+#endif                
+            return luaL_error(L, "RegExp execute error: %s", msgbuf);            
+        }
+
+        if (result == REG_NOMATCH) 
+        {
+            lua_pushnil(L);
+            return 1;
+        }
+
+        // return array of matches
+        lua_newtable(L);
+
+        lua_pushinteger(L, 0);
+        lua_pushstring(L, data);
+        lua_settable(L, -3);
+
+        int i;
+        for (i = 0; i < nmatch; i++) {
+            // add index
+            lua_pushinteger(L, i + 1);
+
+            // add value
+            luaL_Buffer b;
+            luaL_buffinit(L, &b);
+            luaL_addlstring(&b, data + pmatch[i].rm_so, pmatch[i].rm_eo - pmatch[i].rm_so);
+            luaL_pushresult(&b);
+
+            lua_settable(L, -3);
+        }
+
+        return 1;
+    }
+
     static int reg_gc (lua_State *L)
     {
         regex_t* preg = (regex_t *)lua_touserdata(L, 1);
@@ -81,6 +131,7 @@ extern "C"
 
     static const struct luaL_Reg pcre2adapter[] = {
         {"regcomp", regcomp_wrapper},
+        {"regtest", regtest_wrapper},
         {"regexec", regexec_wrapper},
         {NULL, NULL} /* sentinel */
     };
