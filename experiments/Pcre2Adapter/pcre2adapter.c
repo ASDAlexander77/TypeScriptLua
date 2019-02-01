@@ -77,16 +77,17 @@ extern "C"
         regex_t* preg = (regex_t *)lua_touserdata(L, 1);
         const char* data = luaL_checkstring(L, 2);   
 
-        size_t nmatch = 1;
-        pcre2_pattern_info(preg, PCRE2_INFO_CAPTURECOUNT, &nmatch);
+        int result;
+        size_t nmatch = preg->re_nsub;
         regmatch_t pmatch[100];       
 
 #if _DEBUG
         printf("RegExp nmatch: %d\n", nmatch);
 #endif         
 
-        int result = regexec(preg, data, nmatch, &pmatch, 0);
-        if (result != 0 && result != REG_NOMATCH) {
+        result = regexec(preg, data, nmatch + 1, &pmatch, 0);
+        if (result != 0 && result != REG_NOMATCH) 
+        {
             char msgbuf[255];
             regerror(result, preg, &msgbuf, sizeof(msgbuf));
 
@@ -105,14 +106,14 @@ extern "C"
         // return array of matches
         lua_newtable(L);
 
-        lua_pushinteger(L, 0);
-        lua_pushstring(L, data);
-        lua_settable(L, -3);
-
         int i;
-        for (i = 0; i < nmatch; i++) {
+        for (i = 0; i <= nmatch; i++) {
+#if _DEBUG
+        printf("RegExp match: %d, start: %d, end: %d\n", i, pmatch[i].rm_so, pmatch[i].rm_eo);
+#endif         
+
             // add index
-            lua_pushinteger(L, i + 1);
+            lua_pushinteger(L, i);
 
             // add value
             luaL_Buffer b;
