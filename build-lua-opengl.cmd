@@ -24,6 +24,11 @@ cd experiments\ArrayBufferAdapter
 @call build.cmd win64 Release
 cd ..\..\..\..
 
+rem Building RegExp Adapter
+cd experiments\Pcre2Adapter
+@call build.cmd win64 Release
+cd ..\..\..\..
+
 rem Building GLUT
 cd experiments\WebGLAdapter
 @call build.cmd win64 Release
