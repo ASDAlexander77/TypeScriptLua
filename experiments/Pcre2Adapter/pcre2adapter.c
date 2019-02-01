@@ -79,14 +79,14 @@ extern "C"
         return 1; /* new userdatum is already on the stack */
     }
 
-    static const struct luaL_Reg pcre2_adapter[] = {
+    static const struct luaL_Reg pcre2adapter[] = {
         {"regcomp", regcomp_wrapper},
         {"regexec", regexec_wrapper},
         {NULL, NULL} /* sentinel */
     };
 
     //name of this function is not flexible
-    LIBRARY_API int luaopen_pcre2_adapter(lua_State *L)
+    LIBRARY_API int luaopen_pcre2adapter(lua_State *L)
     {
         // we need to create metatable for UserData to set __gc to clear the resource up later
         luaL_newmetatable(L, REGEXP_GC_METATABLENAME);
@@ -96,7 +96,7 @@ extern "C"
         lua_pushcfunction(L, reg_gc);
         lua_settable(L, -3);
 
-        luaL_newlib(L, pcre2_adapter);
+        luaL_newlib(L, pcre2adapter);
         return 1;
     }
 
