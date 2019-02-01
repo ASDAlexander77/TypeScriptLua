@@ -81,6 +81,10 @@ extern "C"
         pcre2_pattern_info(preg, PCRE2_INFO_CAPTURECOUNT, &nmatch);
         regmatch_t pmatch[100];       
 
+#if _DEBUG
+        printf("RegExp nmatch: %d\n", nmatch);
+#endif         
+
         int result = regexec(preg, data, nmatch, &pmatch, 0);
         if (result != 0 && result != REG_NOMATCH) {
             char msgbuf[255];
