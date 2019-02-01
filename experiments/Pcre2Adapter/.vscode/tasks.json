@@ -58,6 +58,20 @@
                 "showReuseMessage": true,
                 "clear": true
             }
+        },
+        {
+            "label": "Run Pcre2 Lua init test",
+            "type": "shell",
+            "command": "lua",
+            "windows": {
+                "command": "lua"
+            },
+            "args": ["${workspaceFolder}/Tests/init.lua"],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
         }
     ]
 }
