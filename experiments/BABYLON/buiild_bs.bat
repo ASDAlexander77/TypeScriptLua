@@ -18,7 +18,7 @@ echo =
 echo =
 
 cd ..\..\..\experiments\jslib
-node ../../__out/main.js
+node ../../__out/main.js -singleModule
 cd ../BABYLON
 
 rmdir /S /Q  BABYLON
