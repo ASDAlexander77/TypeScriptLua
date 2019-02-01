@@ -53,6 +53,10 @@ export class Preprocessor {
             case ts.SyntaxKind.ElementAccessExpression:
                 newExpression = this.preprocessElementAccessExpression(<ts.ElementAccessExpression>node);
                 break;
+
+            case ts.SyntaxKind.TypeAssertionExpression:
+                newExpression = this.preprocessTypeAssertionExpression(<ts.TypeAssertion>node);
+                break;
         }
 
         if (newExpression) {
@@ -156,6 +160,29 @@ export class Preprocessor {
         }
 
         return undefined;
+    }
+
+    private preprocessTypeAssertionExpression(typeAssertion: ts.TypeAssertion): ts.Expression {
+
+        if (this.typeInfo.isTypeOfNode(typeAssertion.type, 'string') && !this.typeInfo.isTypeOfNode(typeAssertion.expression, 'string')) {
+            const castExpr = ts.createCall(
+                ts.createIdentifier('tostring'),
+                undefined,
+                [typeAssertion.expression]);
+            castExpr.parent = typeAssertion.parent;
+            return castExpr;
+        }
+
+        if (this.typeInfo.isTypeOfNode(typeAssertion.type, 'number') && !this.typeInfo.isTypeOfNode(typeAssertion.expression, 'number')) {
+            const castExpr = ts.createCall(
+                ts.createIdentifier('tonumber'),
+                undefined,
+                [typeAssertion.expression]);
+            castExpr.parent = typeAssertion.parent;
+            return castExpr;
+        }
+
+        return typeAssertion;
     }
 
     private preprocessElementAccessExpression(elementAccessExpression: ts.ElementAccessExpression): ts.Expression {

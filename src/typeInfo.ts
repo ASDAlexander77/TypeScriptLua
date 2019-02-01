@@ -42,7 +42,9 @@ export class TypeInfo {
                         ? detectType.intrinsicName
                         : detectType.value !== undefined
                             ? typeof (detectType.value)
-                            : undefined;
+                            : detectType.symbol
+                                ? detectType.symbol.name
+                                : undefined;
             }
 
             if (typeName) {
