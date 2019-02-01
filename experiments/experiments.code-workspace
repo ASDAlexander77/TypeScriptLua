@@ -19,6 +19,10 @@
 		{
 			"name": "ArrayBuffer adapter",
 			"path": "./ArrayBufferAdapter"
+		},
+		{
+			"name": "PCRE2 adapter",
+			"path": "./Pcre2Adapter"
 		}
 	],
     "settings": {
