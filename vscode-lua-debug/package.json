@@ -1,7 +1,7 @@
 {
     "name": "lua-debug",
     "displayName": "Lua Debug",
-    "version": "0.4.7",
+    "version": "0.4.8",
     "publisher": "AlexD77",
     "description": "Lua debugger extension for VS Code.",
     "author": {
@@ -47,7 +47,7 @@
         "mocha": "5.0.1",
         "tslint": "5.9.1",
         "typescript": "2.6.2",
-        "vsce": "^1.54.0",
+        "vsce": "^1.55.0",
         "vscode": "1.1.17",
         "vscode-debugadapter-testsupport": "1.27.0"
     },
