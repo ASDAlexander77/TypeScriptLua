@@ -9,19 +9,20 @@ class RegExp {
             RegExp.loaded = true;
             // @ts-ignore
             import pcre2adapter from 'pcre2adapter';
-            if (pcre2adapter) {
-                let flagsEnum = 0;
-                if (flags) {
-                    for (const flag of flags) {
-                        switch (flag) {
-                            case 'i': flagsEnum |= 1; /*REG_ICASE*/ break;
-                            case 'g': flagsEnum |= 2; /*REG_NEWLINE*/ break;
-                        }
+        }
+
+        if (pcre2adapter) {
+            let flagsEnum = 0;
+            if (flags) {
+                for (const flag of flags) {
+                    switch (flag) {
+                        case 'i': flagsEnum |= 1; /*REG_ICASE*/ break;
+                        case 'm': flagsEnum |= 2; /*REG_NEWLINE*/ break;
                     }
                 }
-
-                this.nativeHandle = pcre2adapter.regcomp(pattern, flagsEnum);
             }
+
+            this.nativeHandle = pcre2adapter.regcomp(string.gsub(pattern, '\\', '\\\\'), flagsEnum);
         }
     }
 
