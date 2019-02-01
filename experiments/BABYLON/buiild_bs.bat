@@ -1,10 +1,3 @@
-echo =
-echo ==================================
-echo Cleaning up files
-echo ==================================
-echo =
-echo =
-
 @call clean_bs.bat
 
 echo =
@@ -14,8 +7,8 @@ echo ==================================
 echo =
 echo =
 
-cd ..\..\..\thirdparty\Babylon.js\src
-node ../../__out/main.js
+cd ..\..\thirdparty\Babylon.js\src
+node ../../../__out/main.js
 
 echo =
 echo ==================================
@@ -24,7 +17,7 @@ echo ==================================
 echo =
 echo =
 
-cd ..\jslib
+cd ..\..\..\experiments\jslib
 node ../../__out/main.js
 cd ../BABYLON
 
@@ -40,7 +33,7 @@ echo =
 xcopy /S ..\..\thirdparty\Babylon.js\src\*.lua .\BABYLON\
 xcopy /S ..\..\thirdparty\Babylon.js\src\*.lua.map .\BABYLON\
 
-rmdir /S /Q  Shaders
+rmdir /S /Q Shaders
 md Shaders
 echo =
 echo ==================================
@@ -52,3 +45,5 @@ echo =
 xcopy /S /Y ..\..\thirdparty\Babylon.js\src\Shaders .\Shaders\
 
 @call copy_js.bat
+
+node ../../__out/main.js
