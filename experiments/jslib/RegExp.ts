@@ -57,6 +57,6 @@ class RegExp {
     }
 
     public __getLuaPattern(): string {
-        return string.gsub('\\', '%%');
+        return string.gsub(this.pattern, '\\', '%%');
     }
 }
