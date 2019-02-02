@@ -34,6 +34,28 @@ module JS {
         public static toUpperCase(constString: string): string {
             return string.upper(constString);
         }
+
+        public static split(constString: string, separator: string) {
+            let current = 0;
+            const size = StringHelper.getLength(constString);
+            const sizeSeparator = StringHelper.getLength(separator);
+
+            const result = new Array<string>();
+
+            while (current < size) {
+                const position = StringHelper.indexOf(constString, separator, current);
+                if (position < 0) {
+                    return result;
+                }
+
+                const part = StringHelper.substring(constString, current + sizeSeparator, position);
+                current = position + 1;
+
+                ArrayHelper.pushOne(result, part);
+            }
+
+            return result;
+        }
     }
 
     export class String {
@@ -67,6 +89,10 @@ module JS {
 
         public indexOf(pattern: string, begin?: number): number {
             return StringHelper.indexOf(this.constString, pattern, begin);
+        }
+
+        public split(separator: string): string[] {
+            return StringHelper.split(this.constString, separator);
         }
 
         public toLowerCase(): String {
