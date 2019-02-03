@@ -2,13 +2,19 @@ declare var string: any;
 
 module JS {
 
+    type FuncString = (p: string) => string;
+
     export class StringHelper {
         public static getLength(constString: string): number {
             return string.len(constString);
         }
 
-        public static replace(constString: string, regExp: RegExp, func: (p: string) => string): string {
-            return string.gsub(constString, regExp.__getLuaPattern(), func);
+        public static replace(constString: string, valOrRegExp: string | RegExp, valOfFunc: string | FuncString): string {
+            if (valOrRegExp instanceof string) {
+                return string.gsub(constString, valOrRegExp, valOfFunc);
+            }
+
+            return string.gsub(constString, (<RegExp>valOrRegExp).__getLuaPattern(), valOfFunc);
         }
 
         public static substr(constString: string, begin?: number, len?: number): string {
