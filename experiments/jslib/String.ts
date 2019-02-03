@@ -10,7 +10,7 @@ module JS {
         }
 
         public static replace(constString: string, valOrRegExp: string | RegExp, valOfFunc: string | FuncString): string {
-            if (valOrRegExp instanceof string) {
+            if (typeof valOrRegExp == 'string') {
                 return string.gsub(constString, valOrRegExp, valOfFunc);
             }
 
