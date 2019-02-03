@@ -1,3 +1,18 @@
+if exist packages goto :skip 
+md packages
+:skip
+cd packages
+if exist tsc-lua goto :skip2
+md tsc-lua
+:skip2
+cd tsc-lua
+if exist lib goto :skip3
+md lib
+:skip3
+
+cd ..\..
+
+
 del "packages\tsc-lua\lib\*.js"
 del "packages\tsc-lua\lib\*.js.map"
 
