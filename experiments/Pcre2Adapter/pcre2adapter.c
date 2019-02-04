@@ -74,18 +74,30 @@ extern "C"
 
     static int regexec_wrapper (lua_State *L)
     {
+        int result;
+        int lastIndex = 0;
+        int eflags = 0;
+
         regex_t* preg = (regex_t *)lua_touserdata(L, 1);
         const char* data = luaL_checkstring(L, 2);   
 
-        int result;
         size_t nmatch = preg->re_nsub;
         regmatch_t pmatch[100];       
+
+        if (!lua_isnoneornil(L, 3)) {
+            lastIndex = luaL_checkinteger(L, 3);
+            if (lastIndex > 0) {
+                pmatch[0].rm_so = lastIndex;
+                pmatch[0].rm_eo = (int)strlen(data);
+                eflags = REG_STARTEND;
+            }
+        }
 
 #if _DEBUG
         printf("RegExp nmatch: %d\n", nmatch);
 #endif         
 
-        result = regexec(preg, data, nmatch + 1, &pmatch, 0);
+        result = regexec(preg, data, nmatch + 1, &pmatch, eflags);
         if (result != 0 && result != REG_NOMATCH) 
         {
             char msgbuf[255];
@@ -105,6 +117,16 @@ extern "C"
 
         // return array of matches
         lua_newtable(L);
+
+        // add index;
+        lua_pushstring(L, "index");
+        lua_pushinteger(L, result);
+        lua_settable(L, -3);        
+
+        // add index;
+        lua_pushstring(L, "input");
+        lua_pushinteger(L, data);
+        lua_settable(L, -3);           
 
         int i;
         for (i = 0; i <= nmatch; i++) {
