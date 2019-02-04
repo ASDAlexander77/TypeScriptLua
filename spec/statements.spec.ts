@@ -168,6 +168,15 @@ describe('Statements', () => {
         }                                                       \
     '])).to.equals('i\r\ns\r\n'));
 
+    it('simple for/of (params)', () => expect(new Run().test([
+        'function push(...objs: any[]) {                        \
+            for (const obj of objs) {                           \
+                console.log(obj);                               \
+            }                                                   \
+        }                                                       \
+        push(1, 2, 3);                                          \
+    '])).to.equals('1\r\n2\r\n3\r\n'));
+
     it('switch (local) 1', () => expect('Hello!\r\nHello!\r\nHello!\r\nHello!\r\n').to.equals(new Run().test([
         'let a = 1;                                             \
         switch (a) {                                            \
