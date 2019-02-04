@@ -1753,10 +1753,13 @@ export class Emitter {
     private processForOfStatementForStaticArray(node: ts.ForOfStatement): void {
         // Somehow #len returns 2 for 3 elements. why????? - solution, skip for/of when array[0] === null
         const indexerName = 'i_';
+        const indexerExpr = ts.createIdentifier(indexerName);
+        // it is needed to detect type of local variable to support preprocessing correctly
+        (<any>indexerExpr).__return_type = 'number';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier(indexerName)));
+            arrayItem, undefined, ts.createElementAccess(node.expression, indexerExpr));
         // to make it LET
         const newStatementBlock = ts.createBlock(
             [
@@ -1771,9 +1774,9 @@ export class Emitter {
         const forStatement =
             ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
                 ts.createBinary(
-                    ts.createIdentifier(indexerName),
+                    indexerExpr,
                     ts.SyntaxKind.LessThanEqualsToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
-                ts.createPostfixIncrement(ts.createIdentifier(indexerName)),
+                ts.createPostfixIncrement(indexerExpr),
                 newStatementBlock);
 
         // to support variable resolvation
@@ -1798,12 +1801,14 @@ export class Emitter {
             return;
         }
 
-
         const indexerName = 'i_';
+        const indexerExpr = ts.createIdentifier(indexerName);
+        // it is needed to detect type of local variable to support preprocessing correctly
+        (<any>indexerExpr).__return_type = 'number';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier(indexerName)));
+            arrayItem, undefined, ts.createElementAccess(node.expression, indexerExpr));
 
         const newStatementBlockWithElementAccess = ts.createBlock(
             [
@@ -1816,9 +1821,9 @@ export class Emitter {
         const forStatement =
             ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
                 ts.createBinary(
-                    ts.createIdentifier(indexerName),
+                    indexerExpr,
                     ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
-                ts.createPostfixIncrement(ts.createIdentifier(indexerName)),
+                ts.createPostfixIncrement(indexerExpr),
                 newStatementBlockWithElementAccess);
 
         // to support variable resolvation

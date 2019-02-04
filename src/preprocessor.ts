@@ -18,9 +18,6 @@ export class Preprocessor {
             case ts.SyntaxKind.IfStatement:
                 this.preprocessWhileDoIf(node);
                 break;
-            case ts.SyntaxKind.ForOfStatement:
-                this.processForOfStatement(node);
-                break;
         }
 
         return node;
@@ -74,16 +71,6 @@ export class Preprocessor {
             const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
             newCondition.parent = expressionStatement.expression.parent;
             expressionStatement.expression = newCondition;
-        }
-    }
-
-    private processForOfStatement(node: ts.Statement) {
-        const expressionStatement = <any>node;
-        const expression = expressionStatement.expression;
-        if (this.typeInfo.isTypeOfNode(expression, 'string')) {
-            const newString = ts.createNew(ts.createIdentifier('String'), undefined, [ expression ]);
-            newString.parent = expression.parent;
-            expressionStatement.expression = newString;
         }
     }
 
@@ -162,6 +149,14 @@ export class Preprocessor {
                 // suppress SELF calls
                 (<any>propertyAccessExpression).__self_call_required = false;
             }
+        }
+
+        if (this.typeInfo.isTypeOfNode(propertyAccessExpression.expression, 'string') && propertyAccessExpression.name.text === 'length') {
+            const getLengthOfString = ts.createCall(
+                ts.createPropertyAccess(
+                    ts.createIdentifier('StringHelper'), 'getLength'), undefined, [propertyAccessExpression.expression]);
+            getLengthOfString.parent = propertyAccessExpression.parent;
+            return getLengthOfString;
         }
 
         // replace <XXX>.prototype  to <XXX>.__proto

@@ -161,7 +161,7 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it.skip('simple for/of (string)', () => expect('i\r\nt\r\n').to.equals(new Run().test([
+    it('simple for/of (string)', () => expect('i\r\ns\r\n').to.equals(new Run().test([
         'var hello = "is";                                      \
         for (var char of hello) {                               \
             console.log(char);                                  \
