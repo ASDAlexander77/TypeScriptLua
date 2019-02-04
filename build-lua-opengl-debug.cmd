@@ -19,6 +19,11 @@ cd thirdparty\freeglut-build\
 @call build.cmd win64 Debug
 cd ..\..\..\..
 
+rem Building Pcre2
+cd thirdparty\pcre2-build\
+@call build.cmd win64 Debug
+cd ..\..\..\..
+
 rem Building Array Adapter
 cd experiments\ArrayBufferAdapter
 @call build.cmd win64 Debug

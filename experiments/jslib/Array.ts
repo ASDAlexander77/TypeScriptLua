@@ -10,6 +10,15 @@ module JS {
             // implemented in the compiler
             throw 0;
         }
+
+        public static pushOne(_this: any[], obj: T) {
+            if (!_this[0]) {
+                _this[0] = obj;
+                continue;
+            }
+
+            table.insert(this, obj);
+        }
     }
 
     export class Array<T> {

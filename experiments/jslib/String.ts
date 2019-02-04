@@ -2,13 +2,19 @@ declare var string: any;
 
 module JS {
 
+    type FuncString = (p: string) => string;
+
     export class StringHelper {
         public static getLength(constString: string): number {
             return string.len(constString);
         }
 
-        public static replace(constString: string, regExp: RegExp, func: (p: string) => string): string {
-            return string.gsub(constString, regExp.__getLuaPattern(), func);
+        public static replace(constString: string, valOrRegExp: string | RegExp, valOfFunc: string | FuncString): string {
+            if (typeof valOrRegExp == 'string') {
+                return string.gsub(constString, valOrRegExp, valOfFunc);
+            }
+
+            return string.gsub(constString, (<RegExp>valOrRegExp).__getLuaPattern(), valOfFunc);
         }
 
         public static substr(constString: string, begin?: number, len?: number): string {
@@ -33,6 +39,28 @@ module JS {
 
         public static toUpperCase(constString: string): string {
             return string.upper(constString);
+        }
+
+        public static split(constString: string, separator: string) {
+            let current = 0;
+            const size = StringHelper.getLength(constString);
+            const sizeSeparator = StringHelper.getLength(separator);
+
+            const result = new Array<string>();
+
+            while (current < size) {
+                const position = StringHelper.indexOf(constString, separator, current);
+                if (position < 0) {
+                    return result;
+                }
+
+                const part = StringHelper.substring(constString, current + sizeSeparator, position);
+                current = position + 1;
+
+                ArrayHelper.pushOne(result, part);
+            }
+
+            return result;
         }
     }
 
@@ -79,6 +107,10 @@ module JS {
 
         public indexOf(pattern: string, begin?: number): number {
             return StringHelper.indexOf(this.constString, pattern, begin);
+        }
+
+        public split(separator: string): string[] {
+            return StringHelper.split(this.constString, separator);
         }
 
         public toLowerCase(): String {
