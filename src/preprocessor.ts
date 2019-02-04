@@ -151,7 +151,9 @@ export class Preprocessor {
             }
         }
 
-        if (this.typeInfo.isTypeOfNode(propertyAccessExpression.expression, 'string') && propertyAccessExpression.name.text === 'length') {
+        if (this.typeInfo.isTypeOfNode(propertyAccessExpression.expression, 'string')
+            && propertyAccessExpression.name.text === 'length'
+            && !(<any>propertyAccessExpression.name).__len) {
             const getLengthOfString = ts.createCall(
                 ts.createPropertyAccess(
                     ts.createIdentifier('StringHelper'), 'getLength'), undefined, [propertyAccessExpression.expression]);

@@ -1796,7 +1796,8 @@ export class Emitter {
 
     private processForOfStatement(node: ts.ForOfStatement): void {
 
-        if (this.typeInfo.isTypeOfNode(node.expression, 'Array')) {
+        const expressionType = this.typeInfo.getTypeOfNode(node.expression);
+        if (expressionType === 'Array') {
             this.processForOfStatementForStaticArray(node);
             return;
         }
@@ -1817,6 +1818,9 @@ export class Emitter {
             ]);
 
         const lengthMemeber = ts.createIdentifier('length');
+        if (expressionType === 'string') {
+            (<any>lengthMemeber).__len = true;
+        }
 
         const forStatement =
             ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
