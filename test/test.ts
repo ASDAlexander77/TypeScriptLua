@@ -1,4 +1,5 @@
-var hello = "is";                                     
-        for (var _char of hello) {                             
-            print(<any>_char);                               
-        }
+let hello = 'is';
+for (const _char of hello) {
+    // @ts-ignore
+    print(<any>_char);
+}

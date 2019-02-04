@@ -49,7 +49,7 @@ class RegExp {
 
         if (this.nativeHandle) {
             // @ts-ignore
-            const matchResult = pcre2adapter.regexec(this.nativeHandle, t, this.lastIndex);
+            const matchResult = pcre2adapter.regexec(this.nativeHandle, t, this.lastIndex ? this.lastIndex + 1 : null);
             this.lastIndex = matchResult.index;
             return matchResult;
         }

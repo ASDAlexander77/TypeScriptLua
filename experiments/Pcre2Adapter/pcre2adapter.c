@@ -94,7 +94,7 @@ extern "C"
         }
 
 #if _DEBUG
-        printf("RegExp nmatch: %d\n", nmatch);
+        printf("RegExp nmatch: %d, last index %d, eflag: %d\n", nmatch, lastIndex, eflags);
 #endif         
 
         result = regexec(preg, data, nmatch + 1, &pmatch, eflags);

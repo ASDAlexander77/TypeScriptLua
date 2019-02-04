@@ -20,6 +20,7 @@
     "outDir": "./__out/jslib",
     "baseUrl": "./",    
     "lib": [
+      "es5"
     ],
   },
   "include": [
