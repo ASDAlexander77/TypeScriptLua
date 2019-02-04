@@ -3,6 +3,8 @@ class RegExp {
 
     private static loaded = false;
     private nativeHandle: any;
+    private isGlobal: boolean;
+    private lastIndex: number;
 
     constructor(private pattern: string, private flags?: string) {
         if (!RegExp.loaded) {
@@ -16,6 +18,7 @@ class RegExp {
             if (flags) {
                 for (const flag of flags) {
                     switch (flag) {
+                        case 'g': this.isGlobal = true; break;
                         case 'i': flagsEnum |= 1; /*REG_ICASE*/ break;
                         case 'm': flagsEnum |= 2; /*REG_NEWLINE*/ break;
                     }
@@ -46,7 +49,9 @@ class RegExp {
 
         if (this.nativeHandle) {
             // @ts-ignore
-            return pcre2adapter.regexec(this.nativeHandle, t);
+            const matchResult = pcre2adapter.regexec(this.nativeHandle, t, this.lastIndex);
+            this.lastIndex = matchResult.index;
+            return matchResult;
         }
 
         return string.match(t, this.__getLuaPattern());
