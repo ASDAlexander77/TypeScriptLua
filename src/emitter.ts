@@ -1750,7 +1750,7 @@ export class Emitter {
         this.functionContext.restoreBreakContinueScope();
     }
 
-    private processForOfStatement(node: ts.ForOfStatement): void {
+    private processForOfStatementForStaticArray(node: ts.ForOfStatement): void {
         // Somehow #len returns 2 for 3 elements. why????? - solution, skip for/of when array[0] === null
         const indexerName = 'i_';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
@@ -1782,9 +1782,52 @@ export class Emitter {
         forStatement.parent = node.parent;
         (<any>forStatement).__origin = node;
 
-        const ifStatement = ts.createIf(ts.createElementAccess(node.expression, ts.createNumericLiteral('0')), forStatement);
+        const condExpr = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
+        const ifStatement = ts.createIf(condExpr, forStatement);
+
+        ifStatement.parent = node;
+        condExpr.parent = ifStatement;
 
         this.processStatement(ifStatement);
+    }
+
+    private processForOfStatement(node: ts.ForOfStatement): void {
+
+        if (this.typeInfo.isTypeOfNode(node.expression, 'Array')) {
+            this.processForOfStatementForStaticArray(node);
+            return;
+        }
+
+
+        const indexerName = 'i_';
+        const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
+        const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
+        const arrayItemInitialization = ts.createVariableDeclaration(
+            arrayItem, undefined, ts.createElementAccess(node.expression, ts.createIdentifier(indexerName)));
+
+        const newStatementBlockWithElementAccess = ts.createBlock(
+            [
+                ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization], ts.NodeFlags.Const)),
+                node.statement
+            ]);
+
+        const lengthMemeber = ts.createIdentifier('length');
+
+        const forStatement =
+            ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
+                ts.createBinary(
+                    ts.createIdentifier(indexerName),
+                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
+                ts.createPostfixIncrement(ts.createIdentifier(indexerName)),
+                newStatementBlockWithElementAccess);
+
+        // to support variable resolvation
+        this.bind(forStatement);
+
+        forStatement.parent = node.parent;
+        (<any>forStatement).__origin = node;
+
+        this.processStatement(forStatement);
     }
 
     private processBreakStatement(node: ts.BreakStatement) {

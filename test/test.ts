@@ -1,13 +1,13 @@
 import './JS';
 
-const str:String = new String("asd");
-str.__tostring = function (): string {
-    console.log("__tostring ");
-    return "he he";
-};
+for (const s of new String("asd")) {
+    console.log(<any>s);
+}
 
-const s = <string>str;
+for (const s of "jkl") {
+    console.log(<any>s);
+}
 
-console.log("Output:");
-console.log(str);
-console.log(s);
+for (const a of ["b", "c", "d"]) {
+    console.log(<any>a);
+}

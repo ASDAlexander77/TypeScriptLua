@@ -17,7 +17,9 @@ export class Preprocessor {
             case ts.SyntaxKind.DoStatement:
             case ts.SyntaxKind.IfStatement:
                 this.preprocessWhileDoIf(node);
-
+                break;
+            case ts.SyntaxKind.ForOfStatement:
+                this.processForOfStatement(node);
                 break;
         }
 
@@ -72,6 +74,16 @@ export class Preprocessor {
             const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
             newCondition.parent = expressionStatement.expression.parent;
             expressionStatement.expression = newCondition;
+        }
+    }
+
+    private processForOfStatement(node: ts.Statement) {
+        const expressionStatement = <any>node;
+        const expression = expressionStatement.expression;
+        if (this.typeInfo.isTypeOfNode(expression, 'string')) {
+            const newString = ts.createNew(ts.createIdentifier('String'), undefined, [ expression ]);
+            newString.parent = expression.parent;
+            expressionStatement.expression = newString;
         }
     }
 
