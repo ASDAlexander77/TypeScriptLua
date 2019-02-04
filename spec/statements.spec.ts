@@ -161,12 +161,12 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it('simple for/of (string)', () => expect('i\r\ns\r\n').to.equals(new Run().test([
+    it('simple for/of (string)', () => expect(new Run().test([
         'var hello = "is";                                      \
-        for (var char of hello) {                               \
-            console.log(char);                                  \
+        for (var _char of hello) {                              \
+            console.log(_char);                                 \
         }                                                       \
-    '])));
+    '])).to.equals('i\r\ns\r\n'));
 
     it('switch (local) 1', () => expect('Hello!\r\nHello!\r\nHello!\r\nHello!\r\n').to.equals(new Run().test([
         'let a = 1;                                             \
