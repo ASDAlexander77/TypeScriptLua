@@ -25,6 +25,10 @@ module JS {
             return string.sub(constString, (begin || 0) + 1, end ? end + 1 : null);
         }
 
+        public static slice(constString: string, start?: number, end?: number): string {
+            return string.sub(constString, start, end);
+        }
+
         public static indexOf(constString: string, pattern: string, begin?: number): number {
             return table.pack(string.find(constString, pattern, (begin || 0) + 1, true))[1] || -1;
         }
@@ -41,7 +45,7 @@ module JS {
             return string.upper(constString);
         }
 
-        public static split(constString: string, separator: string) {
+        public static split(constString: string, separator: string): Array<string> {
             let current = 0;
             const size = StringHelper.getLength(constString);
             const sizeSeparator = StringHelper.getLength(separator);
@@ -102,15 +106,20 @@ module JS {
 
         public substring(begin?: number, end?: number): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.substr(this.constString, begin, end));
+            return new String(StringHelper.substring(this.constString, begin, end));
         }
 
         public indexOf(pattern: string, begin?: number): number {
             return StringHelper.indexOf(this.constString, pattern, begin);
         }
 
-        public split(separator: string): string[] {
+        public split(separator: string): Array<string> {
             return StringHelper.split(this.constString, separator);
+        }
+
+        public slice(start?: number, end?: number): String {
+            // tslint:disable-next-line:no-construct
+            return new String(StringHelper.substring(this.constString, start, end));
         }
 
         public toLowerCase(): String {
