@@ -25,7 +25,7 @@ class RegExp {
                 }
             }
 
-            this.nativeHandle = pcre2adapter.regcomp(string.gsub(pattern, '\\', '\\\\'), flagsEnum);
+            this.nativeHandle = pcre2adapter.regcomp(pattern, flagsEnum);
         }
     }
 
@@ -36,7 +36,7 @@ class RegExp {
 
         if (this.nativeHandle) {
             // @ts-ignore
-            return !pcre2adapter.regtest(this.nativeHandle, t);
+            return pcre2adapter.regtest(this.nativeHandle, t);
         }
 
         return !string.match(t, this.__getLuaPattern());
