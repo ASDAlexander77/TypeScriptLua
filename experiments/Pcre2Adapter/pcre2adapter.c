@@ -82,7 +82,7 @@ extern "C"
         const char* data = luaL_checkstring(L, 2);   
 
         size_t nmatch = preg->re_nsub;
-        regmatch_t pmatch[100];       
+        regmatch_t pmatch[200];       
 
         if (!lua_isnoneornil(L, 3)) {
             lastIndex = luaL_checkinteger(L, 3);
@@ -111,6 +111,10 @@ extern "C"
 
         if (result == REG_NOMATCH) 
         {
+#if _DEBUG
+            printf("RegExp execute returned NULL\n");
+#endif   
+
             lua_pushnil(L);
             return 1;
         }
@@ -118,9 +122,13 @@ extern "C"
         // return array of matches
         lua_newtable(L);
 
+#if _DEBUG
+        printf("RegExp execute found result at %d\n", pmatch[0].rm_so);
+#endif  
+
         // add index;
         lua_pushstring(L, "index");
-        lua_pushinteger(L, result);
+        lua_pushinteger(L, pmatch[0].rm_so);
         lua_settable(L, -3);        
 
         // add index;

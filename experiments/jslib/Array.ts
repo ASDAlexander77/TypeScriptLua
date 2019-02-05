@@ -14,7 +14,7 @@ module JS {
         public static pushOne(_this: any[], obj: T) {
             if (!_this[0]) {
                 _this[0] = obj;
-                continue;
+                return;
             }
 
             table.insert(this, obj);
