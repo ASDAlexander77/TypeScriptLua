@@ -30,7 +30,7 @@ module JS {
         }
 
         public static indexOf(constString: string, pattern: string, begin?: number): number {
-            return table.pack(string.find(constString, pattern, (begin || 0) + 1, true))[1] || -1;
+            return (table.pack(string.find(constString, pattern, (begin || 0) + 1, true))[1] || 0) - 1;
         }
 
         public static search(constString: string, pattern: RegExp, begin?: number): number {
@@ -55,11 +55,14 @@ module JS {
             while (current < size) {
                 const position = StringHelper.indexOf(constString, separator, current);
                 if (position < 0) {
+                    const rest = StringHelper.substring(constString, current);
+                    ArrayHelper.pushOne(result, rest);
                     return result;
                 }
 
-                const part = StringHelper.substring(constString, current + sizeSeparator, position);
-                current = position + 1;
+                const part = StringHelper.substring(constString, current, position - 1);
+
+                current = position + sizeSeparator;
 
                 ArrayHelper.pushOne(result, part);
             }

@@ -31,3 +31,11 @@ function parseFloat(v: any) {
 
     return num;
 }
+
+function isNaN(v: any) {
+    return tostring(v) == tostring(0 / 0);
+}
+
+function isFinite(v: any) {
+    return tostring(v) == tostring(1 / 0);
+}

@@ -17,7 +17,7 @@ module JS {
                 return;
             }
 
-            table.insert(this, obj);
+            table.insert(_this, obj);
         }
     }
 

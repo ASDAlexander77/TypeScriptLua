@@ -1,6 +1,5 @@
-const re = /asd/g;
-const re2 = /#include<(.+)>(\((.*)\))*(\[(.*)\])*/g;
+import './JS';
 
-console.log('test...!');
-console.log(re.test('asd'));
-console.log(re2.test('#include<__decl__defaultVertex>'));
+const p = "1..number".split("..");
+console.log(<any>p[0]);
+console.log(<any>p[1]);
