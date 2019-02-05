@@ -1,11 +1,6 @@
 import './JS';
 
-const _keys: string[] = [];
-
-for (var key of Object.keys({})) {
-    if (key[0] === '_') {
-        continue;
-    }
-
-    _keys.push(key);
+var someArray = "asd";
+for (var item of someArray) {
+    console.log(<any>item);
 }

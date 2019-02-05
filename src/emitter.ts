@@ -1786,8 +1786,11 @@ export class Emitter {
         (<any>indexerExpr).__return_type = 'number';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
+        const arrayAccess = ts.createElementAccess(node.expression, indexerExpr);
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, typeNode, ts.createElementAccess(node.expression, indexerExpr));
+            arrayItem, typeNode, arrayAccess);
+
+        arrayAccess.parent = arrayItemInitialization;
 
         // to make it LET
         const newStatementBlock = ts.createBlock(
@@ -1796,7 +1799,7 @@ export class Emitter {
                     undefined,
                     ts.createVariableDeclarationList(
                         [arrayItemInitialization],
-                        ts.NodeFlags.Const)),
+                        node.initializer.flags/*ts.NodeFlags.Const*/)),
                 node.statement
             ]);
 
@@ -1849,8 +1852,11 @@ export class Emitter {
         (<any>indexerExpr).__return_type = 'number';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
+        const arrayAccess = ts.createElementAccess(node.expression, indexerExpr);
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, typeNode, ts.createElementAccess(node.expression, indexerExpr));
+            arrayItem, typeNode, arrayAccess);
+
+        arrayAccess.parent = arrayItemInitialization;
 
         const newStatementBlockWithElementAccess = ts.createBlock(
             [
@@ -1858,7 +1864,7 @@ export class Emitter {
                     undefined,
                     ts.createVariableDeclarationList(
                         [arrayItemInitialization],
-                        ts.NodeFlags.Const)),
+                        node.initializer.flags/*ts.NodeFlags.Const*/)),
                 node.statement
             ]);
 
