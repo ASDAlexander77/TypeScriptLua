@@ -11,7 +11,7 @@ cd __build
 IF NOT EXIST win64 MKDIR win64
 cd win64
 cmake -Wno-dev -f ..\.. -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=%Mode%
-@call "%VS150COMNTOOLS%\..\..\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+if not defined DevEnvDir (@call "%VS150COMNTOOLS%\..\..\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64)
 "%VS150COMNTOOLS%\..\..\MSBuild\15.0\Bin\MSBuild" ALL_BUILD.vcxproj /m:8 /p:Configuration=%Mode% /p:Platform="x64"
 GOTO :end
 :mingw32
