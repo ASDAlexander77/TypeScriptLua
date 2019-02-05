@@ -15,6 +15,19 @@ export class TypeInfo {
         return typeNames.some(t => t === res);
     }
 
+    public getNameFromTypeNode(detectType: any): string {
+        const val =
+            detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
+            ? detectType.intrinsicName
+            : detectType.value !== undefined
+                ? typeof (detectType.value)
+                : detectType.symbol
+                    ? detectType.symbol.name
+                    : undefined;
+
+        return val;
+    }
+
     public getTypeOfNode(node: ts.Node) {
         if (!node) {
             return undefined;
@@ -37,14 +50,7 @@ export class TypeInfo {
                 typeName = 'null';
             } else {
                 const detectType = this.resolver.getTypeAtLocation(node);
-                typeName =
-                    detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
-                        ? detectType.intrinsicName
-                        : detectType.value !== undefined
-                            ? typeof (detectType.value)
-                            : detectType.symbol
-                                ? detectType.symbol.name
-                                : undefined;
+                typeName = this.getNameFromTypeNode(detectType);
             }
 
             if (typeName) {

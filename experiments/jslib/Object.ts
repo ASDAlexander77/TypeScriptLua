@@ -27,12 +27,13 @@ module JS {
             setmetatable(obj, obj);
         }
 
-        public static keys(obj: any): Array<any> {
-            const a = new Array<any>();
+        public static keys(obj: any): string[] {
+            const a = new Array<string>();
             let current = obj;
             while (current) {
                 // tslint:disable-next-line:forin
                 for (const k in current) {
+                    // tslint:disable-next-line:no-construct
                     a.push(k);
                 }
 

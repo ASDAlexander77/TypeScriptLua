@@ -8,12 +8,12 @@ function decodeURIComponent(s: string) {
 
 function parseInt(v: any) {
     if (!v) {
-        return math.nan;
+        return 0 / 0;
     }
 
     const num = tonumber(v);
     if (!num) {
-        return math.nan;
+        return 0 / 0;
     }
 
     return math.floor(num);
@@ -21,12 +21,12 @@ function parseInt(v: any) {
 
 function parseFloat(v: any) {
     if (!v) {
-        return math.nan;
+        return 0 / 0;
     }
 
     const num = tonumber(v);
     if (!num) {
-        return math.nan;
+        return 0 / 0;
     }
 
     return num;

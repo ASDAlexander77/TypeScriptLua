@@ -1,5 +1,11 @@
 import './JS';
 
-const p = "1..number".split("..");
-console.log(<any>p[0]);
-console.log(<any>p[1]);
+const _keys: string[] = [];
+
+for (var key of Object.keys({})) {
+    if (key[0] === '_') {
+        continue;
+    }
+
+    _keys.push(key);
+}

@@ -753,6 +753,21 @@ export class Emitter {
         return sourceFile.statements;
     }
 
+    private printNode(node: ts.Statement): string {
+        const sourceFile = ts.createSourceFile(
+            this.sourceFileName, '', ts.ScriptTarget.ES2018, /*setParentNodes */ true, ts.ScriptKind.TS);
+
+        (<any>sourceFile.statements) = [node];
+
+        // debug output
+        const emitter = ts.createPrinter({
+            newLine: ts.NewLineKind.LineFeed,
+        });
+
+        const result = emitter.printNode(ts.EmitHint.SourceFile, sourceFile, sourceFile);
+        return result;
+    }
+
     private bind(node: ts.Statement) {
 
         const opts = {
@@ -769,7 +784,8 @@ export class Emitter {
         (<any>sourceFile.statements) = [node];
 
         (<any>ts).bindSourceFile(sourceFile, opts);
-        return sourceFile.statements;
+
+        return sourceFile.statements[0];
     }
 
     private parseJSCode(jsText: string) {
@@ -1751,6 +1767,18 @@ export class Emitter {
     }
 
     private processForOfStatementForStaticArray(node: ts.ForOfStatement): void {
+        // we need to find out type of element
+        const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
+        const typeOfElement =
+            typeOfExpression.typeArguments
+            && typeOfExpression.typeArguments[0]
+            && typeOfExpression.typeArguments[0];
+        let typeNode;
+        if (typeOfElement) {
+            const typeName = this.typeInfo.getNameFromTypeNode(typeOfElement);
+            typeNode = ts.createTypeReferenceNode(typeName, undefined);
+        }
+
         // Somehow #len returns 2 for 3 elements. why????? - solution, skip for/of when array[0] === null
         const indexerName = 'i_';
         const indexerExpr = ts.createIdentifier(indexerName);
@@ -1759,11 +1787,16 @@ export class Emitter {
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, undefined, ts.createElementAccess(node.expression, indexerExpr));
+            arrayItem, typeNode, ts.createElementAccess(node.expression, indexerExpr));
+
         // to make it LET
         const newStatementBlock = ts.createBlock(
             [
-                ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization], ts.NodeFlags.Const)),
+                ts.createVariableStatement(
+                    undefined,
+                    ts.createVariableDeclarationList(
+                        [arrayItemInitialization],
+                        ts.NodeFlags.Const)),
                 node.statement
             ]);
 
@@ -1779,17 +1812,13 @@ export class Emitter {
                 ts.createPostfixIncrement(indexerExpr),
                 newStatementBlock);
 
-        // to support variable resolvation
-        this.bind(forStatement);
-
-        forStatement.parent = node.parent;
-        (<any>forStatement).__origin = node;
-
         const condExpr = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
         const ifStatement = ts.createIf(condExpr, forStatement);
 
         ifStatement.parent = node;
         condExpr.parent = ifStatement;
+
+        // TODO: if you bind here, you will loose binding in not changes nodes, find out how to avoid it
 
         this.processStatement(ifStatement);
     }
@@ -1802,6 +1831,18 @@ export class Emitter {
             return;
         }
 
+        // we need to find out type of element
+        const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
+        const typeOfElement =
+            typeOfExpression.typeArguments
+            && typeOfExpression.typeArguments[0]
+            && typeOfExpression.typeArguments[0];
+        let typeNode;
+        if (typeOfElement) {
+            const typeName = this.typeInfo.getNameFromTypeNode(typeOfElement);
+            typeNode = ts.createTypeReferenceNode(typeName, undefined);
+        }
+
         const indexerName = 'i_';
         const indexerExpr = ts.createIdentifier(indexerName);
         // it is needed to detect type of local variable to support preprocessing correctly
@@ -1809,11 +1850,15 @@ export class Emitter {
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, undefined, ts.createElementAccess(node.expression, indexerExpr));
+            arrayItem, typeNode, ts.createElementAccess(node.expression, indexerExpr));
 
         const newStatementBlockWithElementAccess = ts.createBlock(
             [
-                ts.createStatement(<ts.Expression><any>ts.createVariableDeclarationList([arrayItemInitialization], ts.NodeFlags.Const)),
+                ts.createVariableStatement(
+                    undefined,
+                    ts.createVariableDeclarationList(
+                        [arrayItemInitialization],
+                        ts.NodeFlags.Const)),
                 node.statement
             ]);
 
@@ -1830,11 +1875,10 @@ export class Emitter {
                 ts.createPostfixIncrement(indexerExpr),
                 newStatementBlockWithElementAccess);
 
-        // to support variable resolvation
-        this.bind(forStatement);
-
         forStatement.parent = node.parent;
         (<any>forStatement).__origin = node;
+
+        // TODO: if you bind here, you will loose binding in not changes nodes, find out how to avoid it
 
         this.processStatement(forStatement);
     }
