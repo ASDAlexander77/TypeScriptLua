@@ -261,14 +261,16 @@ extern "C"
     static int shaderSource(lua_State *L)
     {
         const GLuint shader = luaL_checkinteger(L, 1);
-        const char* line = luaL_checkstring(L, 2);
-	    const GLint length = luaL_len(L, 2);
+        size_t len;
+        const GLchar *line = luaL_checklstring(L, 2, &len);
+        const GLint length = (GLint)len;
 
 #if _DEBUG
         printf("GL shaderSource: len:%d, %.100s...\n", length, line);
 #endif        
 
-	    glShaderSource(shader, 1, &line, &length);
+	    //glShaderSource(shader, 1, &line, &length);
+        glShaderSource(shader, 1, &line, NULL);
 
         int error = errorCheck(L);
         if (error)
