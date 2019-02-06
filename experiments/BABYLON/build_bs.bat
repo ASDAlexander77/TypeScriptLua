@@ -10,17 +10,6 @@ echo =
 cd ..\..\thirdparty\Babylon.js\src
 node ../../../__out/main.js
 
-echo =
-echo ==================================
-echo Building JS lib
-echo ==================================
-echo =
-echo =
-
-cd ..\..\..\experiments\jslib
-node ../../__out/main.js -singleModule
-cd ../BABYLON
-
 rmdir /S /Q  BABYLON
 md BABYLON
 echo =

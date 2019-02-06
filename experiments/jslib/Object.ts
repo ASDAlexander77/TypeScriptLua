@@ -30,7 +30,7 @@ module JS {
         public static keys(obj: any): string[] {
             const a = new Array<string>();
             let current = obj;
-            while (current) {
+            if (current) {
                 // tslint:disable-next-line:forin
                 for (const k in current) {
                     // tslint:disable-next-line:no-construct
@@ -40,6 +40,21 @@ module JS {
                 current = current.__proto;
             }
 
+            while (current) {
+                // tslint:disable-next-line:forin
+                for (const k in current) {
+                    const val = current[k];
+                    if (typeof val == 'function') {
+                        continue;
+                    }
+
+                    a.push(k);
+                }
+
+                current = current.__proto;
+            }
+
+            // @ts-ignore
             return a;
         }
 
