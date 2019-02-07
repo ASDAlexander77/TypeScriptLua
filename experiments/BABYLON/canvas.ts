@@ -694,7 +694,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     shaderSource(shader: WebGLShader, source: string): void {
-        _gl.shaderSource(shader ? (<any>shader).value : 0, source);
+        const newSource = source.replace('#version 300 es', '#version 440');
+        _gl.shaderSource(shader ? (<any>shader).value : 0, newSource);
     }
 
     // @ts-ignore

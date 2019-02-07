@@ -44,7 +44,7 @@ module JS {
             const file = table.pack(io.open(this.url, 'r'));
             if (file[1]) {
                 const data = file[1].read('*all');
-                this.responseText = string.gsub(data, '[^\\128-\\193]', '');
+                this.responseText = string.gsub(data, '^\xef\xbb\xbf', '');
                 this.status = 200;
             } else {
                 this.status = 404;
