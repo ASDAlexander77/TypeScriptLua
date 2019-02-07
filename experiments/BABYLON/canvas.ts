@@ -547,7 +547,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     getProgramInfoLog(program: WebGLProgram): string {
-        throw new Error('Method not implemented.');
+        return _gl.getProgramInfoLog(program ? (<any>program).value : 0);
     }
 
     getProgramParameter(program: WebGLProgram, pname: number) {

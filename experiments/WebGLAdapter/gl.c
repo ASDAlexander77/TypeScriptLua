@@ -35,47 +35,47 @@ extern "C"
             case GL_INVALID_ENUM:
 #if _DEBUG
                 printf("GL error: enumeration parameter is not a legal enumeration for that function\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: enumeration parameter is not a legal enumeration for that function");
             case GL_INVALID_VALUE:
 #if _DEBUG
                 printf("GL error: value parameter is not a legal value for that function\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: value parameter is not a legal value for that function");
             case GL_INVALID_OPERATION:
 #if _DEBUG
                 printf("GL error: the set of state for a command is not legal for the parameters given to that command\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: the set of state for a command is not legal for the parameters given to that command");
             case GL_STACK_OVERFLOW:
 #if _DEBUG
                 printf("GL error: the set of state for a command is not legal for the parameters given to that command\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: stack pushing operation cannot be done because it would overflow the limit of that stack's size");
             case GL_STACK_UNDERFLOW:
 #if _DEBUG
                 printf("GL error: stack popping operation cannot be done because the stack is already at its lowest point\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: stack popping operation cannot be done because the stack is already at its lowest point");
             case GL_OUT_OF_MEMORY:
 #if _DEBUG
                 printf("GL error: performing an operation that can allocate memory, and the memory cannot be allocated\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: performing an operation that can allocate memory, and the memory cannot be allocated");
             case GL_INVALID_FRAMEBUFFER_OPERATION_EXT:
 #if _DEBUG
                 printf("GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: doing anything that would attempt to read from or write/render to a framebuffer that is not complete");
             case GL_TABLE_TOO_LARGE:
 #if _DEBUG
                 printf("GL error: Table is too large\n");
-#endif                
+#endif
                 return luaL_error(L, "GL error: Table is too large");
             default:
 #if _DEBUG
                 printf("GL error: Error %d\n", error);
-#endif                
+#endif
                 return luaL_error(L, "GL error: Error %d", error);
             }
         }
@@ -87,7 +87,8 @@ extern "C"
     static int majorVersion = 1;
     static int minorVersion = 0;
 
-    static int higherOrEqual(int major, int minor) {
+    static int higherOrEqual(int major, int minor)
+    {
         return majorVersion > major || majorVersion == major && minorVersion >= minor;
     }
 
@@ -99,10 +100,12 @@ extern "C"
             return luaL_error(L, "glewInit error: %s", glewGetErrorString(err));
         }
 
-        const char* version = glGetString(GL_VERSION);
-        if (version && version[0] != NULL) {
+        const char *version = glGetString(GL_VERSION);
+        if (version && version[0] != NULL)
+        {
             majorVersion = version[0] - '0';
-            if (version[1] == '.' && version[2] != NULL) {
+            if (version[1] == '.' && version[2] != NULL)
+            {
                 minorVersion = version[2] - '0';
             }
         }
@@ -112,20 +115,19 @@ extern "C"
 #endif
 
         if (!glewIsSupported(
-            "GL_VERSION_2_0 "
-            "GL_EXT_framebuffer_object "
-            "GL_ARB_vertex_program "
-            "GL_ARB_fragment_program "
-            ))
+                "GL_VERSION_2_0 "
+                "GL_EXT_framebuffer_object "
+                "GL_ARB_vertex_program "
+                "GL_ARB_fragment_program "))
         {
 #if _DEBUG
             printf("Unable to load extensions\nGL_VERSION_2_0\nGL_EXT_framebuffer_object\nGL_ARB_vertex_program\nGL_ARB_fragment_program\n");
             printf("Supported extensions: %s\n", glGetString(GL_EXTENSIONS));
 #endif
             return luaL_error(
-                L, 
-                "Unable to load extensions: GL_VERSION_2_0, GL_EXT_framebuffer_object, GL_ARB_vertex_program, GL_ARB_fragment_program. OpenGL Version:%s, Supported extensions:%s", 
-                glGetString(GL_VERSION), 
+                L,
+                "Unable to load extensions: GL_VERSION_2_0, GL_EXT_framebuffer_object, GL_ARB_vertex_program, GL_ARB_fragment_program. OpenGL Version:%s, Supported extensions:%s",
+                glGetString(GL_VERSION),
                 glGetString(GL_EXTENSIONS));
         }
 
@@ -188,7 +190,7 @@ extern "C"
 
         return 0;
     }
-    
+
     static int clearDepth(lua_State *L)
     {
         const GLclampd depth = luaL_checkinteger(L, 1);
@@ -240,11 +242,12 @@ extern "C"
         const GLenum type = luaL_checkinteger(L, 1);
 
         GLuint val = glCreateShader(type);
-        if (!val) {
+        if (!val)
+        {
 #if _DEBUG
             printf("GL error: glCreateShader: an error occurs creating the shader object.\n");
-#endif            
-            return luaL_error(L, "GL error: glCreateShader: an error occurs creating the shader object.");            
+#endif
+            return luaL_error(L, "GL error: glCreateShader: an error occurs creating the shader object.");
         }
 
         int error = errorCheck(L);
@@ -256,7 +259,7 @@ extern "C"
         lua_pushinteger(L, val);
 
         return 1;
-    }    
+    }
 
     static int shaderSource(lua_State *L)
     {
@@ -267,10 +270,30 @@ extern "C"
 
 #if _DEBUG
         printf("GL shaderSource: len:%d, %.100s...\n", length, line);
-#endif        
 
-	    //glShaderSource(shader, 1, &line, &length);
-        glShaderSource(shader, 1, &line, NULL);
+        int lineNumber = 0, charNumber = 0;
+        for (int i = 0; i < length; i++)
+        {
+            unsigned int l = line[i];
+            unsigned int c = 128;
+            if (l > c)
+            {
+                printf("Ln: %d,%d: (indx:%d):%d = %c\n", lineNumber, charNumber, i, line[i], line[i]);
+            }
+
+            if (l == '\n')
+            {
+                charNumber = 0;
+                lineNumber++;
+            }
+            else 
+            {
+                charNumber++;
+            }
+        }
+#endif
+
+        glShaderSource(shader, 1, &line, &length);
 
         int error = errorCheck(L);
         if (error)
@@ -285,7 +308,7 @@ extern "C"
     {
         const GLuint value = luaL_checkinteger(L, 1);
 
-	    glCompileShader(value);
+        glCompileShader(value);
 
         int error = errorCheck(L);
         if (error)
@@ -301,12 +324,13 @@ extern "C"
         const GLenum pname = luaL_checkinteger(L, 1);
 
 #if _DEBUG
-            printf("getParameter %d ... getting value as int\n", pname);
-#endif   
+        printf("getParameter %d ... getting value as int\n", pname);
+#endif
 
         GLint valint;
         glGetIntegerv(pname, &valint);
-        if (glGetError() != GL_INVALID_ENUM) {
+        if (glGetError() != GL_INVALID_ENUM)
+        {
             int error = errorCheck(L);
             if (error)
             {
@@ -315,19 +339,20 @@ extern "C"
 
 #if _DEBUG
             printf("getParameter %d (int) = %d\n", pname, valint);
-#endif            
+#endif
 
             lua_pushinteger(L, valint);
             return 1;
         }
 
 #if _DEBUG
-            printf("getParameter %d ... getting value as int64\n", pname);
-#endif   
+        printf("getParameter %d ... getting value as int64\n", pname);
+#endif
 
         GLint64 valint64;
         glGetInteger64v(pname, &valint64);
-        if (glGetError() != GL_INVALID_ENUM) {
+        if (glGetError() != GL_INVALID_ENUM)
+        {
             int error = errorCheck(L);
             if (error)
             {
@@ -336,19 +361,20 @@ extern "C"
 
 #if _DEBUG
             printf("getParameter %d (int64) = %d\n", pname, valint64);
-#endif            
+#endif
 
             lua_pushinteger(L, valint64);
             return 1;
         }
 
 #if _DEBUG
-            printf("getParameter %d ... getting value as float\n", pname);
-#endif   
+        printf("getParameter %d ... getting value as float\n", pname);
+#endif
 
         GLfloat valfloat;
         glGetFloatv(pname, &valfloat);
-        if (glGetError() != GL_INVALID_ENUM) {
+        if (glGetError() != GL_INVALID_ENUM)
+        {
             int error = errorCheck(L);
             if (error)
             {
@@ -357,19 +383,20 @@ extern "C"
 
 #if _DEBUG
             printf("getParameter %d (float) = %f\n", pname, valfloat);
-#endif     
+#endif
 
             lua_pushnumber(L, valfloat);
             return 1;
         }
 
 #if _DEBUG
-            printf("getParameter %d ... getting value as double\n", pname);
-#endif   
+        printf("getParameter %d ... getting value as double\n", pname);
+#endif
 
         GLdouble valdouble;
         glGetDoublev(pname, &valdouble);
-        if (glGetError() != GL_INVALID_ENUM) {
+        if (glGetError() != GL_INVALID_ENUM)
+        {
             int error = errorCheck(L);
             if (error)
             {
@@ -378,33 +405,34 @@ extern "C"
 
 #if _DEBUG
             printf("getParameter %d (double) = %f\n", pname, valdouble);
-#endif                 
+#endif
 
             lua_pushnumber(L, valdouble);
             return 1;
         }
 
 #if _DEBUG
-            printf("getParameter %d ... getting value as string\n", pname);
-#endif   
+        printf("getParameter %d ... getting value as string\n", pname);
+#endif
 
-        const char* str = glGetString(pname);
-        if (glGetError() != GL_INVALID_ENUM && str) {
+        const char *str = glGetString(pname);
+        if (glGetError() != GL_INVALID_ENUM && str)
+        {
 #if _DEBUG
             printf("getParameter %d (str) = %s\n", pname, str);
-#endif      
- 
+#endif
+
             lua_pushstring(L, str);
             return 1;
         }
 
 #if _DEBUG
         printf("getParameter %s (no value)\n", pname);
-#endif   
+#endif
         lua_pushinteger(L, 0);
 
         return 1;
-    }      
+    }
 
     static int getShaderParameter(lua_State *L)
     {
@@ -423,7 +451,7 @@ extern "C"
         lua_pushinteger(L, val);
 
         return 1;
-    }      
+    }
 
     static int getShaderInfoLog(lua_State *L)
     {
@@ -437,14 +465,14 @@ extern "C"
             return error;
         }
 
-        if (val == -1 || val == 0)  
+        if (val == -1 || val == 0)
         {
             // XXX GL Error? should never happen.
             lua_pushstring(L, "");
             return 1;
         }
 
-        char* result = (char *)lua_newuserdata(L, val + 1);
+        char *result = (char *)lua_newuserdata(L, val + 1);
         glGetShaderInfoLog(shader, val, &val, result);
         error = errorCheck(L);
         if (error)
@@ -454,8 +482,8 @@ extern "C"
 
         lua_pushstring(L, result);
 
-        return 1; 
-    }  
+        return 1;
+    }
 
     static int createProgram(lua_State *L)
     {
@@ -470,7 +498,7 @@ extern "C"
         lua_pushinteger(L, val);
 
         return 1;
-    }    
+    }
 
     static int attachShader(lua_State *L)
     {
@@ -486,7 +514,7 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int linkProgram(lua_State *L)
     {
@@ -501,7 +529,7 @@ extern "C"
         }
 
         return 0;
-    }        
+    }
 
     static int getProgramParameter(lua_State *L)
     {
@@ -524,7 +552,39 @@ extern "C"
         lua_pushinteger(L, val);
 
         return 1;
-    }        
+    }
+
+    static int getProgramInfoLog(lua_State *L)
+    {
+        const GLuint shader = luaL_checkinteger(L, 1);
+
+        GLint val;
+        glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &val);
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        if (val == -1 || val == 0)
+        {
+            // XXX GL Error? should never happen.
+            lua_pushstring(L, "");
+            return 1;
+        }
+
+        char *result = (char *)lua_newuserdata(L, val + 1);
+        glGetProgramInfoLog(shader, val, &val, result);
+        error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushstring(L, result);
+
+        return 1;
+    }
 
     static int deleteShader(lua_State *L)
     {
@@ -539,7 +599,7 @@ extern "C"
         }
 
         return 0;
-    }        
+    }
 
     static int deleteProgram(lua_State *L)
     {
@@ -554,18 +614,18 @@ extern "C"
         }
 
         return 0;
-    }        
+    }
 
     static int getUniformBlockIndex(lua_State *L)
     {
         const GLuint program = luaL_checkinteger(L, 1);
-        const char* uniformBlockName = luaL_checkstring(L, 2);
+        const char *uniformBlockName = luaL_checkstring(L, 2);
 
         const GLuint result = glGetUniformBlockIndex(program, uniformBlockName);
-        if (result == GL_INVALID_INDEX) 
+        if (result == GL_INVALID_INDEX)
         {
             printf("GL error: glGetUniformBlockIndex: (%s) returns GL_INVALID_INDEX.\n", uniformBlockName);
-            return luaL_error(L, "GL error: glGetUniformBlockIndex (%s) returns GL_INVALID_INDEX", uniformBlockName);            
+            return luaL_error(L, "GL error: glGetUniformBlockIndex (%s) returns GL_INVALID_INDEX", uniformBlockName);
         }
 
         int error = errorCheck(L);
@@ -576,7 +636,7 @@ extern "C"
 
         lua_pushinteger(L, result);
 
-        return 1;        
+        return 1;
     }
 
     static int uniformBlockBinding(lua_State *L)
@@ -594,12 +654,12 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int getUniformLocation(lua_State *L)
     {
         const GLuint program = luaL_checkinteger(L, 1);
-        const char* name = luaL_checkstring(L, 2);
+        const char *name = luaL_checkstring(L, 2);
 
         GLint result = glGetUniformLocation(program, name);
 
@@ -612,12 +672,12 @@ extern "C"
         lua_pushinteger(L, result);
 
         return 1;
-    }  
+    }
 
     static int getAttribLocation(lua_State *L)
     {
         const GLuint program = luaL_checkinteger(L, 1);
-        const char* name = luaL_checkstring(L, 2);
+        const char *name = luaL_checkstring(L, 2);
 
         GLint result = glGetAttribLocation(program, name);
 
@@ -629,8 +689,8 @@ extern "C"
 
         lua_pushinteger(L, result);
 
-        return 1; 
-    }      
+        return 1;
+    }
 
     static int useProgram(lua_State *L)
     {
@@ -645,7 +705,7 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int validateProgram(lua_State *L)
     {
@@ -660,26 +720,29 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int createVertexArray(lua_State *L)
     {
         GLuint arrays;
-        if (higherOrEqual(4, 5)) {
-#if _DEBUG        
-        printf("createVertexArray...\n");
-#endif             
+        if (higherOrEqual(4, 5))
+        {
+#if _DEBUG
+            printf("createVertexArray...\n");
+#endif
             glCreateVertexArrays(1, &arrays);
-        } else {
-#if _DEBUG        
-        printf("glGenVertexArrays...\n");
-#endif               
+        }
+        else
+        {
+#if _DEBUG
+            printf("glGenVertexArrays...\n");
+#endif
             glGenVertexArrays(1, &arrays);
         }
 
-#if _DEBUG        
+#if _DEBUG
         printf("createVertexArray... result: %d\n", arrays);
-#endif        
+#endif
 
         int error = errorCheck(L);
         if (error)
@@ -690,11 +753,11 @@ extern "C"
         lua_pushinteger(L, arrays);
 
         return 1;
-    }        
+    }
 
     static int bindVertexArray(lua_State *L)
     {
-        const GLuint array = luaL_checkinteger(L, 1) ;
+        const GLuint array = luaL_checkinteger(L, 1);
         glBindVertexArray(array);
 
         int error = errorCheck(L);
@@ -703,12 +766,12 @@ extern "C"
             return error;
         }
 
-        return 0;        
+        return 0;
     }
 
     static int enableVertexAttribArray(lua_State *L)
     {
-        const GLuint array = luaL_checkinteger(L, 1) ;
+        const GLuint array = luaL_checkinteger(L, 1);
         glEnableVertexAttribArray(array);
 
         int error = errorCheck(L);
@@ -717,12 +780,12 @@ extern "C"
             return error;
         }
 
-        return 0;        
+        return 0;
     }
 
     static int disableVertexAttribArray(lua_State *L)
     {
-        const GLuint array = luaL_checkinteger(L, 1) ;
+        const GLuint array = luaL_checkinteger(L, 1);
         glDisableVertexAttribArray(array);
 
         int error = errorCheck(L);
@@ -731,17 +794,17 @@ extern "C"
             return error;
         }
 
-        return 0;        
-    }    
+        return 0;
+    }
 
     static int vertexAttribPointer(lua_State *L)
     {
         const GLuint index = luaL_checkinteger(L, 1);
- 	    const GLint size = luaL_checkinteger(L, 2);
- 	    const GLenum type = luaL_checkinteger(L, 3);
+        const GLint size = luaL_checkinteger(L, 2);
+        const GLenum type = luaL_checkinteger(L, 3);
         const GLboolean normalized = lua_toboolean(L, 4);
- 	    const GLsizei stride = luaL_checkinteger(L, 5);
- 	    const GLvoid * pointer = luaL_checkinteger(L, 6);
+        const GLsizei stride = luaL_checkinteger(L, 5);
+        const GLvoid *pointer = luaL_checkinteger(L, 6);
 
         glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 
@@ -751,8 +814,8 @@ extern "C"
             return error;
         }
 
-        return 0;        
-    }    
+        return 0;
+    }
 
     static int bindBuffer(lua_State *L)
     {
@@ -785,7 +848,8 @@ extern "C"
         return 0;
     }
 
-    typedef struct ArrayContainerType {
+    typedef struct ArrayContainerType
+    {
         size_t bytesLength;
         unsigned char data[1];
     } ArrayContainer;
@@ -799,13 +863,13 @@ extern "C"
 
         target = luaL_checkinteger(L, 1);
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = lua_topointer(L, 2);
+            ArrayContainer *userdata = lua_topointer(L, 2);
             len = userdata->bytesLength;
             data = &userdata->data;
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument, <number>, <user_data>, <number>");
         }
@@ -834,13 +898,13 @@ extern "C"
         target = luaL_checkinteger(L, 1);
         offset = luaL_checkinteger(L, 2);
 
-        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = lua_topointer(L, 3);
+            ArrayContainer *userdata = lua_topointer(L, 3);
             len = userdata->bytesLength;
             data = &userdata->data;
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument, <number>, <number>, <user_data>");
         }
@@ -854,27 +918,27 @@ extern "C"
         }
 
         return 0;
-    }    
-    
+    }
+
     static int uniformMatrix2fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
         const GLboolean transpose = lua_toboolean(L, 2);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat) / 4 /*to get couint of matrixes*/;
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniformMatrix2fv(location, count, transpose, value);
 
@@ -885,27 +949,27 @@ extern "C"
         }
 
         return 0;
-    }   
+    }
 
     static int uniformMatrix3fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
         const GLboolean transpose = lua_toboolean(L, 2);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat) / 9 /*to get couint of matrixes*/;
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniformMatrix3fv(location, count, transpose, value);
 
@@ -916,31 +980,31 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int uniformMatrix4fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
         const GLboolean transpose = lua_toboolean(L, 2);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 3) == LUA_TUSERDATA) 
+        if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 3);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat) / 16 /*to get couint of matrixes*/;
 
 #if _DEBUG
-        printf("glUniformMatrix4fv count=%d, size=%d (len=%d))\n", count, sizeof(GLfloat), len);
-#endif            
-        } 
-        else 
+            printf("glUniformMatrix4fv count=%d, size=%d (len=%d))\n", count, sizeof(GLfloat), len);
+#endif
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
 #if _DEBUG
         printf("glUniformMatrix4fv (location=%d, count=%d(len=%d), value=%d)\n", location, count, len, value);
@@ -955,7 +1019,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int depthMask(lua_State *L)
     {
@@ -985,7 +1049,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int stencilMask(lua_State *L)
     {
@@ -1000,13 +1064,13 @@ extern "C"
         }
 
         return 0;
-    }       
+    }
 
     static int stencilFunc(lua_State *L)
     {
         const GLenum func = luaL_checkinteger(L, 1);
- 	    const GLint ref = luaL_checkinteger(L, 2);
- 	    const GLuint mask = luaL_checkinteger(L, 2);
+        const GLint ref = luaL_checkinteger(L, 2);
+        const GLuint mask = luaL_checkinteger(L, 2);
 
         glStencilFunc(func, ref, mask);
 
@@ -1017,13 +1081,13 @@ extern "C"
         }
 
         return 0;
-    }      
+    }
 
     static int stencilOp(lua_State *L)
     {
         const GLenum sfail = luaL_checkinteger(L, 1);
- 	    const GLenum dpfail = luaL_checkinteger(L, 2);
- 	    const GLenum dppass = luaL_checkinteger(L, 2);
+        const GLenum dpfail = luaL_checkinteger(L, 2);
+        const GLenum dppass = luaL_checkinteger(L, 2);
 
         glStencilOp(sfail, dpfail, dppass);
 
@@ -1034,7 +1098,7 @@ extern "C"
         }
 
         return 0;
-    }        
+    }
 
     static int enable(lua_State *L)
     {
@@ -1049,7 +1113,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int disable(lua_State *L)
     {
@@ -1064,7 +1128,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform1i(lua_State *L)
     {
@@ -1080,7 +1144,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform2i(lua_State *L)
     {
@@ -1097,7 +1161,7 @@ extern "C"
         }
 
         return 0;
-    } 
+    }
 
     static int uniform3i(lua_State *L)
     {
@@ -1115,7 +1179,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform4i(lua_State *L)
     {
@@ -1134,7 +1198,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform1f(lua_State *L)
     {
@@ -1150,7 +1214,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform2f(lua_State *L)
     {
@@ -1167,7 +1231,7 @@ extern "C"
         }
 
         return 0;
-    } 
+    }
 
     static int uniform3f(lua_State *L)
     {
@@ -1185,7 +1249,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform4f(lua_State *L)
     {
@@ -1204,26 +1268,26 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int uniform1iv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLint* value;
+        GLint *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLint);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform1iv(location, count, value);
 
@@ -1234,26 +1298,26 @@ extern "C"
         }
 
         return 0;
-    }   
+    }
 
     static int uniform2iv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLint* value;
+        GLint *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLint);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform2iv(location, count, value);
 
@@ -1264,26 +1328,26 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int uniform3iv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLint* value;
+        GLint *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLint);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform3iv(location, count, value);
 
@@ -1294,26 +1358,26 @@ extern "C"
         }
 
         return 0;
-    } 
+    }
 
     static int uniform4iv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLint* value;
+        GLint *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLint);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform4iv(location, count, value);
 
@@ -1324,26 +1388,26 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int uniform1fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform1fv(location, count, value);
 
@@ -1354,26 +1418,26 @@ extern "C"
         }
 
         return 0;
-    }   
+    }
 
     static int uniform2fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform2fv(location, count, value);
 
@@ -1384,26 +1448,26 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int uniform3fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform3fv(location, count, value);
 
@@ -1414,26 +1478,26 @@ extern "C"
         }
 
         return 0;
-    } 
+    }
 
     static int uniform4fv(lua_State *L)
     {
         const location = luaL_checkinteger(L, 1);
-        GLfloat* value;
+        GLfloat *value;
         GLsizei count;
         GLsizei len;
 
-        if (lua_type(L, 2) == LUA_TUSERDATA) 
+        if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer* userdata = (ArrayContainer*) lua_topointer(L, 2);
+            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
             len = userdata->bytesLength;
             value = &userdata->data;
             count = len / sizeof(GLfloat);
-        } 
-        else 
+        }
+        else
         {
             return luaL_argerror(L, 2, "Bad argument LUA_TUSERDATA needed");
-        }        
+        }
 
         glUniform4fv(location, count, value);
 
@@ -1444,7 +1508,7 @@ extern "C"
         }
 
         return 0;
-    }  
+    }
 
     static int cullFace(lua_State *L)
     {
@@ -1459,7 +1523,7 @@ extern "C"
         }
 
         return 0;
-    }    
+    }
 
     static int frontFace(lua_State *L)
     {
@@ -1474,14 +1538,14 @@ extern "C"
         }
 
         return 0;
-    }     
+    }
 
     static int drawElements(lua_State *L)
     {
         const GLenum mode = luaL_checkinteger(L, 1);
         const GLsizei count = luaL_checkinteger(L, 2);
         const GLenum type = luaL_checkinteger(L, 3);
-        const GLvoid * indices = luaL_checkinteger(L, 4);
+        const GLvoid *indices = luaL_checkinteger(L, 4);
 
         glDrawElements(mode, count, type, indices);
 
@@ -1492,7 +1556,7 @@ extern "C"
         }
 
         return 0;
-    }        
+    }
 
     typedef struct ConstPair
     {
@@ -1832,6 +1896,7 @@ extern "C"
         {"getShaderParameter", getShaderParameter},
         {"getShaderInfoLog", getShaderInfoLog},
         {"createProgram", createProgram},
+        {"getProgramInfoLog", getProgramInfoLog},
         {"attachShader", attachShader},
         {"linkProgram", linkProgram},
         {"getProgramParameter", getProgramParameter},
