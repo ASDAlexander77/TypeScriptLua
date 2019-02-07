@@ -1,4 +1,4 @@
-@call clean_bs.bat
+@call clean_bs.bat .\BABYLON
 
 echo =
 echo ==================================
@@ -19,6 +19,7 @@ echo ==================================
 echo =
 echo =
 
+cd ..\..\..\experiments\BABYLON
 xcopy /S ..\..\thirdparty\Babylon.js\src\*.lua .\BABYLON\
 xcopy /S ..\..\thirdparty\Babylon.js\src\*.lua.map .\BABYLON\
 
@@ -32,6 +33,7 @@ echo =
 echo =
 
 xcopy /S /Y ..\..\thirdparty\Babylon.js\src\Shaders .\Shaders\
+
 
 @call copy_js.bat
 

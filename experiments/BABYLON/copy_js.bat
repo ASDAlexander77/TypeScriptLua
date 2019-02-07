@@ -5,7 +5,7 @@ echo ==================================
 echo =
 echo =
 
-cd ..\..\..\experiments\jslib
+cd ..\jslib
 node ../../__out/main.js -singleModule
 cd ../BABYLON
 
