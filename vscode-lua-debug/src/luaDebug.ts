@@ -336,7 +336,9 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         if (this._dumpInProgress) {
             await this._dumpInProgress.wait(3000);
-            this._dumpInProgress = null;
+            response.success = false;
+            this.sendResponse(response);
+            return;
         }
 
         const dumpInProgress = this._dumpInProgress = new Subject();
@@ -356,12 +358,17 @@ export class LuaDebugSession extends LoggingDebugSession {
             variableName = id;
         }
 
-        const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
+        try {
+            const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
 
-        if (variables) {
-            response.body = {
-                variables: variables
-            };
+            if (variables) {
+                response.body = {
+                    variables: variables
+                };
+            }
+        }
+        catch (e) {
+            response.success = false;
         }
 
         dumpInProgress.notify();
@@ -415,7 +422,9 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         if (this._dumpInProgress) {
             await this._dumpInProgress.wait(3000);
-            this._dumpInProgress = null;
+            response.success = false;
+            this.sendResponse(response);
+            return;
         }
 
         const dumpInProgress = this._dumpInProgress = new Subject();
@@ -423,19 +432,24 @@ export class LuaDebugSession extends LoggingDebugSession {
         let variableName = args.expression;
         let variableType = VariableTypes.SingleVariable;
 
-        const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles, true);
-        if (variables) {
-            response.body = {
-                result: variables[0].value,
-                variablesReference: variables[0].variablesReference
-            };
-        } else if (args.context === 'repl') {
-            // run statement
-            await this._runtime.runStatement(variableName);
-            response.body = {
-                result: "done.",
-                variablesReference: 0
-            };
+        try {
+            const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles, true);
+            if (variables) {
+                response.body = {
+                    result: variables[0].value,
+                    variablesReference: variables[0].variablesReference
+                };
+            } else if (args.context === 'repl') {
+                // run statement
+                await this._runtime.runStatement(variableName);
+                response.body = {
+                    result: "done.",
+                    variablesReference: 0
+                };
+            }
+        }
+        catch (e) {
+            response.success = false;
         }
 
         dumpInProgress.notify();

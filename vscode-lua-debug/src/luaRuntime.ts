@@ -740,7 +740,9 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                     objects.push(currentObject);
                     paths.push(path);
 
-                    currentObject = currentObject[name].value;
+                    if (currentObject) {
+                        currentObject = currentObject[name].value;
+                    }
                 } else {
                     let type = "any";
                     if (isString) {
@@ -760,13 +762,15 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         }
                     }
 
-                    currentObject[name] = {
-                        name,
-                        level,
-                        path,
-                        value,
-                        type
-                    };
+                    if (currentObject) {
+                        currentObject[name] = {
+                            name,
+                            level,
+                            path,
+                            value,
+                            type
+                        };
+                    }
                 }
             } else {
 
@@ -871,6 +875,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
         catch (e) {
             console.error(e);
+            throw e;
         }
     }
 
@@ -921,27 +926,37 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         }
     }
 
-    private async readAsync(timeout: number = 6000) {
+    private async readAsync(timeout: number = 3000) {
         return new Promise((resolve, reject) => {
             let timerId;
-            this._exe.stdout.on('data', (data) => {
+            const cbData = (data) => {
                 if (timerId) {
                     clearTimeout(timerId);
                 }
 
+                this._exe.stdout.removeListener('data', cbError);
                 resolve(data);
-            });
+            };
+            this._exe.stdout.prependOnceListener('data', cbData);
 
-            this._exe.stdout.on('error', (e) => {
+            const cbError = (e) => {
                 if (timerId) {
                     clearTimeout(timerId);
                 }
 
+                this._exe.stdout.removeListener('data', cbData);
                 reject(e);
-            });
+            };
+            this._exe.stdout.prependOnceListener('error', cbError);
 
             if (timeout) {
-                timerId = setTimeout(() => reject('read timeout'), timeout);
+                timerId = setTimeout(() =>
+                {
+                    this._exe.stdout.removeListener('data', cbData);
+                    this._exe.stdout.removeListener('data', cbError);
+                    reject('read timeout');
+                },
+                timeout);
             }
         });
     }
