@@ -136,8 +136,14 @@ class LuaCommands {
         await this.flush();
     }
 
-    public async stack() {
-        await this.writeLineAsync(`trace`);
+    public async stack(startFrame: number, endFrame: number) {
+        if (startFrame || endFrame) {
+            await this.writeLineAsync(`trace ${startFrame} ${endFrame}`);
+        }
+        else {
+            await this.writeLineAsync(`trace`);
+        }
+
         await this.flush();
     }
 
@@ -260,6 +266,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private _lastErrorStack: string | null;
     private _errorOutputInProgress: boolean;
     private _frames: StartFrameInfo[] | null;
+    private _totalFrames: number | null;
     private _errorFrames: StartFrameInfo[] | null;
 
     private stackTrace: string;
@@ -312,6 +319,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     }
 
     public dropStackTrace(): void {
+        this._totalFrames = null;
         this._frames = null;
     }
 
@@ -553,11 +561,13 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     }
 
     public async stack(startFrame: number, endFrame: number): Promise<StartFrameInfos> {
-        if (!this._frames) {
+
+        if (!this._frames || !this._frames.some(f => f.index >= startFrame && f.index <= endFrame)) {
             const parseLine = /(\[DEBUG\]\>\s)?(\[(\d+)\])?(\*\*\*)?\s+([^\s]*)\sin\s(.*)/;
             const parseFileNameAndLine = /(.*):(\d+)$/;
+            const totalRe = /(\[DEBUG\]\>\s)?(\[(\d+)\])?\s+\<TOTAL\>(.*)/;
 
-            await this._commands.stack();
+            await this._commands.stack(startFrame, endFrame);
 
             const frames = new Array<StartFrameInfo>();
             // every word of the current line becomes a stack frame.
@@ -590,6 +600,11 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                             });
                         }
                     }
+                } else {
+                    const totalValues = totalRe.exec(line);
+                    if (totalValues) {
+                        this._totalFrames = parseInt(totalValues[3]);
+                    }
                 }
             });
 
@@ -600,7 +615,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
         return <StartFrameInfos>{
             frames: windowFrames,
-            count: this._frames.length
+            count: this._totalFrames || this._frames.length
         };
     }
 

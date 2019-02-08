@@ -265,7 +265,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         const maxLevels = typeof args.levels === 'number' ? args.levels : 1000;
         const endFrame = startFrame + maxLevels;
 
-        const stk = await this.getStackTrace(startFrame, endFrame);
+        const stk = await this.getStackTrace(startFrame + 1, endFrame + 1);
 
         response.body = {
             stackFrames: stk.frames

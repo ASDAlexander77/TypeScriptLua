@@ -427,7 +427,8 @@ local function dumpval( level, name, value, limit )
       if (limit or 0) > 0 and level+1 >= limit then
         indented( level, index, dumpvisited[value] )
       else
-        indented( level, index, '{  -- ', dumpvisited[value] )
+		--indented( level, index, '{  -- ', dumpvisited[value] )
+		indented( level, index, '{  -- ', 'table ...' )
         for n,v in pairs(value) do
           dumpval( level+1, n, v, limit )
         end
@@ -565,15 +566,25 @@ end
 --}}}
 --{{{  local function trace()
 
-local function trace(set)
+local function trace(set, from, to)
   local mark
+  local notset = not (from > 0 and to > 0)
+  local max = 0
   for level,ar in ipairs(traceinfo) do
-    if level == set then
-      mark = '***'
-    else
-      mark = ''
+    if notset or (level >= from and level <= to) then
+      if level == set then
+        mark = '***'
+      else
+        mark = ''
+      end
+      io.write('['..level..']'..mark..'\t'..(ar.name or ar.what)..' in '..ar.short_src..':'..ar.currentline..'\n')
     end
-    io.write('['..level..']'..mark..'\t'..(ar.name or ar.what)..' in '..ar.short_src..':'..ar.currentline..'\n')
+    if level > max then
+      max = level
+    end
+  end
+  if (not notset) and max > 0 then
+      io.write('['..max..']'..' <TOTAL>\n')
   end
 end
 
@@ -1189,7 +1200,8 @@ local function debugger_loop(ev, vars, file, line, idx_watch)
 
     elseif command == "trace" then
       --{{{  dump a stack trace
-      trace(eval_env.__VARSLEVEL__)
+      local from, to = getargs('NN')
+      trace(eval_env.__VARSLEVEL__, from, to)
       --}}}
 
     elseif command == "info" then
