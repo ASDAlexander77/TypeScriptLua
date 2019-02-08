@@ -33,8 +33,12 @@ module JS {
             return (table.pack(string.find(constString, pattern, (begin || 0) + 1, true))[1] || 0) - 1;
         }
 
-        public static search(constString: string, pattern: RegExp, begin?: number): number {
-            return table.pack(string.find(constString, pattern.__getLuaPattern(), (begin || 0) + 1))[1] || -1;
+        public static search(constString: string, pattern: string | RegExp, begin?: number): number {
+            if (typeof pattern == 'string') {
+                table.pack(string.find(constString, pattern, (begin || 0) + 1, true))[1] || -1;
+            }
+
+            return table.pack(string.find(constString, (<RegExp>pattern).__getLuaPattern(), (begin || 0) + 1))[1] || -1;
         }
 
         public static toLowerCase(constString: string): string {

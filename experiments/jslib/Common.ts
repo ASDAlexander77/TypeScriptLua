@@ -7,12 +7,12 @@ function decodeURIComponent(s: string) {
 }
 
 function parseInt(v: any) {
-    if (!v) {
+    if (!(<object>v)) {
         return 0 / 0;
     }
 
     const num = tonumber(v);
-    if (!num) {
+    if (!(<object>num)) {
         return 0 / 0;
     }
 
@@ -20,12 +20,12 @@ function parseInt(v: any) {
 }
 
 function parseFloat(v: any) {
-    if (!v) {
+    if (!(<object>v)) {
         return 0 / 0;
     }
 
     const num = tonumber(v);
-    if (!num) {
+    if (!(<object>num)) {
         return 0 / 0;
     }
 
