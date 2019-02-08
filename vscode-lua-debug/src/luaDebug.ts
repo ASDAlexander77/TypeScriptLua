@@ -378,7 +378,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
         catch (e) {
             response.success = false;
-            response.message = "Can't retrieve " + (variableName || "") + ": " + e.message;
+            response.message = "Can't retrieve '" + (variableName || "") + "'";
         }
 
         dumpInProgress.notify();
