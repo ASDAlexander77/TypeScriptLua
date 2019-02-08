@@ -1,19 +1,15 @@
 import './JS';
 
-var sourceCode = '#ifdef TANGENT    \
-vec4 tangentUpdated = tangent;   \
-#endif  \
-\
-#include<morphTargetsVertex>[0..maxSimultaneousMorphTargets]    \
-\
-#ifdef REFLECTIONMAP_SKYBOX \
-#ifdef REFLECTIONMAP_SKYBOX_TRANSFORMED';
+const a = [1, "2", "3"];
 
-var regex = /#include<(.+)>(\((.*)\))*(\[(.*)\])*/g;
-var match = regex.exec(sourceCode);
+console.log(a.join());
 
-while (match != null) {
-    var val = match[1];
-    console.log(val);
-    match = regex.exec(sourceCode);
+console.log(a.map(function (v: any): string {
+    return v + "_";
+}));
+
+console.log(a);
+
+for (const i of a) {
+    console.log(i);
 }

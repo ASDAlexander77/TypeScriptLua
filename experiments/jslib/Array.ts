@@ -25,6 +25,14 @@ module JS {
 
         [k: number]: T;
 
+        private __tostring: () => string;
+
+        public constructor() {
+            this.__tostring = function (): string {
+                return this.join();
+            };
+        }
+
         public push(...objs: T[]) {
             for (const obj of objs) {
                 if (!this[0]) {
@@ -68,6 +76,28 @@ module JS {
             return -1;
         }
 
+        public join(): string {
+            // shift elements
+            table.insert(this, 1, this[0]);
+            const result = table.concat(this);
+            table.remove(this, 1);
+            return result;
+        }
+
+        public shift(): T {
+            return (this[0] = table.remove(this, 1));
+        }
+
+        public unshift(...objs: T[]) {
+            for (const obj of objs) {
+                if (!this[0]) {
+                    table.insert(this, 1, this[0]);
+                }
+
+                this[0] = obj;
+            }
+        }
+
         public concat(other: T[]): T[] {
             const ret = new Array<T>();
 
@@ -90,6 +120,59 @@ module JS {
             }
 
             return ret;
+        }
+
+        public map(func: (currentValue: T, index: number, arr: T[]) => T, thisValue?: any): T[] {
+            const ret = new Array<T>();
+
+            let index = 0;
+            for (const val of this) {
+                const obj = func(val, index++, this);
+                if (!ret[0]) {
+                    ret[0] = obj;
+                    continue;
+                }
+
+                table.insert(ret, obj);
+            }
+
+            return ret;
+        }
+
+        public filter(func: (currentValue: T, index: number, arr: T[]) => boolean, thisValue?: any): T[] {
+            const ret = new Array<T>();
+
+            let index = 0;
+            for (const val of this) {
+                const iftrue = func(val, index++, this);
+                if (iftrue) {
+                    if (!ret[0]) {
+                        ret[0] = val;
+                        continue;
+                    }
+
+                    table.insert(ret, val);
+                }
+            }
+
+            return ret;
+        }
+
+        public forEach(func: (currentValue: T, index: number, arr: T[]) => void, thisValue?: any): void {
+            let index = 0;
+            for (const val of this) {
+                func(val, index++, this);
+            }
+        }
+
+        public every(func: (currentValue: T, index: number, arr: T[]) => boolean, thisValue?: any): void {
+            let index = 0;
+            let result = true;
+            for (const val of this) {
+                result &= func(val, index++, this);
+            }
+
+            return result;
         }
 
         public splice(index: number, howmany?: number, ...items: T[]): T[] {

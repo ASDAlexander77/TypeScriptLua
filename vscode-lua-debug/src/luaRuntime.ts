@@ -141,6 +141,13 @@ class LuaCommands {
         await this.flush();
     }
 
+    public async setFrameId(id: number) {
+        console.log("#: setFrameId - " + id);
+
+        await this.writeLineAsync("set " + id);
+        await this.flush();
+    }
+
     public async dumpVariables(variableType: VariableTypes, variableName: string | undefined) {
         let vars;
         switch (variableType) {
@@ -559,7 +566,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                 // parse output
                 const values = parseLine.exec(line);
                 if (values) {
-                    const index = values[3];
+                    const index = parseInt(values[3]);
                     //const isActive = values[4];
                     const functionName = values[5];
                     const location = values[6];
@@ -576,7 +583,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
 
                         if (fileName !== "stdin" && fileName !== "C") {
                             frames.push(<StartFrameInfo>{
-                                index: frames.length,
+                                index: index,
                                 name: `${functionName}(${index})`,
                                 file: fileName,
                                 line: parseInt(locationValues[2])
@@ -653,6 +660,10 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             frames: windowFrames,
             count: this._errorFrames.length
         };
+    }
+
+    public async setFrameId(frameId: number) {
+        await this._commands.setFrameId(frameId);
     }
 
     public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
@@ -1125,6 +1136,10 @@ export class LuaRuntime extends EventEmitter {
 
     public getErrorStack(): string {
         return this._luaExe.HasError ? this._luaExe.LastErrorStack || '' : '';
+    }
+
+    public async setFrameId(frameId: number) {
+        return await this._luaExe.setFrameId(frameId);
     }
 
     public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {

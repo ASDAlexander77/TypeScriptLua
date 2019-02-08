@@ -337,6 +337,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         if (this._dumpInProgress) {
             await this._dumpInProgress.wait(3000);
             response.success = false;
+            response.message = "Can't retrieve, the debugger is busy";
             this.sendResponse(response);
             return;
         }
@@ -345,20 +346,28 @@ export class LuaDebugSession extends LoggingDebugSession {
 
         const id = this._variableHandles.get(args.variablesReference);
 
+        let frameId = -1;
         let variableName;
         let variableType = VariableTypes.Local;
-        if (id.startsWith("::local")) {
+        if (id.startsWith("::local:")) {
             variableType = VariableTypes.Local;
-        } else if (id.startsWith("::global")) {
+            frameId = parseInt(id.substr("::local:".length));
+        } else if (id.startsWith("::global:")) {
             variableType = VariableTypes.Global;
-        } else if (id.startsWith("::environment")) {
+            frameId = parseInt(id.substr("::global:".length));
+        } else if (id.startsWith("::environment:")) {
             variableType = VariableTypes.Environment;
+            frameId = parseInt(id.substr("::environment:".length));
         } else {
             variableType = VariableTypes.SingleVariable;
             variableName = id;
         }
 
         try {
+            if (frameId >= 0) {
+                await this._runtime.setFrameId(frameId);
+            }
+
             const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
 
             if (variables) {
@@ -369,6 +378,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
         catch (e) {
             response.success = false;
+            response.message = "Can't retrieve " + (variableName || "") + ": " + e.message;
         }
 
         dumpInProgress.notify();
@@ -423,6 +433,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         if (this._dumpInProgress) {
             await this._dumpInProgress.wait(3000);
             response.success = false;
+            response.message = "Can't retrieve, the debugger is busy";
             this.sendResponse(response);
             return;
         }
@@ -450,6 +461,7 @@ export class LuaDebugSession extends LoggingDebugSession {
         }
         catch (e) {
             response.success = false;
+            response.message = "Can't retrieve " + (variableName || "") + ": " + e.message;
         }
 
         dumpInProgress.notify();
