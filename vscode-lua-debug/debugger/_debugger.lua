@@ -423,13 +423,13 @@ local function dumpval( level, name, value, limit )
     if dumpvisited[value] then
       indented( level, index, string.format('ref%q;',dumpvisited[value]) )
     else
-	  if (limit or 0) > 0 and level+1 >= limit then
-	    -- TODO: ASD = My fix
-	    dumpvisited[value] = tostring(value)
-        indented( level, index, dumpvisited[value] )
+      -- dumpvisited[value] = tostring(value)
+	    if (limit or 0) > 0 and level+1 >= limit then
+        --indented( level, index, dumpvisited[value] )
+        indented( level, index, 'table: {...}' )
       else
-		--indented( level, index, '{  -- ', dumpvisited[value] )
-		indented( level, index, '{  -- ', 'table ...' )
+		    -- indented( level, index, '{  -- ', dumpvisited[value] )
+		    indented( level, index, '{  -- ', 'table' )
         for n,v in pairs(value) do
           dumpval( level+1, n, v, limit )
         end
