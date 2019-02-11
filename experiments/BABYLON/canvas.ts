@@ -1,5 +1,6 @@
 // @ts-ignore
 import _gl from 'webgl';
+import WindowEx from 'window';
 
 // @ts-ignore
 export default class Canvas extends _gl implements WebGLRenderingContext {
@@ -16,6 +17,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     addEventListener(eventName: string, cb: any, flag: boolean): void {
+        window.addEventListener(eventName, cb, flag);
     }
 
     // @ts-ignore
@@ -35,9 +37,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createVertexArray(): WebGLVertexArrayObject {
         const val = _gl.createVertexArray();
-        if (val > 0) {
-            return <WebGLVertexArrayObject> { value: val };
-        }
+        return <WebGLVertexArrayObject> { value: val };
     }
 
     bindVertexArray(vao?: WebGLVertexArrayObject): void {
@@ -323,9 +323,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createProgram(): WebGLProgram {
         const val = _gl.createProgram();
-        if (val > 0) {
-            return <WebGLProgram>{ value: val };
-        }
+        return <WebGLProgram>{ value: val };
     }
 
     // @ts-ignore
@@ -335,9 +333,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createShader(type: number): WebGLShader {
         const val = _gl.createShader(type);
-        if (val > 0) {
-            return <WebGLShader>{ value: val, type: type };
-        }
+        return <WebGLShader>{ value: val, type: type };
     }
 
     // @ts-ignore

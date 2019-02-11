@@ -48,6 +48,7 @@ export default class WindowEx {
 
     // @ts-ignore
     public static addEventListener(eventName: string, cb: any, flag: boolean): void {
+        throw new Error('Not implemented');
     }
 
     public static setTimeout(funct: any, millisec: number) {
