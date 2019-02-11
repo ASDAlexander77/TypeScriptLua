@@ -29,7 +29,7 @@ export default class WindowEx {
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
-            const mousemove = this.events['mousemove'];
+            const mousemove = WindowEx.events['mousemove'];
             if (mousemove) {
                 mousemove(x, y);
                 glut.postRedisplay();
