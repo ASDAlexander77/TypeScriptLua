@@ -56,17 +56,24 @@ import './BABYLON/Tools/babylon_performanceMonitor';
 import './BABYLON/Materials/babylon_materialHelper';
 import './BABYLON/Materials/babylon_pushMaterial';
 import './BABYLON/Materials/babylon_standardMaterial';
+import './BABYLON/Mesh/babylon_groundMesh';
 
 // extra
 import './BABYLON/Mesh/babylon_meshBuilder';
 
 import './BABYLON/Cameras/babylon_targetCamera';
 import './BABYLON/Cameras/babylon_cameraInputsManager';
+
 import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraKeyboardMoveInput';
 import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraMouseWheelInput';
 import './BABYLON/Cameras/Inputs/babylon_arcRotateCameraPointersInput';
 import './BABYLON/Cameras/babylon_arcRotateCameraInputsManager';
 import './BABYLON/Cameras/babylon_arcRotateCamera';
+
+import './BABYLON/Cameras/Inputs/babylon_freeCameraKeyboardMoveInput';
+import './BABYLON/Cameras/Inputs/babylon_freeCameraMouseInput';
+import './BABYLON/Cameras/babylon_freeCameraInputsManager';
+import './BABYLON/Cameras/babylon_freeCamera';
 
 import './BABYLON/Tools/babylon_filesInput';
 
@@ -87,7 +94,7 @@ class Runner {
         // this.engine = new BABYLON.NullEngine();
 
         // TODO: debug options
-        this.engine.disableUniformBuffers = true;
+        // this.engine.disableUniformBuffers = true;
         this.engine.validateShaderPrograms = true;
         BABYLON.Engine.ShadersRepository = 'Shaders/';
 
@@ -117,18 +124,32 @@ class Runner {
     }
 
     createScene() {
-
         // This creates a basic Babylon Scene object (non-mesh)
-        const scene = new BABYLON.Scene(this.engine);
+        var scene = new BABYLON.Scene(this.engine);
 
         // This creates and positions a free camera (non-mesh)
-        const camera = new BABYLON.ArcRotateCamera('ArcRotateCamera', 1, 0.8, 5, BABYLON.Vector3.Zero(), scene);
-        camera.setPosition(new BABYLON.Vector3(0, 10, 10));
+        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+
+        // This targets the camera to scene origin
+        camera.setTarget(BABYLON.Vector3.Zero());
 
         // This attaches the camera to the canvas
         camera.attachControl(this.canvas, true);
 
-        const sphere = BABYLON.Mesh.CreateSphere('sphere', 16, 2, scene);
+        // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+        var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+
+        // Default intensity is 1. Let's dim the light a small amount
+        light.intensity = 0.7;
+
+        // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
+        var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
+
+        // Move the sphere upward 1/2 its height
+        sphere.position.y = 1;
+
+        // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
+        var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
 
         return scene;
     }
