@@ -9,12 +9,12 @@ module JS {
             return string.len(constString);
         }
 
-        public static replace(constString: string, valOrRegExp: string | RegExp, valOfFunc: string | FuncString): string {
+        public static replace(constString: string, valOrRegExp: string | RegExp, valOrFunc: string | FuncString): string {
             if (typeof valOrRegExp == 'string') {
-                return string.gsub(constString, valOrRegExp, valOfFunc);
+                return string.gsub(constString, string.gsub(valOrRegExp, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%1'), valOrFunc);
             }
 
-            return string.gsub(constString, (<RegExp>valOrRegExp).__getLuaPattern(), valOfFunc);
+            return string.gsub(constString, (<RegExp>valOrRegExp).__getLuaPattern(), valOrFunc);
         }
 
         public static substr(constString: string, begin?: number, len?: number): string {
@@ -101,9 +101,9 @@ module JS {
             };
         }
 
-        public replace(regExp: RegExp, func: (p: string) => string): String {
+        public replace(valOrRegExp: string | RegExp, valOrFunc: string | FuncString): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.replace(this.constString, regExp, func));
+            return new String(StringHelper.replace(this.constString, valOrRegExp, valOrFunc));
         }
 
         public substr(begin?: number, len?: number): String {

@@ -273,9 +273,11 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private stackReading: boolean;
 
     private stages: stageType[] = [];
+    private commandNames: string[] = [];
     private defaultActions: (Function | undefined)[] = [];
     private stage: stageType | undefined;
     private defaultAction: Function | undefined;
+    private commandName: string | undefined;
 
     constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
         super();
@@ -402,24 +404,28 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         console.log(">>> the app is spawed");
     }
 
-    private pushStages(stages: stageType[], defaultAction?: Function | undefined) {
+    private pushStages(name: string, stages: stageType[], defaultAction?: Function | undefined) {
         for (const stage of stages) {
             this.stages.push(stage);
             this.defaultActions.push(defaultAction);
+            this.commandNames.push(name);
         }
 
         if (!this.stage) {
             this.stage = this.stages.pop();
             this.defaultAction = this.defaultActions.pop();
+            this.commandName = this.commandNames.pop();
         }
     }
 
-    private pushDefaultStages(action: () => Promise<void>,  defaultAction?: Function | undefined) {
-        this.pushStages([
-            {
-                text: ['[DEBUG]>', '>'], action
-            }
-        ], defaultAction);
+    private pushDefaultStages(name: string, action: () => Promise<void>, defaultAction?: Function | undefined) {
+        this.pushStages(name,
+            [
+                {
+                    text: ['[DEBUG]>', '>'], action
+                }
+            ],
+            defaultAction);
     }
 
     private processErrorOutput(data: string[]) {
@@ -448,8 +454,9 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     }
 
     private async processStdOutput(data: string[]) {
-        if (!this.stage)
-        {
+
+        if (!this.stage) {
+            // this.sendEvent('logData', data.map(l => "<log, no action>: " + l).join('\n'));
             return;
         }
 
@@ -460,6 +467,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             console.log('>: ' + line);
 
             if (this.defaultAction) {
+                // this.sendEvent('logData', '<log, default action>: [' + this.commandName + "] " + line + "\n");
                 this.defaultAction(line);
             }
 
@@ -467,20 +475,25 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             if (process) {
                 console.log('#: match [' + line + '] acting...');
                 if (this.stage.action) {
+                    // this.sendEvent('logData', '<log, action>: [' + this.commandName + "] " + line + "\n");
                     await this.stage.action();
                 }
 
+                this.commandName = this.commandNames.pop();
+                this.defaultAction = this.defaultActions.pop();
                 this.stage = this.stages.pop();
                 if (!this.stage) {
                     console.log('#: no more actions...');
                     break;
                 }
+
+                // this.sendEvent('logData', '<log, actions left, defaults left>: [' + this.commandName + "] " + this.stages.length + ' ' + this.defaultActions.length + "\n");
             }
         }
     }
 
-    public async step(type: StepTypes, action: () => Promise<void> ) {
-        this.pushDefaultStages(action, (data) => this.processOutput(data));
+    public async step(type: StepTypes, action: () => Promise<void>) {
+        this.pushDefaultStages("step", action, (data) => this.processOutput(data));
         switch (type) {
             case StepTypes.Run:
                 await this._commands.run();
@@ -678,18 +691,17 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     }
 
     public async setFrameId(frameId: number) {
+        this.pushDefaultStages("set frame", async () => { }, () => { });
         await this._commands.setFrameId(frameId);
     }
 
-    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
+    public async dumpVariables(cb: (variables: any) => void, variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
         let rootName = variableName;
         switch (variableType) {
             case VariableTypes.Local: rootName = "variables"; break;
             case VariableTypes.Global: rootName = "globals"; break;
             case VariableTypes.Environment: rootName = "environment"; break;
         }
-
-        await this._commands.dumpVariables(variableType, rootName);
 
         const variableDeclatation = /(\s*)((([A-Za-z_0-9]+)|\.|\[[^\]]+\])+)\s*=\s*(.*)/;
         const endOfObject = /(\s*)}(;)?.*/;
@@ -702,7 +714,8 @@ class LuaSpawnedDebugProcess extends EventEmitter {
         let isStringContinue = false;
         let isBigStringContinue = false;
         let previousStringName = '';
-        await this.defaultDebugProcessStage((line) => {
+
+        const processDataLine = (line) => {
             // parse output
             variableDeclatation.lastIndex = 0;
             let values = !isBigStringContinue && variableDeclatation.exec(line);
@@ -821,28 +834,43 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                     }
 
                     currentObject[previousStringName].value += "\n" + value;
-                }
-
-                const end = !isBigStringContinue && endOfObject.exec(line);
-                if (end) {
-                    // end of object '};'
-                    currentObject = objects.pop();
-                    paths.pop();
+                } else {
+                    const end = !isBigStringContinue && endOfObject.exec(line);
+                    if (end) {
+                        // end of object '};'
+                        currentObject = objects.pop();
+                        paths.pop();
+                    }
                 }
             }
-        });
+        };
 
-        if (rootName) {
-            const value = currentObject[rootName];
-            if (value === undefined) {
-                return undefined;
-            }
+        const buildResponse = async () => {
+            try {
+                if (rootName) {
+                    const value = currentObject[rootName];
+                    if (value === undefined) {
+                        cb(undefined);
+                        return;
+                    }
 
-            if (value.type === "object" && !evaluate) {
-                const values = value.value;
-                if (values) {
-                    for (let name in values) {
-                        const value = values[name];
+                    if (value.type === "object" && !evaluate) {
+                        const values = value.value;
+                        if (values) {
+                            for (let name in values) {
+                                const value = values[name];
+                                variables.push({
+                                    name: value.name,
+                                    type: value.type,
+                                    value: value.type === "object" ? "" : value.value,
+                                    variablesReference: value.type !== "object" ? 0 : variableHandles.create(
+                                        variableType === VariableTypes.SingleVariable
+                                            ? value.path
+                                            : name)
+                                });
+                            }
+                        }
+                    } else {
                         variables.push({
                             name: value.name,
                             type: value.type,
@@ -854,40 +882,38 @@ class LuaSpawnedDebugProcess extends EventEmitter {
                         });
                     }
                 }
-            } else {
-                variables.push({
-                    name: value.name,
-                    type: value.type,
-                    value: value.type === "object" ? "" : value.value,
-                    variablesReference: value.type !== "object" ? 0 : variableHandles.create(
-                        variableType === VariableTypes.SingleVariable
-                            ? value.path
-                            : name)
+
+                variables.sort((a, b): number => {
+                    const an = parseInt(a.name);
+                    const bn = parseInt(b.name);
+                    if (an < bn) {
+                        return -1;
+                    } else if (an > bn) {
+                        return 1;
+                    }
+
+                    if (a.name > b.name) {
+                        return 1;
+                    }
+
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+
+                    return 0;
                 });
             }
-        }
-
-        variables.sort((a, b): number => {
-            const an = parseInt(a.name);
-            const bn = parseInt(b.name);
-            if (an < bn) {
-                return -1;
-            } else if (an > bn) {
-                return 1;
+            catch (e) {
+                cb(e);
+                return;
             }
 
-            if (a.name > b.name) {
-                return 1;
-            }
+            cb(variables);
+        };
 
-            if (a.name < b.name) {
-                return -1;
-            }
+        this.pushDefaultStages("dump", buildResponse, processDataLine);
 
-            return 0;
-        });
-
-        return variables;
+        await this._commands.dumpVariables(variableType, rootName);
     }
 
     private async defaultDebugProcessStage(defaultAction?: Function) {
@@ -976,13 +1002,12 @@ class LuaSpawnedDebugProcess extends EventEmitter {
             this._exe.stdout.prependOnceListener('error', cbError);
 
             if (timeout) {
-                timerId = setTimeout(() =>
-                {
+                timerId = setTimeout(() => {
                     this._exe.stdout.removeListener('data', cbData);
                     this._exe.stdout.removeListener('data', cbError);
                     reject('read timeout');
                 },
-                timeout);
+                    timeout);
             }
         });
     }
@@ -1049,6 +1074,10 @@ export class LuaRuntime extends EventEmitter {
             this.sendEvent('errorData', msg);
         });
 
+        this._luaExe.on('logData', (msg) => {
+            this.sendEvent('logData', msg);
+        });
+
         this._luaExe.on('end', (msg) => {
             this.sendEvent('end', msg);
         });
@@ -1082,6 +1111,10 @@ export class LuaRuntime extends EventEmitter {
 
         luaExe.on('outputData', (msg) => {
             this.sendEvent('outputData', msg);
+        });
+
+        luaExe.on('logData', (msg) => {
+            this.sendEvent('logData', msg);
         });
 
         luaExe.on('end', (msg) => {
@@ -1154,11 +1187,11 @@ export class LuaRuntime extends EventEmitter {
     }
 
     public async setFrameId(frameId: number) {
-        return await this._luaExe.setFrameId(frameId);
+        await this._luaExe.setFrameId(frameId);
     }
 
-    public async dumpVariables(variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
-        return await this._luaExe.dumpVariables(variableType, variableName, variableHandles, evaluate);
+    public async dumpVariables(cb: (variables: any) => void, variableType: VariableTypes, variableName: string | undefined, variableHandles: Handles<string>, evaluate?: boolean) {
+        await this._luaExe.dumpVariables(cb, variableType, variableName, variableHandles, evaluate);
     }
 
     public async runStatement(statement: string) {

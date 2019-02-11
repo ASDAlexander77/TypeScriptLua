@@ -93,6 +93,10 @@ export class LuaDebugSession extends LoggingDebugSession {
             const e: DebugProtocol.OutputEvent = new OutputEvent(text, 'error');
             this.sendEvent(e);
         });
+        this._runtime.on('logData', (text) => {
+            const e: DebugProtocol.OutputEvent = new OutputEvent(text, 'log');
+            this.sendEvent(e);
+        });
         this._runtime.on('output', (text, filePath, line, column) => {
             const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
             e.body.source = this.createSource(filePath);
@@ -368,23 +372,33 @@ export class LuaDebugSession extends LoggingDebugSession {
                 await this._runtime.setFrameId(frameId);
             }
 
-            const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles);
+            const cb = (variables) => {
+                dumpInProgress.notify();
+                this._dumpInProgress = null;
 
-            if (variables) {
-                response.body = {
-                    variables: variables
-                };
-            }
+                if (variables instanceof Error) {
+                    response.success = false;
+                    response.message = "Can't retrieve variable: " + variables.message;
+                } else {
+
+                    if (variables) {
+                        response.body = {
+                            variables: variables
+                        };
+                    }
+                }
+
+                this.sendResponse(response);
+            };
+            await this._runtime.dumpVariables(cb, variableType, variableName, this._variableHandles);
         }
         catch (e) {
             response.success = false;
             response.message = "Can't retrieve '" + (variableName || "") + "'";
+
+            dumpInProgress.notify();
+            this._dumpInProgress = null;
         }
-
-        dumpInProgress.notify();
-        this._dumpInProgress = null;
-
-        this.sendResponse(response);
     }
 
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments) {
@@ -444,30 +458,41 @@ export class LuaDebugSession extends LoggingDebugSession {
         let variableType = VariableTypes.SingleVariable;
 
         try {
-            const variables = await this._runtime.dumpVariables(variableType, variableName, this._variableHandles, true);
-            if (variables) {
-                response.body = {
-                    result: variables[0].value,
-                    variablesReference: variables[0].variablesReference
-                };
-            } else if (args.context === 'repl') {
-                // run statement
-                await this._runtime.runStatement(variableName);
-                response.body = {
-                    result: "done.",
-                    variablesReference: 0
-                };
-            }
+            const cb = async (variables) => {
+                dumpInProgress.notify();
+                this._dumpInProgress = null;
+
+                if (variables instanceof Error) {
+                    response.success = false;
+                    response.message = "Can't retrieve variable: " + variables.message;
+                } else {
+                    if (variables) {
+                        response.body = {
+                            result: variables[0].value,
+                            variablesReference: variables[0].variablesReference
+                        };
+                    } else if (args.context === 'repl') {
+                        // run statement
+                        await this._runtime.runStatement(variableName);
+                        response.body = {
+                            result: "done.",
+                            variablesReference: 0
+                        };
+                    }
+                }
+
+                this.sendResponse(response);
+            };
+
+            await this._runtime.dumpVariables(cb, variableType, variableName, this._variableHandles, true);
         }
         catch (e) {
             response.success = false;
             response.message = "Can't retrieve " + (variableName || "") + ": " + e.message;
+
+            dumpInProgress.notify();
+            this._dumpInProgress = null;
         }
-
-        dumpInProgress.notify();
-        this._dumpInProgress = null;
-
-        this.sendResponse(response);
     }
 
     //---- helpers
