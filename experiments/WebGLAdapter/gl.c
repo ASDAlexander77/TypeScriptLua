@@ -995,7 +995,7 @@ extern "C"
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
             len = userdata->bytesLength;
             value = &userdata->data;
-            count = len / sizeof(GLfloat) / 16 /*to get couint of matrixes*/;
+            count = len / sizeof(GLfloat) / 16 /*to get count of matrixes*/;
 
 #if _DEBUG
             printf("glUniformMatrix4fv count=%d, size=%d (len=%d))\n", count, sizeof(GLfloat), len);

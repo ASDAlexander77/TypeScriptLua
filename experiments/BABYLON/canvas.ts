@@ -594,9 +594,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation {
         const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
-        if (val > 0) {
-            return <WebGLUniformLocation>{ value: val, name: name };
-        }
+        return <WebGLUniformLocation>{ value: val, name: name };
     }
 
     // @ts-ignore
