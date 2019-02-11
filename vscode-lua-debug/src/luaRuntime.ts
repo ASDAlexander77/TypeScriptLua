@@ -277,6 +277,7 @@ class LuaSpawnedDebugProcess extends EventEmitter {
     private defaultActions: (Function | undefined)[] = [];
     private stage: stageType | undefined;
     private defaultAction: Function | undefined;
+    // @ts-ignore
     private commandName: string | undefined;
 
     constructor(private program: string, private luaExecutable: string, private luaDebuggerFilePath: string) {
