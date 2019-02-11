@@ -25,7 +25,7 @@ module JS {
 
                 while (current < size) {
                     const matchResult = (<RegExp>valOrRegExp).exec(constString);
-                    const position = matchResult.index;
+                    const position = matchResult ? matchResult.index : -1;
                     if (position < 0) {
                         const rest = StringHelper.substring(constString, current);
                         ArrayHelper.pushOne(result, rest);
