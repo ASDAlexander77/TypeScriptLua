@@ -1,4 +1,5 @@
 declare var string: any;
+declare var table: any;
 
 module JS {
 
@@ -12,6 +13,39 @@ module JS {
         public static replace(constString: string, valOrRegExp: string | RegExp, valOrFunc: string | FuncString): string {
             if (typeof valOrRegExp == 'string') {
                 return string.gsub(constString, string.gsub(valOrRegExp, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%1'), valOrFunc);
+            }
+
+            if ((<RegExp>valOrRegExp).nativeHandle) {
+                let current = 0;
+                const size = StringHelper.getLength(constString);
+
+                const isFunc = typeof valOrFunc == "function";
+
+                const result = new Array<string>();
+
+                while (current < size) {
+                    const matchResult = (<RegExp>valOrRegExp).exec(constString);
+                    const position = matchResult.index;
+                    if (position < 0) {
+                        const rest = StringHelper.substring(constString, current);
+                        ArrayHelper.pushOne(result, rest);
+                        return result.join();
+                    }
+
+                    const part = StringHelper.substring(constString, current, position - 1);
+
+                    current = position + matchResult[0].length;
+
+                    ArrayHelper.pushOne(result, part);
+                    if (!isFunc) {
+                        ArrayHelper.pushOne(result, valOrFunc);
+                    } else {
+                        const val = valOrFunc(matchResult[0], table.unpack(matchResult));
+                        ArrayHelper.pushOne(result, val);
+                    }
+                }
+
+                return result.join();
             }
 
             return string.gsub(constString, (<RegExp>valOrRegExp).__getLuaPattern(), valOrFunc);

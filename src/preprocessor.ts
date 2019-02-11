@@ -348,6 +348,7 @@ export class Preprocessor {
                 const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
                 switch (typeName) {
                     case 'string':
+                    case '__function':
                         // nothing to do
                         break;
                     case 'any':
@@ -366,6 +367,7 @@ export class Preprocessor {
                 const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
                 switch (typeName) {
                     case 'number':
+                    case '__function':
                         // nothing to do
                         break;
                     case 'any':

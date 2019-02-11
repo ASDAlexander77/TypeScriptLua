@@ -205,6 +205,21 @@ export class Emitter {
     setmetatable(a, a)
     */
 
+    public static printNode(node: ts.Statement): string {
+        const sourceFile = ts.createSourceFile(
+            'noname', '', ts.ScriptTarget.ES2018, /*setParentNodes */ true, ts.ScriptKind.TS);
+
+        (<any>sourceFile.statements) = [node];
+
+        // debug output
+        const emitter = ts.createPrinter({
+            newLine: ts.NewLineKind.LineFeed,
+        });
+
+        const result = emitter.printNode(ts.EmitHint.SourceFile, sourceFile, sourceFile);
+        return result;
+    }
+
     public processNode(node: ts.Node): void {
         switch (node.kind) {
             case ts.SyntaxKind.SourceFile: this.processFile(<ts.SourceFile>node);
@@ -751,21 +766,6 @@ export class Emitter {
         // nneded to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
         return sourceFile.statements;
-    }
-
-    private printNode(node: ts.Statement): string {
-        const sourceFile = ts.createSourceFile(
-            this.sourceFileName, '', ts.ScriptTarget.ES2018, /*setParentNodes */ true, ts.ScriptKind.TS);
-
-        (<any>sourceFile.statements) = [node];
-
-        // debug output
-        const emitter = ts.createPrinter({
-            newLine: ts.NewLineKind.LineFeed,
-        });
-
-        const result = emitter.printNode(ts.EmitHint.SourceFile, sourceFile, sourceFile);
-        return result;
     }
 
     private bind(node: ts.Statement) {
