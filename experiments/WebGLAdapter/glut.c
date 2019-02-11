@@ -109,6 +109,119 @@ extern "C"
         return 0;
     }
 
+    // PassiveMotion
+    static int luaPassiveMotionFunctionReference = LUA_NOREF;
+    static void passiveMotionCallback(GLint x, GLint y)
+    {
+        if (luaPassiveMotionFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaPassiveMotionFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 2, 0);        
+    }
+
+    static int passiveMotionFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaPassiveMotionFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaPassiveMotionFunctionReference);
+        }
+
+        luaPassiveMotionFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutPassiveMotionFunc(displayCallback);
+
+        return 0;
+    }
+
+    // Mouse
+    static int luaMouseFunctionReference = LUA_NOREF;
+    static void mouseCallback(GLint button, GLint state, GLint x, GLint y)
+    {
+        if (luaMouseFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaMouseFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, button);
+        lua_pushinteger(global_L, state);
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 4, 0);       
+    }
+
+    static int mouseFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaMouseFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaMouseFunctionReference);
+        }
+
+        luaMouseFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutMouseFunc(displayCallback);
+
+        return 0;
+    }    
+
+    // Motion
+    static int luaMotionFunctionReference = LUA_NOREF;
+    static void motionCallback(GLint x, GLint y)
+    {
+        if (luaMotionFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaMotionFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 2, 0); 
+    }
+
+    static int motionFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaMotionFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaMotionFunctionReference);
+        }
+
+        luaMotionFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutMotionFunc(displayCallback);
+
+        return 0;
+    }      
+
     // Idle
     static int luaIdleFunctionReference = LUA_NOREF;
     static void idleCallback()
@@ -143,6 +256,81 @@ extern "C"
 
         return 0;
     }
+
+    // Keyboard
+    static int luaKeyboardFunctionReference = LUA_NOREF;
+    static void keyboardCallback(GLint k, GLint x, GLint y)
+    {
+        if (luaKeyboardFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaKeyboardFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, k);
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 3, 0); 
+    }
+
+    static int keyboardFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaKeyboardFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaKeyboardFunctionReference);
+        }
+
+        luaKeyboardFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutKeyboardFunc(idleCallback);
+
+        return 0;
+    }    
+
+    // Reshape
+    static int luaReshapeFunctionReference = LUA_NOREF;
+    static void reshapeCallback(GLint w, GLint h)
+    {
+        if (luaReshapeFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaReshapeFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, w);
+        lua_pushinteger(global_L, h);
+        lua_call(global_L, 2, 0); 
+    }
+
+    static int reshapeFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaReshapeFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaReshapeFunctionReference);
+        }
+
+        luaReshapeFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutReshapeFunc(idleCallback);
+
+        return 0;
+    }      
 
     // Timer
     static int luaTimerFunctionReference = LUA_NOREF;
@@ -234,7 +422,12 @@ extern "C"
         {"initDisplayMode", initDisplayModeGLUT},
         {"createWindow", createWindowGLUT},
         {"display", displayFuncGLUT},
+        {"passiveMotion", passiveMotionFuncGLUT},
+        {"mouse", mouseFuncGLUT},
+        {"motion", motionFuncGLUT},
         {"idle", idleFuncGLUT},
+        {"keyboard", keyboardFuncGLUT},
+        {"reshape", reshapeFuncGLUT},
         {"timer", timerFuncGLUT},
         {"mainLoop", mainLoopGLUT},
         {"postRedisplay", postRedisplayGLUT},

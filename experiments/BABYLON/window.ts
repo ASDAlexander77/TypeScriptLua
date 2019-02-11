@@ -1,6 +1,5 @@
 // @ts-ignore
 import glut from 'glut';
-declare var gl: any;
 
 export default class WindowEx {
     innerWidth = 640;
@@ -23,8 +22,27 @@ export default class WindowEx {
             glut.swapBuffers();
         });
 
+        glut.passiveMotion(function (x: number, y: number) {
+            glut.postRedisplay();
+        });
+
+        glut.mouse(function (button: number, state: number, x: number, y: number) {
+            glut.postRedisplay();
+        });
+
+        glut.motion(function (x: number, y: number) {
+            //_main.onMotion(x, y);
+        });
+
         glut.idle(function () {
             glut.postRedisplay();
+        });
+
+        glut.keyboard(function (k: number, x: number, y: number) {
+            glut.postRedisplay();
+        });
+
+        glut.reshape(function (w: number, h: number) {
         });
     }
 
