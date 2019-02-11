@@ -141,7 +141,7 @@ extern "C"
 
         luaPassiveMotionFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutPassiveMotionFunc(displayCallback);
+        glutPassiveMotionFunc(passiveMotionCallback);
 
         return 0;
     }
@@ -180,7 +180,7 @@ extern "C"
 
         luaMouseFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutMouseFunc(displayCallback);
+        glutMouseFunc(mouseCallback);
 
         return 0;
     }    
@@ -217,7 +217,7 @@ extern "C"
 
         luaMotionFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutMotionFunc(displayCallback);
+        glutMotionFunc(motionCallback);
 
         return 0;
     }      
@@ -290,7 +290,7 @@ extern "C"
 
         luaKeyboardFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutKeyboardFunc(idleCallback);
+        glutKeyboardFunc(keyboardCallback);
 
         return 0;
     }    
@@ -327,7 +327,7 @@ extern "C"
 
         luaReshapeFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutReshapeFunc(idleCallback);
+        glutReshapeFunc(reshapeCallback);
 
         return 0;
     }      

@@ -2,6 +2,8 @@
 import glut from 'glut';
 
 export default class WindowEx {
+    static events = {};
+
     innerWidth = 640;
     innerHeight = 480;
 
@@ -27,7 +29,11 @@ export default class WindowEx {
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
-            glut.postRedisplay();
+            const mousemove = this.events['mousemove'];
+            if (mousemove) {
+                mousemove(x, y);
+                glut.postRedisplay();
+            }
         });
 
         glut.motion(function (x: number, y: number) {
@@ -48,7 +54,7 @@ export default class WindowEx {
 
     // @ts-ignore
     public static addEventListener(eventName: string, cb: any, flag: boolean): void {
-        throw new Error('Not implemented');
+        this.events[eventName] = cb;
     }
 
     public static setTimeout(funct: any, millisec: number) {
