@@ -1,0 +1,41 @@
+{
+  "name": "typescript-lua-compiler",
+  "version": "1.0.5",
+  "description": "TypeScript compiler for Lua",
+  "keywords": [
+    "typescript",
+    "lua",
+    "tsc-lua",
+    "compiler"
+  ],
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "tsc-lua": "./bin/tsc-lua"
+  },
+  "dependencies": {
+    "cross-spawn": "^6.0.5",
+    "fs-extra": "^7.0.1",
+    "path": "^0.12.7",
+    "source-map": "^0.7.3",
+    "typescript": "^3.2.2"
+  },
+  "engines": {
+    "node": ">=4.2.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "JS.lua",
+    "JS.lua.map",
+    "README.md"
+  ],
+  "author": "Alexander Duzhar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ashleygwilliams/my_package/issues"
+  },
+  "homepage": "https://github.com/ASDAlexander77/TypeScriptLUA/#readme"
+}
