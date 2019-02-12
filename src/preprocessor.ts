@@ -237,7 +237,7 @@ export class Preprocessor {
 
         const isBindCallOfMethod =
             propertyAccessExpression.name.text === 'bind'
-            && this.typeInfo.isResultNonStaticMethodReference(propertyAccessExpression.expression);
+            && this.typeInfo.isResultNonStaticMethodReferenceOrFunctionType(propertyAccessExpression.expression);
         if (!isBindCallOfMethod) {
             return undefined;
         }

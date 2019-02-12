@@ -88,11 +88,22 @@ export class TypeInfo {
             && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
             && !(type.symbol.valueDeclaration.modifiers
                  && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
+
+        return nonStaticMethod;
+    }
+
+    public isResultNonStaticMethodReferenceOrFunctionType(expression: ts.Expression) {
+        const type = this.resolver.getTypeAtLocation(expression);
+        const nonStaticMethod = type
+            && type.symbol
+            && type.symbol.valueDeclaration
+            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+            && !(type.symbol.valueDeclaration.modifiers
+                 && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
         if (nonStaticMethod) {
             return true;
         }
 
-        /*
         const functionType = type
             && type.symbol
             && type.symbol.declarations
@@ -100,8 +111,5 @@ export class TypeInfo {
             && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
 
         return functionType;
-        */
-
-        return false;
     }
 }

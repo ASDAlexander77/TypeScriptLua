@@ -295,6 +295,120 @@ extern "C"
         return 0;
     }    
 
+    // KeyboardUp
+    static int luaKeyboardUpFunctionReference = LUA_NOREF;
+    static void keyboardUpCallback(GLint k, GLint x, GLint y)
+    {
+        if (luaKeyboardUpFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaKeyboardUpFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, k);
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 3, 0); 
+    }
+
+    static int keyboardUpFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaKeyboardUpFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaKeyboardUpFunctionReference);
+        }
+
+        luaKeyboardUpFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutKeyboardUpFunc(keyboardUpCallback);
+
+        return 0;
+    }    
+
+    // Special
+    static int luaSpecialFunctionReference = LUA_NOREF;
+    static void specialCallback(GLint k, GLint x, GLint y)
+    {
+        if (luaSpecialFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaSpecialFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, k);
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 3, 0); 
+    }
+
+    static int specialFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaSpecialFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaSpecialFunctionReference);
+        }
+
+        luaSpecialFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutSpecialFunc(keyboardCallback);
+
+        return 0;
+    }    
+
+    // SpecialUp
+    static int luaSpecialUpFunctionReference = LUA_NOREF;
+    static void specialUpCallback(GLint k, GLint x, GLint y)
+    {
+        if (luaSpecialUpFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaSpecialUpFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, k);
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 3, 0); 
+    }
+
+    static int specialUpFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaSpecialUpFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaSpecialUpFunctionReference);
+        }
+
+        luaSpecialUpFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        glutSpecialUpFunc(keyboardUpCallback);
+
+        return 0;
+    } 
+
     // Reshape
     static int luaReshapeFunctionReference = LUA_NOREF;
     static void reshapeCallback(GLint w, GLint h)
@@ -391,6 +505,20 @@ extern "C"
         return 0;
     }
 
+    static int setKeyRepeatGLUT(lua_State *L)
+    {
+        GLint value = luaL_checkinteger(L, 1);
+        glutSetKeyRepeat(value);
+        return 0;
+    }
+
+    static int ignoreKeyRepeatGLUT(lua_State *L)
+    {
+        const GLboolean value = lua_toboolean(L, 1);
+        glutIgnoreKeyRepeat(value ? 1 : 0);
+        return 0;
+    }    
+
     typedef struct ConstPair {
         const char *name;
         GLint val;
@@ -400,7 +528,8 @@ extern "C"
         {"DOUBLE", GLUT_DOUBLE},
         {"DEPTH", GLUT_DEPTH},
         {"RGB", GLUT_RGB},
-        {"RGBA", GLUT_RGBA}
+        {"RGBA", GLUT_RGBA},
+        {"KEY_REPEAT_OFF", GLUT_KEY_REPEAT_OFF}
     };
 
     static void AddConstsGLUT(lua_State *L)
@@ -427,11 +556,16 @@ extern "C"
         {"motion", motionFuncGLUT},
         {"idle", idleFuncGLUT},
         {"keyboard", keyboardFuncGLUT},
+        {"keyboardUp", keyboardUpFuncGLUT},
+        {"special", specialFuncGLUT},
+        {"specialUp", specialUpFuncGLUT},
         {"reshape", reshapeFuncGLUT},
         {"timer", timerFuncGLUT},
         {"mainLoop", mainLoopGLUT},
         {"postRedisplay", postRedisplayGLUT},
         {"swapBuffers", swapBuffersGLUT},
+        {"setKeyRepeat", setKeyRepeatGLUT},
+        {"ignoreKeyRepeat", ignoreKeyRepeatGLUT},
         {NULL, NULL} /* sentinel */
     };
 

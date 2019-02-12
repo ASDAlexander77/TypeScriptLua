@@ -13,6 +13,7 @@ export default class WindowEx {
         glut.initWindowSize(WindowEx.innerWidth, WindowEx.innerHeight);
         glut.initDisplayMode(glut.DOUBLE, glut.DEPTH, glut.RGBA);
         glut.createWindow('Cool window');
+        glut.ignoreKeyRepeat(true);
 
         glut.display(function () {
             /*
@@ -25,7 +26,16 @@ export default class WindowEx {
         });
 
         glut.passiveMotion(function (x: number, y: number) {
-            glut.postRedisplay();
+            console.log(`passive motion: x = ${x}, y = ${y}`);
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+
+            const mousemove = WindowEx.events['mousemove'];
+            if (mousemove) {
+                mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+                glut.postRedisplay();
+            }
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
@@ -36,13 +46,13 @@ export default class WindowEx {
             if (state == 1) {
                 const mouseup = WindowEx.events['mouseup'];
                 if (mouseup) {
-                    mouseup({ pointerId: 1, clientX: x, clientY: y, preventDefault: preventDefault });
+                    mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
                     glut.postRedisplay();
                 }
             } else {
                 const mousedown = WindowEx.events['mousedown'];
                 if (mousedown) {
-                    mousedown({ pointerId: 1, clientX: x, clientY: y, preventDefault: preventDefault });
+                    mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
                     glut.postRedisplay();
                 }
             }
@@ -56,7 +66,7 @@ export default class WindowEx {
 
             const mousemove = WindowEx.events['mousemove'];
             if (mousemove) {
-                mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault: preventDefault });
+                mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
                 glut.postRedisplay();
             }
         });
@@ -68,11 +78,55 @@ export default class WindowEx {
         glut.keyboard(function (k: number, x: number, y: number) {
             console.log(`keyboard: key = ${k}, x = ${x}, y = ${y}`);
 
+            // glutGetModifiers();  ALT=4  SHIFT=1  CTRL=2
+
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            const keypress = WindowEx.events['keypress'];
-            if (keypress) {
-                keypress({ pointerId: 1, button: k, clientX: x, clientY: y, preventDefault: preventDefault });
+            const keydown = WindowEx.events['keydown'];
+            if (keydown) {
+                keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                glut.postRedisplay();
+            }
+        });
+
+        glut.keyboardUp(function (k: number, x: number, y: number) {
+            console.log(`keyboard-up: key = ${k}, x = ${x}, y = ${y}`);
+
+            // glutGetModifiers();  ALT=4  SHIFT=1  CTRL=2
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+            const keyup = WindowEx.events['keyup'];
+            if (keyup) {
+                keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                glut.postRedisplay();
+            }
+        });
+
+        glut.special(function (k: number, x: number, y: number) {
+            console.log(`special: key = ${k}, x = ${x}, y = ${y}`);
+
+            // glutGetModifiers();  ALT=4  SHIFT=1  CTRL=2
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+            const keydown = WindowEx.events['keydown'];
+            if (keydown) {
+                keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                glut.postRedisplay();
+            }
+        });
+
+        glut.specialUp(function (k: number, x: number, y: number) {
+            console.log(`special-up: key = ${k}, x = ${x}, y = ${y}`);
+
+            // glutGetModifiers();  ALT=4  SHIFT=1  CTRL=2
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+            const keyup = WindowEx.events['keyup'];
+            if (keyup) {
+                keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
                 glut.postRedisplay();
             }
         });
@@ -91,7 +145,6 @@ export default class WindowEx {
 
     public static setTimeout(funct: any, millisec: number) {
         if (funct) {
-            // funct();
             glut.timer(millisec, funct, 0);
         }
     }

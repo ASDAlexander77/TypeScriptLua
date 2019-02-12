@@ -217,7 +217,7 @@ export class Run {
                 const fileVersion = (<any>s).version;
                 if (fileVersion) {
                     const latestVersion = this.versions[s.fileName];
-                    if (latestVersion && latestVersion >= fileVersion) {
+                    if (latestVersion && parseInt(latestVersion) >= parseInt(fileVersion)) {
                         console.log(
                             'File: '
                             + ForegroundColorEscapeSequences.White
