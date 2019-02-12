@@ -1,6 +1,7 @@
 // @ts-ignore
 import _gl from 'webgl';
-import WindowEx from 'window';
+
+declare var window: any;
 
 // @ts-ignore
 export default class Canvas extends _gl implements WebGLRenderingContext {
@@ -13,6 +14,23 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     constructor() {
         /* init GL */
         _gl.init();
+        // @ts-ignore
+        this.canvas = <HTMLCanvasElement><any>this;
+    }
+
+    getBoundingClientRect() {
+        return {
+            bottom: window.innerHeight,
+            height: window.innerHeight,
+            left: 0,
+            right: window.innerWidth,
+            top: 0,
+            width: window.innerWidth
+        };
+    }
+
+    focus() {
+        // no action
     }
 
     // @ts-ignore
@@ -37,7 +55,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createVertexArray(): WebGLVertexArrayObject {
         const val = _gl.createVertexArray();
-        return <WebGLVertexArrayObject> { value: val };
+        return <WebGLVertexArrayObject>{ value: val };
     }
 
     bindVertexArray(vao?: WebGLVertexArrayObject): void {

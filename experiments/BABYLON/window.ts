@@ -4,13 +4,13 @@ import glut from 'glut';
 export default class WindowEx {
     static events = {};
 
-    innerWidth = 640;
-    innerHeight = 480;
+    static innerWidth = 640;
+    static innerHeight = 480;
 
     constructor() {
         /* init GLUT */
         glut.init();
-        glut.initWindowSize(this.innerWidth, this.innerHeight);
+        glut.initWindowSize(WindowEx.innerWidth, WindowEx.innerHeight);
         glut.initDisplayMode(glut.DOUBLE, glut.DEPTH, glut.RGBA);
         glut.createWindow('Cool window');
 
@@ -29,15 +29,36 @@ export default class WindowEx {
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
-            const mousemove = WindowEx.events['mousemove'];
-            if (mousemove) {
-                mousemove(x, y);
-                glut.postRedisplay();
+            console.log(`mouse: button = ${button}, state = ${state}, x = ${x}, y = ${y}`);
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+            if (state == 1) {
+                const mouseup = WindowEx.events['mouseup'];
+                if (mouseup) {
+                    mouseup({ pointerId: 1, clientX: x, clientY: y, preventDefault: preventDefault });
+                    glut.postRedisplay();
+                }
+            } else {
+                const mousedown = WindowEx.events['mousedown'];
+                if (mousedown) {
+                    mousedown({ pointerId: 1, clientX: x, clientY: y, preventDefault: preventDefault });
+                    glut.postRedisplay();
+                }
             }
         });
 
         glut.motion(function (x: number, y: number) {
-            //_main.onMotion(x, y);
+            console.log(`motion: x = ${x}, y = ${y}`);
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+
+            const mousemove = WindowEx.events['mousemove'];
+            if (mousemove) {
+                mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault: preventDefault });
+                glut.postRedisplay();
+            }
         });
 
         glut.idle(function () {
@@ -45,10 +66,21 @@ export default class WindowEx {
         });
 
         glut.keyboard(function (k: number, x: number, y: number) {
-            glut.postRedisplay();
+            console.log(`keyboard: key = ${k}, x = ${x}, y = ${y}`);
+
+            let preventedDefault = false;
+            const preventDefault = function () { preventedDefault = true; };
+            const keypress = WindowEx.events['keypress'];
+            if (keypress) {
+                keypress({ pointerId: 1, button: k, clientX: x, clientY: y, preventDefault: preventDefault });
+                glut.postRedisplay();
+            }
         });
 
         glut.reshape(function (w: number, h: number) {
+            WindowEx.innerWidth = w;
+            WindowEx.innerHeight = h;
+            glut.postRedisplay();
         });
     }
 

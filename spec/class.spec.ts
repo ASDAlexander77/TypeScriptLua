@@ -1244,4 +1244,26 @@ describe('Classes', () => {
         c.attachControl(null, 10);              \
         ci.attachControl(null, 20);             \
     '])).to.equals('10\r\n20\r\n'));
+
+    it('Class - calling method reference via method reference', () => expect(new Run().test([
+        'class Test {                                           \
+        private _pointerInput: (p: any, s: any) => void;        \
+                                                                \
+        public runTest() {                                      \
+            this._pointerInput = (p, s) => {                    \
+                console.log(p.obj);                             \
+                console.log(s.obj);                             \
+            };                                                  \
+                                                                \
+            this.add(this._pointerInput);                       \
+        }                                                       \
+                                                                \
+        public add(callback: (eventData: any, eventState: any) => void) {   \
+            callback({ obj: 1 }, { obj: 2});                    \
+        }                                                       \
+    }                                                           \
+                                                                \
+    const t = new Test();                                       \
+    t.runTest();                                                \
+    '])).to.equals('1\r\n2\r\n'));
 });

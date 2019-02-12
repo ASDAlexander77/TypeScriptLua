@@ -1,6 +1,7 @@
 import './JS';
 
 declare var os: any;
+declare var navigator: any;
 
 navigator = <Navigator>{};
 
