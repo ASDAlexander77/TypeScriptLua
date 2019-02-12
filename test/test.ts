@@ -1,5 +1,3 @@
-import './JS';
-
 class Matrix {
     private static _updateFlagSeed = 0;
 
@@ -15,4 +13,4 @@ class Matrix {
 }
 
 const m = new Matrix();
-console.log(m.updateFlag);
+print(m.updateFlag);
