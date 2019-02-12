@@ -92,6 +92,7 @@ export class TypeInfo {
             return true;
         }
 
+        /*
         const functionType = type
             && type.symbol
             && type.symbol.declarations
@@ -99,5 +100,8 @@ export class TypeInfo {
             && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
 
         return functionType;
+        */
+
+        return false;
     }
 }
