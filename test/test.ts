@@ -1,21 +1,18 @@
 import './JS';
 
-class Test {
-    private _pointerInput: (p: any, s: any) => void;
+class Matrix {
+    private static _updateFlagSeed = 0;
 
-    public runTest() {
-        this._pointerInput = (p, s) => {
-            console.log(p.obj);
-            console.log(s.obj);
-        };
+    public updateFlag: number;
 
-        this.add(this._pointerInput);
+    public constructor() {
+        this._markAsUpdated();
     }
 
-    public add(callback: (eventData: any, eventState: any) => void) {
-        callback({ obj: 1 }, { obj: 2});
+    public _markAsUpdated() {
+        this.updateFlag = Matrix._updateFlagSeed++;
     }
 }
 
-const t = new Test();
-t.runTest();
+const m = new Matrix();
+console.log(m.updateFlag);

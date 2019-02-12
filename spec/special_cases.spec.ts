@@ -181,4 +181,23 @@ describe('Special cases', () => {
         console.log((a = a || { name: "test" }).name;     \
     '])));
 
+    it('Class - field.value++ - BUG', () => expect(new Run().test([
+    'class Matrix {                                 \
+        private static _updateFlagSeed = 0;         \
+                                                    \
+        public updateFlag: number;                  \
+                                                    \
+        public constructor() {                      \
+            this._markAsUpdated();                  \
+        }                                           \
+                                                    \
+        public _markAsUpdated() {                   \
+            this.updateFlag = Matrix._updateFlagSeed++; \
+        }                                           \
+    }                                               \
+                                                    \
+    const m = new Matrix();                         \
+    console.log(m.updateFlag);                      \
+    '])).to.equals('0\r\n'));
+
 });
