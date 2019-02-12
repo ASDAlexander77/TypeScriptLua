@@ -7,8 +7,6 @@ declare var window: any;
 export default class Canvas extends _gl implements WebGLRenderingContext {
 
     canvas: HTMLCanvasElement;
-    drawingBufferHeight: number;
-    drawingBufferWidth: number;
 
     // @ts-ignore
     constructor() {
@@ -16,6 +14,14 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.init();
         // @ts-ignore
         this.canvas = <HTMLCanvasElement><any>this;
+    }
+
+    get drawingBufferWidth(): number {
+        return window.innerWidth;
+    }
+
+    get drawingBufferHeight(): number {
+        return window.innerHeight;
     }
 
     getBoundingClientRect() {
@@ -903,6 +909,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     viewport(x: number, y: number, width: number, height: number): void {
-        throw new Error('Method not implemented.');
+        _gl.viewport(x, y, width, height);
     }
 }

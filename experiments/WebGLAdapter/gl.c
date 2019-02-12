@@ -234,6 +234,24 @@ extern "C"
         return 0;
     }
 
+    static int viewport(lua_State *L)
+    {
+        const GLint x = luaL_checkinteger(L, 1);
+        const GLint y = luaL_checkinteger(L, 2);
+        const GLsizei width = luaL_checkinteger(L, 3);
+        const GLsizei height = luaL_checkinteger(L, 4);
+
+        glViewport(x, y, width, height);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
     static int createBuffer(lua_State *L)
     {
         GLuint val;
@@ -1897,6 +1915,7 @@ extern "C"
         {"clearColor", clearColor},
         {"clearDepth", clearDepth},
         {"clearStencil", clearStencil},
+        {"viewport", viewport},
         {"createBuffer", createBuffer},
         {"bindBuffer", bindBuffer},
         {"bindBufferBase", bindBufferBase},
