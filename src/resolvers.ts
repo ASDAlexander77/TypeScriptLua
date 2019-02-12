@@ -425,9 +425,11 @@ export class IdentifierResolver {
                         ? resolved.declarations[0]
                         : undefined);
             if (!declaration) {
+                /*
                 if (resolved.name === 'undefined') {
                     return this.returnConst(null, functionContext);
                 }
+                */
 
                 if (resolved.name === 'arguments') {
                     return this.resolveMemberOfCurrentScope('arg', functionContext);
