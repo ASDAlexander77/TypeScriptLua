@@ -28,6 +28,7 @@ export default class WindowEx {
         glut.passiveMotion(function (x: number, y: number) {
             console.log(`passive motion: x = ${x}, y = ${y}`);
 
+            /*
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
 
@@ -36,6 +37,7 @@ export default class WindowEx {
                 mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
                 glut.postRedisplay();
             }
+            */
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
