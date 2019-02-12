@@ -2389,7 +2389,7 @@ export class Emitter {
                     const resultNewPositionInfo = this.functionContext.stack.peekSkip(-1);
                     const clonedValue = this.functionContext.stack.pop();
                     // 1 register is not free
-                    this.functionContext.useRegisterAndPush();
+                    this.functionContext.useRegister();
                     this.functionContext.stack.push(resultNewPositionInfo);
                     this.functionContext.code.push([
                         Ops.MOVE,
