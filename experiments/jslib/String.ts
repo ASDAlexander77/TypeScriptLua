@@ -32,11 +32,13 @@ module JS {
                         return result.join();
                     }
 
-                    const part = StringHelper.substring(constString, current, position - 1);
+                    if (position > current) {
+                        const part = StringHelper.substring(constString, current, position - 1);
+                        ArrayHelper.pushOne(result, part);
+                    }
 
                     current = position + matchResult[0].length;
 
-                    ArrayHelper.pushOne(result, part);
                     if (!isFunc) {
                         ArrayHelper.pushOne(result, valOrFunc);
                     } else {

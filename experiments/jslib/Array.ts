@@ -4,14 +4,14 @@ declare var __len__: any;
 
 module JS {
 
-    export class ArrayHelper {
+    export class ArrayHelper<T> {
         @len
         public static getLength(_this: any[]): number {
             // implemented in the compiler
             throw 0;
         }
 
-        public static pushOne(_this: any[], obj: any) {
+        public static pushOne(_this: any[], obj: T) {
             const vals = (<any>_this)._values;
             if (vals) {
                 table.insert(vals, obj);
@@ -99,7 +99,7 @@ module JS {
 
         public indexOf(val: T): number {
             const vals = this._values;
-            const length_ = vals.length;
+            const length_ = ArrayHelper.getLength(vals);
             for (let i = 0; i < length_; i++) {
                 // tslint:disable-next-line:triple-equals
                 if (vals[i] == val) {
