@@ -41,7 +41,8 @@ module JS {
 
         [k: number]: T;
 
-        private _values: T[] = [];
+        // this is Hack, otherwise it will cause recusive calling of Array.constructor
+        private _values: T[] = <T[]>{};
 
         public constructor() {
             // @ts-ignore
@@ -56,7 +57,9 @@ module JS {
                 if (typeof(indx) == 'number') {
                     // @ts-ignore
                     const v = _this._values[indx + 1];
-                    return v && (<any>v).isNull ? null : v;
+                    // @ts-ignore
+                    // tslint:disable-next-line:triple-equals typeof-compare
+                    return typeof(v) == 'table' && (<any>v).isNull ? null : v;
                 }
 
                 // @ts-ignore
@@ -83,7 +86,9 @@ module JS {
             }
 
             const v0 = table.remove(this._values);
-            return v0 && (<any>v0).isNull ? null : v0;
+            // @ts-ignore
+            // tslint:disable-next-line:triple-equals typeof-compare
+            return typeof(v0) == 'table' && (<any>v0).isNull ? null : v0;
         }
 
         @len
