@@ -36,14 +36,14 @@ module JS {
         [k: number]: T;
 
         private __tostring: () => string;
-        private __index: (_this: String, indx: number | string) => any;
+        private __index: (_this: Array<T>, indx: number | string) => any;
 
         public constructor() {
             this.__tostring = function (): string {
                 return this.join();
             };
 
-            this.__index = function (_this: String, indx: number | string): any {
+            this.__index = function (_this: Array<T>, indx: number | string): any {
                 // @ts-ignore
                 if (typeof(indx) == 'number') {
                     // @ts-ignore
@@ -57,14 +57,25 @@ module JS {
         }
 
         public push(...objs: T[]) {
+            let any = false;
             for (const obj of objs) {
-                const objElement = obj || ArrayNullElement;
+                any = true;
                 if (!this[0]) {
-                    this[0] = <T><any>objElement;
+                    this[0] = obj;
                     continue;
                 }
 
-                table.insert(this, objElement);
+                table.insert(this, obj);
+            }
+
+            if (!any) {
+                if (!this[0]) {
+                    this[0] = <T><any>ArrayNullElement;
+                    return;
+                }
+
+                table.insert(this, ArrayNullElement);
+                return;
             }
         }
 
