@@ -73,7 +73,17 @@ module JS {
                 if (typeof(indx) == 'number') {
                     if (indx == 0 && rawget(_this, 1)) {
                         // copy all elements
-                        _this._values = [..._this];
+                        // @ts-ignore
+                        const _len = ArrayHelper.getLength(_this);
+                        for (let i = _len; i > 0; i--) {
+                            _this._values[i + 1] = _this[i];
+                            delete _this[i];
+                        }
+
+                        // add currently inserted element into
+                        _this._values[1] = val;
+                        // we do not need to copy it into top array
+                        return;
                     }
 
                     _this._values[indx + 1] = val;

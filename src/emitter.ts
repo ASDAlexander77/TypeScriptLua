@@ -2140,8 +2140,13 @@ export class Emitter {
         }
 
         if (node.elements.length > 0) {
+
+            const isFirstElementSpread = node.elements[0].kind === ts.SyntaxKind.SpreadElement;
+            const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
+            const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
+
             // set 1.. elements
-            const reversedValues = (<Array<any>><any>node.elements.slice(1));
+            const reversedValues = (<Array<any>><any>node.elements.slice(isSpreadElementOrMethodCall ? 0 : 1));
             if (reversedValues.length > 0) {
                 reversedValues.forEach((e, index: number) => {
                     this.processExpression(e);
@@ -2157,21 +2162,23 @@ export class Emitter {
                 }
 
                 this.functionContext.code.push(
-                    [Ops.SETLIST, resultInfo.getRegister(), reversedValues.length, 1]);
+                    [Ops.SETLIST, resultInfo.getRegister(), isSpreadElementOrMethodCall ? 0 : reversedValues.length, 1]);
             }
 
             // set 0 element
-            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
-            this.processExpression(node.elements[0]);
+            if (!isSpreadElementOrMethodCall) {
+                this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+                this.processExpression(node.elements[0]);
 
-            const zeroValueInfo = this.functionContext.stack.pop().optimize();
-            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
+                const zeroValueInfo = this.functionContext.stack.pop().optimize();
+                const zeroIndexInfo = this.functionContext.stack.pop().optimize();
 
-            this.functionContext.code.push(
-                [Ops.SETTABLE,
-                resultInfo.getRegister(),
-                zeroIndexInfo.getRegisterOrIndex(),
-                zeroValueInfo.getRegisterOrIndex()]);
+                this.functionContext.code.push(
+                    [Ops.SETTABLE,
+                    resultInfo.getRegister(),
+                    zeroIndexInfo.getRegisterOrIndex(),
+                    zeroValueInfo.getRegisterOrIndex()]);
+            }
         }
     }
 
@@ -3028,18 +3035,29 @@ export class Emitter {
         // TODO: temporary solution: if method called in Statement then it is not returning value
         const parent = node.parent;
         const noReturnCall = constructorCall || this.isValueNotRequired(parent);
-        let isLastMethodArgumentCallOrSpreadElement = parent && parent.kind === ts.SyntaxKind.SpreadElement;
-        if (!isLastMethodArgumentCallOrSpreadElement
+        let isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = parent && parent.kind === ts.SyntaxKind.SpreadElement;
+        if (!isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral
             && parent
-            && (parent.kind === ts.SyntaxKind.CallExpression || parent.kind === ts.SyntaxKind.NewExpression)) {
+            && (parent.kind === ts.SyntaxKind.CallExpression
+                || parent.kind === ts.SyntaxKind.NewExpression)) {
             // check if it last call method argument
             const callMethod = <ts.CallExpression>parent;
             if (callMethod.arguments.length > 0 && callMethod.arguments[callMethod.arguments.length - 1] === node) {
-                isLastMethodArgumentCallOrSpreadElement = true;
+                isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
             }
         }
 
-        const returnCount = noReturnCall ? 1 : isLastMethodArgumentCallOrSpreadElement ? 0 : 2;
+        if (!isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral
+            && parent
+            && (parent.kind === ts.SyntaxKind.ArrayLiteralExpression)) {
+            // check if it last element
+            const callMethod = <ts.ArrayLiteralExpression>parent;
+            if (callMethod.elements.length > 0 && callMethod.elements[callMethod.elements.length - 1] === node) {
+                isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
+            }
+        }
+
+        const returnCount = noReturnCall ? 1 : isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral ? 0 : 2;
         if (returnCount !== 1) {
             this.functionContext.useRegisterAndPush();
         }
