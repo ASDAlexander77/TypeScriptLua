@@ -110,19 +110,19 @@ module JS {
     }
 
     export class String {
-        private __tostring: () => string;
-        private __concat: (_this: String | string, other: String | string) => string;
-        private __index: (_this: String, indx: number) => any;
 
         public constructor(private constString: string) {
+            // @ts-ignore
             this.__tostring = function (): string {
                 return this.constString;
             };
 
+            // @ts-ignore
             this.__concat = function (left: String | string, right: String | string) {
                 return <string>(((<String>left).constString) || left) + <string>(((<String>right).constString) || right);
             };
 
+            // @ts-ignore
             this.__index = function (_this: String, indx: number | string): any {
                 // @ts-ignore
                 if (typeof(indx) == 'number') {
