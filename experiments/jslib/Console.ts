@@ -1,5 +1,5 @@
 declare var print: any;
-declare var error: any;
+declare var io: any;
 
 module JS {
 
@@ -10,7 +10,7 @@ module JS {
         }
 
         public static error(...params: any[]) {
-            error(...params);
+            io.stderr.write(tostring(params[0]));
         }
     }
 

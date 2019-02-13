@@ -100,10 +100,10 @@ module JS {
         public indexOf(val: T): number {
             const vals = this._values;
             const length_ = ArrayHelper.getLength(vals);
-            for (let i = 0; i < length_; i++) {
+            for (let i = 1; i <= length_; i++) {
                 // tslint:disable-next-line:triple-equals
                 if (vals[i] == val) {
-                    return i;
+                    return i - 1;
                 }
             }
 
@@ -195,16 +195,16 @@ module JS {
         public splice(index: number, howmany?: number, ...items: T[]): T[] {
             const count = howmany || 1;
             const ret = new Array<T>();
-            for (let i = index + count - 1; i >= index; i--) {
+            for (let i = index + count; i > index; i--) {
                 // @ts-ignore
-                ArrayHelper.pushOne(ret, this[i]);
+                ArrayHelper.pushOne(ret, this._values[i]);
                 table.remove(this._values, i);
             }
 
             if (items) {
                 const length_ = ArrayHelper.getLength(items);
                 for (let i = 0; i < length_; i++) {
-                    const ind = i + index;
+                    const ind = i + index + 1;
                     table.insert(this._values, ind, items[i]);
                 }
             }
@@ -217,6 +217,10 @@ module JS {
             const ret = new Array<T>();
 
             const from = begin || 0;
+            if (from < 0) {
+                throw new Error(`Index out of bounds: ${from}`);
+            }
+
             let to = end || this.length;
             if (to > this.length) {
                 to = this.length;
