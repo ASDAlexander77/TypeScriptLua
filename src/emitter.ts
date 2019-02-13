@@ -2140,19 +2140,6 @@ export class Emitter {
         }
 
         if (node.elements.length > 0) {
-            // set 0 element
-            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
-            this.processExpression(node.elements[0]);
-
-            const zeroValueInfo = this.functionContext.stack.pop().optimize();
-            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
-
-            this.functionContext.code.push(
-                [Ops.SETTABLE,
-                resultInfo.getRegister(),
-                zeroIndexInfo.getRegisterOrIndex(),
-                zeroValueInfo.getRegisterOrIndex()]);
-
             // set 1.. elements
             const reversedValues = (<Array<any>><any>node.elements.slice(1));
             if (reversedValues.length > 0) {
@@ -2172,6 +2159,19 @@ export class Emitter {
                 this.functionContext.code.push(
                     [Ops.SETLIST, resultInfo.getRegister(), reversedValues.length, 1]);
             }
+
+            // set 0 element
+            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+            this.processExpression(node.elements[0]);
+
+            const zeroValueInfo = this.functionContext.stack.pop().optimize();
+            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
+
+            this.functionContext.code.push(
+                [Ops.SETTABLE,
+                resultInfo.getRegister(),
+                zeroIndexInfo.getRegisterOrIndex(),
+                zeroValueInfo.getRegisterOrIndex()]);
         }
     }
 

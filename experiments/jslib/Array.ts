@@ -65,6 +65,24 @@ module JS {
                 // @ts-ignore
                 return __get_call__(_this, indx);
             };
+
+            // @ts-ignore
+            this.__newindex = function (_this: Array<T>, indx: number | string, val: T): any {
+                // @ts-ignore
+                // tslint:disable-next-line:triple-equals
+                if (typeof(indx) == 'number') {
+                    if (indx == 0 && rawget(_this, 1)) {
+                        // copy all elements
+                        _this._values = [..._this];
+                    }
+
+                    _this._values[indx + 1] = val;
+                    return;
+                }
+
+                // @ts-ignore
+                return __set_call__(_this, indx, val);
+            };
         }
 
         public push(...objs: T[]) {

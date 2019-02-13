@@ -1,5 +1,7 @@
 import './JS';
 
 const a = new Array<any>();
-a.push(10);
-const i = a.indexOf(10);
+a[0] = 1;
+
+const b = [...a];
+console.log(b[0]);
