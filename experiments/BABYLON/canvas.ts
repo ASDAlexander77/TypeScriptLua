@@ -436,7 +436,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.disable(cap);
     }
 
-    // @ts-ignore
     disableVertexAttribArray(index: number): void {
         _gl.disableVertexAttribArray(index);
     }
@@ -446,7 +445,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     drawElements(mode: number, count: number, type: number, offset: number): void {
         _gl.drawElements(mode, count, type, offset);
     }
@@ -478,7 +476,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     frontFace(mode: number): void {
         _gl.frontFace(mode);
     }
@@ -503,7 +500,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getAttribLocation(program: WebGLProgram, name: string): number {
         return _gl.getAttribLocation(program ? (<any>program).value : 0, name);
     }
@@ -513,7 +509,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     getContextAttributes(): WebGLContextAttributes {
         // TODO: finish it
         return undefined;

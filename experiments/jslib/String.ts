@@ -123,7 +123,7 @@ module JS {
                 return <string>(((<String>left).constString) || left) + <string>(((<String>right).constString) || right);
             };
 
-            this.__index = function (_this: String, indx: number): any {
+            this.__index = function (_this: String, indx: number | string): any {
                 // @ts-ignore
                 if (typeof(indx) == 'number') {
                     // @ts-ignore

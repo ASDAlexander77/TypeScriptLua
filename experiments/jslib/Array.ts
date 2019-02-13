@@ -21,26 +21,50 @@ module JS {
         }
     }
 
+    export class ArrayNullElement {
+        public static isNull = true;
+
+        public static __tostring(): string {
+            return 'null';
+        }
+    }
+
+    setmetatable(ArrayNullElement, ArrayNullElement);
+
     export class Array<T> {
 
         [k: number]: T;
 
         private __tostring: () => string;
+        private __index: (_this: String, indx: number | string) => any;
 
         public constructor() {
             this.__tostring = function (): string {
                 return this.join();
             };
+
+            this.__index = function (_this: String, indx: number | string): any {
+                // @ts-ignore
+                if (typeof(indx) == 'number') {
+                    // @ts-ignore
+                    const v = rawget(_this, indx);
+                    return v && (<any>v).isNull ? null : v;
+                }
+
+                // @ts-ignore
+                return __get_call__(_this, indx);
+            };
         }
 
         public push(...objs: T[]) {
             for (const obj of objs) {
+                const objElement = obj || ArrayNullElement;
                 if (!this[0]) {
-                    this[0] = obj;
+                    this[0] = <T><any>objElement;
                     continue;
                 }
 
-                table.insert(this, obj);
+                table.insert(this, objElement);
             }
         }
 
@@ -53,10 +77,11 @@ module JS {
             if (l === 1) {
                 const v = this[0];
                 delete this[0];
-                return v;
+                return v && (<any>v).isNull ? null : v;
             }
 
-            return table.remove(this);
+            const v0 = table.remove(this);
+            return v0 && (<any>v0).isNull ? null : v0;
         }
 
         @len
