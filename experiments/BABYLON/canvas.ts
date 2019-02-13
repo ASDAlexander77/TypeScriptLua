@@ -61,7 +61,11 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createVertexArray(): WebGLVertexArrayObject {
         const val = _gl.createVertexArray();
-        return <WebGLVertexArrayObject>{ value: val };
+        if (val >= 0) {
+            return <WebGLVertexArrayObject>{ value: val };
+        }
+
+        return null;
     }
 
     bindVertexArray(vao?: WebGLVertexArrayObject): void {
@@ -337,7 +341,11 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createBuffer(): WebGLBuffer {
         const val = _gl.createBuffer();
-        return <WebGLBuffer>{ references: val };
+        if (val >= 0) {
+            return <WebGLBuffer>{ references: val };
+        }
+
+        return null;
     }
 
     // @ts-ignore
@@ -347,7 +355,11 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createProgram(): WebGLProgram {
         const val = _gl.createProgram();
-        return <WebGLProgram>{ value: val };
+        if (val >= 0) {
+            return <WebGLProgram>{ value: val };
+        }
+
+        return null;
     }
 
     // @ts-ignore
@@ -357,7 +369,11 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     createShader(type: number): WebGLShader {
         const val = _gl.createShader(type);
-        return <WebGLShader>{ value: val, type: type };
+        if (val >= 0) {
+            return <WebGLShader>{ value: val, type: type };
+        }
+
+        return null;
     }
 
     // @ts-ignore
@@ -499,12 +515,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     getContextAttributes(): WebGLContextAttributes {
+        // TODO: finish it
         return undefined;
     }
 
-    // @ts-ignore
     getError(): number {
-        throw new Error('Method not implemented.');
+        return _gl.error();
     }
 
     // @ts-ignore
@@ -553,6 +569,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     getExtension(extensionName: 'ANGLE_instanced_arrays'): ANGLE_instanced_arrays;
     // @ts-ignore
     getExtension(extensionName: string | any): any {
+        // TODO: finish it
         return undefined;
     }
 
@@ -587,9 +604,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         return _gl.getShaderParameter(shader ? (<any>shader).value : 0, pname);
     }
 
-    // @ts-ignore
     getShaderPrecisionFormat(shadertype: number, precisiontype: number): WebGLShaderPrecisionFormat {
-        return undefined;
+        return _gl.getShaderPrecisionFormat(shadertype, precisiontype);
     }
 
     // @ts-ignore
@@ -614,7 +630,11 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation {
         const val = _gl.getUniformLocation(program ? (<any>program).value : 0, name);
-        return <WebGLUniformLocation>{ value: val, name: name };
+        if (val >= 0) {
+            return <WebGLUniformLocation>{ value: val, name: name };
+        }
+
+        return null;
     }
 
     // @ts-ignore

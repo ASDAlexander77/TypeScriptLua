@@ -153,6 +153,15 @@ extern "C"
         return 0;
     }
 
+    static int error(lua_State *L)
+    {
+        const GLenum error = glGetError();
+
+        lua_pushinteger(L, error);
+
+        return 1;
+    }
+
     static int flush(lua_State *L)
     {
         glFlush();
@@ -480,6 +489,42 @@ extern "C"
         }
 
         lua_pushinteger(L, val);
+
+        return 1;
+    }
+
+    static int getShaderPrecisionFormat(lua_State *L)
+    {
+        const GLenum shaderType = luaL_checkinteger(L, 1);
+        const GLenum precisionType = luaL_checkinteger(L, 2);
+
+        GLint range[2];
+ 	    GLint precision;
+
+        glGetShaderPrecisionFormat(shaderType, precisionType, &range, &precision);
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        if (range > 0 && precision > 0) {
+            lua_newtable(L);
+
+            lua_pushstring(L, "rangeMin");
+            lua_pushinteger(L, range[0]);
+            lua_settable(L, -3);        
+
+            lua_pushstring(L, "rangeMax");
+            lua_pushinteger(L, range[1]);
+            lua_settable(L, -3);        
+
+            lua_pushstring(L, "precision");
+            lua_pushinteger(L, precision);
+            lua_settable(L, -3);        
+        } else {
+            lua_pushnil(L);
+        }
 
         return 1;
     }
@@ -1910,6 +1955,7 @@ extern "C"
 
     static const struct luaL_Reg webgl[] = {
         {"init", initGL},
+        {"error", error},
         {"flush", flush},
         {"clear", clear},
         {"clearColor", clearColor},
@@ -1927,6 +1973,7 @@ extern "C"
         {"getParameter", getParameter},
         {"getShaderParameter", getShaderParameter},
         {"getShaderInfoLog", getShaderInfoLog},
+        {"getShaderPrecisionFormat", getShaderPrecisionFormat},
         {"createProgram", createProgram},
         {"getProgramInfoLog", getProgramInfoLog},
         {"attachShader", attachShader},
