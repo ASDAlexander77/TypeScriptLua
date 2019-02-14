@@ -16,6 +16,11 @@ module JS {
             obj.__proto = proto;
             obj.__newindex = __set_call__;
             setmetatable(obj, obj);
+
+            if (obj.constructor) {
+                obj.constructor();
+            }
+
             return obj;
         }
 
