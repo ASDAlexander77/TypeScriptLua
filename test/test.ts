@@ -1,4 +1,4 @@
-import './JS';
+//import './JS';
 
 const a = [1, 2, 3];
 
@@ -14,10 +14,9 @@ for (const c of a) {
 
 function fff(...objs: any[]) {
     print("objs index: ");
-    //print(objs[0]);
+    print(objs[0]);
     print(objs[1]);
     print(objs[2]);
-    print(objs[3]);
 
     print("objs for/each: ");
     for (const c of objs) {

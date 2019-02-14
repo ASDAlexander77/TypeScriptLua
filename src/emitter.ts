@@ -422,6 +422,7 @@ export class Emitter {
             const operand = firstParam ? <ts.Identifier>firstParam.name : ts.createThis();
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
+            /*
             return <ts.NodeArray<ts.Statement>><any>
                 [<ts.Statement>ts.createReturn(
                     ts.createBinary(
@@ -431,6 +432,11 @@ export class Emitter {
                             ts.createElementAccess(operand, ts.createNumericLiteral('0')),
                             ts.createNumericLiteral('1'),
                             ts.createNumericLiteral('0'))))
+                ];
+            */
+            return <ts.NodeArray<ts.Statement>><any>
+                [
+                    <ts.Statement>ts.createReturn(ts.createPropertyAccess(operand, lengthMemeber))
                 ];
         }
 
@@ -504,7 +510,7 @@ export class Emitter {
                 }
             });
 
-            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) - (dotDotDotAny ? 1 : 0);
+            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) - (this.jsLib && dotDotDotAny ? 1 : 0);
             this.functionContext.is_vararg = dotDotDotAny;
         }
 
@@ -522,9 +528,45 @@ export class Emitter {
             // we need to load all '...<>' into arrays
             parameters.filter(p => p.dotDotDotToken).forEach(p => {
                 const localVar = this.functionContext.findLocal((<ts.Identifier>p.name).text);
-                this.functionContext.code.push([Ops.NEWTABLE, localVar, 0, 0]);
-                this.functionContext.code.push([Ops.VARARG, localVar + 1, 0, 0]);
-                this.functionContext.code.push([Ops.SETLIST, localVar, 0, 1]);
+                if (this.jsLib) {
+                    const initializeNewArg = (arrayRef: ResolvedInfo) => {
+                        this.functionContext.code.push([Ops.VARARG, arrayRef.getRegister() + 1, 0, 0]);
+                        this.functionContext.code.push([Ops.SETLIST, arrayRef.getRegister(), 0, 1]);
+                    };
+
+                    const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
+                    this.processNewExpression(newArray, initializeNewArg);
+                    const resultInfo = this.functionContext.stack.pop();
+
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        localVar,
+                        resultInfo.getRegister()
+                    ]);
+                } else {
+                    this.functionContext.code.push([Ops.NEWTABLE, localVar + 1, 0, 0]);
+                    this.functionContext.code.push([Ops.VARARG, localVar + 2, 0, 0]);
+                    this.functionContext.code.push([Ops.SETLIST, localVar + 1, 0, 1]);
+
+                    // workaround 0 element
+                    const zeroIndexInfo = this.resolver.returnConst(0, this.functionContext);
+                    this.functionContext.code.push(
+                        [Ops.SETTABLE,
+                            localVar + 1,
+                            zeroIndexInfo.getRegisterOrIndex(),
+                            localVar]);
+
+                    // set length for table
+                    const reservedResult = this.functionContext.useRegisterAndPush();
+                    this.AddLengthToConstArray(localVar + 1);
+                    this.functionContext.stack.pop();
+
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        localVar,
+                        localVar + 1
+                    ]);
+                }
             });
         }
 
@@ -542,6 +584,28 @@ export class Emitter {
         if (this.functionContext.availableRegister !== 0) {
             throw new Error('stack is not cleaned up');
         }
+    }
+
+    private AddLengthToConstArray(localVar: number) {
+        const lenResult = this.functionContext.useRegisterAndPush();
+
+        this.functionContext.code.push([Ops.LEN,
+            lenResult.getRegister(),
+            localVar]);
+
+        const oneConstInfo = this.resolver.returnConst(1, this.functionContext);
+        this.functionContext.code.push([Ops.ADD,
+            lenResult.getRegister(),
+            lenResult.getRegister(),
+            oneConstInfo.getRegisterOrIndex()]);
+
+        const lenNameInfo = this.resolver.returnConst('length', this.functionContext);
+        this.functionContext.code.push([Ops.SETTABLE,
+            localVar,
+            lenNameInfo.getRegisterOrIndex(),
+            lenResult.getRegisterOrIndex()]);
+
+        this.functionContext.stack.pop();
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
@@ -2120,8 +2184,8 @@ export class Emitter {
                 const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
                 const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
 
-                // set 1.. elements
-                const reversedValues = node.elements.slice(0);
+                // set 0|1.. elements
+                const reversedValues = node.elements.slice(!this.jsLib ? 1 : 0);
                 if (reversedValues.length > 0) {
                     reversedValues.forEach((e, index: number) => {
                         this.processExpression(e);
@@ -2138,6 +2202,23 @@ export class Emitter {
 
                     this.functionContext.code.push(
                         [Ops.SETLIST, arrayRef.getRegister(), isSpreadElementOrMethodCall ? 0 : reversedValues.length, 1]);
+                }
+
+                if (!this.jsLib) {
+                    // set 0 element
+                    this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+                    this.processExpression(node.elements[0]);
+
+                    const zeroValueInfo = this.functionContext.stack.pop().optimize();
+                    const zeroIndexInfo = this.functionContext.stack.pop().optimize();
+
+                    this.functionContext.code.push(
+                        [Ops.SETTABLE,
+                        arrayRef.getRegister(),
+                        zeroIndexInfo.getRegisterOrIndex(),
+                        zeroValueInfo.getRegisterOrIndex()]);
+
+                    this.AddLengthToConstArray(arrayRef.getRegisterOrIndex());
                 }
             }
         };
