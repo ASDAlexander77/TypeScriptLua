@@ -1,5 +1,6 @@
 declare var table: any;
 declare var len: any;
+declare var ret: any;
 declare var __len__: any;
 
 module JS {
@@ -88,6 +89,23 @@ module JS {
                 // @ts-ignore
                 return __set_call__(_this, indx, val);
             };
+
+            // @ts-ignore
+            this.__ipairs = Array.__ipairsFunc;
+            // @ts-ignore
+            this.__pairs = Array.__pairsFunc;
+        }
+
+        @ret(3)
+        static __ipairsFunc(_this: Array<T>) {
+            // @ts-ignore
+            return ipairs(_this._values);
+        }
+
+        @ret(3)
+        static __pairsFunc(_this: Array<T>) {
+            // @ts-ignore
+            return pairs(_this._values);
         }
 
         public push(...objs: T[]) {

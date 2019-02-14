@@ -1575,13 +1575,30 @@ export class Emitter {
     private processReturnStatement(node: ts.ReturnStatement): void {
         if (node.expression) {
             this.processExpression(node.expression);
-
             const resultInfo = this.functionContext.stack.pop();
+
+            // support custom return size
+            const ret = this.GetVariableReturn();
+
+            let returnValues = 1;
+            if (ret) {
+                // tslint:disable-next-line:radix
+                returnValues = parseInt(
+                    (<ts.Identifier>(<ts.CallExpression>(ret.expression)).arguments[0]).text);
+            }
+
             this.functionContext.code.push(
-                [Ops.RETURN, resultInfo.getRegister(), 2]);
+                [Ops.RETURN, resultInfo.getRegister(), returnValues + 1]);
         } else {
             this.functionContext.code.push([Ops.RETURN, 0, 1]);
         }
+    }
+
+    private GetVariableReturn() {
+        const location = this.functionContext.current_location_node;
+        const ret = location && location.decorators && location.decorators.find(m => m.expression.kind === ts.SyntaxKind.CallExpression
+            && (<ts.Identifier>((<ts.CallExpression>m.expression).expression)).text === 'ret');
+        return ret;
     }
 
     private processIfStatement(node: ts.IfStatement): void {
@@ -3114,6 +3131,16 @@ export class Emitter {
             // check if it last element
             const callMethod = <ts.ArrayLiteralExpression>parent;
             if (callMethod.elements.length > 0 && callMethod.elements[callMethod.elements.length - 1] === node) {
+                isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
+            }
+        }
+
+        if (!isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral
+            && parent
+            && parent.kind === ts.SyntaxKind.ReturnStatement) {
+            // support variable return
+            const ret = this.GetVariableReturn();
+            if (ret) {
                 isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
             }
         }
