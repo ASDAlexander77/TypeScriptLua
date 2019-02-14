@@ -2140,7 +2140,6 @@ export class Emitter {
         }
 
         if (node.elements.length > 0) {
-
             const isFirstElementSpread = node.elements[0].kind === ts.SyntaxKind.SpreadElement;
             const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
             const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
@@ -2166,19 +2165,18 @@ export class Emitter {
             }
 
             // set 0 element
-            if (!isSpreadElementOrMethodCall) {
-                this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
-                this.processExpression(node.elements[0]);
+            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+            // in case of spread operator os function we need to call <table>[0] = null to simulate access call
+            this.processExpression(!isSpreadElementOrMethodCall ? node.elements[0] : ts.createNull());
 
-                const zeroValueInfo = this.functionContext.stack.pop().optimize();
-                const zeroIndexInfo = this.functionContext.stack.pop().optimize();
+            const zeroValueInfo = this.functionContext.stack.pop().optimize();
+            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
 
-                this.functionContext.code.push(
-                    [Ops.SETTABLE,
-                    resultInfo.getRegister(),
-                    zeroIndexInfo.getRegisterOrIndex(),
-                    zeroValueInfo.getRegisterOrIndex()]);
-            }
+            this.functionContext.code.push(
+                [Ops.SETTABLE,
+                resultInfo.getRegister(),
+                zeroIndexInfo.getRegisterOrIndex(),
+                zeroValueInfo.getRegisterOrIndex()]);
         }
     }
 

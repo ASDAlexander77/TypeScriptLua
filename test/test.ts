@@ -1,11 +1,19 @@
 import './JS';
 
-const b = [1, 2, 3];
-console.log(b[0]);
-console.log(b[1]);
-console.log(b[2]);
+class Vector3 {
+    constructor(
+        public r: number = 0,
+        public g: number = 0,
+        public b: number = 0) {
+    }
 
-const c = [table.unpack(b._values)];
-console.log(c[1]);
-console.log(c[2]);
-console.log(c[3]);
+    public static Zero(): Vector3 {
+        return new Vector3(0.0, 0.0, 0.0);
+    }
+}
+
+class MathTmp {
+    public static Vector3: Vector3[] = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
+}
+
+console.log(MathTmp.Vector3[0].r);
