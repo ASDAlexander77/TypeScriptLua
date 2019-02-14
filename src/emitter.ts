@@ -510,7 +510,7 @@ export class Emitter {
                 }
             });
 
-            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) - (this.jsLib && dotDotDotAny ? 1 : 0);
+            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) - (dotDotDotAny ? 1 : 0);
             this.functionContext.is_vararg = dotDotDotAny;
         }
 
@@ -528,7 +528,8 @@ export class Emitter {
             // we need to load all '...<>' into arrays
             parameters.filter(p => p.dotDotDotToken).forEach(p => {
                 const localVar = this.functionContext.findLocal((<ts.Identifier>p.name).text);
-                if (this.jsLib) {
+                // TODO: disabled as ...<TABLE> does not work for Array<T>. (finish implementation)
+                if (false && this.jsLib) {
                     const initializeNewArg = (arrayRef: ResolvedInfo) => {
                         this.functionContext.code.push([Ops.VARARG, arrayRef.getRegister() + 1, 0, 0]);
                         this.functionContext.code.push([Ops.SETLIST, arrayRef.getRegister(), 0, 1]);
@@ -544,28 +545,14 @@ export class Emitter {
                         resultInfo.getRegister()
                     ]);
                 } else {
-                    this.functionContext.code.push([Ops.NEWTABLE, localVar + 1, 0, 0]);
-                    this.functionContext.code.push([Ops.VARARG, localVar + 2, 0, 0]);
-                    this.functionContext.code.push([Ops.SETLIST, localVar + 1, 0, 1]);
-
-                    // workaround 0 element
-                    const zeroIndexInfo = this.resolver.returnConst(0, this.functionContext);
-                    this.functionContext.code.push(
-                        [Ops.SETTABLE,
-                            localVar + 1,
-                            zeroIndexInfo.getRegisterOrIndex(),
-                            localVar]);
+                    this.functionContext.code.push([Ops.NEWTABLE, localVar, 0, 0]);
+                    this.functionContext.code.push([Ops.VARARG, localVar + 1, 0, 0]);
+                    this.functionContext.code.push([Ops.SETLIST, localVar, 0, 1]);
 
                     // set length for table
                     const reservedResult = this.functionContext.useRegisterAndPush();
-                    this.AddLengthToConstArray(localVar + 1);
+                    this.AddLengthToConstArray(localVar);
                     this.functionContext.stack.pop();
-
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        localVar,
-                        localVar + 1
-                    ]);
                 }
             });
         }
@@ -3217,11 +3204,6 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        // load first element
-        const zeroElementAccessExpression = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
-        zeroElementAccessExpression.parent = node;
-        this.processExpression(zeroElementAccessExpression);
-
         const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('table'), ts.createIdentifier('unpack'));
         const spreadCall = ts.createCall(
             propertyAccessExpression,
@@ -3229,13 +3211,6 @@ export class Emitter {
             [node.expression]);
         spreadCall.parent = node;
         this.processExpression(spreadCall);
-
-        // discard 1 element in stack
-        const spreadInfo = this.functionContext.stack.pop();
-        const zeroElementInfo = this.functionContext.stack.pop();
-
-        // store result again
-        this.functionContext.useRegisterAndPush();
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
