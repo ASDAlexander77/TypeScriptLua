@@ -1,19 +1,29 @@
 import './JS';
 
-class Vector3 {
-    constructor(
-        public r: number = 0,
-        public g: number = 0,
-        public b: number = 0) {
-    }
+const a = [1, 2, 3];
 
-    public static Zero(): Vector3 {
-        return new Vector3(0.0, 0.0, 0.0);
-    }
+print("a index: ");
+print(a[0]);
+print(a[1]);
+print(a[2]);
+
+print("a for/each: ");
+for (const c of a) {
+	print(c);
 }
 
-class MathTmp {
-    public static Vector3: Vector3[] = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
+function fff(...objs: any[]) {
+    print("objs index: ");
+    //print(objs[0]);
+    print(objs[1]);
+    print(objs[2]);
+    print(objs[3]);
+
+    print("objs for/each: ");
+    for (const c of objs) {
+	print(c);
+    }
+
 }
 
-console.log(MathTmp.Vector3[0].r);
+fff(1, 2, 3);

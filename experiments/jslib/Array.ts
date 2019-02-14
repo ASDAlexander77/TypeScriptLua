@@ -45,6 +45,16 @@ module JS {
         private _values: T[] = <T[]>{};
 
         public constructor() {
+            if (rawget(this, 1)) {
+                // copy all elements
+                // @ts-ignore
+                const _len = ArrayHelper.getLength(this);
+                for (let i = _len; i > 0; i--) {
+                    this._values[i] = this[i];
+                    delete this[i];
+                }
+            }
+
             // @ts-ignore
             this.__tostring = function (): string {
                 return this.join();
@@ -71,25 +81,6 @@ module JS {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
-                    if (indx == 0 && rawget(_this, 1)) {
-                        // copy all elements
-                        // @ts-ignore
-                        const index = val ? 1 : 0;
-                        const _len = ArrayHelper.getLength(_this);
-                        for (let i = _len; i > 0; i--) {
-                            _this._values[i + index] = _this[i];
-                            delete _this[i];
-                        }
-
-                        // add currently inserted element into
-                        if (val) {
-                            _this._values[1] = val;
-                            // we do not need to copy it into top array
-                        }
-
-                        return;
-                    }
-
                     _this._values[indx + 1] = val;
                     return;
                 }
@@ -123,10 +114,8 @@ module JS {
             return typeof (v0) == 'table' && (<any>v0).isNull ? null : v0;
         }
 
-        @len
         public get length(): number {
-            // implemented in the compiler
-            throw 0;
+            return ArrayHelper.getLength(this._values);
         }
 
         public indexOf(val: T): number {

@@ -197,10 +197,10 @@ export class Preprocessor {
     private preprocessElementAccessExpression(elementAccessExpression: ts.ElementAccessExpression): ts.Expression {
         // support string access  'asd'[xxx];
 
-        const isConstStringOrNumber =
+        const isConstStringAndNumberElementAccess =
             this.typeInfo.isTypeOfNode(elementAccessExpression.expression, 'string')
             && this.typeInfo.isTypeOfNode(elementAccessExpression.argumentExpression, 'number');
-        if (!isConstStringOrNumber) {
+        if (!isConstStringAndNumberElementAccess) {
             return undefined;
         }
 

@@ -205,7 +205,7 @@ export class Emitter {
     setmetatable(a, a)
     */
 
-    public static printNode(node: ts.Statement): string {
+    public printNode(node: ts.Statement): string {
         const sourceFile = ts.createSourceFile(
             'noname', '', ts.ScriptTarget.ES2018, /*setParentNodes */ true, ts.ScriptKind.TS);
 
@@ -504,7 +504,7 @@ export class Emitter {
                 }
             });
 
-            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0);
+            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) - (dotDotDotAny ? 1 : 0);
             this.functionContext.is_vararg = dotDotDotAny;
         }
 
@@ -522,23 +522,9 @@ export class Emitter {
             // we need to load all '...<>' into arrays
             parameters.filter(p => p.dotDotDotToken).forEach(p => {
                 const localVar = this.functionContext.findLocal((<ts.Identifier>p.name).text);
-                this.functionContext.code.push([Ops.NEWTABLE, localVar + 1, 0, 0]);
-                this.functionContext.code.push([Ops.VARARG, localVar + 2, 0, 0]);
-                this.functionContext.code.push([Ops.SETLIST, localVar + 1, 0, 1]);
-
-                // workaround 0 element
-                const zeroIndexInfo = this.resolver.returnConst(0, this.functionContext);
-                this.functionContext.code.push(
-                    [Ops.SETTABLE,
-                    localVar + 1,
-                    zeroIndexInfo.getRegisterOrIndex(),
-                        localVar]);
-
-                this.functionContext.code.push([
-                    Ops.MOVE,
-                    localVar,
-                    localVar + 1
-                ]);
+                this.functionContext.code.push([Ops.NEWTABLE, localVar, 0, 0]);
+                this.functionContext.code.push([Ops.VARARG, localVar + 1, 0, 0]);
+                this.functionContext.code.push([Ops.SETLIST, localVar, 0, 1]);
             });
         }
 
@@ -1829,10 +1815,12 @@ export class Emitter {
     private processForOfStatement(node: ts.ForOfStatement): void {
 
         const expressionType = this.typeInfo.getTypeOfNode(node.expression);
+        /*
         if (expressionType === 'Array') {
             this.processForOfStatementForStaticArray(node);
             return;
         }
+        */
 
         // we need to find out type of element
         const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
@@ -2125,10 +2113,39 @@ export class Emitter {
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
+
+        const initializeArrayFunction = (arrayRef: ResolvedInfo) => {
+            if (node.elements.length > 0) {
+                const isFirstElementSpread = node.elements[0].kind === ts.SyntaxKind.SpreadElement;
+                const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
+                const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
+
+                // set 1.. elements
+                const reversedValues = node.elements.slice(0);
+                if (reversedValues.length > 0) {
+                    reversedValues.forEach((e, index: number) => {
+                        this.processExpression(e);
+                    });
+
+                    reversedValues.forEach(a => {
+                        // pop method arguments
+                        this.functionContext.stack.pop();
+                    });
+
+                    if (node.elements.length > 511) {
+                        throw new Error('finish using C in SETLIST');
+                    }
+
+                    this.functionContext.code.push(
+                        [Ops.SETLIST, arrayRef.getRegister(), isSpreadElementOrMethodCall ? 0 : reversedValues.length, 1]);
+                }
+            }
+        };
+
         let resultInfo;
         if (this.jsLib) {
             const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
-            this.processNewExpression(newArray);
+            this.processNewExpression(newArray, initializeArrayFunction);
             resultInfo = this.functionContext.stack.peek();
         } else {
             resultInfo = this.functionContext.useRegisterAndPush();
@@ -2137,46 +2154,7 @@ export class Emitter {
                 resultInfo.getRegister(),
                 node.elements.length,
                 0]);
-        }
-
-        if (node.elements.length > 0) {
-            const isFirstElementSpread = node.elements[0].kind === ts.SyntaxKind.SpreadElement;
-            const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
-            const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
-
-            // set 1.. elements
-            const reversedValues = (<Array<any>><any>node.elements.slice(isSpreadElementOrMethodCall ? 0 : 1));
-            if (reversedValues.length > 0) {
-                reversedValues.forEach((e, index: number) => {
-                    this.processExpression(e);
-                });
-
-                reversedValues.forEach(a => {
-                    // pop method arguments
-                    this.functionContext.stack.pop();
-                });
-
-                if (node.elements.length > 511) {
-                    throw new Error('finish using C in SETLIST');
-                }
-
-                this.functionContext.code.push(
-                    [Ops.SETLIST, resultInfo.getRegister(), isSpreadElementOrMethodCall ? 0 : reversedValues.length, 1]);
-            }
-
-            // set 0 element
-            this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
-            // in case of spread operator os function we need to call <table>[0] = null to simulate access call
-            this.processExpression(!isSpreadElementOrMethodCall ? node.elements[0] : ts.createNull());
-
-            const zeroValueInfo = this.functionContext.stack.pop().optimize();
-            const zeroIndexInfo = this.functionContext.stack.pop().optimize();
-
-            this.functionContext.code.push(
-                [Ops.SETTABLE,
-                resultInfo.getRegister(),
-                zeroIndexInfo.getRegisterOrIndex(),
-                zeroValueInfo.getRegisterOrIndex()]);
+            initializeArrayFunction(resultInfo);
         }
     }
 
@@ -2887,7 +2865,7 @@ export class Emitter {
         this.processExpression(assignNull);
     }
 
-    private processNewExpression(node: ts.NewExpression): void {
+    private processNewExpression(node: ts.NewExpression, extraCodeBeforeConstructor?: (arrayRef: ResolvedInfo) => void): void {
 
         /*
         // special cases: new Array and new Object
@@ -2939,6 +2917,10 @@ export class Emitter {
         this.functionContext.stack.pop();
         this.functionContext.stack.pop();
         this.functionContext.stack.pop();
+
+        if (extraCodeBeforeConstructor) {
+            extraCodeBeforeConstructor(resultInfo);
+        }
 
         // call constructor
         const methodInfo = this.functionContext.useRegisterAndPush();
