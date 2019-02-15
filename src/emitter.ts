@@ -2234,7 +2234,7 @@ export class Emitter {
         this.processExpression(node.expression);
         this.processExpression(node.argumentExpression);
 
-        if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple'])) {
+        if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'any'])) {
             // add +1 if number
             const op1 = this.functionContext.stack.peek();
 

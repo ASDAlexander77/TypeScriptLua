@@ -1,8 +1,13 @@
-let x: [string, number];
-x = ["hello", 10];
-print(x[0]);
-print(x[1]);
-var x2: [string, number];
-x2 = ["hello", 10];
-print(x2[0]);
-print(x2[1]);
+let deck = {
+    suits: ["hearts"],
+    createCardPicker: function () {
+        return () => {
+            return { suit: this.suits[0] };
+        };
+    }
+};
+
+let cardPicker = deck.createCardPicker();
+let pickedCard = cardPicker();
+
+console.log(pickedCard.suit);
