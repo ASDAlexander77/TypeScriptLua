@@ -23,7 +23,9 @@ export class TypeInfo {
                 ? typeof (detectType.value)
                 : detectType.symbol
                     ? detectType.symbol.name
-                    : undefined;
+                    : (detectType.target.objectFlags & ts.ObjectFlags.Tuple) === ts.ObjectFlags.Tuple
+                        ? 'tuple'
+                        : undefined;
 
         return val;
     }
@@ -59,6 +61,7 @@ export class TypeInfo {
 
             return typeName;
         } catch (e) {
+            (<any>node).__return_type = 'error';
             try {
                 console.warn('Can\'t get type of "' + node.getText() + '"');
             } catch (e2) {

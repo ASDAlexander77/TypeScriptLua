@@ -2234,32 +2234,34 @@ export class Emitter {
         this.processExpression(node.expression);
         this.processExpression(node.argumentExpression);
 
-        // add +1 if number
-        const op1 = this.functionContext.stack.peek();
+        if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple'])) {
+            // add +1 if number
+            const op1 = this.functionContext.stack.peek();
 
-        this.functionContext.newLocalScope(node);
+            this.functionContext.newLocalScope(node);
 
-        this.functionContext.createLocal('<op1>', op1);
-        const localOp1Ident = ts.createIdentifier('<op1>');
+            this.functionContext.createLocal('<op1>', op1);
+            const localOp1Ident = ts.createIdentifier('<op1>');
 
-        const condition = ts.createBinary(
-                    ts.createTypeOf(localOp1Ident), ts.SyntaxKind.EqualsEqualsToken, ts.createStringLiteral('number'));
+            const condition = ts.createBinary(
+                        ts.createTypeOf(localOp1Ident), ts.SyntaxKind.EqualsEqualsToken, ts.createStringLiteral('number'));
 
-        const condExpression = ts.createConditional(condition,
-            ts.createBinary(localOp1Ident, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1')), localOp1Ident);
-        condExpression.parent = node;
-        condition.parent = condExpression;
-        this.processExpression(condExpression);
+            const condExpression = ts.createConditional(condition,
+                ts.createBinary(localOp1Ident, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1')), localOp1Ident);
+            condExpression.parent = node;
+            condition.parent = condExpression;
+            this.processExpression(condExpression);
 
-        this.functionContext.restoreLocalScope();
+            this.functionContext.restoreLocalScope();
 
-        const result = this.functionContext.stack.pop();
-        this.functionContext.code.push([
-            Ops.MOVE,
-            op1.getRegister(),
-            result.getRegister(),
-            0]);
-        // end of adding +1 if number
+            const result = this.functionContext.stack.pop();
+            this.functionContext.code.push([
+                Ops.MOVE,
+                op1.getRegister(),
+                result.getRegister(),
+                0]);
+            // end of adding +1 if number
+        }
 
         // perform load
         const indexInfo = this.functionContext.stack.pop().optimize();
