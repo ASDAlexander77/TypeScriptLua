@@ -23,9 +23,11 @@ export class TypeInfo {
                 ? typeof (detectType.value)
                 : detectType.symbol
                     ? detectType.symbol.name
-                    : (detectType.target.objectFlags & ts.ObjectFlags.Tuple) === ts.ObjectFlags.Tuple
+                    : detectType.target && (detectType.target.objectFlags & ts.ObjectFlags.Tuple) === ts.ObjectFlags.Tuple
                         ? 'tuple'
-                        : undefined;
+                        : (detectType.objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous
+                            ? 'anonymous'
+                            : undefined;
 
         return val;
     }

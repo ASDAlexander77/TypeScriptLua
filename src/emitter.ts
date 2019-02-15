@@ -1744,10 +1744,15 @@ export class Emitter {
         // TODO: finish it
         this.processExpression(node.expression);
 
+        let iterator = 'pairs';
+        if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'anonymous'])) {
+            iterator = 'ipairs';
+        }
+
         // prepare call for _ENV "pairs"
         // prepare consts
         const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const pairsMethodInfo = this.resolver.returnConst('pairs', this.functionContext);
+        const pairsMethodInfo = this.resolver.returnConst(iterator, this.functionContext);
 
         const expressionResultInfo = this.functionContext.stack.peek();
         // getting method referene

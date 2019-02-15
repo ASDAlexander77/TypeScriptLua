@@ -1,13 +1,6 @@
-let deck = {
-    suits: ["hearts"],
-    createCardPicker: function () {
-        return () => {
-            return { suit: this.suits[0] };
-        };
-    }
-};
-
-let cardPicker = deck.createCardPicker();
-let pickedCard = cardPicker();
-
-console.log(pickedCard.suit);
+let vals = [10, 20, 30];
+let i;
+for (i in vals) {
+    console.log(i);
+    console.log(vals[i]);
+}
