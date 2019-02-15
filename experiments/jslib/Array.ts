@@ -49,10 +49,11 @@ module JS {
             if (rawget(this, 1)) {
                 // copy all elements
                 // @ts-ignore
+                // AVOID using INDEX as they will be fixed with +1
                 const _len = ArrayHelper.getLength(this);
                 for (let i = _len; i > 0; i--) {
-                    this._values[i] = this[i];
-                    delete this[i];
+                    table.insert(this._values, 1, rawget(this, i));
+                    table.remove(this, i);
                 }
             }
 
@@ -67,7 +68,7 @@ module JS {
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
                     // @ts-ignore
-                    const v = _this._values[indx];
+                    const v = rawget(_this._values, indx);
                     // @ts-ignore
                     // tslint:disable-next-line:triple-equals typeof-compare
                     return typeof (v) == 'table' && (<any>v).isNull ? null : v;
@@ -82,7 +83,7 @@ module JS {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
-                    _this._values[indx] = val;
+                    rawset(_this._values, indx, val);
                     return;
                 }
 
@@ -141,7 +142,7 @@ module JS {
             const length_ = ArrayHelper.getLength(vals);
             for (let i = 1; i <= length_; i++) {
                 // tslint:disable-next-line:triple-equals
-                if (vals[i] == val) {
+                if (rawget(vals, i) == val) {
                     return i - 1;
                 }
             }
@@ -236,7 +237,7 @@ module JS {
             const ret = new Array<T>();
             for (let i = index + count; i > index; i--) {
                 // @ts-ignore
-                ArrayHelper.pushOne(ret, this._values[i]);
+                ArrayHelper.pushOne(ret, rawget(this._values, i));
                 table.remove(this._values, i);
             }
 
@@ -266,7 +267,7 @@ module JS {
             }
 
             for (let i = from; i < to; i++) {
-                table.insert(ret, this._values[i]);
+                table.insert(ret, rawget(this._values, i));
             }
 
             // @ts-ignore

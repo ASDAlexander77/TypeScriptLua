@@ -1830,75 +1830,9 @@ export class Emitter {
         this.functionContext.restoreBreakContinueScope();
     }
 
-    private processForOfStatementForStaticArray(node: ts.ForOfStatement): void {
-        // we need to find out type of element
-        const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
-        const typeOfElement =
-            typeOfExpression.typeArguments
-            && typeOfExpression.typeArguments[0]
-            && typeOfExpression.typeArguments[0];
-        let typeNode;
-        if (typeOfElement) {
-            const typeName = this.typeInfo.getNameFromTypeNode(typeOfElement);
-            typeNode = ts.createTypeReferenceNode(typeName, undefined);
-        }
-
-        // Somehow #len returns 2 for 3 elements. why????? - solution, skip for/of when array[0] === null
-        const indexerName = 'i_';
-        const indexerExpr = ts.createIdentifier(indexerName);
-        // it is needed to detect type of local variable to support preprocessing correctly
-        (<any>indexerExpr).__return_type = 'number';
-        const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
-        const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
-        const arrayAccess = ts.createElementAccess(node.expression, indexerExpr);
-        const arrayItemInitialization = ts.createVariableDeclaration(
-            arrayItem, typeNode, arrayAccess);
-
-        arrayAccess.parent = arrayItemInitialization;
-
-        // to make it LET
-        const newStatementBlock = ts.createBlock(
-            [
-                ts.createVariableStatement(
-                    undefined,
-                    ts.createVariableDeclarationList(
-                        [arrayItemInitialization],
-                        node.initializer.flags/*ts.NodeFlags.Const*/)),
-                node.statement
-            ]);
-
-        const lengthMemeber = ts.createIdentifier('length');
-        (<any>lengthMemeber).__len = true;
-
-        // to make it LET
-        const forStatement =
-            ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
-                ts.createBinary(
-                    indexerExpr,
-                    ts.SyntaxKind.LessThanEqualsToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
-                ts.createPostfixIncrement(indexerExpr),
-                newStatementBlock);
-
-        const condExpr = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
-        const ifStatement = ts.createIf(condExpr, forStatement);
-
-        ifStatement.parent = node;
-        condExpr.parent = ifStatement;
-
-        // TODO: if you bind here, you will loose binding in not changes nodes, find out how to avoid it
-
-        this.processStatement(ifStatement);
-    }
-
     private processForOfStatement(node: ts.ForOfStatement): void {
 
         const expressionType = this.typeInfo.getTypeOfNode(node.expression);
-        /*
-        if (expressionType === 'Array') {
-            this.processForOfStatementForStaticArray(node);
-            return;
-        }
-        */
 
         // we need to find out type of element
         const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
