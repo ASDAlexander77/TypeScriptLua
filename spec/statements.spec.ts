@@ -80,8 +80,8 @@ describe('Statements', () => {
         }                                                       \
     '])));
 
-    it('simple for/in (local) <LUA order>', () => expect('2\r\n3\r\n1\r\n').to.equals(new Run().test([
-        'let vals = [1, 2, 3];                                  \
+    it('simple for/in (local) <LUA order>', () => expect('10\r\n20\r\n30\r\n').to.equals(new Run().test([
+        'let vals = [10, 20, 30];                               \
         let i;                                                  \
         for (i in vals) {                                       \
             console.log(vals[i]);                               \
