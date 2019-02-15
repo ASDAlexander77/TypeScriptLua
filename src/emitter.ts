@@ -79,7 +79,14 @@ export class Emitter {
 
         this.generateSourceMap = ((options && options.sourceMap) || false);
 
-        this.jsLib = ((options && options.lib && options.lib.some(l => /lib.es\d+.d.ts/.test(l))) || cmdLineOptions.jslib) ? true : false;
+        this.jsLib = (
+            options
+            && options.lib
+            && options.lib.some(l => /lib.es\d+.d.ts/.test(l))
+            && !options.lib.some(l => /lib.es5.d.ts/.test(l))
+            || cmdLineOptions.jslib)
+                ? true
+                : false;
     }
 
     private libCommon = '                                           \
@@ -579,12 +586,6 @@ export class Emitter {
         this.functionContext.code.push([Ops.LEN,
             lenResult.getRegister(),
             localVar]);
-
-        const oneConstInfo = this.resolver.returnConst(1, this.functionContext);
-        this.functionContext.code.push([Ops.ADD,
-            lenResult.getRegister(),
-            lenResult.getRegister(),
-            oneConstInfo.getRegisterOrIndex()]);
 
         const lenNameInfo = this.resolver.returnConst('length', this.functionContext);
         this.functionContext.code.push([Ops.SETTABLE,
