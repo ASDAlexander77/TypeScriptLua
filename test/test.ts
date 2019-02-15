@@ -1,7 +1,8 @@
 import './JS';
 
-for (let i = 0; i < 3; i++) {          
-	console.log(i);                     
-        if (i == 0) continue;               
-            break;                              
+var person = { fname: "John", lname: "Doe", age: 25 };
+
+var x;
+for (x in person) {
+    console.log(person[x]);
 }

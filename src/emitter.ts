@@ -1824,9 +1824,7 @@ export class Emitter {
         this.resolveBreakJumps();
 
         // clean temp local variable
-        if (!isLocalOrConstDecl) {
-            this.functionContext.stack.pop();
-        }
+        this.functionContext.stack.pop();
 
         this.functionContext.restoreBreakContinueScope();
     }
