@@ -429,7 +429,6 @@ export class Emitter {
             const operand = firstParam ? <ts.Identifier>firstParam.name : ts.createThis();
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
-            /*
             return <ts.NodeArray<ts.Statement>><any>
                 [<ts.Statement>ts.createReturn(
                     ts.createBinary(
@@ -440,11 +439,12 @@ export class Emitter {
                             ts.createNumericLiteral('1'),
                             ts.createNumericLiteral('0'))))
                 ];
-            */
+            /*
             return <ts.NodeArray<ts.Statement>><any>
                 [
                     <ts.Statement>ts.createReturn(ts.createPropertyAccess(operand, lengthMemeber))
                 ];
+            */
         }
 
         return statementsIn;
@@ -1743,10 +1743,12 @@ export class Emitter {
         // TODO: finish it
         this.processExpression(node.expression);
 
-        let iterator = 'pairs';
+        const iterator = 'pairs';
+        /*
         if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'anonymous'])) {
             iterator = 'ipairs';
         }
+        */
 
         // prepare call for _ENV "pairs"
         // prepare consts
@@ -1792,6 +1794,7 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
+        /*
         const assignmentOperation = ts.createAssignment(
             forInIdentifier,
             ts.createConditional(
@@ -1801,6 +1804,8 @@ export class Emitter {
                     ts.createStringLiteral('number')),
                 ts.createSubtract(ts.createIdentifier('<var>'), ts.createNumericLiteral('1')),
                 ts.createIdentifier('<var>')));
+        */
+        const assignmentOperation = ts.createAssignment(forInIdentifier, ts.createIdentifier('<var>'));
         assignmentOperation.parent = node;
         this.processExpression(assignmentOperation);
 
@@ -2131,8 +2136,21 @@ export class Emitter {
                 const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
                 const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
 
+                // set 0 element
+                this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+                this.processExpression(node.elements[0]);
+
+                const zeroValueInfo = this.functionContext.stack.pop().optimize();
+                const zeroIndexInfo = this.functionContext.stack.pop().optimize();
+
+                this.functionContext.code.push(
+                    [Ops.SETTABLE,
+                    resultInfo.getRegister(),
+                    zeroIndexInfo.getRegisterOrIndex(),
+                    zeroValueInfo.getRegisterOrIndex()]);
+
                 // set 0|1.. elements
-                const reversedValues = node.elements.slice(0);
+                const reversedValues = node.elements.slice(1);
                 if (reversedValues.length > 0) {
                     reversedValues.forEach((e, index: number) => {
                         this.processExpression(e);
@@ -2177,6 +2195,7 @@ export class Emitter {
         this.processExpression(node.expression);
         this.processExpression(node.argumentExpression);
 
+        /*
         if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'any'])) {
             // add +1 if number
             const op1 = this.functionContext.stack.peek();
@@ -2205,6 +2224,7 @@ export class Emitter {
                 0]);
             // end of adding +1 if number
         }
+        */
 
         // perform load
         const indexInfo = this.functionContext.stack.pop().optimize();

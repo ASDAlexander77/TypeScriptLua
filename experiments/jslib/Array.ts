@@ -46,12 +46,13 @@ module JS {
         private _values: T[] = <T[]>{};
 
         public constructor() {
-            if (rawget(this, 1)) {
+            const zeroVal = rawget(this, 0);
+            if (zeroVal || rawget(this, 1)) {
                 // copy all elements
                 // @ts-ignore
-                // AVOID using INDEX as they will be fixed with +1
+                const offset = zeroVal ? 1 : 0;
                 const _len = ArrayHelper.getLength(this);
-                for (let i = _len; i > 0; i--) {
+                for (let i = _len - 1 + offset; i >= offset; i--) {
                     table.insert(this._values, 1, rawget(this, i));
                     table.remove(this, i);
                 }
@@ -68,7 +69,7 @@ module JS {
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
                     // @ts-ignore
-                    const v = rawget(_this._values, indx);
+                    const v = rawget(_this._values, indx + 1);
                     // @ts-ignore
                     // tslint:disable-next-line:triple-equals typeof-compare
                     return typeof (v) == 'table' && (<any>v).isNull ? null : v;
@@ -83,7 +84,7 @@ module JS {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
-                    rawset(_this._values, indx, val);
+                    rawset(_this._values, indx + 1, val);
                     return;
                 }
 
