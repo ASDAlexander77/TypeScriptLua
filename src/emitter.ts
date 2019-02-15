@@ -517,7 +517,7 @@ export class Emitter {
                 }
             });
 
-            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) - (dotDotDotAny ? 1 : 0);
+            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) /*- (dotDotDotAny ? 1 : 0)*/;
             this.functionContext.is_vararg = dotDotDotAny;
         }
 
@@ -552,9 +552,22 @@ export class Emitter {
                         resultInfo.getRegister()
                     ]);
                 } else {
-                    this.functionContext.code.push([Ops.NEWTABLE, localVar, 0, 0]);
-                    this.functionContext.code.push([Ops.VARARG, localVar + 1, 0, 0]);
-                    this.functionContext.code.push([Ops.SETLIST, localVar, 0, 1]);
+                    this.functionContext.code.push([Ops.NEWTABLE, localVar + 1, 0, 0]);
+                    this.functionContext.code.push([Ops.VARARG, localVar + 2, 0, 0]);
+                    this.functionContext.code.push([Ops.SETLIST, localVar + 1, 0, 1]);
+
+                    // workaround 0 element
+                    const zeroIndexInfo = this.resolver.returnConst(0, this.functionContext);
+                    this.functionContext.code.push(
+                        [Ops.SETTABLE,
+                        localVar + 1,
+                        zeroIndexInfo.getRegisterOrIndex(),
+                            localVar]);
+
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        localVar,
+                        localVar + 1]);
 
                     // set length for table
                     const reservedResult = this.functionContext.useRegisterAndPush();
@@ -586,6 +599,13 @@ export class Emitter {
         this.functionContext.code.push([Ops.LEN,
             lenResult.getRegister(),
             localVar]);
+
+        // add +1 to length
+        const oneConstInfo = this.resolver.returnConst(1, this.functionContext);
+            this.functionContext.code.push([Ops.ADD,
+                lenResult.getRegister(),
+                lenResult.getRegister(),
+                oneConstInfo.getRegisterOrIndex()]);
 
         const lenNameInfo = this.resolver.returnConst('length', this.functionContext);
         this.functionContext.code.push([Ops.SETTABLE,
@@ -1743,7 +1763,8 @@ export class Emitter {
         // TODO: finish it
         this.processExpression(node.expression);
 
-        const iterator = 'pairs';
+        // tslint:disable-next-line:prefer-const
+        let iterator = 'pairs';
         /*
         if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'anonymous'])) {
             iterator = 'ipairs';
@@ -1794,18 +1815,14 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
-        /*
-        const assignmentOperation = ts.createAssignment(
-            forInIdentifier,
-            ts.createConditional(
-                ts.createBinary(
-                    ts.createTypeOf(ts.createIdentifier('<var>')),
-                    ts.SyntaxKind.EqualsEqualsToken,
-                    ts.createStringLiteral('number')),
-                ts.createSubtract(ts.createIdentifier('<var>'), ts.createNumericLiteral('1')),
-                ts.createIdentifier('<var>')));
-        */
-        const assignmentOperation = ts.createAssignment(forInIdentifier, ts.createIdentifier('<var>'));
+        let assignmentOperation;
+        if (iterator === 'ipairs') {
+            assignmentOperation = ts.createAssignment(
+                forInIdentifier,
+                ts.createSubtract(ts.createIdentifier('<var>'), ts.createNumericLiteral('1')));
+        } else if (iterator === 'pairs') {
+            assignmentOperation = ts.createAssignment(forInIdentifier, ts.createIdentifier('<var>'));
+        }
         assignmentOperation.parent = node;
         this.processExpression(assignmentOperation);
 
@@ -1837,7 +1854,6 @@ export class Emitter {
     private processForOfStatement(node: ts.ForOfStatement): void {
 
         const expressionType = this.typeInfo.getTypeOfNode(node.expression);
-
         // we need to find out type of element
         const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
         const typeOfElement =
@@ -3183,6 +3199,11 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
+        // load first element
+        const zeroElementAccessExpression = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
+        zeroElementAccessExpression.parent = node;
+        this.processExpression(zeroElementAccessExpression);
+
         const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('table'), ts.createIdentifier('unpack'));
         const spreadCall = ts.createCall(
             propertyAccessExpression,
@@ -3190,6 +3211,13 @@ export class Emitter {
             [node.expression]);
         spreadCall.parent = node;
         this.processExpression(spreadCall);
+
+        // discard 1 element in stack
+        const spreadInfo = this.functionContext.stack.pop();
+        const zeroElementInfo = this.functionContext.stack.pop();
+
+        // store result again
+        this.functionContext.useRegisterAndPush();
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {

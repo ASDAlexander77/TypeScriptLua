@@ -1,8 +1,7 @@
 import './JS';
 
-var person = { fname: "John", lname: "Doe", age: 25 };
-
-var x;
-for (x in person) {
-    console.log(person[x]);
-}
+let vals = [10, 20, 30];
+let i;
+for (i in vals) {
+    console.log(i, vals[i], '\n');
+} copy
