@@ -2189,7 +2189,7 @@ export class Emitter {
                 const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
 
                 // set 0|1.. elements
-                const reversedValues = node.elements.slice(!this.jsLib ? 1 : 0);
+                const reversedValues = node.elements.slice(0);
                 if (reversedValues.length > 0) {
                     reversedValues.forEach((e, index: number) => {
                         this.processExpression(e);
@@ -2209,19 +2209,6 @@ export class Emitter {
                 }
 
                 if (!this.jsLib) {
-                    // set 0 element
-                    this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
-                    this.processExpression(node.elements[0]);
-
-                    const zeroValueInfo = this.functionContext.stack.pop().optimize();
-                    const zeroIndexInfo = this.functionContext.stack.pop().optimize();
-
-                    this.functionContext.code.push(
-                        [Ops.SETTABLE,
-                        arrayRef.getRegister(),
-                        zeroIndexInfo.getRegisterOrIndex(),
-                        zeroValueInfo.getRegisterOrIndex()]);
-
                     this.AddLengthToConstArray(arrayRef.getRegisterOrIndex());
                 }
             }
@@ -2261,6 +2248,7 @@ export class Emitter {
         const condExpression = ts.createConditional(condition,
             ts.createBinary(localOp1Ident, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1')), localOp1Ident);
         condExpression.parent = node;
+        condition.parent = condExpression;
         this.processExpression(condExpression);
 
         this.functionContext.restoreLocalScope();
@@ -2274,8 +2262,7 @@ export class Emitter {
         // end of adding +1 if number
 
         // perform load
-        // const indexInfo = this.functionContext.stack.pop().optimize();
-        const indexInfo = op1;
+        const indexInfo = this.functionContext.stack.pop().optimize();
         const variableInfo = this.functionContext.stack.pop().optimize();
 
         const resultInfo = this.functionContext.useRegisterAndPush();
