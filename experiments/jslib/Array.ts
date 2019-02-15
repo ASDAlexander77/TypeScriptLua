@@ -67,7 +67,7 @@ module JS {
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
                     // @ts-ignore
-                    const v = _this._values[indx + 1];
+                    const v = _this._values[indx];
                     // @ts-ignore
                     // tslint:disable-next-line:triple-equals typeof-compare
                     return typeof (v) == 'table' && (<any>v).isNull ? null : v;
@@ -82,7 +82,7 @@ module JS {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
-                    _this._values[indx + 1] = val;
+                    _this._values[indx] = val;
                     return;
                 }
 

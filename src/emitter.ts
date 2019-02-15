@@ -1731,10 +1731,8 @@ export class Emitter {
             || ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier
                 && this.resolver.resolver(<ts.Identifier>node.initializer, this.functionContext).isLocal());
 
-        let varInfo;
-        if (!isLocalOrConstDecl) {
-            varInfo = this.functionContext.createLocal('<var>');
-        } else {
+        this.functionContext.createLocal('<var>');
+        if (isLocalOrConstDecl) {
             // if iterator variable is not local then we need to save local variable into
             // initializer
             this.declareLoopVariables(<ts.Expression>node.initializer);
@@ -1782,23 +1780,30 @@ export class Emitter {
         const beforeBlock = this.functionContext.code.length;
 
         // save <var> into local
-        if (!isLocalOrConstDecl) {
-            // get last identifier
-            let forInIdentifier: ts.Identifier;
-            if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList) {
-                const decls = (<ts.VariableDeclarationList>node.initializer).declarations;
-                forInIdentifier = <ts.Identifier>decls[decls.length - 1].name;
-            } else if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier) {
-                forInIdentifier = <ts.Identifier>node.initializer;
-            } else {
-                throw new Error('Not Implemented');
-            }
-
-            const assignmentOperation = ts.createAssignment(forInIdentifier, ts.createIdentifier('<var>'));
-            assignmentOperation.parent = node;
-            this.processExpression(assignmentOperation);
+        // get last identifier
+        let forInIdentifier: ts.Identifier;
+        if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList) {
+            const decls = (<ts.VariableDeclarationList>node.initializer).declarations;
+            forInIdentifier = <ts.Identifier>decls[decls.length - 1].name;
+        } else if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier) {
+            forInIdentifier = <ts.Identifier>node.initializer;
+        } else {
+            throw new Error('Not Implemented');
         }
 
+        const assignmentOperation = ts.createAssignment(
+            forInIdentifier,
+            ts.createConditional(
+                ts.createBinary(
+                    ts.createTypeOf(ts.createIdentifier('<var>')),
+                    ts.SyntaxKind.EqualsEqualsToken,
+                    ts.createStringLiteral('number')),
+                ts.createSubtract(ts.createIdentifier('<var>'), ts.createNumericLiteral('1')),
+                ts.createIdentifier('<var>')));
+        assignmentOperation.parent = node;
+        this.processExpression(assignmentOperation);
+
+        // loop
         this.processStatement(node.statement);
 
         const loopOpsBlock = this.functionContext.code.length;
