@@ -542,7 +542,10 @@ export class Emitter {
                         this.functionContext.code.push([Ops.SETLIST, arrayRef.getRegister(), 0, 1]);
                     };
 
-                    const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
+                    const ident = ts.createIdentifier('Array');
+                    const newArray = ts.createNew(ident, undefined, []);
+                    newArray.parent = location;
+                    ident.parent = newArray;
                     this.processNewExpression(newArray, initializeNewArg);
                     const resultInfo = this.functionContext.stack.pop();
 
@@ -1901,6 +1904,8 @@ export class Emitter {
                 ts.createPostfixIncrement(indexerExpr),
                 newStatementBlockWithElementAccess);
 
+        newStatementBlockWithElementAccess.parent = forStatement;
+
         forStatement.parent = node.parent;
         (<any>forStatement).__origin = node;
 
@@ -2083,6 +2088,7 @@ export class Emitter {
         }
 
         expr.parent = node;
+        identifier.parent = expr;
         this.processNewExpression(expr);
     }
 
@@ -2161,7 +2167,7 @@ export class Emitter {
 
                 this.functionContext.code.push(
                     [Ops.SETTABLE,
-                    resultInfo.getRegister(),
+                    arrayRef.getRegister(),
                     zeroIndexInfo.getRegisterOrIndex(),
                     zeroValueInfo.getRegisterOrIndex()]);
 
@@ -2193,7 +2199,10 @@ export class Emitter {
 
         let resultInfo;
         if (this.jsLib) {
-            const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
+            const ident = ts.createIdentifier('Array');
+            const newArray = ts.createNew(ident, undefined, []);
+            ident.parent = ident;
+            newArray.parent = node;
             this.processNewExpression(newArray, initializeArrayFunction);
             resultInfo = this.functionContext.stack.peek();
         } else {
@@ -3045,7 +3054,9 @@ export class Emitter {
         if (node.expression.kind === ts.SyntaxKind.Identifier && node.arguments.length === 1) {
             const name = node.expression.kind === ts.SyntaxKind.Identifier ? (<ts.Identifier>node.expression).text : '';
             if (name === 'String' || name === 'Number') {
-                this.processExpression(ts.createIdentifier('to' + name.toLowerCase()));
+                const identExpr = ts.createIdentifier('to' + name.toLowerCase());
+                identExpr.parent = node;
+                this.processExpression(identExpr);
                 processed = true;
             }
         }

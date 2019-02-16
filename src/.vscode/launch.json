@@ -36,7 +36,7 @@
             "cwd": "${workspaceFolder}/../thirdparty/Babylon.js/src",
             "args": [
                 "tsconfig.json",
-		" -jslib"
+		        "-jslib"
             ]
         },
         {

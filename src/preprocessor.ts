@@ -327,14 +327,18 @@ export class Preprocessor {
                 const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
                 switch (typeName) {
                     case 'string':
-                        const newString = ts.createNew(ts.createIdentifier('String'), undefined, [ currentOrNewArgument ]);
+                        const identString = ts.createIdentifier('String');
+                        const newString = ts.createNew(identString, undefined, [ currentOrNewArgument ]);
                         newString.parent = currentOrNewArgument.parent;
+                        identString.parent = newString;
                         currentOrNewArgument = newString;
                         anyNewArgument = true;
                         break;
                     case 'number':
-                        const newNumber = ts.createNew(ts.createIdentifier('Number'), undefined, [ currentOrNewArgument ]);
+                        const identNumber = ts.createIdentifier('Number');
+                        const newNumber = ts.createNew(identNumber, undefined, [ currentOrNewArgument ]);
                         newNumber.parent = currentOrNewArgument.parent;
+                        identNumber.parent = newNumber;
                         currentOrNewArgument = newNumber;
                         anyNewArgument = true;
                         break;
@@ -353,7 +357,9 @@ export class Preprocessor {
                         break;
                     case 'any':
                     default:
-                        const tostringCall = ts.createCall(ts.createIdentifier('tostring'), undefined, [ currentOrNewArgument ]);
+                        const ident = ts.createIdentifier('tostring');
+                        const tostringCall = ts.createCall(ident, undefined, [ currentOrNewArgument ]);
+                        ident.parent = tostringCall;
                         tostringCall.parent = currentOrNewArgument.parent;
                         currentOrNewArgument = tostringCall;
                         anyNewArgument = true;
@@ -372,7 +378,9 @@ export class Preprocessor {
                         break;
                     case 'any':
                     default:
-                        const tonumberCall = ts.createCall(ts.createIdentifier('tonumber'), undefined, [ currentOrNewArgument ]);
+                        const ident = ts.createIdentifier('tonumber');
+                        const tonumberCall = ts.createCall(ident, undefined, [ currentOrNewArgument ]);
+                        ident.parent = tonumberCall;
                         tonumberCall.parent = currentOrNewArgument.parent;
                         currentOrNewArgument = tonumberCall;
                         anyNewArgument = true;
