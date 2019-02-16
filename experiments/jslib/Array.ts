@@ -181,7 +181,7 @@ module JS {
             }
 
             for (const obj of other) {
-                table.insert(ret, obj);
+                table.insert(ret._values, obj);
             }
 
             // @ts-ignore
