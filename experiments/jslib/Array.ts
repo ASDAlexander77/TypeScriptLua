@@ -48,13 +48,20 @@ module JS {
         public constructor() {
             const zeroVal = rawget(this, 0);
             if (zeroVal || rawget(this, 1)) {
-                // copy all elements
+                if (zeroVal) {
+                    delete this[0];
+                }
+
                 // @ts-ignore
-                const offset = zeroVal ? 1 : 0;
                 const _len = ArrayHelper.getLength(this);
-                for (let i = _len - 1 + offset; i >= offset; i--) {
-                    table.insert(this._values, 1, rawget(this, i));
+                for (let i = _len; i > 0; i--) {
+                    table.insert(this._values, rawget(this, i));
                     table.remove(this, i);
+                    delete this[i];
+                }
+
+                if (zeroVal) {
+                    table.insert(this._values, zeroVal);
                 }
             }
 

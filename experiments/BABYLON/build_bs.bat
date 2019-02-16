@@ -1,4 +1,5 @@
 @call clean_bs.bat .\BABYLON
+@call clean_bs.bat ..\..\thirdparty\Babylon.js\src
 
 echo =
 echo ==================================
