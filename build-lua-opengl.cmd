@@ -29,6 +29,11 @@ cd thirdparty\pcre2-build\
 @call build.cmd win64 Release
 cd ..\..\..\..
 
+rem Building Array Adapter
+cd experiments\ArrayBufferAdapter
+@call build.cmd win64 Release
+cd ..\..\..\..
+
 rem Building RegExp Adapter
 cd experiments\Pcre2Adapter
 @call build.cmd win64 Release

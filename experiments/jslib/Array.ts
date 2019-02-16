@@ -176,8 +176,10 @@ module JS {
         public concat(other: T[]): T[] {
             const ret = new Array<T>();
 
-            for (const obj of this._values) {
-                table.insert(ret._values, obj);
+            const _vals = this._values;
+            const _len = ArrayHelper.getLength(_vals);
+            for (const i = 1; <= _len; i++) {
+                table.insert(ret._values, _vals[i]);
             }
 
             for (const obj of other) {
