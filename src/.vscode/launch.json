@@ -35,7 +35,8 @@
             "program": "${workspaceFolder}/../__out/main.js",
             "cwd": "${workspaceFolder}/../thirdparty/Babylon.js/src",
             "args": [
-                "tsconfig.json"
+                "tsconfig.json",
+		" -jslib"
             ]
         },
         {
