@@ -2976,6 +2976,13 @@ export class Emitter {
         }
         */
 
+        // throw exception if class is not defined
+        const throwIfClassIsNotDefined = ts.createIf(
+            ts.createPrefix(ts.SyntaxKind.ExclamationToken, node.expression),
+            ts.createThrow(ts.createStringLiteral('Class is not defined: ' + (<ts.Identifier>node.expression).text))
+        );
+        this.processStatement(throwIfClassIsNotDefined);
+
         this.processExpression(
             ts.createObjectLiteral([
                 ts.createPropertyAssignment('__proto', node.expression),
