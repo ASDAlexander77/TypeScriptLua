@@ -178,7 +178,7 @@ module JS {
 
             const _vals = this._values;
             const _len = ArrayHelper.getLength(_vals);
-            for (const i = 1; <= _len; i++) {
+            for (const i = 1; i <= _len; i++) {
                 table.insert(ret._values, _vals[i]);
             }
 
