@@ -1869,13 +1869,20 @@ export class Emitter {
             typeNode = ts.createTypeReferenceNode(typeName, undefined);
         }
 
+        // var
         const indexerName = 'i_';
         const indexerExpr = ts.createIdentifier(indexerName);
         // it is needed to detect type of local variable to support preprocessing correctly
         (<any>indexerExpr).__return_type = 'number';
         const declIndexer = ts.createVariableDeclaration(indexerName, undefined, ts.createNumericLiteral('0'));
+
+        // array
+        const arrayInstanceName = 'arr_';
+        const arrayInstanceExpr = ts.createIdentifier(arrayInstanceName);
+        const declArrayInstance = ts.createVariableDeclaration(arrayInstanceName, undefined, node.expression);
+
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
-        const arrayAccess = ts.createElementAccess(node.expression, indexerExpr);
+        const arrayAccess = ts.createElementAccess(arrayInstanceExpr, indexerExpr);
         const arrayItemInitialization = ts.createVariableDeclaration(
             arrayItem, typeNode, arrayAccess);
 
@@ -1897,10 +1904,10 @@ export class Emitter {
         }
 
         const forStatement =
-            ts.createFor(ts.createVariableDeclarationList([declIndexer], ts.NodeFlags.Const),
+            ts.createFor(ts.createVariableDeclarationList([declArrayInstance, declIndexer], ts.NodeFlags.Const),
                 ts.createBinary(
                     indexerExpr,
-                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(node.expression, lengthMemeber)),
+                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(arrayInstanceExpr, lengthMemeber)),
                 ts.createPostfixIncrement(indexerExpr),
                 newStatementBlockWithElementAccess);
 

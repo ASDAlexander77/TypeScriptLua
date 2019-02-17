@@ -1,3 +1,5 @@
 import './JS';
 
-const a = new Class1();
+for (const a of [1, 2, 3]) {
+    console.log(a);
+}
