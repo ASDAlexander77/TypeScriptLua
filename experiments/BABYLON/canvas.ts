@@ -91,7 +91,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     bindBufferBase(target: number, index: number, buffer: WebGLBuffer): void {
-        _gl.bindBufferBase(target, index, buffer.references);
+        _gl.bindBufferBase(target, index, buffer ? (<any>buffer).value : 0);
     }
 
     getUniformBlockIndex(program: WebGLProgram, uniformBlockName: string): number {
@@ -229,7 +229,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     }
 
     bindBuffer(target: number, buffer: WebGLBuffer): void {
-        _gl.bindBuffer(target, buffer ? buffer.references : 0);
+        _gl.bindBuffer(target, buffer ? (<any>buffer).value : 0);
     }
 
     // @ts-ignore
@@ -342,7 +342,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     createBuffer(): WebGLBuffer {
         const val = _gl.createBuffer();
         if (val >= 0) {
-            return <WebGLBuffer>{ references: val };
+            return <WebGLBuffer><any>{ value: val };
         }
 
         return null;
