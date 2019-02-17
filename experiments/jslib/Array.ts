@@ -74,6 +74,11 @@ module JS {
             };
 
             // @ts-ignore
+            this.__ipairs = Array.__ipairsFunc;
+            // @ts-ignore
+            this.__pairs = Array.__pairsFunc;
+
+            // @ts-ignore
             this.__index = function (_this: Array<T>, indx: number | string): any {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
@@ -101,11 +106,6 @@ module JS {
                 // @ts-ignore
                 return __set_call__(_this, indx, val);
             };
-
-            // @ts-ignore
-            this.__ipairs = Array.__ipairsFunc;
-            // @ts-ignore
-            this.__pairs = Array.__pairsFunc;
         }
 
         @ret(3)
