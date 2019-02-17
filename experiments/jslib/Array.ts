@@ -108,6 +108,7 @@ module JS {
             };
         }
 
+        /*
         @ret(3)
         static __ipairsFunc(_this: Array<T>) {
             // @ts-ignore
@@ -119,6 +120,7 @@ module JS {
             // @ts-ignore
             return pairs(_this._values);
         }
+        */
 
         public push(...objs: T[]) {
             let any = false;
