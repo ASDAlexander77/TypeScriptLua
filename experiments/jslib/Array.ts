@@ -63,6 +63,9 @@ module JS {
                 if (zeroVal) {
                     table.insert(this._values, zeroVal);
                 }
+
+                // @ts-ignore
+                rawset(this, 'length', null);
             }
 
             // @ts-ignore
@@ -145,6 +148,19 @@ module JS {
             return ArrayHelper.getLength(this._values);
         }
 
+        public set length(newSize: number) {
+            const _len = ArrayHelper.getLength(this._values);
+            if (newSize < _len) {
+                for (let i = _len; i >= newSize; i--) {
+                    table.remove(this._values, i);
+                }
+            } else {
+                for (let i = _len; i <= newSize; i++) {
+                    table.insert(this._values, i, ArrayNullElement);
+                }
+            }
+        }
+
         public indexOf(val: T): number {
             const vals = this._values;
             const length_ = ArrayHelper.getLength(vals);
@@ -163,7 +179,10 @@ module JS {
         }
 
         public shift(): T {
-            return (table.remove(this._values, 1));
+            const v0 = table.remove(this._values, 1);
+            // @ts-ignore
+            // tslint:disable-next-line:triple-equals typeof-compare
+            return typeof (v0) == 'table' && (<any>v0).isNull ? null : v0;
         }
 
         public unshift(...objs: T[]) {
