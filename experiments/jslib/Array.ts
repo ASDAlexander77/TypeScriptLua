@@ -150,6 +150,10 @@ module JS {
 
         public set length(newSize: number) {
             const _len = ArrayHelper.getLength(this._values);
+            if (_len == newSize) {
+                return;
+            }
+
             if (newSize < _len) {
                 for (let i = _len; i >= newSize; i--) {
                     table.remove(this._values, i);
