@@ -1052,7 +1052,7 @@ export class Emitter {
         const properties = node.members
             .filter(m => this.isClassMemberAccepted(m)
                 && ((this.isStaticProperty(m) && !this.isPropertyWithNonConstInitializer(m))
-                    || this.isMethod(m)
+                    || !this.isProperty(m)
                     || this.isPropertyWithArrowFunctionInitializer(m)))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
@@ -1232,10 +1232,16 @@ export class Emitter {
                         statements: [
                             ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
-                            ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
+                            ...((<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => !this.isStaticProperty(cm)
                                     && this.isProperty(cm)
-                                    && !this.isPropertyWithArrowFunctionInitializer(cm))
+                                    && !this.isPropertyWithNonConstInitializer(cm)
+                                    && !this.isPropertyWithArrowFunctionInitializer(cm)))
+                                .concat(((<ts.ClassDeclaration>constructorDeclaration.parent).members
+                                    .filter(cm => !this.isStaticProperty(cm)
+                                        && this.isProperty(cm)
+                                        && this.isPropertyWithNonConstInitializer(cm)
+                                        && !this.isPropertyWithArrowFunctionInitializer(cm))))
                                 .map(p => ts.createStatement(
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
