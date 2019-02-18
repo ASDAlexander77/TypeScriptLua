@@ -1052,6 +1052,7 @@ export class Emitter {
         const properties = node.members
             .filter(m => this.isClassMemberAccepted(m)
                 && ((this.isStaticProperty(m) && !this.isPropertyWithNonConstInitializer(m))
+                    || this.isMethod(m)
                     || this.isPropertyWithArrowFunctionInitializer(m)))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
@@ -1332,6 +1333,10 @@ export class Emitter {
 
     private isProperty(memberDeclaration: ts.ClassElement): any {
         return memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration;
+    }
+
+    private isMethod(memberDeclaration: ts.ClassElement): any {
+        return memberDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
     }
 
     private isStaticProperty(memberDeclaration: ts.ClassElement): any {
