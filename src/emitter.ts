@@ -1051,7 +1051,7 @@ export class Emitter {
         // process methods first
         const properties = node.members
             .filter(m => this.isClassMemberAccepted(m)
-                && (!this.isPropertyWithNonConstInitializer(m)
+                && ((this.isStaticProperty(m) && !this.isPropertyWithNonConstInitializer(m))
                     || this.isPropertyWithArrowFunctionInitializer(m)))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
