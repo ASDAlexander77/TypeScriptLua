@@ -1051,7 +1051,8 @@ export class Emitter {
         // process methods first
         const properties = node.members
             .filter(m => this.isClassMemberAccepted(m)
-                && (!this.isPropertyWithNonConstInitializer(m) || this.isPropertyWithArrowFunctionInitializer(m)))
+                && (!this.isPropertyWithNonConstInitializer(m)
+                    || this.isPropertyWithArrowFunctionInitializer(m)))
             .map(m => ts.createPropertyAssignment(
                 this.getClassMemberName(m),
                 this.createClassMember(m)));
@@ -1108,8 +1109,11 @@ export class Emitter {
         node.members
             .filter(m => this.isClassMemberAccepted(m) && this.isStaticProperty(m) && this.isPropertyWithNonConstInitializer(m))
             .map(m => ts.createAssignment(
-                ts.createPropertyAccess(node.name, this.getClassMemberName(m)),
-                this.createClassMember(m))).forEach(p => this.processExpression(p));
+                ts.createPropertyAccess(
+                    node.name,
+                    this.getClassMemberName(m)),
+                    this.createClassMember(m)))
+            .forEach(p => this.processExpression(p));
 
         this.emitExport(node.name, node);
 
@@ -1201,7 +1205,7 @@ export class Emitter {
         }
 
         return node.members.some(m => !this.isStaticProperty(m)
-            && this.isPropertyWithNonConstInitializer(m)
+            && this.isProperty(m)
             && !this.isPropertyWithArrowFunctionInitializer(m)) ||
             node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor);
     }
@@ -1210,7 +1214,7 @@ export class Emitter {
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.PropertyDeclaration:
                 const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                return propertyDeclaration.initializer;
+                return propertyDeclaration.initializer || ts.createIdentifier('undefined');
             case ts.SyntaxKind.Constructor:
                 const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
                 if (!constructorDeclaration.body) {
@@ -1228,11 +1232,13 @@ export class Emitter {
                             ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
                             ...(<ts.ClassDeclaration>constructorDeclaration.parent).members
-                                .filter(cm => !this.isStaticProperty(cm) && this.isPropertyWithNonConstInitializer(cm))
+                                .filter(cm => !this.isStaticProperty(cm)
+                                    && this.isProperty(cm)
+                                    && !this.isPropertyWithArrowFunctionInitializer(cm))
                                 .map(p => ts.createStatement(
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
-                                        (<ts.PropertyDeclaration>p).initializer))),
+                                        (<ts.PropertyDeclaration>p).initializer || ts.createIdentifier('undefined')))),
                             // members of class provided in ctor parameters
                             ...constructorDeclaration.parameters
                                 .filter(p => p.modifiers && p.modifiers.some(md =>
@@ -1282,22 +1288,22 @@ export class Emitter {
         }
     }
 
-    private isPropertyWithArrowFunctionInitializer(memberDeclaration: ts.ClassElement): any {
+    private isPropertyWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
         // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
             (<ts.PropertyDeclaration>memberDeclaration).initializer &&
-            (<ts.PropertyDeclaration>memberDeclaration).initializer.kind === ts.SyntaxKind.ArrowFunction) {
+            !this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
             return true;
         }
 
         return false;
     }
 
-    private isPropertyWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
+    private isPropertyWithArrowFunctionInitializer(memberDeclaration: ts.ClassElement): any {
         // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
             (<ts.PropertyDeclaration>memberDeclaration).initializer &&
-            !this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
+            (<ts.PropertyDeclaration>memberDeclaration).initializer.kind === ts.SyntaxKind.ArrowFunction) {
             return true;
         }
 
@@ -1312,6 +1318,20 @@ export class Emitter {
         }
 
         return false;
+    }
+
+    private isAbstract(memberDeclaration: ts.Node): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.modifiers &&
+            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.AbstractKeyword)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isProperty(memberDeclaration: ts.ClassElement): any {
+        return memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration;
     }
 
     private isStaticProperty(memberDeclaration: ts.ClassElement): any {
@@ -1341,15 +1361,17 @@ export class Emitter {
 
     private isClassMemberAccepted(memberDeclaration: ts.ClassElement): any {
         // we do not need - abstract elements
-        if (memberDeclaration.modifiers &&
-            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.AbstractKeyword)) {
+        if (this.isAbstract(memberDeclaration)) {
             return false;
         }
 
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.PropertyDeclaration:
-                const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                return propertyDeclaration.initializer;
+                // const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                // return propertyDeclaration.initializer;
+
+                // to support undefined
+                return true;
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
