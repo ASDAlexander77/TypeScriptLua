@@ -2018,6 +2018,17 @@ export class Emitter {
             c.statements.forEach(s => this.processStatement(s));
         });
 
+        // last case jump
+        // set jump for previouse 'false' case;
+        if (previousCaseJmpIndex !== -1) {
+            if (this.functionContext.code.codeAt(previousCaseJmpIndex)[2] !== 0) {
+                throw new Error('Jump is set already');
+            }
+
+            this.functionContext.code.codeAt(previousCaseJmpIndex)[2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
+            previousCaseJmpIndex = -1;
+        }
+
         this.functionContext.restoreLocalScope();
 
         this.functionContext.stack.pop();
