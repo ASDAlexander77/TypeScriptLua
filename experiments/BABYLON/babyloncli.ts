@@ -80,6 +80,9 @@ import './BABYLON/Tools/babylon_filesInput';
 
 import './BABYLON/Lights/babylon_hemisphericLight';
 
+import './BABYLON/Materials/babylon_imageProcessingConfiguration';
+import './BABYLON/Materials/babylon_colorCurves';
+
 import WindowEx from './window';
 import Canvas from './canvas';
 

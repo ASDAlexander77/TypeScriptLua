@@ -1512,7 +1512,8 @@ export class Emitter {
             if (initializer) {
                 this.processExpression(initializer);
             } else {
-                this.processNullLiteral(null);
+                // this.processNullLiteral(null);
+                this.processExpression(ts.createIdentifier('undefined'));
             }
 
             const rightNode = this.functionContext.stack.pop();

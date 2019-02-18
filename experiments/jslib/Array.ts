@@ -95,7 +95,7 @@ module JS {
             };
 
             // @ts-ignore
-            this.__newindex = function (_this: Array<T>, indx: number | string, val: T): any {
+            this.__newindex = function (_this: Array<T>, indx: number | string, val: T): void {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
                 if (typeof (indx) == 'number') {
@@ -104,7 +104,7 @@ module JS {
                 }
 
                 // @ts-ignore
-                return __set_call__(_this, indx, val);
+                __set_call__(_this, indx, val);
             };
         }
 
