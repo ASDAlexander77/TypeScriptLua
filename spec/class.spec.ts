@@ -783,7 +783,7 @@ describe('Classes', () => {
         class Node implements IBehaviorAware<Node> {            \
         public metadata: any = null;                            \
                                                                 \
-        public animations = new Array<Animation>();             \
+        public animations = [];                                 \
                                                                 \
         constructor(scene: any = null) {                        \
             this.init();                                        \
@@ -844,7 +844,7 @@ describe('Classes', () => {
         class Node {                                            \
         public metadata: any = null;                            \
                                                                 \
-        public animations = new Array<Animation>();             \
+        public animations = [];                                 \
                                                                 \
         constructor(scene: any = null) {                        \
             this.init();                                        \
@@ -933,7 +933,7 @@ describe('Classes', () => {
     }                                                       \
                                                             \
     class Scene extends AbstractScene {                     \
-        private cameras = new Array<Camera>();              \
+        private cameras =[];                                \
                                                             \
         public addCamera(newCamera: Camera): void {         \
             this.cameras[1] = newCamera;                    \

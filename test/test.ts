@@ -1,5 +1,7 @@
-import './JS';
-
-for (const a of [1, 2, 3]) {
-    console.log(a);
+function f(x: number) {
+    var x: any;
+    var x:string = "s";
+    console.log(x);
 }
+
+f(20);

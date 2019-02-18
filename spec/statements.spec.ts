@@ -164,7 +164,7 @@ describe('Statements', () => {
     it('simple for/of (string)', () => expect(new Run().test([
         'var hello = "is";                                      \
         for (var _char of hello) {                              \
-            console.log(_char);                                 \
+            console.log(<any>_char);                            \
         }                                                       \
     '])).to.equals('i\r\ns\r\n'));
 
@@ -272,4 +272,25 @@ describe('Statements', () => {
             break;                                              \
         }                                                       \
     '])).to.equals('Excellent\r\n'));
+
+    it('switch - 1, 2, 3', () => expect(new Run().test(['       \
+    const falloffType = 0;                                      \
+                                                                \
+    const FALLOFF_GLTF = 2;                                     \
+    const FALLOFF_PHYSICAL = 1;                                 \
+    const FALLOFF_STANDARD = 3;                                 \
+                                                                \
+    switch (falloffType) {                                      \
+        case FALLOFF_GLTF:                                      \
+            console.log("not working 1");                       \
+        break;                                                  \
+        case FALLOFF_PHYSICAL:                                  \
+            console.log("not working 2");                       \
+        break;                                                  \
+        case FALLOFF_STANDARD:                                  \
+            console.log("not working 3");                       \
+        break;                                                  \
+    }                                                           \
+    console.log("done");                                        \
+    '])).to.equals('done\r\n'));
 });

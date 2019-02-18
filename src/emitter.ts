@@ -1863,10 +1863,16 @@ export class Emitter {
             typeOfExpression.typeArguments
             && typeOfExpression.typeArguments[0]
             && typeOfExpression.typeArguments[0];
+        let expressionTypeNode;
         let typeNode;
         if (typeOfElement) {
             const typeName = this.typeInfo.getNameFromTypeNode(typeOfElement);
             typeNode = ts.createTypeReferenceNode(typeName, undefined);
+        }
+
+        if (expressionType === 'string') {
+            expressionTypeNode = ts.createTypeReferenceNode(expressionType, undefined);
+            typeNode = ts.createTypeReferenceNode(expressionType, undefined);
         }
 
         // var
@@ -1879,7 +1885,8 @@ export class Emitter {
         // array
         const arrayInstanceName = 'arr_';
         const arrayInstanceExpr = ts.createIdentifier(arrayInstanceName);
-        const declArrayInstance = ts.createVariableDeclaration(arrayInstanceName, undefined, node.expression);
+        (<any>arrayInstanceExpr).__return_type = expressionType;
+        const declArrayInstance = ts.createVariableDeclaration(arrayInstanceName, expressionTypeNode, node.expression);
 
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayAccess = ts.createElementAccess(arrayInstanceExpr, indexerExpr);

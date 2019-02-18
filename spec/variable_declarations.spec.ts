@@ -74,10 +74,10 @@ describe('Variable Declarations', () => {
     '])));
 
     it('var Re-declarations and Shadowing', () => expect('1\r\n').to.equals(new Run().test([
-        'function f(x:any) {                    \
+        'function f(x:number) {                 \
             var x:any;                          \
-            var x:any = 1;                      \
-            console.log(x);                     \
+            var x:string = \'1\';               \
+            console.log(<any>x);                \
         }                                       \
         f(20);                                  \
     '])));
