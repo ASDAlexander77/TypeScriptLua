@@ -87,7 +87,7 @@ module JS {
                     const v = rawget(_this._values, indx + 1);
                     // @ts-ignore
                     // tslint:disable-next-line:triple-equals typeof-compare
-                    return typeof (v) == 'table' && (<any>v).isNull ? null : v;
+                    return typeof (v) == 'table' && (<any>v).isNull ? null : v == null ? undefined : v;
                 }
 
                 // @ts-ignore
@@ -140,10 +140,10 @@ module JS {
                 throw new Error('Out of items');
             }
 
-            const v0 = table.remove(this._values);
+            const v = table.remove(this._values);
             // @ts-ignore
             // tslint:disable-next-line:triple-equals typeof-compare
-            return typeof (v0) == 'table' && (<any>v0).isNull ? null : v0;
+            return typeof (v) == 'table' && (<any>v).isNull ? null : v == null ? undefined : v;
         }
 
         public get length(): number {
@@ -185,10 +185,10 @@ module JS {
         }
 
         public shift(): T {
-            const v0 = table.remove(this._values, 1);
+            const v = table.remove(this._values, 1);
             // @ts-ignore
             // tslint:disable-next-line:triple-equals typeof-compare
-            return typeof (v0) == 'table' && (<any>v0).isNull ? null : v0;
+            return typeof (v) == 'table' && (<any>v).isNull ? null : v == null ? undefined : v;
         }
 
         public unshift(...objs: T[]) {
