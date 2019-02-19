@@ -18,9 +18,10 @@
     "noUnusedParameters": true,
     "module": "es2015",
     "outDir": "./__out/jslib",
-    "baseUrl": "./",    
+    "baseUrl": "./",
     "lib": [
-      "es5"
+      "es5",
+      "dom"
     ],
   },
   "include": [
@@ -28,5 +29,5 @@
   ],
   "exclude": [
     "node_modules"
-  ]    
+  ]
 }

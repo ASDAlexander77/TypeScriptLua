@@ -18,7 +18,8 @@
       ],
       "types": [],
       "lib": [
-        "es5"
+        "es5",
+        "dom"
       ]
     },
     "files": [
@@ -29,4 +30,3 @@
       "node_modules"
     ]
   }
-  

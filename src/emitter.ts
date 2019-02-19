@@ -85,8 +85,8 @@ export class Emitter {
             && options.lib.some(l => /lib.es\d+.d.ts/.test(l))
             && !options.lib.some(l => /lib.es5.d.ts/.test(l))
             || cmdLineOptions.jslib)
-                ? true
-                : false;
+            ? true
+            : false;
     }
 
     private libCommon = '                                           \
@@ -525,9 +525,17 @@ export class Emitter {
         if (parameters) {
             parameters
                 .filter(p => p.initializer)
-                .map(p => ts.createIf(
-                    ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
-                    ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))))
+                .map(p => {
+                    const prefExpr = ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name);
+                    const assignExpr = ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer));
+                    const ifExpr = ts.createIf(prefExpr, assignExpr);
+
+                    prefExpr.parent = ifExpr;
+                    assignExpr.parent = ifExpr;
+                    ifExpr.parent = location;
+
+                    return ifExpr;
+                })
                 .forEach(s => {
                     this.processStatement(s);
                 });
@@ -600,21 +608,21 @@ export class Emitter {
         const lenResult = this.functionContext.useRegisterAndPush();
 
         this.functionContext.code.push([Ops.LEN,
-            lenResult.getRegister(),
+        lenResult.getRegister(),
             localVar]);
 
         // add +1 to length
         const oneConstInfo = this.resolver.returnConst(1, this.functionContext);
-            this.functionContext.code.push([Ops.ADD,
-                lenResult.getRegister(),
-                lenResult.getRegister(),
-                oneConstInfo.getRegisterOrIndex()]);
+        this.functionContext.code.push([Ops.ADD,
+        lenResult.getRegister(),
+        lenResult.getRegister(),
+        oneConstInfo.getRegisterOrIndex()]);
 
         const lenNameInfo = this.resolver.returnConst('length', this.functionContext);
         this.functionContext.code.push([Ops.SETTABLE,
             localVar,
-            lenNameInfo.getRegisterOrIndex(),
-            lenResult.getRegisterOrIndex()]);
+        lenNameInfo.getRegisterOrIndex(),
+        lenResult.getRegisterOrIndex()]);
 
         this.functionContext.stack.pop();
     }
@@ -1054,9 +1062,12 @@ export class Emitter {
                 && ((this.isStaticProperty(m) && !this.isPropertyWithNonConstInitializer(m))
                     || !this.isProperty(m)
                     || this.isPropertyWithArrowFunctionInitializer(m)))
-            .map(m => ts.createPropertyAssignment(
-                this.getClassMemberName(m),
-                this.createClassMember(m)));
+            .map(m => {
+                const createClassMember = this.createClassMember(m);
+                const propertyAssignment = ts.createPropertyAssignment(this.getClassMemberName(m), createClassMember);
+                createClassMember.parent = propertyAssignment;
+                return propertyAssignment;
+            });
 
         if (this.isDefaultCtorRequired(node)) {
             // create defualt Ctor to initialize readonlys
@@ -1094,9 +1105,13 @@ export class Emitter {
 
         this.resolver.superClass = extend;
 
-        const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
-        prototypeObject.parent = node;
-        this.processExpression(prototypeObject);
+        const prototypeObject = ts.createObjectLiteral(properties);
+        properties.forEach(p => p.parent = prototypeObject);
+
+        const prototypeObjectAssignment = ts.createAssignment(node.name, prototypeObject);
+        prototypeObject.parent = prototypeObjectAssignment;
+        prototypeObjectAssignment.parent = node;
+        this.processExpression(prototypeObjectAssignment);
 
         // set metatable for derived class using __index dictionary containing base class
         if (extend || anyGetStaticAccessor || anySetStaticAccessor) {
@@ -1113,7 +1128,7 @@ export class Emitter {
                 ts.createPropertyAccess(
                     node.name,
                     this.getClassMemberName(m)),
-                    this.createClassMember(m)))
+                this.createClassMember(m)))
             .forEach(p => this.processExpression(p));
 
         this.emitExport(node.name, node);
@@ -1922,35 +1937,73 @@ export class Emitter {
         (<any>arrayInstanceExpr).__return_type = expressionType;
         const declArrayInstance = ts.createVariableDeclaration(arrayInstanceName, expressionTypeNode, node.expression);
 
+        if (expressionTypeNode) {
+            expressionTypeNode.parent = declArrayInstance;
+        }
+
         const arrayItem = <ts.Identifier>(<ts.VariableDeclarationList>node.initializer).declarations[0].name;
         const arrayAccess = ts.createElementAccess(arrayInstanceExpr, indexerExpr);
+
+        indexerExpr.parent = arrayAccess;
+        arrayInstanceExpr.parent = arrayAccess;
+
         const arrayItemInitialization = ts.createVariableDeclaration(
             arrayItem, typeNode, arrayAccess);
 
+        typeNode.parent = arrayItemInitialization;
+
         arrayAccess.parent = arrayItemInitialization;
+
+        const itemVarDecl = ts.createVariableDeclarationList(
+            [arrayItemInitialization],
+            node.initializer.flags/*ts.NodeFlags.Const*/);
+
+        arrayItemInitialization.parent = itemVarDecl;
+
+        const varDeclStatement = ts.createVariableStatement(undefined, itemVarDecl);
+
+        itemVarDecl.parent = varDeclStatement;
 
         const newStatementBlockWithElementAccess = ts.createBlock(
             [
-                ts.createVariableStatement(
-                    undefined,
-                    ts.createVariableDeclarationList(
-                        [arrayItemInitialization],
-                        node.initializer.flags/*ts.NodeFlags.Const*/)),
+                varDeclStatement,
                 node.statement
             ]);
+
+        varDeclStatement.parent = newStatementBlockWithElementAccess;
 
         const lengthMemeber = ts.createIdentifier('length');
         if (expressionType === 'string') {
             (<any>lengthMemeber).__len = true;
         }
 
+        const varDeclList = ts.createVariableDeclarationList([declArrayInstance, declIndexer], ts.NodeFlags.Const);
+
+        declArrayInstance.parent = varDeclList;
+        declIndexer.parent = varDeclList;
+
+        const lengthAccessExpr = ts.createPropertyAccess(arrayInstanceExpr, lengthMemeber);
+
+        lengthMemeber.parent = lengthAccessExpr;
+
+        const indexerComparerExpr =
+            ts.createBinary(
+                indexerExpr,
+                ts.SyntaxKind.LessThanToken,
+                lengthAccessExpr);
+
+        lengthAccessExpr.parent = indexerComparerExpr;
+
+        const incrementorExpr = ts.createPostfixIncrement(indexerExpr);
         const forStatement =
-            ts.createFor(ts.createVariableDeclarationList([declArrayInstance, declIndexer], ts.NodeFlags.Const),
-                ts.createBinary(
-                    indexerExpr,
-                    ts.SyntaxKind.LessThanToken, ts.createPropertyAccess(arrayInstanceExpr, lengthMemeber)),
-                ts.createPostfixIncrement(indexerExpr),
+            ts.createFor(varDeclList,
+                indexerComparerExpr,
+                incrementorExpr,
                 newStatementBlockWithElementAccess);
+
+        incrementorExpr.parent = forStatement;
+        indexerComparerExpr.parent = forStatement;
+        varDeclList.parent = forStatement;
 
         newStatementBlockWithElementAccess.parent = forStatement;
 
@@ -2674,16 +2727,24 @@ export class Emitter {
                     case ts.SyntaxKind.AsteriskToken:
                     case ts.SyntaxKind.SlashToken:
 
-                        const op1_notnull = ts.createBinary(node.left, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
-                        op1_notnull.parent = node;
-                        const op2_notnull = ts.createBinary(node.right, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
-                        op2_notnull.parent = node;
+                        if (operationCode !== Ops.CONCAT) {
+                            const op1_notnull = ts.createBinary(node.left, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
+                            op1_notnull.parent = node;
+                            const op2_notnull = ts.createBinary(node.right, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
+                            op2_notnull.parent = node;
 
-                        // <left> + ...
-                        this.processExpression(op1_notnull);
+                            // <left> + ...
+                            this.processExpression(op1_notnull);
 
-                        // ... + <right>
-                        this.processExpression(op2_notnull);
+                            // ... + <right>
+                            this.processExpression(op2_notnull);
+                        } else {
+                            // <left> + ...
+                            this.processExpression(node.left);
+
+                            // ... + <right>
+                            this.processExpression(node.right);
+                        }
 
                         break;
                     default:
@@ -2804,47 +2865,113 @@ export class Emitter {
                 // fix when 0 is true in LUA
                 // TODO: move it into "Preprocess logic"
                 if (!(<any>node).__fix_not_required) {
-                    if (this.typeInfo.isTypesOfNode(node.left, ['number', 'any'])) {
-                        const op1 = this.functionContext.stack.peek();
+                    const op1 = this.functionContext.stack.peek();
 
-                        this.functionContext.newLocalScope(node);
+                    this.functionContext.newLocalScope(node);
 
-                        this.functionContext.createLocal('<op1>', op1);
-                        const localOp1Ident = ts.createIdentifier('<op1>');
+                    this.functionContext.createLocal('<op1>', op1);
+                    const localOp1Ident = ts.createIdentifier('<op1>');
 
-                        let condition;
-                        switch (node.operatorToken.kind) {
-                            case ts.SyntaxKind.AmpersandAmpersandToken:
-                                condition = ts.createBinary(
-                                    ts.createPrefix(ts.SyntaxKind.ExclamationToken, localOp1Ident),
+                    const undefIdent1 = ts.createIdentifier('undefined');
+
+                    let condition;
+                    switch (node.operatorToken.kind) {
+                        case ts.SyntaxKind.AmpersandAmpersandToken:
+                            const chain1 = ts.createPrefix(ts.SyntaxKind.ExclamationToken, localOp1Ident);
+
+                            localOp1Ident.parent = chain1;
+
+                            const chainEq2 = ts.createBinary(
+                                localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0'));
+                            const chainEq3 = ts.createBinary(
+                                localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, undefIdent1);
+                            undefIdent1.parent = chainEq3;
+                            const chainEq4 = ts.createBinary(
+                                localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createStringLiteral(''));
+
+                            const op_1 = ts.createBinary(
+                                chain1,
+                                ts.SyntaxKind.BarBarToken,
+                                chainEq2);
+
+                            chain1.parent = op_1;
+                            chainEq2.parent = op_1;
+
+                            const op_2 = ts.createBinary(
+                                    op_1,
                                     ts.SyntaxKind.BarBarToken,
-                                    ts.createBinary(localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0')));
-                                break;
-                            case ts.SyntaxKind.BarBarToken:
-                                condition = ts.createBinary(
+                                    chainEq3);
+
+                            op_1.parent = op_2;
+                            chainEq3.parent = op_2;
+
+                            condition =
+                                ts.createBinary(
+                                    op_2,
+                                    ts.SyntaxKind.BarBarToken,
+                                    chainEq4);
+
+                            op_2.parent = condition;
+                            chainEq4.parent = condition;
+
+                            break;
+                        case ts.SyntaxKind.BarBarToken:
+                            const chainNotEq2 = ts.createBinary(
+                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createNumericLiteral('0'));
+                            const chainNotEq3 = ts.createBinary(
+                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, undefIdent1);
+                            undefIdent1.parent = chainNotEq3;
+                            const chainNotEq4 = ts.createBinary(
+                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createStringLiteral(''));
+
+                            const op_Or_1 = ts.createBinary(
                                     localOp1Ident,
                                     ts.SyntaxKind.AmpersandAmpersandToken,
-                                    ts.createBinary(localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createNumericLiteral('0')));
-                                break;
-                        }
+                                    chainNotEq2);
 
-                        (<any>condition).__fix_not_required = true;
+                            localOp1Ident.parent = op_Or_1;
+                            chainNotEq2.parent = op_Or_1;
 
-                        const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
-                        condExpression.parent = node;
-                        this.processExpression(condExpression);
+                            const op_Or_2 = ts.createBinary(
+                                        op_Or_1,
+                                        ts.SyntaxKind.AmpersandAmpersandToken,
+                                        chainNotEq3);
 
-                        this.functionContext.restoreLocalScope();
+                            op_Or_1.parent = op_Or_2;
+                            chainNotEq3.parent = op_Or_2;
 
-                        const result = this.functionContext.stack.pop();
-                        this.functionContext.code.push([
-                            Ops.MOVE,
-                            op1.getRegister(),
-                            result.getRegister(),
-                            0]);
+                            condition =
+                                ts.createBinary(
+                                    op_Or_2,
+                                    ts.SyntaxKind.AmpersandAmpersandToken,
+                                    chainNotEq4);
 
-                        return;
+                            op_Or_2.parent = condition;
+                            chainNotEq4.parent = condition;
+
+                            break;
                     }
+
+                    (<any>condition).__fix_not_required = true;
+                    (<any>condition.left).__fix_not_required = true;
+                    (<any>condition.left.left).__fix_not_required = true;
+                    (<any>condition.left.left.left).__fix_not_required = true;
+
+                    const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
+                    condExpression.parent = node;
+                    condition.parent = condExpression;
+                    this.processExpression(condExpression);
+
+                    this.functionContext.restoreLocalScope();
+
+                    const result = this.functionContext.stack.pop();
+                    this.functionContext.code.push([
+                        Ops.MOVE,
+                        op1.getRegister(),
+                        result.getRegister(),
+                        0]);
+
+                    return;
                 }
 
                 const leftOpNode3 = this.functionContext.stack.pop().optimize();
@@ -3522,10 +3649,21 @@ export class Emitter {
 
     private emitGetOrCreateObjectExpression(node: ts.Node, globalVariableName: string) {
         const prototypeIdentifier = ts.createIdentifier(globalVariableName);
-        const getOrCreateObjectExpr = ts.createAssignment(
-            prototypeIdentifier,
-            ts.createBinary(prototypeIdentifier, ts.SyntaxKind.BarBarToken, ts.createObjectLiteral()));
+        const binOper =
+            ts.createBinary(
+                prototypeIdentifier,
+                ts.SyntaxKind.BarBarToken,
+                ts.createObjectLiteral());
+
+        const getOrCreateObjectExpr =
+            ts.createAssignment(
+                prototypeIdentifier,
+                binOper);
+
+        binOper.parent = getOrCreateObjectExpr;
+        prototypeIdentifier.parent = getOrCreateObjectExpr;
         getOrCreateObjectExpr.parent = node.parent;
+
         this.processExpression(getOrCreateObjectExpr);
     }
 
