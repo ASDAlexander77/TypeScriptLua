@@ -429,16 +429,20 @@ export class Emitter {
             const operand = firstParam ? <ts.Identifier>firstParam.name : ts.createThis();
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
-            return <ts.NodeArray<ts.Statement>><any>
-                [<ts.Statement>ts.createReturn(
-                    ts.createBinary(
+
+            const binExpr = ts.createBinary(
                         ts.createPropertyAccess(operand, lengthMemeber),
                         ts.SyntaxKind.PlusToken,
                         ts.createConditional(
                             ts.createElementAccess(operand, ts.createNumericLiteral('0')),
                             ts.createNumericLiteral('1'),
-                            ts.createNumericLiteral('0'))))
-                ];
+                            ts.createNumericLiteral('0')));
+            const returnExpr = <ts.Statement>ts.createReturn(binExpr);
+            binExpr.parent = returnExpr;
+
+            returnExpr.parent = location;
+
+            return <ts.NodeArray<ts.Statement>><any>[returnExpr];
             /*
             return <ts.NodeArray<ts.Statement>><any>
                 [
@@ -1950,7 +1954,9 @@ export class Emitter {
         const arrayItemInitialization = ts.createVariableDeclaration(
             arrayItem, typeNode, arrayAccess);
 
-        typeNode.parent = arrayItemInitialization;
+        if (typeNode) {
+            typeNode.parent = arrayItemInitialization;
+        }
 
         arrayAccess.parent = arrayItemInitialization;
 
@@ -3163,10 +3169,17 @@ export class Emitter {
         */
 
         // throw exception if class is not defined
+        const condExpr = ts.createPrefix(ts.SyntaxKind.ExclamationToken, node.expression);
+        const throwExpr = ts.createThrow(ts.createStringLiteral('Class is not defined: ' + (<ts.Identifier>node.expression).text));
+
         const throwIfClassIsNotDefined = ts.createIf(
-            ts.createPrefix(ts.SyntaxKind.ExclamationToken, node.expression),
-            ts.createThrow(ts.createStringLiteral('Class is not defined: ' + (<ts.Identifier>node.expression).text))
-        );
+            condExpr,
+            throwExpr);
+
+        condExpr.parent = throwIfClassIsNotDefined;
+        throwExpr.parent = throwIfClassIsNotDefined;
+        throwIfClassIsNotDefined.parent = node;
+
         this.processStatement(throwIfClassIsNotDefined);
 
         this.processExpression(
