@@ -101,11 +101,6 @@ export class Preprocessor {
         newCondition.parent = conditionStatement;
         conditionStatement.condition = newCondition;
 
-        if (!conditionStatement.parent)
-        {
-            console.log('1');
-        }
-
         return undefined;
     }
 

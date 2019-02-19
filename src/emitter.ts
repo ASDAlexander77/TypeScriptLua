@@ -438,17 +438,9 @@ export class Emitter {
                             ts.createNumericLiteral('1'),
                             ts.createNumericLiteral('0'))));
 
-            returnExpr.parent = location;
-
-            this.fixupParentReferences(returnExpr);
-
-            return <ts.NodeArray<ts.Statement>><any>[returnExpr];
-            /*
-            return <ts.NodeArray<ts.Statement>><any>
-                [
-                    <ts.Statement>ts.createReturn(ts.createPropertyAccess(operand, lengthMemeber))
-                ];
-            */
+            return <ts.NodeArray<ts.Statement>><any>[
+                this.fixupParentReferences(returnExpr, location)
+            ];
         }
 
         return statementsIn;
@@ -532,15 +524,13 @@ export class Emitter {
             parameters
                 .filter(p => p.initializer)
                 .map(p => {
-                    const prefExpr = ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name);
-                    const assignExpr = ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer));
-                    const ifExpr = ts.createIf(prefExpr, assignExpr);
-
-                    prefExpr.parent = ifExpr;
-                    assignExpr.parent = ifExpr;
-                    ifExpr.parent = location;
-
-                    return ifExpr;
+                    return this.fixupParentReferences(
+                        ts.createIf(
+                            ts.createPrefix(
+                                ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
+                                ts.createStatement(
+                                    ts.createAssignment(<ts.Identifier>p.name, p.initializer))),
+                        location);
                 })
                 .forEach(s => {
                     this.processStatement(s);
@@ -556,11 +546,10 @@ export class Emitter {
                         this.functionContext.code.push([Ops.SETLIST, arrayRef.getRegister(), 0, 1]);
                     };
 
-                    const ident = ts.createIdentifier('Array');
-                    const newArray = ts.createNew(ident, undefined, []);
-                    newArray.parent = location;
-                    ident.parent = newArray;
-                    this.processNewExpression(newArray, initializeNewArg);
+                    const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
+                    this.processNewExpression(
+                        this.fixupParentReferences(newArray, location),
+                        initializeNewArg);
                     const resultInfo = this.functionContext.stack.pop();
 
                     this.functionContext.code.push([
@@ -802,10 +791,15 @@ export class Emitter {
         this.processExpression(node.expression);
     }
 
-    private fixupParentReferences(rootNode: ts.Node) {
-        let parent = rootNode;
+    private fixupParentReferences<T extends ts.Node>(rootNode: T, setParent?: ts.Node): T {
+        let parent: ts.Node = rootNode;
+        if (setParent) {
+            rootNode.parent = setParent;
+        }
+
         ts.forEachChild(rootNode, visitNode);
-        return;
+
+        return rootNode;
 
         function visitNode(n: ts.Node): void {
             // walk down setting parents that differ from the parent we think it should be.  This
