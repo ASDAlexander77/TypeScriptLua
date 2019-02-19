@@ -430,17 +430,17 @@ export class Emitter {
             const lengthMemeber = ts.createIdentifier('length');
             (<any>lengthMemeber).__len = true;
 
-            const binExpr = ts.createBinary(
-                        ts.createPropertyAccess(operand, lengthMemeber),
-                        ts.SyntaxKind.PlusToken,
-                        ts.createConditional(
+            const returnExpr =
+                <ts.Statement>ts.createReturn(
+                    ts.createBinary(
+                        ts.createPropertyAccess(operand, lengthMemeber), ts.SyntaxKind.PlusToken, ts.createConditional(
                             ts.createElementAccess(operand, ts.createNumericLiteral('0')),
                             ts.createNumericLiteral('1'),
-                            ts.createNumericLiteral('0')));
-            const returnExpr = <ts.Statement>ts.createReturn(binExpr);
-            binExpr.parent = returnExpr;
+                            ts.createNumericLiteral('0'))));
 
             returnExpr.parent = location;
+
+            this.fixupParentReferences(returnExpr);
 
             return <ts.NodeArray<ts.Statement>><any>[returnExpr];
             /*
@@ -495,7 +495,9 @@ export class Emitter {
             this.resolver.createEnv(this.functionContext);
 
             // we need to inject helper functions
+            this.preprocessor.disablePreprocessing = true;
             this.processTSCode(this.libCommon, true);
+            this.preprocessor.disablePreprocessing = false;
         }
 
         let addThisAsParameter = false;
@@ -800,6 +802,27 @@ export class Emitter {
         this.processExpression(node.expression);
     }
 
+    private fixupParentReferences(rootNode: ts.Node) {
+        let parent = rootNode;
+        ts.forEachChild(rootNode, visitNode);
+        return;
+
+        function visitNode(n: ts.Node): void {
+            // walk down setting parents that differ from the parent we think it should be.  This
+            // allows us to quickly bail out of setting parents for subtrees during incremental
+            // parsing
+            if (n.parent !== parent) {
+                n.parent = parent;
+
+                const saveParent = parent;
+                parent = n;
+                ts.forEachChild(n, visitNode);
+
+                parent = saveParent;
+            }
+        }
+    }
+
     private transpileTSNode(node: ts.Node, transformText?: (string) => string) {
         return this.transpileTSCode(node.getFullText(), transformText);
     }
@@ -836,7 +859,7 @@ export class Emitter {
 
         const sourceFile = ts.createSourceFile(
             this.sourceFileName, jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true, ts.ScriptKind.TS);
-        // nneded to make typeChecker to work properly
+        // needed to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
         return sourceFile.statements;
     }

@@ -4,12 +4,18 @@ import { TypeInfo } from './typeInfo';
 
 export class Preprocessor {
 
+    public disablePreprocessing: boolean;
+
     public constructor(private resolver: IdentifierResolver, private typeInfo: TypeInfo) {
     }
 
     public preprocessStatement(node: ts.Statement): ts.Statement {
         if (!node) {
             throw new Error('node is null or undefined');
+        }
+
+        if (this.disablePreprocessing) {
+            return node;
         }
 
         switch (node.kind) {
@@ -26,6 +32,10 @@ export class Preprocessor {
     public preprocessExpression(node: ts.Expression): ts.Expression {
         if (!node) {
             throw new Error('node is null or undefined');
+        }
+
+        if (this.disablePreprocessing) {
+            return node;
         }
 
         let newExpression: ts.Expression;
@@ -90,6 +100,11 @@ export class Preprocessor {
         const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
         newCondition.parent = conditionStatement;
         conditionStatement.condition = newCondition;
+
+        if (!conditionStatement.parent)
+        {
+            console.log('1');
+        }
 
         return undefined;
     }
