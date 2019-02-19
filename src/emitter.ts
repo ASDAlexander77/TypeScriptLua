@@ -2966,6 +2966,9 @@ export class Emitter {
                     const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
                     condExpression.parent = node;
                     condition.parent = condExpression;
+
+                    (<any>condExpression).__no_preprocess = true;
+
                     this.processExpression(condExpression);
 
                     this.functionContext.restoreLocalScope();

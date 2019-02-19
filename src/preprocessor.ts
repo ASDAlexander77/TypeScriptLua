@@ -67,19 +67,20 @@ export class Preprocessor {
 
     private preprocessWhileDoIf(node: ts.Statement) {
         const expressionStatement = <any>node;
-        if (this.typeInfo.isTypesOfNode(expressionStatement.expression, ['number', 'any'])) {
-            const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
-            newCondition.parent = expressionStatement.expression.parent;
-            expressionStatement.expression = newCondition;
-        }
+        const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
+        newCondition.parent = expressionStatement.expression.parent;
+        expressionStatement.expression = newCondition;
     }
 
     private preprocessConditionalExpression(conditionStatement: ts.ConditionalExpression): ts.Expression {
-        if (this.typeInfo.isTypesOfNode(conditionStatement.condition, ['number', 'any'])) {
-            const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
-            newCondition.parent = conditionStatement;
-            conditionStatement.condition = newCondition;
+
+        if ((<any>conditionStatement).__no_preprocess) {
+            return;
         }
+
+        const newCondition = ts.createBinary(conditionStatement.condition, ts.SyntaxKind.BarBarToken, ts.createFalse());
+        newCondition.parent = conditionStatement;
+        conditionStatement.condition = newCondition;
 
         return undefined;
     }
