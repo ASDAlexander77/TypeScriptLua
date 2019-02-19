@@ -67,6 +67,15 @@ export class Preprocessor {
 
     private preprocessWhileDoIf(node: ts.Statement) {
         const expressionStatement = <any>node;
+
+        if (expressionStatement.expression.kind === ts.SyntaxKind.PrefixUnaryExpression) {
+            const prefixUnaryExpression = <ts.PrefixUnaryExpression>expressionStatement.expression;
+            // skip case if (!<xxx>)
+            if (prefixUnaryExpression.operator === ts.SyntaxKind.ExclamationToken) {
+                return;
+            }
+        }
+
         const newCondition = ts.createBinary(expressionStatement.expression, ts.SyntaxKind.BarBarToken, ts.createFalse());
         newCondition.parent = expressionStatement.expression.parent;
         expressionStatement.expression = newCondition;
@@ -86,11 +95,9 @@ export class Preprocessor {
     }
 
     private preprocessNotExpression(prefixUnaryExpression: ts.PrefixUnaryExpression): ts.Expression {
-        if (this.typeInfo.isTypesOfNode(prefixUnaryExpression.operand, ['number', 'any'])) {
-            const newCondition = ts.createBinary(prefixUnaryExpression.operand, ts.SyntaxKind.BarBarToken, ts.createFalse());
-            newCondition.parent = prefixUnaryExpression;
-            prefixUnaryExpression.operand = <ts.UnaryExpression><any>newCondition;
-        }
+        const newCondition = ts.createBinary(prefixUnaryExpression.operand, ts.SyntaxKind.BarBarToken, ts.createFalse());
+        newCondition.parent = prefixUnaryExpression;
+        prefixUnaryExpression.operand = <ts.UnaryExpression><any>newCondition;
 
         return undefined;
     }

@@ -565,7 +565,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     // @ts-ignore
     getExtension(extensionName: string | any): any {
         // TODO: finish it
-        return undefined;
+        return null;
     }
 
     // @ts-ignore

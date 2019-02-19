@@ -1,15 +1,18 @@
 import './JS';
 
-let a1;
+class Test {
 
-if (a1) {
-    console.log("not working");
+    private subMeshes: any;
+
+    public test() {
+        if (!this.subMeshes) {
+            return;
+        }
+
+        console.log('Not Working');
+    }
+
 }
 
-if (!a1) {
-    console.log("working");
-}
-
-if (a1 == undefined) {
-    console.log("cool, it is undefined");
-}
+const t = new Test();
+t.test();

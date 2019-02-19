@@ -27,9 +27,12 @@ module JS {
             throw new Error('Object is possibly \'undefined\'');
         }
 
+        // TODO: do not use it, very dengerous
+        /*
         public static __eq(_this: any): boolean {
             return false;
         }
+        */
 
         public static __lt(_this: any): boolean {
             throw new Error('Object is possibly \'undefined\'');
