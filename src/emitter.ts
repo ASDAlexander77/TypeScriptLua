@@ -2284,7 +2284,15 @@ export class Emitter {
             node.properties.length,
             0]);
 
-        node.properties.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+        let props: Array<ts.Node> = node.properties.slice(0);
+        // set default get/set methods
+        if (props && props.length === 0) {
+            props = new Array<ts.Node>();
+            props.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call_undefined__')));
+            props.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call_undefined__')));
+        }
+
+        props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
             // set 0 element
             this.resolver.Scope.push(node);
             this.processExpression(<ts.Expression><any>e.name);
@@ -2309,7 +2317,7 @@ export class Emitter {
                 propertyValueInfo.getRegisterOrIndex()]);
         });
 
-        node.properties.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+        props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
             // creating foreach loop for each spread object
             const spreadAssignment = <ts.SpreadAssignment>e;
 
