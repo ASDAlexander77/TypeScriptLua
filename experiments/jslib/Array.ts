@@ -86,12 +86,12 @@ module JS {
             this.__index = function (_this: Array<T>, indx: number | string): any {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
-                if (typeof (indx) == 'number') {
+                if (typeof (indx) === 'number') {
                     // @ts-ignore
                     const v = rawget(_this._values, indx + 1);
                     // @ts-ignore
                     // tslint:disable-next-line:triple-equals typeof-compare
-                    return typeof (v) == 'table' && (<any>v).isNull ? null : v == null ? undefined : v;
+                    return typeof (v) === 'table' && (<any>v).isNull ? null : v === null ? undefined : v;
                 }
 
                 // @ts-ignore
@@ -102,7 +102,7 @@ module JS {
             this.__newindex = function (_this: Array<T>, indx: number | string, val: T): void {
                 // @ts-ignore
                 // tslint:disable-next-line:triple-equals
-                if (typeof (indx) == 'number') {
+                if (typeof (indx) === 'number') {
                     rawset(_this._values, indx + 1, val);
                     return;
                 }
@@ -147,7 +147,7 @@ module JS {
             const v = table.remove(this._values);
             // @ts-ignore
             // tslint:disable-next-line:triple-equals typeof-compare
-            return typeof (v) == 'table' && (<any>v).isNull ? null : v == null ? undefined : v;
+            return typeof (v) === 'table' && (<any>v).isNull ? null : v === null ? undefined : v;
         }
 
         public get length(): number {

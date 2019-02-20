@@ -1,5 +1,5 @@
 __instanceof = function (inst: object, type: object) {
-    if (!inst) {
+    if (inst === null) {
         return false;
     }
 
@@ -19,8 +19,8 @@ __instanceof = function (inst: object, type: object) {
             break;
     }
 
-    while (mt) {
-        if (mt == type) {
+    while (mt !== null) {
+        if (mt === type) {
             return true;
         }
 
@@ -33,10 +33,10 @@ __instanceof = function (inst: object, type: object) {
 __get_call_undefined__ = function (t, k) {
     let rootProto: object = rawget(t, "__proto");
     let proto: object = t;
-    while (proto) {
+    while (proto !== null) {
         let get_: object = rawget(proto, "__get__");
         const getmethod: object = get_ && get_[k];
-        if (getmethod) {
+        if (getmethod !== null) {
             return getmethod(t);
         }
 
@@ -44,7 +44,7 @@ __get_call_undefined__ = function (t, k) {
     }
 
     let v = rawget(t, k);
-    if (v == null) {
+    if (v === null) {
         const nullsHolder: object = rawget(t, "__nulls");
         if (nullsHolder && nullsHolder[k]) {
             return null;
@@ -53,15 +53,15 @@ __get_call_undefined__ = function (t, k) {
         v = rootProto && rootProto[k];
     }
 
-    return v == null ? undefined : v;
+    return v === null ? undefined : v;
 }
 
 __set_call_undefined__ = function (t, k, v) {
     let proto: object = t;
-    while (proto) {
+    while (proto !== null) {
         let set_: object = rawget(proto, "__set__");
         const setmethod: object = set_ && set_[k];
-        if (setmethod) {
+        if (setmethod !== null) {
             setmethod(t, v);
             return;
         }
@@ -69,9 +69,9 @@ __set_call_undefined__ = function (t, k, v) {
         proto = rawget(proto, "__proto");
     }
 
-    if (v == null) {
+    if (v === null) {
         const nullsHolder: object = rawget(t, "__nulls");
-        if (!nullsHolder) {
+        if (nullsHolder === null) {
             nullsHolder = {};
             rawset(t, "__nulls", nullsHolder);
         }
@@ -81,9 +81,9 @@ __set_call_undefined__ = function (t, k, v) {
     }
 
     let v0 = v;
-    if (v == undefined) {
+    if (v === undefined) {
         const nullsHolder: object = rawget(t, "__nulls");
-        if (nullsHolder) {
+        if (nullsHolder !== null) {
             nullsHolder[k] = null;
         }
 
@@ -201,23 +201,23 @@ class Runner {
 
         /*
         const basicVertexShader =
-            'attribute vec4 position; \n\
-			uniform mat4 world; \n\
-			uniform mat4 view; \n\
-			uniform mat4 viewProjection; \n\
-            \n\
-			void main() { \n\
-				gl_Position = viewProjection * world * position; \n\
-			}\n';
+            'attribute vec4 position; n
+			uniform mat4 world; n
+			uniform mat4 view; n
+			uniform mat4 viewProjection; n
+            n
+			void main() { n
+				gl_Position = viewProjection * world * position; n
+			}n';
 
         const basicPixelShader =
-            '#ifdef GL_ES \n\
-			precision mediump float; \n\
-			#endif \n\
-            \n\
-			void main(void) { \n\
-			    gl_FragColor = vec4(1.,1.,1.,1.); \n\
-			}\n';
+            '#ifdef GL_ES n
+			precision mediump float; n
+			#endif n
+            n
+			void main(void) { n
+			    gl_FragColor = vec4(1.,1.,1.,1.); n
+			}n';
 
         BABYLON.Effect.ShadersStore['defaultVertexShader'] = basicVertexShader;
         BABYLON.Effect.ShadersStore['defaultPixelShader'] = basicPixelShader;
