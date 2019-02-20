@@ -55,6 +55,14 @@ export class Preprocessor {
 
                 break;
 
+            case ts.SyntaxKind.BinaryExpression:
+                if ((<ts.BinaryExpression>node).operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
+                     || (<ts.BinaryExpression>node).operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken) {
+                    newExpression = this.preprocessEqualsEqualsOrNotEqualsExpression(<ts.BinaryExpression>node);
+                }
+
+                break;
+
             case ts.SyntaxKind.PropertyAccessExpression:
                 newExpression = this.preprocessPropertyAccessExpression(<ts.PropertyAccessExpression>node);
                 break;
@@ -108,6 +116,18 @@ export class Preprocessor {
         const newCondition = ts.createBinary(prefixUnaryExpression.operand, ts.SyntaxKind.BarBarToken, ts.createFalse());
         newCondition.parent = prefixUnaryExpression;
         prefixUnaryExpression.operand = <ts.UnaryExpression><any>newCondition;
+
+        return undefined;
+    }
+
+    private preprocessEqualsEqualsOrNotEqualsExpression(binaryExpression: ts.BinaryExpression): ts.Expression {
+        const left = ts.createBinary(binaryExpression.left, ts.SyntaxKind.BarBarToken, ts.createFalse());
+        left.parent = binaryExpression;
+        binaryExpression.left = <ts.UnaryExpression><any>left;
+
+        const right = ts.createBinary(binaryExpression.right, ts.SyntaxKind.BarBarToken, ts.createFalse());
+        right.parent = binaryExpression;
+        binaryExpression.right = <ts.UnaryExpression><any>right;
 
         return undefined;
     }

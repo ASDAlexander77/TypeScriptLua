@@ -3001,12 +3001,12 @@ export class Emitter {
                             localOp1Ident.parent = chain1;
 
                             const chainEq2 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createNumericLiteral('0'));
+                                localOp1Ident, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNumericLiteral('0'));
                             const chainEq3 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, undefIdent1);
+                                localOp1Ident, ts.SyntaxKind.EqualsEqualsEqualsToken, undefIdent1);
                             undefIdent1.parent = chainEq3;
                             const chainEq4 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.EqualsEqualsToken, ts.createStringLiteral(''));
+                                localOp1Ident, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createStringLiteral(''));
 
                             const op_1 = ts.createBinary(
                                 chain1,
@@ -3036,12 +3036,12 @@ export class Emitter {
                             break;
                         case ts.SyntaxKind.BarBarToken:
                             const chainNotEq2 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createNumericLiteral('0'));
+                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.createNumericLiteral('0'));
                             const chainNotEq3 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, undefIdent1);
+                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsEqualsToken, undefIdent1);
                             undefIdent1.parent = chainNotEq3;
                             const chainNotEq4 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createStringLiteral(''));
+                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.createStringLiteral(''));
 
                             const op_Or_1 = ts.createBinary(
                                 localOp1Ident,
