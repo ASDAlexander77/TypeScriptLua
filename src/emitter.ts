@@ -92,8 +92,6 @@ export class Emitter {
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
-    __null_holder = __null_holder || {};                            \
-                                                                    \
     __instanceof = __instanceof || function(inst:object, type:object) { \
         if (!inst) {                                                \
             return false;                                           \
@@ -102,7 +100,7 @@ export class Emitter {
         let mt:object;                                              \
         switch (__type(inst)) {                                     \
             case "table":                                           \
-                mt = inst.__proto;                                  \
+                mt = rawget(inst, "__proto");                       \
                 break;                                              \
             case "number":                                          \
                 mt = Number;                                        \
@@ -120,93 +118,72 @@ export class Emitter {
                 return true;                                        \
             }                                                       \
                                                                     \
-            mt = mt.__proto;                                        \
+            mt = rawget(mt, "__proto");                             \
         }                                                           \
                                                                     \
         return false;                                               \
     }                                                               \
                                                                     \
-    __get_static_call__ = __get_static_call__ || function (t, k) {  \
-        const getmethod:object = rawget(t, "__get__")[k];           \
-        if (getmethod) {                                            \
-            return getmethod(t);                                    \
+    __get_call_undefined__ = function (t, k) {                      \
+        let rootProto: object = rawget(t, "__proto");               \
+        let proto: object = t;                                      \
+        while (proto) {                                             \
+            let get_: object = rawget(proto, "__get__");            \
+            const getmethod: object = get_ && get_[k];              \
+            if (getmethod) {                                        \
+                return getmethod(t);                                \
+            }                                                       \
+                                                                    \
+            proto = rawget(proto, "__proto");                       \
         }                                                           \
                                                                     \
-        return rawget(t, k) || rawget(t, "__proto") && t.__proto[k];\
+        let v = rawget(t, k);                                       \
+        if (v == null) {                                            \
+            const nullsHolder: object = rawget(t, "__nulls");       \
+            if (nullsHolder && nullsHolder[k]) {                    \
+                return null;                                        \
+            }                                                       \
+                                                                    \
+            v = rootProto && rootProto[k];                          \
+        }                                                           \
+                                                                    \
+        return v == null ? undefined : v;                           \
     }                                                               \
                                                                     \
-    __set_static_call__ = __set_static_call__ || function (t, k, v) {\
-        const setmethod:object = rawget(t, "__set__")[k];           \
-        if (setmethod) {                                            \
-            setmethod(t, v);                                        \
+    __set_call_undefined__ = function (t, k, v) {                   \
+        let proto: object = t;                                      \
+        while (proto) {                                             \
+            let set_: object = rawget(proto, "__set__");            \
+            const setmethod: object = set_ && set_[k];              \
+            if (setmethod) {                                        \
+                setmethod(t, v);                                    \
+                return;                                             \
+            }                                                       \
+                                                                    \
+            proto = rawget(proto, "__proto");                       \
+        }                                                           \
+                                                                    \
+        if (v == null) {                                            \
+            const nullsHolder: object = rawget(t, "__nulls");       \
+            if (!nullsHolder) {                                     \
+                nullsHolder = {};                                   \
+                rawset(t, "__nulls", nullsHolder);                  \
+            }                                                       \
+                                                                    \
+            nullsHolder[k] = true;                                  \
             return;                                                 \
         }                                                           \
                                                                     \
-        rawset(t, k, v);                                            \
-    }                                                               \
-                                                                    \
-    __get_call__ = __get_call__ || function (t, k) {                \
-        let proto:object = t.__proto;                               \
-        while (proto) {                                             \
-            let get_:object = proto.__get__;                        \
-            const getmethod:object = get_ && get_[k];               \
-            if (getmethod) {                                        \
-                return getmethod(t);                                \
+        let v0 = v;                                                 \
+        if (v == undefined) {                                       \
+            const nullsHolder: object = rawget(t, "__nulls");       \
+            if (nullsHolder) {                                      \
+                nullsHolder[k] = null;                              \
             }                                                       \
                                                                     \
-            proto = proto.__proto;                                  \
+            v0 = null;                                              \
         }                                                           \
                                                                     \
-        return rawget(t, k) || t.__proto[k];                        \
-    }                                                               \
-                                                                    \
-    __set_call__ = __set_call__ || function (t, k, v) {             \
-        let proto:object = t.__proto;                               \
-        while (proto) {                                             \
-            let set_:object = proto.__set__;                        \
-            const setmethod:object = set_ && set_[k];               \
-            if (setmethod) {                                        \
-                setmethod(t, v);                                    \
-                return;                                             \
-            }                                                       \
-                                                                    \
-            proto = proto.__proto;                                  \
-        }                                                           \
-                                                                    \
-        rawset(t, k, v);                                            \
-    }                                                               \
-                                                                    \
-    __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
-        let rootProto:object = rawget(t, "__proto");                \
-        let proto:object = t;                                       \
-        while (proto) {                                             \
-            let get_:object = rawget(proto, "__get__");             \
-            const getmethod:object = get_ && get_[k];               \
-            if (getmethod) {                                        \
-                return getmethod(t);                                \
-            }                                                       \
-                                                                    \
-            proto = rawget(proto, "__proto");                       \
-        }                                                           \
-                                                                    \
-        const v = rawget(t, k) || rootProto && rootProto[k];        \
-        return v == null ? undefined : v == __null_holder ? null : v;\
-    }                                                               \
-                                                                    \
-    __set_call_undefined__ = __set_call_undefined__ || function (t, k, v) { \
-        let proto:object = t;                                       \
-        while (proto) {                                             \
-            let set_:object = rawget(proto, "__set__");             \
-            const setmethod:object = set_ && set_[k];               \
-            if (setmethod) {                                        \
-                setmethod(t, v);                                    \
-                return;                                             \
-            }                                                       \
-                                                                    \
-            proto = rawget(proto, "__proto");                       \
-        }                                                           \
-                                                                    \
-        const v0 = v == undefined ? null : v == null ? __null_holder : v;\
         rawset(t, k, v0);                                           \
     }                                                               \
                                                                     \
