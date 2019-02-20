@@ -4,10 +4,10 @@ import { describe, it } from 'mocha';
 
 describe('Delete', () => {
 
-    it('Local', () => expect('nil\r\n').to.equals(new Run().test([
+    it('Local', () => expect('none\r\n').to.equals(new Run().test([
         'let a = { obj: "asd" };                    \
         delete a.obj;                               \
-        console.log(a.obj);                         \
+        console.log(a.obj || "none");               \
     '])));
 
     it('Remove item', () => expect('obj2\r\nvalue\r\n').to.equals(new Run().test([

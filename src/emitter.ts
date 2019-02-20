@@ -8,6 +8,7 @@ import { Helpers } from './helpers';
 import * as path from 'path';
 import { Preprocessor } from './preprocessor';
 import { TypeInfo } from './typeInfo';
+import { callbackify } from 'util';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
@@ -2284,12 +2285,14 @@ export class Emitter {
             node.properties.length,
             0]);
 
+        let callSetMetatable = false;
         let props: Array<ts.Node> = node.properties.slice(0);
         // set default get/set methods
         if (props && props.length === 0) {
             props = new Array<ts.Node>();
             props.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call_undefined__')));
             props.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call_undefined__')));
+            callSetMetatable = true;
         }
 
         props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
@@ -2340,6 +2343,10 @@ export class Emitter {
             this.processForInStatementNoScope(forInSetStatement);
             this.functionContext.restoreLocalScope();
         });
+
+        if (callSetMetatable) {
+            this.emitSetMetatableCall(resultInfo);
+        }
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
@@ -3244,7 +3251,8 @@ export class Emitter {
             throw new Error('Not implemented');
         }
 
-        const rawsetCall = ts.createCall(ts.createIdentifier('rawset'), undefined, [obj, indx, ts.createNull()]);
+        const rawsetCall = ts.createCall(
+            ts.createIdentifier('rawset'), undefined, [obj, ts.createStringLiteral(indx.text), ts.createNull()]);
         this.fixupParentReferences(rawsetCall, node);
         this.processExpression(rawsetCall);
     }
@@ -3292,29 +3300,7 @@ export class Emitter {
             ]));
         const resultInfo = this.functionContext.stack.peek();
 
-        this.processExpression(ts.createIdentifier('setmetatable'));
-        const setmetatableInfo = this.functionContext.stack.peek();
-
-        // call setmetatable(obj, obj)
-        const param1Info = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()
-        ]);
-
-        const param2Info = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.MOVE, param2Info.getRegister(), resultInfo.getRegisterOrIndex()
-        ]);
-
-        // call setmetatable
-        this.functionContext.code.push([
-            Ops.CALL, setmetatableInfo.getRegister(), 3, 1
-        ]);
-
-        // call cleanup
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
+        this.emitSetMetatableCall(resultInfo);
 
         if (extraCodeBeforeConstructor) {
             extraCodeBeforeConstructor(resultInfo);
@@ -3352,6 +3338,29 @@ export class Emitter {
             true);
 
         jmpOp[2] = this.functionContext.code.length - beforeBlock;
+    }
+
+    private emitSetMetatableCall(resultInfo: ResolvedInfo) {
+        this.processExpression(ts.createIdentifier('setmetatable'));
+        const setmetatableInfo = this.functionContext.stack.peek();
+        // call setmetatable(obj, obj)
+        const param1Info = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()
+        ]);
+        const param2Info = this.functionContext.useRegisterAndPush();
+        this.functionContext.code.push([
+            Ops.MOVE, param2Info.getRegister(), resultInfo.getRegisterOrIndex()
+        ]);
+        // call setmetatable
+        this.functionContext.code.push([
+            Ops.CALL, setmetatableInfo.getRegister(), 3, 1
+        ]);
+
+        // call cleanup
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
+        this.functionContext.stack.pop();
     }
 
     private processCallExpression(node: ts.CallExpression): void {

@@ -1,9 +1,11 @@
 import './JS';
 
-class Engine {
-    public static get Last(): number {
-        return 1;
-    }
+let person = {};
+
+let text = "";
+let x;
+for (x in person) {
+    text += person[x] + " ";
 }
 
-console.log(Engine.Last);
+console.log(text);
