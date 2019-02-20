@@ -1171,9 +1171,9 @@ export class Emitter {
 
         // set metatable for derived class using __index dictionary containing base class
         // if (extend || anyGetStaticAccessor || anySetStaticAccessor) {
-            const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
-            setmetatableCall.parent = node;
-            this.processExpression(setmetatableCall);
+        const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
+        setmetatableCall.parent = node;
+        this.processExpression(setmetatableCall);
         // }
 
         // process static members
@@ -1452,8 +1452,8 @@ export class Emitter {
                 const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
                 return propertyDeclaration.initializer;
 
-                // to support undefined
-                // return true;
+            // to support undefined
+            // return true;
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
@@ -2970,9 +2970,9 @@ export class Emitter {
                             chainEq2.parent = op_1;
 
                             const op_2 = ts.createBinary(
-                                    op_1,
-                                    ts.SyntaxKind.BarBarToken,
-                                    chainEq3);
+                                op_1,
+                                ts.SyntaxKind.BarBarToken,
+                                chainEq3);
 
                             op_1.parent = op_2;
                             chainEq3.parent = op_2;
@@ -2997,17 +2997,17 @@ export class Emitter {
                                 localOp1Ident, ts.SyntaxKind.ExclamationEqualsToken, ts.createStringLiteral(''));
 
                             const op_Or_1 = ts.createBinary(
-                                    localOp1Ident,
-                                    ts.SyntaxKind.AmpersandAmpersandToken,
-                                    chainNotEq2);
+                                localOp1Ident,
+                                ts.SyntaxKind.AmpersandAmpersandToken,
+                                chainNotEq2);
 
                             localOp1Ident.parent = op_Or_1;
                             chainNotEq2.parent = op_Or_1;
 
                             const op_Or_2 = ts.createBinary(
-                                        op_Or_1,
-                                        ts.SyntaxKind.AmpersandAmpersandToken,
-                                        chainNotEq3);
+                                op_Or_1,
+                                ts.SyntaxKind.AmpersandAmpersandToken,
+                                chainNotEq3);
 
                             op_Or_1.parent = op_Or_2;
                             chainNotEq3.parent = op_Or_2;
@@ -3212,13 +3212,33 @@ export class Emitter {
     private processDeleteExpression(node: ts.DeleteExpression): void {
         /*
         const assignNull = ts.createAssignment(node.expression, ts.createNull());
-        assignNull.parent = node;
+        this.fixupParentReferences(assignNull, node);
         this.processExpression(assignNull);
         */
 
-       const assignUndefined = ts.createAssignment(node.expression, ts.createIdentifier('undefined'));
-       assignUndefined.parent = node;
-       this.processExpression(assignUndefined);
+        // we need to set it do undefined first
+        const assignUndefined = ts.createAssignment(node.expression, ts.createIdentifier('undefined'));
+        this.fixupParentReferences(assignUndefined, node);
+        this.processExpression(assignUndefined);
+
+        // then delete using lua
+        let obj;
+        let indx;
+        if (node.expression.kind === ts.SyntaxKind.ElementAccessExpression) {
+            const elementAccessExpression = <ts.ElementAccessExpression>node.expression;
+            obj = elementAccessExpression.expression;
+            indx = elementAccessExpression.argumentExpression;
+        } else if (node.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            const propertyAccessExpression = <ts.PropertyAccessExpression>node.expression;
+            obj = propertyAccessExpression.expression;
+            indx = propertyAccessExpression.name;
+        } else {
+            throw new Error('Not implemented');
+        }
+
+        const rawsetCall = ts.createCall(ts.createIdentifier('rawset'), undefined, [obj, indx, ts.createNull()]);
+        this.fixupParentReferences(rawsetCall, node);
+        this.processExpression(rawsetCall);
     }
 
     private processNewExpression(node: ts.NewExpression, extraCodeBeforeConstructor?: (arrayRef: ResolvedInfo) => void): void {
