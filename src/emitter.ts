@@ -178,9 +178,9 @@ export class Emitter {
                                                                     \
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let rootProto:object = rawget(t, "__proto");                \
-        let proto:object = rootProto;                    \
+        let proto:object = t;                                       \
         while (proto) {                                             \
-            let get_:object = proto.__get__;                        \
+            let get_:object = rawget(proto, "__get__");             \
             const getmethod:object = get_ && get_[k];               \
             if (getmethod) {                                        \
                 return getmethod(t);                                \
@@ -189,14 +189,14 @@ export class Emitter {
             proto = rawget(proto, "__proto");                       \
         }                                                           \
                                                                     \
-        const v = rawget(t, k) || rootProto && t.__proto[k];        \
+        const v = rawget(t, k) || rootProto && rootProto[k];        \
         return v == null ? undefined : v == __null_holder ? null : v;\
     }                                                               \
                                                                     \
     __set_call_undefined__ = __set_call_undefined__ || function (t, k, v) { \
-        let proto:object = rawget(t, "__proto");                    \
+        let proto:object = t;                                       \
         while (proto) {                                             \
-            let set_:object = proto.__set__;                        \
+            let set_:object = rawget(proto, "__set__");             \
             const setmethod:object = set_ && set_[k];               \
             if (setmethod) {                                        \
                 setmethod(t, v);                                    \

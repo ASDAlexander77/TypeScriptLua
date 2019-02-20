@@ -1,18 +1,9 @@
 import './JS';
 
-class Test {
-
-    private subMeshes: any;
-
-    public test() {
-        if (!this.subMeshes) {
-            return;
-        }
-
-        console.log('Not Working');
+class Engine {
+    public static get Last(): number {
+        return 1;
     }
-
 }
 
-const t = new Test();
-t.test();
+console.log(Engine.Last);
