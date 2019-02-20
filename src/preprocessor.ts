@@ -121,12 +121,14 @@ export class Preprocessor {
     }
 
     private preprocessEqualsEqualsOrNotEqualsExpression(binaryExpression: ts.BinaryExpression): ts.Expression {
-        const left = ts.createBinary(binaryExpression.left, ts.SyntaxKind.BarBarToken, ts.createFalse());
+       const left = ts.createBinary(binaryExpression.left, ts.SyntaxKind.BarBarToken, ts.createNull());
         left.parent = binaryExpression;
+        (<any>left).__undefined_only = true;
         binaryExpression.left = <ts.UnaryExpression><any>left;
 
-        const right = ts.createBinary(binaryExpression.right, ts.SyntaxKind.BarBarToken, ts.createFalse());
+        const right = ts.createBinary(binaryExpression.right, ts.SyntaxKind.BarBarToken, ts.createNull());
         right.parent = binaryExpression;
+        (<any>right).__undefined_only = true;
         binaryExpression.right = <ts.UnaryExpression><any>right;
 
         return undefined;

@@ -3035,38 +3035,40 @@ export class Emitter {
 
                             break;
                         case ts.SyntaxKind.BarBarToken:
-                            const chainNotEq2 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.createNumericLiteral('0'));
-                            const chainNotEq3 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsEqualsToken, undefIdent1);
-                            undefIdent1.parent = chainNotEq3;
-                            const chainNotEq4 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.createStringLiteral(''));
 
-                            const op_Or_1 = ts.createBinary(
-                                localOp1Ident,
-                                ts.SyntaxKind.AmpersandAmpersandToken,
-                                chainNotEq2);
-
-                            localOp1Ident.parent = op_Or_1;
-                            chainNotEq2.parent = op_Or_1;
-
-                            const op_Or_2 = ts.createBinary(
-                                op_Or_1,
-                                ts.SyntaxKind.AmpersandAmpersandToken,
-                                chainNotEq3);
-
-                            op_Or_1.parent = op_Or_2;
-                            chainNotEq3.parent = op_Or_2;
-
-                            condition =
-                                ts.createBinary(
-                                    op_Or_2,
-                                    ts.SyntaxKind.AmpersandAmpersandToken,
-                                    chainNotEq4);
-
-                            op_Or_2.parent = condition;
-                            chainNotEq4.parent = condition;
+                            const undefinedFilterOnly = (<any>node.left).__undefined_only;
+                            if (!undefinedFilterOnly) {
+                                condition =
+                                    ts.createBinary(
+                                        ts.createBinary(
+                                            ts.createBinary(
+                                                localOp1Ident,
+                                                ts.SyntaxKind.AmpersandAmpersandToken,
+                                                ts.createBinary(
+                                                    localOp1Ident,
+                                                    ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                                                    ts.createNumericLiteral('0'))),
+                                            ts.SyntaxKind.AmpersandAmpersandToken,
+                                            ts.createBinary(
+                                                localOp1Ident,
+                                                ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                                                undefIdent1)),
+                                        ts.SyntaxKind.AmpersandAmpersandToken,
+                                        ts.createBinary(
+                                            localOp1Ident,
+                                            ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                                            ts.createStringLiteral('')));
+                            } else {
+                                // special case for undefined only (undefined -> null)
+                                condition =
+                                    ts.createBinary(
+                                        localOp1Ident,
+                                        ts.SyntaxKind.AmpersandAmpersandToken,
+                                        ts.createBinary(
+                                            localOp1Ident,
+                                            ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                                            undefIdent1));
+                            }
 
                             break;
                     }
@@ -3077,8 +3079,8 @@ export class Emitter {
                     (<any>condition.left.left.left).__fix_not_required = true;
 
                     const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
-                    condExpression.parent = node;
-                    condition.parent = condExpression;
+
+                    this.fixupParentReferences(condExpression, node);
 
                     (<any>condExpression).__no_preprocess = true;
 
