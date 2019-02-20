@@ -1938,16 +1938,48 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
+        const varIdent = ts.createIdentifier('<var>');
         let assignmentOperation;
         if (iterator === 'ipairs') {
             assignmentOperation = ts.createAssignment(
                 forInIdentifier,
-                ts.createSubtract(ts.createIdentifier('<var>'), ts.createNumericLiteral('1')));
+                ts.createSubtract(varIdent, ts.createNumericLiteral('1')));
         } else if (iterator === 'pairs') {
-            assignmentOperation = ts.createAssignment(forInIdentifier, ts.createIdentifier('<var>'));
+            assignmentOperation = ts.createAssignment(forInIdentifier, varIdent);
         }
         assignmentOperation.parent = node;
         this.processExpression(assignmentOperation);
+
+        // add filter for for/in
+        const filterExpr = ts.createIf(
+            ts.createBinary(
+                ts.createBinary(
+                    ts.createBinary(
+                        ts.createCall(ts.createIdentifier('__type'), undefined, [varIdent]),
+                        ts.SyntaxKind.EqualsEqualsToken,
+                        ts.createStringLiteral('string')),
+                    ts.SyntaxKind.AmpersandAmpersandToken,
+                    ts.createBinary(
+                        ts.createCall(
+                            ts.createPropertyAccess(
+                                ts.createIdentifier('string'), 'byte'),
+                                undefined,
+                                [varIdent, ts.createNumericLiteral('1')]),
+                        ts.SyntaxKind.EqualsEqualsToken,
+                        ts.createNumericLiteral('95'))),
+                        ts.SyntaxKind.AmpersandAmpersandToken,
+                        ts.createBinary(
+                            ts.createCall(
+                                ts.createPropertyAccess(
+                                    ts.createIdentifier('string'), 'byte'),
+                                    undefined,
+                                    [varIdent, ts.createNumericLiteral('2')]),
+                            ts.SyntaxKind.EqualsEqualsToken,
+                            ts.createNumericLiteral('95'))),
+            ts.createContinue());
+
+        this.fixupParentReferences(filterExpr, node);
+        this.processStatement(filterExpr);
 
         // loop
         this.processStatement(node.statement);

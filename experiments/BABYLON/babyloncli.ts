@@ -1,4 +1,3 @@
-/*
 __instanceof = function (inst: object, type: object) {
     if (!inst) {
         return false;
@@ -93,7 +92,6 @@ __set_call_undefined__ = function (t, k, v) {
 
     rawset(t, k, v0);
 }
-*/
 
 import './JS';
 
