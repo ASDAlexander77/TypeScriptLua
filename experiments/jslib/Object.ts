@@ -1,6 +1,6 @@
 declare function setmetatable(obj: any, meta: any): any;
-declare var __get_call__: any;
-declare var __set_call__: any;
+declare var __get_call_undefined__: any;
+declare var __set_call_undefined__: any;
 
 module JS {
 
@@ -12,9 +12,9 @@ module JS {
             }
 
             const obj = <any>{};
-            obj.__index = __get_call__;
+            obj.__index = __get_call_undefined__;
             obj.__proto = proto;
-            obj.__newindex = __set_call__;
+            obj.__newindex = __set_call_undefined__;
             setmetatable(obj, obj);
 
             if (obj.constructor) {

@@ -2,6 +2,10 @@ declare var table: any;
 declare var len: any;
 declare var ret: any;
 declare var __len__: any;
+declare var __get_call_undefined__: any;
+declare var __set_call_undefined__: any;
+declare var rawget: any;
+declare var rawset: any;
 
 module JS {
 
@@ -91,7 +95,7 @@ module JS {
                 }
 
                 // @ts-ignore
-                return __get_call__(_this, indx);
+                return __get_call_undefined__(_this, indx);
             };
 
             // @ts-ignore
@@ -104,7 +108,7 @@ module JS {
                 }
 
                 // @ts-ignore
-                __set_call__(_this, indx, val);
+                __set_call_undefined__(_this, indx, val);
             };
         }
 
