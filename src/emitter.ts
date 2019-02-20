@@ -92,6 +92,8 @@ export class Emitter {
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
+    __null_holder = __null_holder || {};                            \
+                                                                    \
     __instanceof = __instanceof || function(inst:object, type:object) { \
         if (!inst) {                                                \
             return false;                                           \
@@ -172,6 +174,40 @@ export class Emitter {
         }                                                           \
                                                                     \
         rawset(t, k, v);                                            \
+    }                                                               \
+                                                                    \
+    __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
+        let rootProto:object = rawget(t, "__proto");                \
+        let proto:object = rootProto;                    \
+        while (proto) {                                             \
+            let get_:object = proto.__get__;                        \
+            const getmethod:object = get_ && get_[k];               \
+            if (getmethod) {                                        \
+                return getmethod(t);                                \
+            }                                                       \
+                                                                    \
+            proto = rawget(proto, "__proto");                       \
+        }                                                           \
+                                                                    \
+        const v = rawget(t, k) || rootProto && t.__proto[k];        \
+        return v == null ? undefined : v == __null_holder ? null : v;\
+    }                                                               \
+                                                                    \
+    __set_call_undefined__ = __set_call_undefined__ || function (t, k, v) { \
+        let proto:object = rawget(t, "__proto");                    \
+        while (proto) {                                             \
+            let set_:object = proto.__set__;                        \
+            const setmethod:object = set_ && set_[k];               \
+            if (setmethod) {                                        \
+                setmethod(t, v);                                    \
+                return;                                             \
+            }                                                       \
+                                                                    \
+            proto = rawget(proto, "__proto");                       \
+        }                                                           \
+                                                                    \
+        const v0 = v == undefined ? null : v == null ? __null_holder : v;\
+        rawset(t, k, v0);                                           \
     }                                                               \
                                                                     \
     __wrapper = __wrapper || function(method: object, _this: object) { \
@@ -521,15 +557,28 @@ export class Emitter {
 
         // select all parameters with default values
         if (parameters) {
+            // set conditional to variables to 'undefined'
+            parameters
+                .filter(p => p.questionToken && !p.initializer)
+                .map(p => {
+                    return this.fixupParentReferences(
+                        ts.createIf(
+                            ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
+                            ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, ts.createIdentifier('undefined')))),
+                        location);
+                })
+                .forEach(s => {
+                    this.processStatement(s);
+                });
+
+            // init default values of parameter
             parameters
                 .filter(p => p.initializer)
                 .map(p => {
                     return this.fixupParentReferences(
                         ts.createIf(
-                            ts.createPrefix(
-                                ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
-                                ts.createStatement(
-                                    ts.createAssignment(<ts.Identifier>p.name, p.initializer))),
+                            ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
+                            ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))),
                         location);
                 })
                 .forEach(s => {
@@ -1106,16 +1155,21 @@ export class Emitter {
         }
 
         // emit __index of base class
+        /*
         const anyGetStaticAccessor = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor && this.isStatic(m));
         const anySetStaticAccessor = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor && this.isStatic(m));
+        */
         const extend = this.getInheritanceFirst(node);
         if (extend) {
             properties.push(ts.createPropertyAssignment('__proto', ts.createIdentifier(extend.getText())));
+            /*
             if (!anyGetStaticAccessor && !anySetStaticAccessor) {
                 properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));
             }
+            */
         }
 
+        /*
         if (anyGetStaticAccessor) {
             properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_static_call__')));
         }
@@ -1123,6 +1177,10 @@ export class Emitter {
         if (anySetStaticAccessor) {
             properties.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_static_call__')));
         }
+        */
+
+        properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call_undefined__')));
+        properties.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call_undefined__')));
 
         this.resolver.superClass = extend;
 
@@ -1135,11 +1193,11 @@ export class Emitter {
         this.processExpression(prototypeObjectAssignment);
 
         // set metatable for derived class using __index dictionary containing base class
-        if (extend || anyGetStaticAccessor || anySetStaticAccessor) {
+        // if (extend || anyGetStaticAccessor || anySetStaticAccessor) {
             const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
             setmetatableCall.parent = node;
             this.processExpression(setmetatableCall);
-        }
+        // }
 
         // process static members
         // process properties later to allow stitic members to access method in class
@@ -1414,11 +1472,11 @@ export class Emitter {
 
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.PropertyDeclaration:
-                // const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                // return propertyDeclaration.initializer;
+                const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
+                return propertyDeclaration.initializer;
 
                 // to support undefined
-                return true;
+                // return true;
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = <ts.MethodDeclaration>memberDeclaration;
@@ -1435,7 +1493,7 @@ export class Emitter {
         }
     }
 
-    private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
+    private getClassInitStepsToSupportGetSetAccessor_Old(memberDeclaration: ts.ClassElement): any {
         const statements = [];
         const node = <ts.ClassDeclaration>memberDeclaration.parent;
         const anyGet = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor && !this.isStatic(m));
@@ -1457,6 +1515,20 @@ export class Emitter {
                     ts.createPropertyAccess(ts.createThis(), '__newindex'),
                     ts.createIdentifier('__set_call__'))));
         }
+
+        return statements;
+    }
+
+    private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
+        const statements = [];
+        statements.push(ts.createStatement(
+            ts.createAssignment(
+                ts.createPropertyAccess(ts.createThis(), '__index'),
+                ts.createIdentifier('__get_call_undefined__'))));
+        statements.push(ts.createStatement(
+            ts.createAssignment(
+                ts.createPropertyAccess(ts.createThis(), '__newindex'),
+                ts.createIdentifier('__set_call_undefined__'))));
 
         return statements;
     }
@@ -3161,9 +3233,15 @@ export class Emitter {
     }
 
     private processDeleteExpression(node: ts.DeleteExpression): void {
+        /*
         const assignNull = ts.createAssignment(node.expression, ts.createNull());
         assignNull.parent = node;
         this.processExpression(assignNull);
+        */
+
+       const assignUndefined = ts.createAssignment(node.expression, ts.createIdentifier('undefined'));
+       assignUndefined.parent = node;
+       this.processExpression(assignUndefined);
     }
 
     private processNewExpression(node: ts.NewExpression, extraCodeBeforeConstructor?: (arrayRef: ResolvedInfo) => void): void {
