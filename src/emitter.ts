@@ -125,7 +125,7 @@ export class Emitter {
         return false;                                               \
     }                                                               \
                                                                     \
-    __get_call_undefined__ = function (t, k) {                      \
+    __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let rootProto: object = rawget(t, "__proto");               \
         let proto: object = t;                                      \
         while (proto) {                                             \
@@ -151,7 +151,7 @@ export class Emitter {
         return v == null ? undefined : v;                           \
     }                                                               \
                                                                     \
-    __set_call_undefined__ = function (t, k, v) {                   \
+    __set_call_undefined__ = __set_call_undefined__ || function (t, k, v) { \
         let proto: object = t;                                      \
         while (proto) {                                             \
             let set_: object = rawget(proto, "__set__");            \
@@ -3239,6 +3239,7 @@ export class Emitter {
         // then delete using lua
         let obj;
         let indx;
+        let property;
         if (node.expression.kind === ts.SyntaxKind.ElementAccessExpression) {
             const elementAccessExpression = <ts.ElementAccessExpression>node.expression;
             obj = elementAccessExpression.expression;
@@ -3247,12 +3248,16 @@ export class Emitter {
             const propertyAccessExpression = <ts.PropertyAccessExpression>node.expression;
             obj = propertyAccessExpression.expression;
             indx = propertyAccessExpression.name;
+            property = true;
         } else {
             throw new Error('Not implemented');
         }
 
         const rawsetCall = ts.createCall(
-            ts.createIdentifier('rawset'), undefined, [obj, ts.createStringLiteral(indx.text), ts.createNull()]);
+            ts.createIdentifier('rawset'), undefined, [
+                obj,
+                property && indx.kind === ts.SyntaxKind.Identifier ? ts.createStringLiteral(indx.text) : indx,
+                ts.createNull()]);
         this.fixupParentReferences(rawsetCall, node);
         this.processExpression(rawsetCall);
     }

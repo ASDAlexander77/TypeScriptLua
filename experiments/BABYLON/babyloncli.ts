@@ -1,3 +1,100 @@
+/*
+__instanceof = function (inst: object, type: object) {
+    if (!inst) {
+        return false;
+    }
+
+    let mt: object;
+    switch (__type(inst)) {
+        case "table":
+            mt = rawget(inst, "__proto");
+            break;
+        case "number":
+            mt = Number;
+            break;
+        case "string":
+            mt = String;
+            break;
+        case "boolean":
+            mt = Boolean;
+            break;
+    }
+
+    while (mt) {
+        if (mt == type) {
+            return true;
+        }
+
+        mt = rawget(mt, "__proto");
+    }
+
+    return false;
+}
+
+__get_call_undefined__ = function (t, k) {
+    let rootProto: object = rawget(t, "__proto");
+    let proto: object = t;
+    while (proto) {
+        let get_: object = rawget(proto, "__get__");
+        const getmethod: object = get_ && get_[k];
+        if (getmethod) {
+            return getmethod(t);
+        }
+
+        proto = rawget(proto, "__proto");
+    }
+
+    let v = rawget(t, k);
+    if (v == null) {
+        const nullsHolder: object = rawget(t, "__nulls");
+        if (nullsHolder && nullsHolder[k]) {
+            return null;
+        }
+
+        v = rootProto && rootProto[k];
+    }
+
+    return v == null ? undefined : v;
+}
+
+__set_call_undefined__ = function (t, k, v) {
+    let proto: object = t;
+    while (proto) {
+        let set_: object = rawget(proto, "__set__");
+        const setmethod: object = set_ && set_[k];
+        if (setmethod) {
+            setmethod(t, v);
+            return;
+        }
+
+        proto = rawget(proto, "__proto");
+    }
+
+    if (v == null) {
+        const nullsHolder: object = rawget(t, "__nulls");
+        if (!nullsHolder) {
+            nullsHolder = {};
+            rawset(t, "__nulls", nullsHolder);
+        }
+
+        nullsHolder[k] = true;
+        return;
+    }
+
+    let v0 = v;
+    if (v == undefined) {
+        const nullsHolder: object = rawget(t, "__nulls");
+        if (nullsHolder) {
+            nullsHolder[k] = null;
+        }
+
+        v0 = null;
+    }
+
+    rawset(t, k, v0);
+}
+*/
+
 import './JS';
 
 declare var os: any;
