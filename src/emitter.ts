@@ -94,7 +94,7 @@ export class Emitter {
     __type = __type || type;                                        \
                                                                     \
     __instanceof = __instanceof || function(inst:object, type:object) { \
-        if (!inst) {                                                \
+        if (inst === null) {                                        \
             return false;                                           \
         }                                                           \
                                                                     \
@@ -114,8 +114,8 @@ export class Emitter {
                 break;                                              \
         }                                                           \
                                                                     \
-        while (mt) {                                                \
-            if (mt == type) {                                       \
+        while (mt !== null) {                                       \
+            if (mt === type) {                                      \
                 return true;                                        \
             }                                                       \
                                                                     \
@@ -128,10 +128,10 @@ export class Emitter {
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let rootProto: object = rawget(t, "__proto");               \
         let proto: object = t;                                      \
-        while (proto) {                                             \
+        while (proto !== null) {                                    \
             let get_: object = rawget(proto, "__get__");            \
             const getmethod: object = get_ && get_[k];              \
-            if (getmethod) {                                        \
+            if (getmethod !== null) {                               \
                 return getmethod(t);                                \
             }                                                       \
                                                                     \
@@ -139,7 +139,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         let v = rawget(t, k);                                       \
-        if (v == null) {                                            \
+        if (v === null) {                                           \
             const nullsHolder: object = rawget(t, "__nulls");       \
             if (nullsHolder && nullsHolder[k]) {                    \
                 return null;                                        \
@@ -148,15 +148,15 @@ export class Emitter {
             v = rootProto && rootProto[k];                          \
         }                                                           \
                                                                     \
-        return v == null ? undefined : v;                           \
+        return v === null ? undefined : v;                          \
     }                                                               \
                                                                     \
     __set_call_undefined__ = __set_call_undefined__ || function (t, k, v) { \
         let proto: object = t;                                      \
-        while (proto) {                                             \
+        while (proto !== null) {                                    \
             let set_: object = rawget(proto, "__set__");            \
             const setmethod: object = set_ && set_[k];              \
-            if (setmethod) {                                        \
+            if (setmethod !== null) {                               \
                 setmethod(t, v);                                    \
                 return;                                             \
             }                                                       \
@@ -164,9 +164,9 @@ export class Emitter {
             proto = rawget(proto, "__proto");                       \
         }                                                           \
                                                                     \
-        if (v == null) {                                            \
+        if (v === null) {                                           \
             const nullsHolder: object = rawget(t, "__nulls");       \
-            if (!nullsHolder) {                                     \
+            if (nullsHolder === null) {                             \
                 nullsHolder = {};                                   \
                 rawset(t, "__nulls", nullsHolder);                  \
             }                                                       \
@@ -176,9 +176,9 @@ export class Emitter {
         }                                                           \
                                                                     \
         let v0 = v;                                                 \
-        if (v == undefined) {                                       \
+        if (v === undefined) {                                      \
             const nullsHolder: object = rawget(t, "__nulls");       \
-            if (nullsHolder) {                                      \
+            if (nullsHolder !== null) {                             \
                 nullsHolder[k] = null;                              \
             }                                                       \
                                                                     \
