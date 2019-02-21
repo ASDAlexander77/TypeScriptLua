@@ -507,9 +507,7 @@ export class Emitter {
             this.resolver.createEnv(this.functionContext);
 
             // we need to inject helper functions
-            this.preprocessor.disablePreprocessing = true;
             this.processTSCode(this.libCommon, true);
-            this.preprocessor.disablePreprocessing = false;
         }
 
         let addThisAsParameter = false;

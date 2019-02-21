@@ -30,7 +30,6 @@ __instanceof = function (inst: object, type: object) {
 
     return false;
 }
-*/
 
 __get_call_undefined__ = function (t, k) {
     // root get for static methods
@@ -65,7 +64,6 @@ __get_call_undefined__ = function (t, k) {
     return undefined;
 }
 
-/*
 __set_call_undefined__ = function (t, k, v) {
     let proto: object = t;
     while (proto !== null) {
