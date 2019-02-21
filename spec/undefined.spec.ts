@@ -62,7 +62,7 @@ describe('Undefined/null cases', () => {
         console.log(f1);                                                       \
         console.log(f2 === undefined ? "<error>" : f2);                        \
         console.log(f3 === null ? "null" : "<error>");                         \
-        console.log(f4 === undefined ? "<error> : f4);                         \
+        console.log(f4 === undefined ? "<error>" : f4);                        \
         console.log(f5 === undefined ? "undef" : "<error>");                   \
         console.log(f6 === undefined ? "undef" : "<error>");                   \
         console.log(f7 === undefined ? "undef" : "<error>");                   \

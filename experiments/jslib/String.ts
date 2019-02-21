@@ -133,7 +133,7 @@ module JS {
                 }
 
                 // @ts-ignore
-                return __get_call__(_this, indx);
+                return __get_call_undefined__(_this, indx);
             };
         }
 
