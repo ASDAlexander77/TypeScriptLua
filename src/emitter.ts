@@ -2834,7 +2834,7 @@ export class Emitter {
                     || node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
                     && (this.typeInfo.isTypeOfNode(node, 'string')
                         || this.typeInfo.isTypeOfNode(node.left, 'string')
-                        || this.typeInfo.isTypeOfNode(node.right, 'right'))) {
+                        || this.typeInfo.isTypeOfNode(node.right, 'string'))) {
                     operationCode = Ops.CONCAT;
                 }
 
@@ -2878,11 +2878,25 @@ export class Emitter {
                             // ... + <right>
                             this.processExpression(op2_notnull);
                         } else {
-                            // <left> + ...
-                            this.processExpression(node.left);
 
-                            // ... + <right>
-                            this.processExpression(node.right);
+                            // concat string
+                            if (!this.typeInfo.isTypeOfNode(node.left, 'string')) {
+                                this.processExpression(
+                                    this.fixupParentReferences(
+                                        ts.createCall(ts.createIdentifier('tostring'), undefined, [node.left]), node));
+                            } else {
+                                // <left> + ...
+                                this.processExpression(node.left);
+                            }
+
+                            if (!this.typeInfo.isTypeOfNode(node.right, 'string')) {
+                                this.processExpression(
+                                    this.fixupParentReferences(
+                                        ts.createCall(ts.createIdentifier('tostring'), undefined, [node.right]), node));
+                            } else {
+                                // ... + <right>
+                                this.processExpression(node.right);
+                            }
                         }
 
                         break;

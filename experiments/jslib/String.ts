@@ -11,15 +11,15 @@ module JS {
         }
 
         public static replace(constString: string, valOrRegExp: string | RegExp, valOrFunc: string | FuncString): string {
-            if (typeof valOrRegExp == 'string') {
+            if (typeof valOrRegExp === 'string') {
                 return string.gsub(constString, string.gsub(valOrRegExp, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%1'), valOrFunc);
             }
 
-            if ((<RegExp>valOrRegExp).nativeHandle) {
+            if ((<any>valOrRegExp).nativeHandle) {
                 let current = 0;
                 const size = StringHelper.getLength(constString);
 
-                const isFunc = typeof valOrFunc == "function";
+                const isFunc = typeof valOrFunc === 'function';
 
                 const result = new Array<string>();
 
@@ -50,7 +50,7 @@ module JS {
                 return result.join();
             }
 
-            return string.gsub(constString, (<RegExp>valOrRegExp).__getLuaPattern(), valOrFunc);
+            return string.gsub(constString, (<any>valOrRegExp).__getLuaPattern(), valOrFunc);
         }
 
         public static substr(constString: string, begin?: number, len?: number): string {
@@ -70,11 +70,11 @@ module JS {
         }
 
         public static search(constString: string, pattern: string | RegExp, begin?: number): number {
-            if (typeof pattern == 'string') {
+            if (typeof pattern === 'string') {
                 table.pack(string.find(constString, pattern, (begin || 0) + 1, true))[1] || -1;
             }
 
-            return table.pack(string.find(constString, (<RegExp>pattern).__getLuaPattern(), (begin || 0) + 1))[1] || -1;
+            return table.pack(string.find(constString, (<any>pattern).__getLuaPattern(), (begin || 0) + 1))[1] || -1;
         }
 
         public static toLowerCase(constString: string): string {
@@ -127,7 +127,7 @@ module JS {
             // @ts-ignore
             this.__index = function (_this: String, indx: number | string): any {
                 // @ts-ignore
-                if (typeof(indx) == 'number') {
+                if (typeof(indx) === 'number') {
                     // @ts-ignore
                     return _this.constString[indx];
                 }

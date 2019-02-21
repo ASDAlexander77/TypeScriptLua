@@ -9,14 +9,14 @@ declare var rawset: any;
 
 module JS {
 
-    export class ArrayHelper<T> {
+    export class ArrayHelper {
         @len
-        public static getLength(_this: any[]): number {
+        public static getLength(_this: any[] | Array<any>): number {
             // implemented in the compiler
             throw 0;
         }
 
-        public static pushOne(_this: any[], obj: T) {
+        public static pushOne<T>(_this: any[] | Array<T>, obj: T) {
             const vals = (<any>_this)._values;
             if (vals) {
                 table.insert(vals, obj);
@@ -203,42 +203,47 @@ module JS {
         }
 
         public concat(other: T[]): T[] {
-            const ret = new Array<T>();
+            const retArr = new Array<T>();
 
             const _vals = this._values;
             const _len = ArrayHelper.getLength(_vals);
-            for (const i = 1; i <= _len; i++) {
-                table.insert(ret._values, _vals[i]);
+            for (let i = 1; i <= _len; i++) {
+                table.insert(retArr._values, _vals[i]);
             }
 
             for (const obj of other) {
-                table.insert(ret._values, obj);
+                table.insert(retArr._values, obj);
             }
 
             // @ts-ignore
-            return ret;
+            return retArr;
         }
 
         public map(func: (currentValue: T, index: number, arr: T[]) => T, thisValue?: any): T[] {
-            const ret = new Array<T>();
+            const retArr = new Array<T>();
 
             let index = 0;
-            for (const val of this._values) {
+            const _vals = this._values;
+            const _len = ArrayHelper.getLength(_vals);
+            for (let i = 1; i <= _len; i++) {
                 // @ts-ignore
-                const obj = func(val, index++, this);
+                const obj = func(_vals[i], index++, this);
                 // @ts-ignore
-                ArrayHelper.pushOne(ret, obj);
+                ArrayHelper.pushOne(retArr, obj);
             }
 
             // @ts-ignore
-            return ret;
+            return retArr;
         }
 
         public filter(func: (currentValue: T, index: number, arr: T[]) => boolean, thisValue?: any): T[] {
-            const ret = new Array<T>();
+            const retArr = new Array<T>();
 
             let index = 0;
-            for (const val of this._values) {
+            const _vals = this._values;
+            const _len = ArrayHelper.getLength(_vals);
+            for (let i = 1; i <= _len; i++) {
+                const val = _vals[i];
                 // @ts-ignore
                 const iftrue = func(val, index++, this);
                 if (iftrue) {
@@ -248,12 +253,14 @@ module JS {
             }
 
             // @ts-ignore
-            return ret;
+            return retArr;
         }
 
-        public forEach(func: (currentValue: T, index: number, arr: T[]) => void, thisValue?: any): void {
+        public forEach(func: (currentValue: T, index: number, arr: T[]) => boolean, thisValue?: any): void {
             let index = 0;
-            for (const val of this._values) {
+            const _vals = this._values;
+            const _len = ArrayHelper.getLength(_vals);
+            for (let i = 1; i <= _len; i++) {
                 // @ts-ignore
                 func(val, index++, this);
             }
@@ -273,10 +280,10 @@ module JS {
 
         public splice(index: number, howmany?: number, ...items: T[]): T[] {
             const count = howmany || 1;
-            const ret = new Array<T>();
+            const retArr = new Array<T>();
             for (let i = index + count; i > index; i--) {
                 // @ts-ignore
-                ArrayHelper.pushOne(ret, rawget(this._values, i));
+                ArrayHelper.pushOne(retArr, rawget(this._values, i));
                 table.remove(this._values, i);
             }
 
@@ -289,11 +296,11 @@ module JS {
             }
 
             // @ts-ignore
-            return ret;
+            return retArr;
         }
 
         public slice(begin?: number, end?: number): T[] {
-            const ret = new Array<T>();
+            const retArr = new Array<T>();
 
             const from = begin || 0;
             if (from < 0) {
@@ -306,11 +313,11 @@ module JS {
             }
 
             for (let i = from; i < to; i++) {
-                table.insert(ret, rawget(this._values, i));
+                table.insert(retArr, rawget(this._values, i));
             }
 
             // @ts-ignore
-            return ret;
+            return retArr;
         }
 
     }
