@@ -156,7 +156,7 @@ module JS {
 
         public set length(newSize: number) {
             const _len = ArrayHelper.getLength(this._values);
-            if (_len == newSize) {
+            if (_len === newSize) {
                 return;
             }
 

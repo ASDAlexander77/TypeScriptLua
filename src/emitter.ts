@@ -538,20 +538,36 @@ export class Emitter {
         }
 
         // select all parameters with default values
+        let firstUndefinedParam: ts.IfStatement;
+        let lastUndefinedParam: ts.IfStatement;
         if (parameters) {
             // set conditional to variables to 'undefined'
             parameters
+                .slice(0)
+                .reverse()
                 .filter(p => p.questionToken && !p.initializer)
                 .map(p => {
-                    return this.fixupParentReferences(
-                        ts.createIf(
-                            ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
-                            ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, ts.createIdentifier('undefined')))),
-                        location);
-                })
-                .forEach(s => {
-                    this.processStatement(s);
+                    const currentNode =
+                            ts.createIf(
+                                ts.createBinary(<ts.Identifier>p.name, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNull()),
+                                ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, ts.createIdentifier('undefined'))));
+
+                    if (lastUndefinedParam) {
+                        lastUndefinedParam.thenStatement = ts.createBlock([lastUndefinedParam.thenStatement, currentNode]);
+                    }
+
+                    if (!firstUndefinedParam) {
+                        firstUndefinedParam = currentNode;
+                    }
+
+                    lastUndefinedParam = currentNode;
+
+                    return currentNode;
                 });
+
+            if (firstUndefinedParam) {
+                this.processStatement(this.fixupParentReferences(firstUndefinedParam, location));
+            }
 
             // init default values of parameter
             parameters
@@ -559,7 +575,7 @@ export class Emitter {
                 .map(p => {
                     return this.fixupParentReferences(
                         ts.createIf(
-                            ts.createPrefix(ts.SyntaxKind.ExclamationToken, <ts.Identifier>p.name),
+                            ts.createBinary(<ts.Identifier>p.name, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNull()),
                             ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))),
                         location);
                 })
