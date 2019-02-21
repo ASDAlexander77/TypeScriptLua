@@ -1,3 +1,4 @@
+/*
 __instanceof = function (inst: object, type: object) {
     if (inst === null) {
         return false;
@@ -29,13 +30,31 @@ __instanceof = function (inst: object, type: object) {
 
     return false;
 }
+*/
 
 __get_call_undefined__ = function (t, k) {
-    let rootProto: object = rawget(t, "__proto");
-    let proto: object = t;
+    // root get for static methods
+    let get_: object = rawget(t, "__get__");
+    let getmethod: object = get_ && get_[k];
+    if (getmethod !== null) {
+        return getmethod(t);
+    }
+
+    let proto: object = rawget(t, "__proto");
+
     while (proto !== null) {
-        let get_: object = rawget(proto, "__get__");
-        const getmethod: object = get_ && get_[k];
+        let v = rawget(proto, k);
+        if (v === null) {
+            const nullsHolder: object = rawget(t, "__nulls");
+            if (nullsHolder && nullsHolder[k]) {
+                return null;
+            }
+        } else {
+            return v;
+        }
+
+        get_ = rawget(proto, "__get__");
+        getmethod = get_ && get_[k];
         if (getmethod !== null) {
             return getmethod(t);
         }
@@ -43,19 +62,10 @@ __get_call_undefined__ = function (t, k) {
         proto = rawget(proto, "__proto");
     }
 
-    let v = rawget(t, k);
-    if (v === null) {
-        const nullsHolder: object = rawget(t, "__nulls");
-        if (nullsHolder && nullsHolder[k]) {
-            return null;
-        }
-
-        v = rootProto && rootProto[k];
-    }
-
-    return v === null ? undefined : v;
+    return undefined;
 }
 
+/*
 __set_call_undefined__ = function (t, k, v) {
     let proto: object = t;
     while (proto !== null) {
@@ -92,6 +102,7 @@ __set_call_undefined__ = function (t, k, v) {
 
     rawset(t, k, v0);
 }
+*/
 
 import './JS';
 
