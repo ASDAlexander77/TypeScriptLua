@@ -62,7 +62,7 @@ module JS {
         }
 
         public static slice(constString: string, start?: number, end?: number): string {
-            return string.sub(constString, start, end);
+            return string.sub(constString, (start || 0) + 1, end ? end + 1 : null);
         }
 
         public static indexOf(constString: string, pattern: string, begin?: number): number {

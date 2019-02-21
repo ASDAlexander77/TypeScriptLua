@@ -3185,16 +3185,6 @@ export class Emitter {
                 break;
 
             case ts.SyntaxKind.InstanceOfKeyword:
-                // TODO: temporary solution, finish it
-                /*
-                const instanceOfExpression = ts.createBinary(
-                    ts.createTypeOf(node.right),
-                    ts.SyntaxKind.EqualsEqualsToken,
-                    node.left);
-                instanceOfExpression.parent = node.parent;
-                this.processExpression(instanceOfExpression);
-                */
-
                 const instanceOfCall = ts.createCall(ts.createIdentifier('__instanceof'), undefined, [node.left, node.right]);
                 instanceOfCall.parent = node.parent;
                 this.processExpression(instanceOfCall);
@@ -3346,11 +3336,7 @@ export class Emitter {
             condExpr,
             throwExpr);
 
-        condExpr.parent = throwIfClassIsNotDefined;
-        throwExpr.parent = throwIfClassIsNotDefined;
-        throwIfClassIsNotDefined.parent = node;
-
-        this.processStatement(throwIfClassIsNotDefined);
+        this.processStatement(this.fixupParentReferences(throwIfClassIsNotDefined, node));
 
         this.processExpression(
             ts.createObjectLiteral([
@@ -3386,16 +3372,28 @@ export class Emitter {
         this.functionContext.useRegisterAndPush();
 
         // in case of empty constructor we need to skip call
+        // test for null
         this.functionContext.code.push([Ops.TEST, methodInfo.getRegister(), 0]);
         const jmpOp = [Ops.JMP, 0, 0];
         this.functionContext.code.push(jmpOp);
         const beforeBlock = this.functionContext.code.length;
+
+        // test for undefined
+        this.processIndentifier(this.fixupParentReferences(ts.createIdentifier('undefined'), node));
+        const undefInfo = this.functionContext.stack.pop();
+
+        this.functionContext.code.push([Ops.EQ, 0, resultInfo.getRegister(), undefInfo.getRegister()]);
+
+        const jmpOp2 = [Ops.JMP, 0, 0];
+        this.functionContext.code.push(jmpOp2);
+        const beforeBlock2 = this.functionContext.code.length;
 
         this.emitCallOfLoadedMethod(
             <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments || [] },
             resultInfo,
             true);
 
+        jmpOp2[2] = this.functionContext.code.length - beforeBlock2;
         jmpOp[2] = this.functionContext.code.length - beforeBlock;
     }
 
