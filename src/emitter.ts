@@ -3382,8 +3382,7 @@ export class Emitter {
         this.processIndentifier(this.fixupParentReferences(ts.createIdentifier('undefined'), node));
         const undefInfo = this.functionContext.stack.pop();
 
-        this.functionContext.code.push([Ops.EQ, 0, resultInfo.getRegister(), undefInfo.getRegister()]);
-
+        this.functionContext.code.push([Ops.EQ, 1, methodInfo.getRegister(), undefInfo.getRegister()]);
         const jmpOp2 = [Ops.JMP, 0, 0];
         this.functionContext.code.push(jmpOp2);
         const beforeBlock2 = this.functionContext.code.length;
