@@ -126,7 +126,6 @@ export class Emitter {
     }                                                               \
                                                                     \
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
-        // root get for static methods                              \
         let get_: object = rawget(t, "__get__");                    \
         let getmethod: object = get_ && get_[k];                    \
         if (getmethod !== null) {                                   \
