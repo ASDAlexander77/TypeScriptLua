@@ -268,9 +268,18 @@ class Runner {
     run() {
         const scene = this.createScene();
 
+        let c = 0;
         this.engine.runRenderLoop(() => {
             const before = os.clock();
+
+            scene.clearColor.r = c;
+            c += 0.01;
+            if (c > 1.0) {
+                c = 0.0;
+            }
+
             scene.render();
+
             const time = (os.clock() - before);
             console.log(`Render time: ${time} sec.`);
         });
