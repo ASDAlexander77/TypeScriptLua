@@ -44,6 +44,7 @@ export class TypeInfo {
             typeName = 'boolean';
         } else if (node.kind === ts.SyntaxKind.NullKeyword) {
             typeName = 'null';
+        }
 
         return typeName;
     }
