@@ -130,7 +130,7 @@ module JS {
             let any = false;
             for (const obj of objs) {
                 any = true;
-                table.insert(this._values, obj);
+                table.insert(this._values, obj !== null ? obj : ArrayNullElement);
             }
 
             if (!any) {
