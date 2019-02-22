@@ -3070,7 +3070,7 @@ export class Emitter {
                             break;
                         case ts.SyntaxKind.BarBarToken:
 
-                            const undefinedFilterOnly = (<any>node.left).__undefined_only;
+                            const undefinedFilterOnly = (<any>node).__undefined_only;
                             if (!undefinedFilterOnly) {
                                 condition =
                                     ts.createBinary(
@@ -3109,8 +3109,12 @@ export class Emitter {
 
                     (<any>condition).__fix_not_required = true;
                     (<any>condition.left).__fix_not_required = true;
-                    (<any>condition.left.left).__fix_not_required = true;
-                    (<any>condition.left.left.left).__fix_not_required = true;
+                    if (condition.left.left) {
+                        (<any>condition.left.left).__fix_not_required = true;
+                        if (condition.left.left.left) {
+                            (<any>condition.left.left.left).__fix_not_required = true;
+                        }
+                    }
 
                     const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
 

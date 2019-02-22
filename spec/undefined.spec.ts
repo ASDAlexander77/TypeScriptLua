@@ -46,7 +46,7 @@ describe('Undefined/null cases', () => {
         console.log(undefined == 0);                                           \
         console.log(null != 0);                                                \
         console.log(undefined != 0);                                           \
-    '])).to.equals('true\r\ntrue\r\nfalse\r\nfalse\r\n'));
+    '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     it('not strict ""', () => expect(new Run().test([
         'class undefined {}                                                    \
@@ -54,7 +54,7 @@ describe('Undefined/null cases', () => {
         console.log(undefined == "");                                          \
         console.log(null != "");                                               \
         console.log(undefined != "");                                          \
-    '])).to.equals('true\r\ntrue\r\nfalse\r\nfalse\r\n'));
+    '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     it('undefined default params with undefined', () => expect(new Run().test([
         'class undefined {}                                                    \

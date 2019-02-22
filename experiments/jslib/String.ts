@@ -58,11 +58,11 @@ module JS {
         }
 
         public static substring(constString: string, begin?: number, end?: number): string {
-            return string.sub(constString, (begin || 0) + 1, end ? end + 1 : null);
+            return string.sub(constString, (begin || 0) + 1, end != undefined ? end + 1 : null);
         }
 
         public static slice(constString: string, start?: number, end?: number): string {
-            return string.sub(constString, (start || 0) + 1, end ? end + 1 : null);
+            return string.sub(constString, (start || 0) + 1, end != undefined ? end + 1 : null);
         }
 
         public static indexOf(constString: string, pattern: string, begin?: number): number {
