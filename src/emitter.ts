@@ -2824,7 +2824,7 @@ export class Emitter {
             case ts.SyntaxKind.CaretEqualsToken:
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:    
 
                 let leftOpNode;
                 let rightOpNode;
