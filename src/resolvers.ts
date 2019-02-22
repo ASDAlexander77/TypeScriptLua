@@ -333,17 +333,19 @@ export class IdentifierResolver {
         this.thisMethodCall = state.thisMethodCall;
     }
 
+    public getSymbolAtLocation(location: ts.Node): any {
+        try {
+            return (<any>this.typeChecker).getSymbolAtLocation(location);
+        } catch (e) {
+        }
+
+        return undefined;
+    }
+
     public getTypeAtLocation(location: ts.Node): any {
         try {
             return (<any>this.typeChecker).getTypeAtLocation(location);
         } catch (e) {
-            try {
-                console.warn('getTypeAtLocation issue: ' + location.getText());
-            } catch (e) {
-                console.warn('getTypeAtLocation issue: autogen node');
-            }
-
-            console.warn(e);
         }
 
         return undefined;

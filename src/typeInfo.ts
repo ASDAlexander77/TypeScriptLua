@@ -21,15 +21,31 @@ export class TypeInfo {
             ? detectType.intrinsicName
             : detectType.value !== undefined
                 ? typeof (detectType.value)
-                : detectType.symbol
-                    ? detectType.symbol.name
-                    : detectType.target && (detectType.target.objectFlags & ts.ObjectFlags.Tuple) === ts.ObjectFlags.Tuple
-                        ? 'tuple'
-                        : (detectType.objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous
-                            ? 'anonymous'
-                            : undefined;
+                : this.getTypeNameFromKind(<ts.Node>detectType)
+                    ? this.getTypeNameFromKind(<ts.Node>detectType)
+                    : detectType.symbol
+                        ? detectType.symbol.name
+                        : detectType.target && (detectType.target.objectFlags & ts.ObjectFlags.Tuple) === ts.ObjectFlags.Tuple
+                            ? 'tuple'
+                            : (detectType.objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous
+                                ? 'anonymous'
+                                : undefined;
 
         return val;
+    }
+
+    public getTypeNameFromKind(node: ts.Node) {
+        let typeName;
+        if (node.kind === ts.SyntaxKind.StringLiteral) {
+            typeName = 'string';
+        } else if (node.kind === ts.SyntaxKind.NumericLiteral) {
+            typeName = 'number';
+        } else if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
+            typeName = 'boolean';
+        } else if (node.kind === ts.SyntaxKind.NullKeyword) {
+            typeName = 'null';
+
+        return typeName;
     }
 
     public getTypeOfNode(node: ts.Node) {
@@ -42,19 +58,19 @@ export class TypeInfo {
         }
 
         try {
-            let typeName;
-
-            if (node.kind === ts.SyntaxKind.StringLiteral) {
-                typeName = 'string';
-            } else if (node.kind === ts.SyntaxKind.NumericLiteral) {
-                typeName = 'number';
-            } else if (node.kind === ts.SyntaxKind.TrueKeyword || node.kind === ts.SyntaxKind.FalseKeyword) {
-                typeName = 'boolean';
-            } else if (node.kind === ts.SyntaxKind.NullKeyword) {
-                typeName = 'null';
-            } else {
-                const detectType = this.resolver.getTypeAtLocation(node);
-                typeName = this.getNameFromTypeNode(detectType);
+            let typeName = this.getTypeNameFromKind(node);
+            if (!typeName) {
+                let detectType = this.resolver.getTypeAtLocation(node);
+                if (!detectType || detectType && detectType.intrinsicName === 'error') {
+                    // fallback scenario
+                    const symbol = this.resolver.getSymbolAtLocation(node);
+                    if (symbol && symbol.valueDeclaration && symbol.valueDeclaration.initializer) {
+                        detectType = this.resolver.getTypeAtLocation(symbol.valueDeclaration.initializer);
+                        typeName = this.getNameFromTypeNode(detectType);
+                    }
+                } else {
+                    typeName = this.getNameFromTypeNode(detectType);
+                }
             }
 
             if (typeName) {

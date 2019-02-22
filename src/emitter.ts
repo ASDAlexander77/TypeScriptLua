@@ -2824,7 +2824,7 @@ export class Emitter {
             case ts.SyntaxKind.CaretEqualsToken:
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:    
+            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
 
                 let leftOpNode;
                 let rightOpNode;
@@ -2832,8 +2832,7 @@ export class Emitter {
                 let operationCode = this.opsMap[node.operatorToken.kind];
                 if ((node.operatorToken.kind === ts.SyntaxKind.PlusToken
                     || node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
-                    && (this.typeInfo.isTypeOfNode(node, 'string')
-                        || this.typeInfo.isTypeOfNode(node.left, 'string')
+                    && (this.typeInfo.isTypeOfNode(node.left, 'string')
                         || this.typeInfo.isTypeOfNode(node.right, 'string'))) {
                     operationCode = Ops.CONCAT;
                 }
