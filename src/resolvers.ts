@@ -533,7 +533,7 @@ export class IdentifierResolver {
 
         if (!(identifier.text in this.unresolvedFilter)) {
             if (/\_UP\d+/.test(identifier.text)) {
-                throw new Error('Could not resolve techincal variable to support function var scope');
+                throw new Error('Could not resolve technical variable to support function var scope');
             }
 
             console.warn('Could not resolve: ' + identifier.text);
