@@ -532,7 +532,7 @@ export class Emitter {
             this.processTSCode(this.libCommon, true);
         }
 
-        this.functionContext.has_var_declaration = this.hasNodeUsedVar(location);
+        this.functionContext.has_var_declaration = location.kind !== ts.SyntaxKind.SourceFile && this.hasNodeUsedVar(location);
 
         let addThisAsParameter = false;
         const origin = (<ts.Node>(<any>location).__origin);
