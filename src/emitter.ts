@@ -226,7 +226,7 @@ export class Emitter {
     }                                                               \
                                                                     \
     __get_undefined__ = __get_undefined__ || function (t, k) {      \
-        const values: object = rawget(t, "__values");               \
+        const values: object = rawget(t, "__super");                \
         if (values !== null) {                                      \
             return values[k];                                       \
         }                                                           \
@@ -1748,7 +1748,9 @@ export class Emitter {
             ts.createCall(ts.createIdentifier('setmetatable'), undefined, [
                 ts.createIdentifier(upEnvVar),
                 ts.createObjectLiteral([
-                    ts.createPropertyAssignment('__index', ts.createIdentifier(envVar))
+                    ts.createPropertyAssignment('__super', ts.createIdentifier(envVar)),
+                    ts.createPropertyAssignment('__index', ts.createIdentifier('__get_undefined__')),
+                    ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_undefined__'))
                 ])]));
 
         this.processExpression(this.fixupParentReferences(newEnv, location));
