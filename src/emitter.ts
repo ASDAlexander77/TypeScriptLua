@@ -1683,13 +1683,7 @@ export class Emitter {
         this.functionContext.has_var_declaration_done = true;
 
         // detect nesting level
-        let level = 0;
-        let current = this.functionContext.container;
-        while (current) {
-            level++;
-            current = current.container;
-        }
-
+        const level = this.getFunctionLevelScope();
         const upEnvVar = '_UP' + level;
         const envVar = level > 1 ? '_UP' + (level - 1) : '_ENV';
 
@@ -1837,12 +1831,7 @@ export class Emitter {
         }
 
         // detect nesting level
-        let level = 0;
-        let current = this.functionContext.container;
-        while (current) {
-            level++;
-            current = current.container;
-        }
+        const level = this.getFunctionLevelScope();
 
         const upEnvVar = '_UP' + level;
         const envVar = level > 1 ? '_UP' + (level - 1) : '_ENV';
@@ -1857,6 +1846,19 @@ export class Emitter {
                         ts.createIdentifier('_OLD'))));
 
         this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
+    }
+
+    private getFunctionLevelScope() {
+        let level = 0;
+        let current = this.functionContext;
+        while (current) {
+            if (current.has_var_declaration) {
+                level++;
+            }
+            current = current.container;
+        }
+
+        return level;
     }
 
     private GetVariableReturn() {

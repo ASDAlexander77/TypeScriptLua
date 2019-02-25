@@ -303,7 +303,7 @@ export class IdentifierResolver {
         '__set_static_call__': true, '__type': true, '__wrapper': true, '__bind': true, 'setmetatable': true, 'debug': true, 'type': true,
         'error': true, 'require': true, 'exports': true, 'math': true, 'table': true, 'tostring': true, 'tonumber': true, 'rawset': true,
         'rawget': true, 'StringHelper': true, 'NumberHelper': true, 'string': true, 'number': true, 'coroutine': true, 'dofile': true,
-        '__null_holder': true, '__get_call_undefined__': true, '__set_call_undefined__': true, '_OLD': true
+        '__null_holder': true, '__get_call_undefined__': true, '__set_call_undefined__': true
     };
 
     public methodCall: boolean;
@@ -532,6 +532,10 @@ export class IdentifierResolver {
         }
 
         if (!(identifier.text in this.unresolvedFilter)) {
+            if (/\_UP\d+/.test(identifier.text)) {
+                throw new Error('Could not resolve techincal variable to support function var scope');
+            }
+
             console.warn('Could not resolve: ' + identifier.text);
         }
 
