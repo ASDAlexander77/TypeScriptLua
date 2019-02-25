@@ -525,6 +525,8 @@ export class Emitter {
         // debug info
         this.processDebugInfo(location, this.functionContext);
 
+        this.functionContext.has_var_declaration = location.kind !== ts.SyntaxKind.SourceFile && this.hasNodeUsedVar(location);
+
         if (createEnvironment) {
             this.resolver.createEnv(this.functionContext);
 
@@ -532,12 +534,10 @@ export class Emitter {
             this.processTSCode(this.libCommon, true);
 
             // create local variable declaration
-            this.emitBeggingOfFunctionScopeForVar(location);
+            this.emitBeginningOfFunctionScopeForVar(location);
         } else {
-            this.emitBeggingOfFunctionScopeForVar(location);
+            this.emitBeginningOfFunctionScopeForVar(location);
         }
-
-        this.functionContext.has_var_declaration = location.kind !== ts.SyntaxKind.SourceFile && this.hasNodeUsedVar(location);
 
         let addThisAsParameter = false;
         const origin = (<ts.Node>(<any>location).__origin);
@@ -1675,7 +1675,7 @@ export class Emitter {
             d => this.processVariableDeclarationOne((<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList)));
     }
 
-    private emitBeggingOfFunctionScopeForVar(location: ts.Node) {
+    private emitBeginningOfFunctionScopeForVar(location: ts.Node) {
         if (!this.functionContext.has_var_declaration || this.functionContext.has_var_declaration_done) {
             return;
         }
@@ -1684,10 +1684,10 @@ export class Emitter {
 
         // detect nesting level
         let level = 0;
-        let current = location;
-        while (current && current.kind !== ts.SyntaxKind.SourceFile) {
+        let current = this.functionContext.container;
+        while (current) {
             level++;
-            current = current.parent;
+            current = current.container;
         }
 
         const upEnvVar = '_UP' + level;
@@ -1698,7 +1698,7 @@ export class Emitter {
 
         // create function env.
         const declareLocalVar = ts.createVariableDeclarationList(
-            [ts.createVariableDeclaration(upEnvVar, undefined, defaultObjLiteral)]);
+            [ts.createVariableDeclaration(upEnvVar, undefined, defaultObjLiteral)], ts.NodeFlags.Const);
         const varStatement = ts.createVariableStatement(undefined, declareLocalVar);
 
         this.processStatement(this.fixupParentReferences(varStatement, location));
@@ -1713,9 +1713,11 @@ export class Emitter {
         // _ENV = setmetatable({}, { __index = _ENV })
         const newEnv = ts.createAssignment(
             ts.createIdentifier('_ENV'),
-            ts.createCall(ts.createIdentifier('setmetatable'), undefined, [defaultObjLiteral, ts.createObjectLiteral([
-                ts.createPropertyAssignment('__index', ts.createIdentifier(envVar))
-            ])]));
+            ts.createCall(ts.createIdentifier('setmetatable'), undefined, [
+                ts.createIdentifier(upEnvVar),
+                ts.createObjectLiteral([
+                    ts.createPropertyAssignment('__index', ts.createIdentifier(envVar))
+                ])]));
 
         this.processExpression(this.fixupParentReferences(newEnv, location));
     }
@@ -1836,10 +1838,10 @@ export class Emitter {
 
         // detect nesting level
         let level = 0;
-        let current = node;
-        while (current && current.kind !== ts.SyntaxKind.SourceFile) {
+        let current = this.functionContext.container;
+        while (current) {
             level++;
-            current = current.parent;
+            current = current.container;
         }
 
         const upEnvVar = '_UP' + level;
