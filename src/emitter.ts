@@ -548,8 +548,6 @@ export class Emitter {
             }
         }
 
-        this.emitBeginningOfFunctionScopeForVar(location);
-
         if (parameters) {
             let dotDotDotAny = false;
             parameters.forEach(p => {
@@ -562,6 +560,8 @@ export class Emitter {
             this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) /*- (dotDotDotAny ? 1 : 0)*/;
             this.functionContext.is_vararg = dotDotDotAny;
         }
+
+        this.emitBeginningOfFunctionScopeForVar(location);
 
         // select all parameters with default values
         let firstUndefinedParam: ts.IfStatement;
