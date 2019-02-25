@@ -532,11 +532,6 @@ export class Emitter {
 
             // we need to inject helper functions
             this.processTSCode(this.libCommon, true);
-
-            // create local variable declaration
-            this.emitBeginningOfFunctionScopeForVar(location);
-        } else {
-            this.emitBeginningOfFunctionScopeForVar(location);
         }
 
         let addThisAsParameter = false;
@@ -552,6 +547,8 @@ export class Emitter {
                 }
             }
         }
+
+        this.emitBeginningOfFunctionScopeForVar(location);
 
         if (parameters) {
             let dotDotDotAny = false;
