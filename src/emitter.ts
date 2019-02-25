@@ -1853,15 +1853,16 @@ export class Emitter {
         let current = this.functionContext.container;
         while (current) {
             level++;
-            sinceVarLevel++;
             if (current.has_var_declaration) {
                 sinceVarLevel = 0;
+            } else {
+                sinceVarLevel++;
             }
 
             current = current.container;
         }
 
-        return level - sinceVarLevel;
+        return level > 0 ? level - sinceVarLevel + 1 : 0;
     }
 
     private hasAnyVarFunctionLevelScope() {
