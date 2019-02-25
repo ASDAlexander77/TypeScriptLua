@@ -209,6 +209,9 @@ export class FunctionContext {
     public isStatic: boolean;
     public isFinalReturnAdded: boolean;
 
+    public has_var_declaration: boolean;
+    public has_var_declaration_done: boolean;
+
     public newLocalScope(node: ts.Node) {
         this.location_scopes.push(this.current_location_node);
         this.current_location_node = node;

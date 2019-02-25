@@ -1,14 +1,12 @@
 import './JS';
 
-function ffff(f1:? number) {
-    if (f1 != undefined) {
-        console.log("works");
-    } else {
-        console.log("<error>");
-    }
+class Color4 {
+    public constructor(private x: number, private y: number, private z: number, private w: number) {
 
-    console.log(f1);
+    }
 }
 
-ffff(0);
+class Tmp {
+    public static Color4: Color4[] = [new Color4(0, 0, 0, 0), new Color4(0, 0, 0, 0)];
+}
 

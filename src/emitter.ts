@@ -8,7 +8,6 @@ import { Helpers } from './helpers';
 import * as path from 'path';
 import { Preprocessor } from './preprocessor';
 import { TypeInfo } from './typeInfo';
-import { callbackify } from 'util';
 
 export class Emitter {
     public writer: BinaryWriter = new BinaryWriter();
@@ -30,11 +29,17 @@ export class Emitter {
     private filePathLuaMap: string;
     private ignoreDebugInfo: boolean;
     private jsLib: boolean;
+    private varAsLet: boolean;
 
     public constructor(
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
         private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
-        this.resolver = new IdentifierResolver(typeChecker);
+
+        // TODO: experimental settings, not working in BABYLON test app
+        // this.varAsLet = true;
+        this.varAsLet = false;
+
+        this.resolver = new IdentifierResolver(typeChecker, this.varAsLet);
         this.typeInfo = new TypeInfo(this.resolver);
         this.preprocessor = new Preprocessor(this.resolver, this.typeInfo);
         this.functionContext = new FunctionContext();
@@ -361,6 +366,23 @@ export class Emitter {
         return createThis;
     }
 
+    private hasNodeUsedVar(location: ts.Node): boolean {
+        let hasVar = false;
+        function checkVar(node: ts.Node): any {
+            if (node.kind === ts.SyntaxKind.VariableDeclarationList) {
+                hasVar = !Helpers.isConstOrLet(node);
+                if (hasVar) {
+                    return true;
+                }
+            }
+
+            ts.forEachChild(node, checkVar);
+        }
+
+        ts.forEachChild(location, checkVar);
+        return hasVar;
+    }
+
     private processDebugInfo(nodeIn: ts.Node, functionContext: FunctionContext) {
         let node = nodeIn;
         let file = node.getSourceFile();
@@ -509,6 +531,8 @@ export class Emitter {
             // we need to inject helper functions
             this.processTSCode(this.libCommon, true);
         }
+
+        this.functionContext.has_var_declaration = this.hasNodeUsedVar(location);
 
         let addThisAsParameter = false;
         const origin = (<ts.Node>(<any>location).__origin);
@@ -1640,13 +1664,44 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
+
+        // create local variable declaration
+        if (this.functionContext.has_var_declaration && !this.functionContext.has_var_declaration_done) {
+            this.functionContext.has_var_declaration_done = true;
+
+            // create function env.
+            const storeCurrentEnv = ts.createAssignment(ts.createIdentifier('_OLD'), ts.createIdentifier('_ENV'));
+
+            this.processExpression(this.fixupParentReferences(storeCurrentEnv, declarationList));
+
+            // creating new function env.
+            // _ENV = setmetatable({}, { __index = _ENV })
+
+            const defaultObjLiteral = ts.createObjectLiteral();
+            (<any>defaultObjLiteral).__skip_default_metamethods = true;
+
+            const newEnv =
+                ts.createAssignment(
+                    ts.createIdentifier('_ENV'),
+                    ts.createCall(
+                        ts.createIdentifier('setmetatable'),
+                        undefined,
+                        [defaultObjLiteral, ts.createObjectLiteral([
+                            ts.createPropertyAssignment(
+                                '__index',
+                                ts.createIdentifier('_ENV'))
+                        ])]));
+
+            this.processExpression(this.fixupParentReferences(newEnv, declarationList));
+        }
+
         declarationList.declarations.forEach(
             d => this.processVariableDeclarationOne((<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList)));
     }
 
     private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
         const localVar = this.functionContext.findScopedLocal(name, true);
-        if (isLetOrConst && localVar === -1) {
+        if ((isLetOrConst || this.varAsLet) && localVar === -1) {
             const localVarRegisterInfo = this.functionContext.createLocal(name);
             if (initializer) {
                 this.processExpression(initializer);
@@ -1726,6 +1781,10 @@ export class Emitter {
     private processReturnStatement(node: ts.ReturnStatement): void {
         if (node.expression) {
             this.processExpression(node.expression);
+
+            // restore old environment
+            this.emitRestoreFunctionEnvironment(node);
+
             const resultInfo = this.functionContext.stack.pop();
 
             // support custom return size
@@ -1741,7 +1800,28 @@ export class Emitter {
             this.functionContext.code.push(
                 [Ops.RETURN, resultInfo.getRegister(), returnValues + 1]);
         } else {
+
+            // restore old environment
+            this.emitRestoreFunctionEnvironment(node);
+
             this.functionContext.code.push([Ops.RETURN, 0, 1]);
+        }
+    }
+
+    private emitRestoreFunctionEnvironment(node: ts.Node) {
+        if (this.functionContext.has_var_declaration) {
+            // create function env.
+            const restoreCurrentEnv = ts.createIf(
+                ts.createBinary(
+                    ts.createIdentifier('_OLD'),
+                    ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                    ts.createNull()),
+                ts.createStatement(
+                    ts.createAssignment(
+                        ts.createIdentifier('_ENV'),
+                        ts.createIdentifier('_OLD'))));
+
+            this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
         }
     }
 
@@ -2340,7 +2420,7 @@ export class Emitter {
         let callSetMetatable = false;
         let props: Array<ts.Node> = node.properties.slice(0);
         // set default get/set methods
-        if (props && props.length === 0) {
+        if ((props && props.length === 0) && !(<any>node).__skip_default_metamethods) {
             props = new Array<ts.Node>();
             props.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call_undefined__')));
             props.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call_undefined__')));

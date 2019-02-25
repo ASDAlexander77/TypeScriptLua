@@ -295,7 +295,7 @@ export class IdentifierResolver {
 
     public Scope: ScopeContext = new ScopeContext();
 
-    public constructor(private typeChecker: ts.TypeChecker) {
+    public constructor(private typeChecker: ts.TypeChecker, private varAsLet: boolean) {
     }
 
     private unresolvedFilter = {
@@ -450,6 +450,14 @@ export class IdentifierResolver {
                     // values are not the same as Node.Flags
                     let varInfo;
                     if ((resolved.flags & 1) === 1) {
+
+                        if (this.varAsLet) {
+                            varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
+                            if (varInfo) {
+                                return varInfo;
+                            }
+                        }
+
                         varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         return varInfo;
@@ -464,6 +472,14 @@ export class IdentifierResolver {
                         return varInfo;
                     } else {
                         console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
+
+                        if (this.varAsLet) {
+                            varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
+                            if (varInfo) {
+                                return varInfo;
+                            }
+                        }
+
                         this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     }
 
