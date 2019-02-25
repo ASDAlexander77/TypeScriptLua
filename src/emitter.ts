@@ -525,7 +525,9 @@ export class Emitter {
         // debug info
         this.processDebugInfo(location, this.functionContext);
 
-        this.functionContext.has_var_declaration = location.kind !== ts.SyntaxKind.SourceFile && this.hasNodeUsedVar(location);
+        this.functionContext.has_var_declaration =
+            location.kind !== ts.SyntaxKind.SourceFile
+            && (this.hasNodeUsedVar(location) || this.hasAnyVarFunctionLevelScope());
 
         if (createEnvironment) {
             this.resolver.createEnv(this.functionContext);
@@ -1847,15 +1849,33 @@ export class Emitter {
 
     private getFunctionLevelScope() {
         let level = 0;
-        let current = this.functionContext;
+        let sinceVarLevel = 0;
+        let current = this.functionContext.container;
+        while (current) {
+            level++;
+            sinceVarLevel++;
+            if (current.has_var_declaration) {
+                sinceVarLevel = 0;
+            }
+
+            current = current.container;
+        }
+
+        return level - sinceVarLevel;
+    }
+
+    private hasAnyVarFunctionLevelScope() {
+        let level = 0;
+        let current = this.functionContext.container;
         while (current) {
             if (current.has_var_declaration) {
                 level++;
             }
+
             current = current.container;
         }
 
-        return level;
+        return level > 0;
     }
 
     private GetVariableReturn() {
