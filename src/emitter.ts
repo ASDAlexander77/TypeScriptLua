@@ -659,6 +659,8 @@ export class Emitter {
         });
 
         if (!noReturn) {
+            this.emitRestoreFunctionEnvironment(location);
+
             // add final 'RETURN'
             this.functionContext.code.push([Ops.RETURN, 0, 1]);
         }

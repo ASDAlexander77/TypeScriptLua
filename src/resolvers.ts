@@ -303,7 +303,7 @@ export class IdentifierResolver {
         '__set_static_call__': true, '__type': true, '__wrapper': true, '__bind': true, 'setmetatable': true, 'debug': true, 'type': true,
         'error': true, 'require': true, 'exports': true, 'math': true, 'table': true, 'tostring': true, 'tonumber': true, 'rawset': true,
         'rawget': true, 'StringHelper': true, 'NumberHelper': true, 'string': true, 'number': true, 'coroutine': true, 'dofile': true,
-        '__null_holder': true, '__get_call_undefined__': true, '__set_call_undefined__': true
+        '__null_holder': true, '__get_call_undefined__': true, '__set_call_undefined__': true, '_OLD': true
     };
 
     public methodCall: boolean;

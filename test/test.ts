@@ -1,12 +1,13 @@
 import './JS';
 
-class Color4 {
-    public constructor(private x: number, private y: number, private z: number, private w: number) {
-
+function f() {
+    var a = 10;
+    return function g() {
+        const sss = _ENV;
+        var b = a + 1;
+        return b;
     }
 }
 
-class Tmp {
-    public static Color4: Color4[] = [new Color4(0, 0, 0, 0), new Color4(0, 0, 0, 0)];
-}
-
+var g = f();
+console.log(g());

@@ -179,7 +179,7 @@ describe('Functions', () => {
     '])).to.equals('[01]:\r\n'));
 
     it('function var scope',  () => expect(new Run().test([
-        'function f() {}                                                        \
+        'function f() {                                                         \
         	var b = 2;                                                          \
 	        console.log(a);                                                     \
             console.log(b);                                                     \
@@ -190,6 +190,6 @@ describe('Functions', () => {
                                                                                 \
         console.log(a);                                                         \
         console.log(b);                                                         \
-    '])).to.equals('[01]:\r\n'));
+    '])).to.equals('1\r\n2\r\n1\r\nnil\r\n'));
 
 });
