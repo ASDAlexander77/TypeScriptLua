@@ -530,6 +530,11 @@ export class Emitter {
 
             // we need to inject helper functions
             this.processTSCode(this.libCommon, true);
+
+            // create local variable declaration
+            this.emitBeggingOfFunctionScopeForVar(location);
+        } else {
+            this.emitBeggingOfFunctionScopeForVar(location);
         }
 
         this.functionContext.has_var_declaration = location.kind !== ts.SyntaxKind.SourceFile && this.hasNodeUsedVar(location);
@@ -1666,39 +1671,53 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
-
-        // create local variable declaration
-        if (this.functionContext.has_var_declaration && !this.functionContext.has_var_declaration_done) {
-            this.functionContext.has_var_declaration_done = true;
-
-            // create function env.
-            const storeCurrentEnv = ts.createAssignment(ts.createIdentifier('_OLD'), ts.createIdentifier('_ENV'));
-
-            this.processExpression(this.fixupParentReferences(storeCurrentEnv, declarationList));
-
-            // creating new function env.
-            // _ENV = setmetatable({}, { __index = _ENV })
-
-            const defaultObjLiteral = ts.createObjectLiteral();
-            (<any>defaultObjLiteral).__skip_default_metamethods = true;
-
-            const newEnv =
-                ts.createAssignment(
-                    ts.createIdentifier('_ENV'),
-                    ts.createCall(
-                        ts.createIdentifier('setmetatable'),
-                        undefined,
-                        [defaultObjLiteral, ts.createObjectLiteral([
-                            ts.createPropertyAssignment(
-                                '__index',
-                                ts.createIdentifier('_ENV'))
-                        ])]));
-
-            this.processExpression(this.fixupParentReferences(newEnv, declarationList));
-        }
-
         declarationList.declarations.forEach(
             d => this.processVariableDeclarationOne((<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList)));
+    }
+
+    private emitBeggingOfFunctionScopeForVar(location: ts.Node) {
+        if (!this.functionContext.has_var_declaration || this.functionContext.has_var_declaration_done) {
+            return;
+        }
+
+        this.functionContext.has_var_declaration_done = true;
+
+        // detect nesting level
+        let level = 0;
+        let current = location;
+        while (current && current.kind !== ts.SyntaxKind.SourceFile) {
+            level++;
+            current = current.parent;
+        }
+
+        const upEnvVar = '_UP' + level;
+        const envVar = level > 1 ? '_UP' + (level - 1) : '_ENV';
+
+        const defaultObjLiteral = ts.createObjectLiteral();
+        (<any>defaultObjLiteral).__skip_default_metamethods = true;
+
+        // create function env.
+        const declareLocalVar = ts.createVariableDeclarationList(
+            [ts.createVariableDeclaration(upEnvVar, undefined, defaultObjLiteral)]);
+        const varStatement = ts.createVariableStatement(undefined, declareLocalVar);
+
+        this.processStatement(this.fixupParentReferences(varStatement, location));
+
+        const storeCurrentEnv = ts.createAssignment(
+            ts.createPropertyAccess(ts.createIdentifier(upEnvVar), ts.createIdentifier('_OLD')),
+            ts.createIdentifier('_ENV'));
+
+        this.processExpression(this.fixupParentReferences(storeCurrentEnv, location));
+
+        // creating new function env.
+        // _ENV = setmetatable({}, { __index = _ENV })
+        const newEnv = ts.createAssignment(
+            ts.createIdentifier('_ENV'),
+            ts.createCall(ts.createIdentifier('setmetatable'), undefined, [defaultObjLiteral, ts.createObjectLiteral([
+                ts.createPropertyAssignment('__index', ts.createIdentifier(envVar))
+            ])]));
+
+        this.processExpression(this.fixupParentReferences(newEnv, location));
     }
 
     private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
@@ -1811,20 +1830,31 @@ export class Emitter {
     }
 
     private emitRestoreFunctionEnvironment(node: ts.Node) {
-        if (this.functionContext.has_var_declaration) {
-            // create function env.
-            const restoreCurrentEnv = ts.createIf(
-                ts.createBinary(
-                    ts.createIdentifier('_OLD'),
-                    ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                    ts.createNull()),
-                ts.createStatement(
-                    ts.createAssignment(
-                        ts.createIdentifier('_ENV'),
+        if (!this.functionContext.has_var_declaration || !this.functionContext.has_var_declaration_done) {
+            return;
+        }
+
+        // detect nesting level
+        let level = 0;
+        let current = node;
+        while (current && current.kind !== ts.SyntaxKind.SourceFile) {
+            level++;
+            current = current.parent;
+        }
+
+        const upEnvVar = '_UP' + level;
+        const envVar = level > 1 ? '_UP' + (level - 1) : '_ENV';
+
+        // create function env.
+        const restoreCurrentEnv =
+            ts.createStatement(
+                ts.createAssignment(
+                    ts.createIdentifier('_ENV'),
+                    ts.createPropertyAccess(
+                        ts.createIdentifier(upEnvVar),
                         ts.createIdentifier('_OLD'))));
 
-            this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
-        }
+        this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
     }
 
     private GetVariableReturn() {
