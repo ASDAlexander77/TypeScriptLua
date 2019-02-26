@@ -442,6 +442,13 @@ export class IdentifierResolver {
                 declaration = resolved;
             }
 
+            const isDeclareVar =
+                declaration && declaration.kind === ts.SyntaxKind.VariableDeclaration
+                && declaration.parent && declaration.parent.kind === ts.SyntaxKind.VariableDeclarationList
+                && declaration.parent.parent && declaration.parent.parent.kind === ts.SyntaxKind.VariableStatement
+                && declaration.parent.parent.modifiers
+                && declaration.parent.parent.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword);
+
             const kind: ts.SyntaxKind = <ts.SyntaxKind>declaration.kind;
             switch (kind) {
                 case ts.SyntaxKind.VariableDeclaration:
@@ -452,7 +459,7 @@ export class IdentifierResolver {
                     let varInfo;
                     if ((resolved.flags & 1) === 1) {
 
-                        if (this.varAsLet) {
+                        if (this.varAsLet && !isDeclareVar) {
                             varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
                             if (varInfo) {
                                 return varInfo;
@@ -474,7 +481,7 @@ export class IdentifierResolver {
                     } else {
                         console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
 
-                        if (this.varAsLet) {
+                        if (this.varAsLet && !isDeclareVar) {
                             varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
                             if (varInfo) {
                                 return varInfo;

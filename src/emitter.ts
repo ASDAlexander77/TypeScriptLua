@@ -35,9 +35,7 @@ export class Emitter {
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
         private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
 
-        // TODO: experimental settings, not working in BABYLON test app
-        this.varAsLet = true;
-        // this.varAsLet = false;
+        this.varAsLet = cmdLineOptions.varAsLet;
 
         this.resolver = new IdentifierResolver(typeChecker, this.varAsLet);
         this.typeInfo = new TypeInfo(this.resolver);
@@ -1670,11 +1668,19 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
+        const varAsLet = this.varAsLet
+            && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
+            && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.ModuleDeclaration;
         declarationList.declarations.forEach(
-            d => this.processVariableDeclarationOne((<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList)));
+            d => this.processVariableDeclarationOne(
+                (<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList) || varAsLet));
     }
 
     private emitBeginningOfFunctionScopeForVar(location: ts.Node) {
+        if (this.varAsLet) {
+            return;
+        }
+
         if (!this.functionContext.has_var_declaration || this.functionContext.has_var_declaration_done) {
             return;
         }
@@ -1715,6 +1721,10 @@ export class Emitter {
     }
 
     private emitRestoreFunctionEnvironment(node: ts.Node) {
+        if (this.varAsLet) {
+            return;
+        }
+
         if (!this.functionContext.has_var_declaration || !this.functionContext.has_var_declaration_done) {
             return;
         }
@@ -1739,7 +1749,7 @@ export class Emitter {
 
     private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
         const localVar = this.functionContext.findScopedLocal(name, true);
-        if ((isLetOrConst || this.varAsLet) && localVar === -1) {
+        if (isLetOrConst && localVar === -1) {
             const localVarRegisterInfo = this.functionContext.createLocal(name);
             if (initializer) {
                 this.processExpression(initializer);

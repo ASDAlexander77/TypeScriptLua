@@ -1,76 +1,89 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"type": "extensionHost",
-			"request": "launch",
-			"name": "Extension",
-			"preLaunchTask": "npm",
-			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
-			],
-			"outFiles": [ "${workspaceFolder}/out/**/*.js" ]
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Server",
-			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/src/debugAdapter.ts",
-			"args": [ "--server=4711" ],
-			"outFiles": [ "${workspaceFolder}/out/**/*.js" ]
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Tests",
-			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-			"args": [
-				"-u", "tdd",
-				"--timeout", "999999",
-				"--colors",
-				"./out/tests/"
-			],
-			"outFiles": [ "${workspaceFolder}/out/**/*.js" ],
-			"internalConsoleOptions": "openOnSessionStart"
-		},
-		{
-			"type": "lua",
-			"request": "launch",
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Extension",
+            "preLaunchTask": "npm",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Server",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/src/debugAdapter.ts",
+            "args": [
+                "--server=4711"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Tests",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u",
+                "tdd",
+                "--timeout",
+                "999999",
+                "--colors",
+                "./out/tests/"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "lua",
+            "request": "launch",
             "name": "Lua Debugger - Lua file",
             "cwd": "${workspaceFolder}/test",
-			//"program": "${workspaceFolder}/${command:AskForProgramName}",
-			"program": "${workspaceFolder}/test/file.lua",
-			"luaExecutable": "lua",
-			"stopOnEntry": true
-		},
-		{
-			"type": "lua",
-			"request": "launch",
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${workspaceFolder}/test/file.lua",
+            "luaExecutable": "lua",
+            "stopOnEntry": true
+        },
+        {
+            "type": "lua",
+            "request": "launch",
             "name": "Lua Debugger - Test.ts",
             "cwd": "${workspaceFolder}/../test",
-			//"program": "${workspaceFolder}/${command:AskForProgramName}",
-			"program": "${workspaceFolder}/../test/test.lua",
-			"luaExecutable": "lua",
-			"stopOnEntry": true
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${workspaceFolder}/../test/test.lua",
+            "luaExecutable": "lua",
+            "stopOnEntry": true
         },
-		{
-			"type": "lua",
-			"request": "launch",
+        {
+            "type": "lua",
+            "request": "launch",
             "name": "Lua Debugger Test - Babyloncli",
             "cwd": "${workspaceFolder}/../experiments/BABYLON",
-			//"program": "${workspaceFolder}/${command:AskForProgramName}",
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
             "program": "${workspaceFolder}/../experiments/BABYLON/babyloncli.lua",
             "luaExecutable": "lua",
-			"stopOnEntry": true
+            "stopOnEntry": true
         }
-	],
-	"compounds": [
-		{
-			"name": "Extension + Server",
-			"configurations": [ "Extension", "Server" ]
-		}
-	]
+    ],
+    "compounds": [
+        {
+            "name": "Extension + Server",
+            "configurations": [
+                "Extension",
+                "Server"
+            ]
+        }
+    ]
 }

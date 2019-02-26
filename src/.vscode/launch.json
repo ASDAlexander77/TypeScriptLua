@@ -35,7 +35,8 @@
             "program": "${workspaceFolder}/../__out/main.js",
             "cwd": "${workspaceFolder}/../thirdparty/Babylon.js/src",
             "args": [
-		        "-jslib",
+                "-jslib",
+                "-varAsLet",
                 "tsconfig.json"
             ]
         },
@@ -47,6 +48,8 @@
             "program": "${workspaceFolder}/../__out/main.js",
             "cwd": "${workspaceFolder}/../experiments/BABYLON",
             "args": [
+                "-jslib",
+                "-varAsLet",
                 "tsconfig.json"
             ]
         },
@@ -59,6 +62,8 @@
             "cwd": "${workspaceFolder}/../experiments/BABYLON",
             "args": [
                 "-watch",
+                "-jslib",
+                "-varAsLet",
                 "tsconfig.json"
             ]
         },
