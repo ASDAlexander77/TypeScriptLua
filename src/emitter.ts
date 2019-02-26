@@ -1703,7 +1703,6 @@ export class Emitter {
         this.processExpression(this.fixupParentReferences(storeCurrentEnv, location));
 
         // creating new function env.
-        // _ENV = setmetatable(UP1 = {}, { __super = _ENV, __index = __get_undefined__, __newindex = __set_undefined__ })
         const newEnv = ts.createAssignment(
             ts.createIdentifier('_ENV'),
             ts.createCall(ts.createIdentifier('setmetatable'), undefined, [
