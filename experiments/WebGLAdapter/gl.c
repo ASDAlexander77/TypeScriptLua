@@ -109,10 +109,10 @@ extern "C"
         }
 
         const char *version = glGetString(GL_VERSION);
-        if (version && version[0] != NULL)
+        if (version && version[0] != (char)NULL)
         {
             majorVersion = version[0] - '0';
-            if (version[1] == '.' && version[2] != NULL)
+            if (version[1] == '.' && version[2] != (char)NULL)
             {
                 minorVersion = version[2] - '0';
             }
@@ -197,10 +197,10 @@ extern "C"
 
     static int clearColor(lua_State *L)
     {
-        const GLfloat red = luaL_checknumber(L, 1);
-        const GLfloat green = luaL_checknumber(L, 2);
-        const GLfloat blue = luaL_checknumber(L, 3);
-        const GLfloat alpha = luaL_checknumber(L, 4);
+        const GLfloat red = (GLfloat) luaL_checknumber(L, 1);
+        const GLfloat green = (GLfloat) luaL_checknumber(L, 2);
+        const GLfloat blue = (GLfloat) luaL_checknumber(L, 3);
+        const GLfloat alpha = (GLfloat) luaL_checknumber(L, 4);
 
         glClearColor(red, green, blue, alpha);
 
@@ -215,7 +215,7 @@ extern "C"
 
     static int clearDepth(lua_State *L)
     {
-        const GLclampd depth = luaL_checkinteger(L, 1);
+        const GLclampd depth = (GLclampd) luaL_checkinteger(L, 1);
 
         glClearDepth(depth);
 
@@ -230,7 +230,7 @@ extern "C"
 
     static int clearStencil(lua_State *L)
     {
-        const GLint s = luaL_checkinteger(L, 1);
+        const GLint s = (GLint) luaL_checkinteger(L, 1);
 
         glClearStencil(s);
 
@@ -245,10 +245,10 @@ extern "C"
 
     static int viewport(lua_State *L)
     {
-        const GLint x = luaL_checkinteger(L, 1);
-        const GLint y = luaL_checkinteger(L, 2);
-        const GLsizei width = luaL_checkinteger(L, 3);
-        const GLsizei height = luaL_checkinteger(L, 4);
+        const GLint x = (GLint) luaL_checkinteger(L, 1);
+        const GLint y = (GLint) luaL_checkinteger(L, 2);
+        const GLsizei width = (GLsizei) luaL_checkinteger(L, 3);
+        const GLsizei height = (GLsizei) luaL_checkinteger(L, 4);
 
         glViewport(x, y, width, height);
 
@@ -279,7 +279,7 @@ extern "C"
 
     static int createShader(lua_State *L)
     {
-        const GLenum type = luaL_checkinteger(L, 1);
+        const GLenum type = (GLenum) luaL_checkinteger(L, 1);
 
         GLuint val = glCreateShader(type);
         if (!val)
@@ -303,7 +303,7 @@ extern "C"
 
     static int shaderSource(lua_State *L)
     {
-        const GLuint shader = luaL_checkinteger(L, 1);
+        const GLuint shader = (GLuint) luaL_checkinteger(L, 1);
         size_t len;
         const GLchar *line = luaL_checklstring(L, 2, &len);
         const GLint length = (GLint)len;
@@ -346,7 +346,7 @@ extern "C"
 
     static int compileShader(lua_State *L)
     {
-        const GLuint value = luaL_checkinteger(L, 1);
+        const GLuint value = (GLuint) luaL_checkinteger(L, 1);
 
         glCompileShader(value);
 
@@ -361,7 +361,7 @@ extern "C"
 
     static int getParameter(lua_State *L)
     {
-        const GLenum pname = luaL_checkinteger(L, 1);
+        const GLenum pname = (GLenum) luaL_checkinteger(L, 1);
 
 #if _DEBUG
         printf("getParameter %d ... getting value as int\n", pname);
@@ -476,8 +476,8 @@ extern "C"
 
     static int getShaderParameter(lua_State *L)
     {
-        const GLuint shader = luaL_checkinteger(L, 1);
-        const GLenum pname = luaL_checkinteger(L, 2);
+        const GLuint shader = (GLuint) luaL_checkinteger(L, 1);
+        const GLenum pname = (GLenum) luaL_checkinteger(L, 2);
 
         GLint val;
         glGetShaderiv(shader, pname, &val);
@@ -495,13 +495,13 @@ extern "C"
 
     static int getShaderPrecisionFormat(lua_State *L)
     {
-        const GLenum shaderType = luaL_checkinteger(L, 1);
-        const GLenum precisionType = luaL_checkinteger(L, 2);
+        const GLenum shaderType = (GLenum) luaL_checkinteger(L, 1);
+        const GLenum precisionType = (GLenum) luaL_checkinteger(L, 2);
 
         GLint range[2];
  	    GLint precision;
 
-        glGetShaderPrecisionFormat(shaderType, precisionType, &range, &precision);
+        glGetShaderPrecisionFormat(shaderType, precisionType, (GLint*)&range, (GLint*)&precision);
         int error = errorCheck(L);
         if (error)
         {
@@ -531,7 +531,7 @@ extern "C"
 
     static int getShaderInfoLog(lua_State *L)
     {
-        const GLuint shader = luaL_checkinteger(L, 1);
+        const GLuint shader = (GLuint) luaL_checkinteger(L, 1);
 
         GLint val;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &val);
@@ -578,8 +578,8 @@ extern "C"
 
     static int attachShader(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
-        const GLuint shader = luaL_checkinteger(L, 2);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
+        const GLuint shader = (GLuint) luaL_checkinteger(L, 2);
 
         glAttachShader(program, shader);
 
@@ -594,7 +594,7 @@ extern "C"
 
     static int linkProgram(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
 
         glLinkProgram(program);
 
@@ -609,8 +609,8 @@ extern "C"
 
     static int getProgramParameter(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
-        const GLenum pname = luaL_checkinteger(L, 2);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
+        const GLenum pname = (GLenum) luaL_checkinteger(L, 2);
 
         GLint val;
         glGetProgramiv(program, pname, &val);
@@ -632,7 +632,7 @@ extern "C"
 
     static int getProgramInfoLog(lua_State *L)
     {
-        const GLuint shader = luaL_checkinteger(L, 1);
+        const GLuint shader = (GLuint) luaL_checkinteger(L, 1);
 
         GLint val;
         glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &val);
@@ -664,7 +664,7 @@ extern "C"
 
     static int deleteShader(lua_State *L)
     {
-        const GLuint shader = luaL_checkinteger(L, 1);
+        const GLuint shader = (GLuint) luaL_checkinteger(L, 1);
 
         glDeleteShader(shader);
 
@@ -679,7 +679,7 @@ extern "C"
 
     static int deleteProgram(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
 
         glDeleteProgram(program);
 
@@ -694,7 +694,7 @@ extern "C"
 
     static int getUniformBlockIndex(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
         const char *uniformBlockName = luaL_checkstring(L, 2);
 
         const GLuint result = glGetUniformBlockIndex(program, uniformBlockName);
@@ -717,9 +717,9 @@ extern "C"
 
     static int uniformBlockBinding(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
-        const GLuint uniformBlockIndex = luaL_checkinteger(L, 2);
-        const GLuint uniformBlockBindingValue = luaL_checkinteger(L, 3);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
+        const GLuint uniformBlockIndex = (GLuint) luaL_checkinteger(L, 2);
+        const GLuint uniformBlockBindingValue = (GLuint) luaL_checkinteger(L, 3);
 
         glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBindingValue);
 
@@ -734,7 +734,7 @@ extern "C"
 
     static int getUniformLocation(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
         const char *name = luaL_checkstring(L, 2);
 
         GLint result = glGetUniformLocation(program, name);
@@ -752,7 +752,7 @@ extern "C"
 
     static int getAttribLocation(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
         const char *name = luaL_checkstring(L, 2);
 
         GLint result = glGetAttribLocation(program, name);
@@ -770,7 +770,7 @@ extern "C"
 
     static int useProgram(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
 
         glUseProgram(program);
 
@@ -785,7 +785,7 @@ extern "C"
 
     static int validateProgram(lua_State *L)
     {
-        const GLuint program = luaL_checkinteger(L, 1);
+        const GLuint program = (GLuint) luaL_checkinteger(L, 1);
 
         glValidateProgram(program);
 
@@ -833,7 +833,7 @@ extern "C"
 
     static int bindVertexArray(lua_State *L)
     {
-        const GLuint array = luaL_checkinteger(L, 1);
+        const GLuint array = (GLuint) luaL_checkinteger(L, 1);
         glBindVertexArray(array);
 
         int error = errorCheck(L);
@@ -847,7 +847,7 @@ extern "C"
 
     static int enableVertexAttribArray(lua_State *L)
     {
-        const GLuint array = luaL_checkinteger(L, 1);
+        const GLuint array = (GLuint) luaL_checkinteger(L, 1);
         glEnableVertexAttribArray(array);
 
         int error = errorCheck(L);
@@ -861,7 +861,7 @@ extern "C"
 
     static int disableVertexAttribArray(lua_State *L)
     {
-        const GLuint array = luaL_checkinteger(L, 1);
+        const GLuint array = (GLuint) luaL_checkinteger(L, 1);
         glDisableVertexAttribArray(array);
 
         int error = errorCheck(L);
@@ -875,12 +875,12 @@ extern "C"
 
     static int vertexAttribPointer(lua_State *L)
     {
-        const GLuint index = luaL_checkinteger(L, 1);
-        const GLint size = luaL_checkinteger(L, 2);
-        const GLenum type = luaL_checkinteger(L, 3);
-        const GLboolean normalized = lua_toboolean(L, 4);
-        const GLsizei stride = luaL_checkinteger(L, 5);
-        const GLvoid *pointer = luaL_checkinteger(L, 6);
+        const GLuint index = (GLuint) luaL_checkinteger(L, 1);
+        const GLint size = (GLint) luaL_checkinteger(L, 2);
+        const GLenum type = (GLenum) luaL_checkinteger(L, 3);
+        const GLboolean normalized = (GLboolean) lua_toboolean(L, 4);
+        const GLsizei stride = (GLsizei) luaL_checkinteger(L, 5);
+        const GLvoid* pointer = (GLvoid*) luaL_checkinteger(L, 6);
 
         glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 
@@ -895,8 +895,8 @@ extern "C"
 
     static int bindBuffer(lua_State *L)
     {
-        const GLenum target = luaL_checkinteger(L, 1);
-        const GLuint buffer = luaL_checkinteger(L, 2);
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLuint buffer = (GLuint) luaL_checkinteger(L, 2);
         glBindBuffer(target, buffer);
 
         int error = errorCheck(L);
@@ -910,9 +910,9 @@ extern "C"
 
     static int bindBufferBase(lua_State *L)
     {
-        const GLenum target = luaL_checkinteger(L, 1);
-        const GLuint index = luaL_checkinteger(L, 2);
-        const GLuint buffer = luaL_checkinteger(L, 3);
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLuint index = (GLuint) luaL_checkinteger(L, 2);
+        const GLuint buffer = (GLuint) luaL_checkinteger(L, 3);
         glBindBufferBase(target, index, buffer);
 
         int error = errorCheck(L);
@@ -937,20 +937,20 @@ extern "C"
         const char *data;
         GLbitfield flags;
 
-        target = luaL_checkinteger(L, 1);
+        target = (GLenum) luaL_checkinteger(L, 1);
 
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer *userdata = lua_topointer(L, 2);
+            const ArrayContainer *userdata = lua_topointer(L, 2);
             len = userdata->bytesLength;
-            data = &userdata->data;
+            data = (const char*) &userdata->data;
         }
         else
         {
             return luaL_argerror(L, 2, "Bad argument, <number>, <user_data>, <number>");
         }
 
-        flags = luaL_checkinteger(L, 3);
+        flags = (GLbitfield) luaL_checkinteger(L, 3);
 
         glBufferData(target, len, data, flags);
 
@@ -969,16 +969,15 @@ extern "C"
         GLintptr offset;
         size_t len;
         const char *data;
-        GLbitfield flags;
 
-        target = luaL_checkinteger(L, 1);
-        offset = luaL_checkinteger(L, 2);
+        target = (GLenum) luaL_checkinteger(L, 1);
+        offset = (GLintptr) luaL_checkinteger(L, 2);
 
         if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer *userdata = lua_topointer(L, 3);
+            const ArrayContainer *userdata = lua_topointer(L, 3);
             len = userdata->bytesLength;
-            data = &userdata->data;
+            data = (const char*) &userdata->data;
         }
         else
         {
@@ -998,7 +997,7 @@ extern "C"
 
     static int uniformMatrix2fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         const GLboolean transpose = lua_toboolean(L, 2);
         GLfloat *value;
         GLsizei count;
@@ -1006,9 +1005,9 @@ extern "C"
 
         if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            const ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat) / 4 /*to get couint of matrixes*/;
         }
         else
@@ -1029,7 +1028,7 @@ extern "C"
 
     static int uniformMatrix3fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         const GLboolean transpose = lua_toboolean(L, 2);
         GLfloat *value;
         GLsizei count;
@@ -1038,8 +1037,8 @@ extern "C"
         if (lua_type(L, 3) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat) / 9 /*to get couint of matrixes*/;
         }
         else
@@ -1060,7 +1059,7 @@ extern "C"
 
     static int uniformMatrix4fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         const GLboolean transpose = lua_toboolean(L, 2);
         GLfloat *value;
         GLsizei count;
@@ -1068,9 +1067,9 @@ extern "C"
 
         if (lua_type(L, 3) == LUA_TUSERDATA)
         {
-            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            const ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 3);
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat) / 16 /*to get count of matrixes*/;
 
 #if _DEBUG
@@ -1114,7 +1113,7 @@ extern "C"
 
     static int depthFunc(lua_State *L)
     {
-        const GLenum func = luaL_checkinteger(L, 1);
+        const GLenum func = (GLenum) luaL_checkinteger(L, 1);
 
         glDepthFunc(func);
 
@@ -1129,7 +1128,7 @@ extern "C"
 
     static int stencilMask(lua_State *L)
     {
-        const GLuint mask = luaL_checkinteger(L, 1);
+        const GLuint mask = (GLuint) luaL_checkinteger(L, 1);
 
         glStencilMask(mask);
 
@@ -1144,9 +1143,9 @@ extern "C"
 
     static int stencilFunc(lua_State *L)
     {
-        const GLenum func = luaL_checkinteger(L, 1);
-        const GLint ref = luaL_checkinteger(L, 2);
-        const GLuint mask = luaL_checkinteger(L, 2);
+        const GLenum func = (GLenum) luaL_checkinteger(L, 1);
+        const GLint ref = (GLint) luaL_checkinteger(L, 2);
+        const GLuint mask = (GLuint) luaL_checkinteger(L, 2);
 
         glStencilFunc(func, ref, mask);
 
@@ -1161,9 +1160,9 @@ extern "C"
 
     static int stencilOp(lua_State *L)
     {
-        const GLenum sfail = luaL_checkinteger(L, 1);
-        const GLenum dpfail = luaL_checkinteger(L, 2);
-        const GLenum dppass = luaL_checkinteger(L, 2);
+        const GLenum sfail = (GLenum) luaL_checkinteger(L, 1);
+        const GLenum dpfail = (GLenum) luaL_checkinteger(L, 2);
+        const GLenum dppass = (GLenum) luaL_checkinteger(L, 2);
 
         glStencilOp(sfail, dpfail, dppass);
 
@@ -1178,7 +1177,7 @@ extern "C"
 
     static int enable(lua_State *L)
     {
-        const GLenum cap = luaL_checkinteger(L, 1);
+        const GLenum cap = (GLenum) luaL_checkinteger(L, 1);
 
         glEnable(cap);
 
@@ -1193,7 +1192,7 @@ extern "C"
 
     static int disable(lua_State *L)
     {
-        const GLenum cap = luaL_checkinteger(L, 1);
+        const GLenum cap = (GLenum) luaL_checkinteger(L, 1);
 
         glDisable(cap);
 
@@ -1208,8 +1207,8 @@ extern "C"
 
     static int uniform1i(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLint x = luaL_checkinteger(L, 2);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLint x = (GLint) luaL_checkinteger(L, 2);
 
         glUniform1i(location, x);
 
@@ -1224,9 +1223,9 @@ extern "C"
 
     static int uniform2i(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLint x = luaL_checkinteger(L, 2);
-        const GLint y = luaL_checkinteger(L, 3);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLint x = (GLint) luaL_checkinteger(L, 2);
+        const GLint y = (GLint) luaL_checkinteger(L, 3);
 
         glUniform2i(location, x, y);
 
@@ -1241,10 +1240,10 @@ extern "C"
 
     static int uniform3i(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLint x = luaL_checkinteger(L, 2);
-        const GLint y = luaL_checkinteger(L, 3);
-        const GLint z = luaL_checkinteger(L, 4);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLint x = (GLint) luaL_checkinteger(L, 2);
+        const GLint y = (GLint) luaL_checkinteger(L, 3);
+        const GLint z = (GLint) luaL_checkinteger(L, 4);
 
         glUniform3i(location, x, y, z);
 
@@ -1259,11 +1258,11 @@ extern "C"
 
     static int uniform4i(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLint x = luaL_checkinteger(L, 2);
-        const GLint y = luaL_checkinteger(L, 3);
-        const GLint z = luaL_checkinteger(L, 4);
-        const GLint w = luaL_checkinteger(L, 5);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLint x = (GLint) luaL_checkinteger(L, 2);
+        const GLint y = (GLint) luaL_checkinteger(L, 3);
+        const GLint z = (GLint) luaL_checkinteger(L, 4);
+        const GLint w = (GLint) luaL_checkinteger(L, 5);
 
         glUniform4i(location, x, y, z, w);
 
@@ -1278,8 +1277,8 @@ extern "C"
 
     static int uniform1f(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLfloat x = luaL_checknumber(L, 2);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLfloat x = (GLfloat) luaL_checknumber(L, 2);
 
         glUniform1f(location, x);
 
@@ -1294,9 +1293,9 @@ extern "C"
 
     static int uniform2f(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLfloat x = luaL_checknumber(L, 2);
-        const GLfloat y = luaL_checknumber(L, 3);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLfloat x = (GLfloat) luaL_checknumber(L, 2);
+        const GLfloat y = (GLfloat) luaL_checknumber(L, 3);
 
         glUniform2f(location, x, y);
 
@@ -1311,10 +1310,10 @@ extern "C"
 
     static int uniform3f(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLfloat x = luaL_checknumber(L, 2);
-        const GLfloat y = luaL_checknumber(L, 3);
-        const GLfloat z = luaL_checknumber(L, 4);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLfloat x = (GLfloat) luaL_checknumber(L, 2);
+        const GLfloat y = (GLfloat) luaL_checknumber(L, 3);
+        const GLfloat z = (GLfloat) luaL_checknumber(L, 4);
 
         glUniform3f(location, x, y, z);
 
@@ -1329,11 +1328,11 @@ extern "C"
 
     static int uniform4f(lua_State *L)
     {
-        const GLint location = luaL_checkinteger(L, 1);
-        const GLfloat x = luaL_checknumber(L, 2);
-        const GLfloat y = luaL_checknumber(L, 3);
-        const GLfloat z = luaL_checknumber(L, 4);
-        const GLfloat w = luaL_checknumber(L, 5);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
+        const GLfloat x = (GLfloat) luaL_checknumber(L, 2);
+        const GLfloat y = (GLfloat) luaL_checknumber(L, 3);
+        const GLfloat z = (GLfloat) luaL_checknumber(L, 4);
+        const GLfloat w = (GLfloat) luaL_checknumber(L, 5);
 
         glUniform4f(location, x, y, z, w);
 
@@ -1348,16 +1347,16 @@ extern "C"
 
     static int uniform1iv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLint *value;
         GLsizei count;
         GLsizei len;
 
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
-            ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            const ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLint *) &userdata->data;
             count = len / sizeof(GLint);
         }
         else
@@ -1378,7 +1377,7 @@ extern "C"
 
     static int uniform2iv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLint *value;
         GLsizei count;
         GLsizei len;
@@ -1386,8 +1385,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLint *) &userdata->data;
             count = len / sizeof(GLint);
         }
         else
@@ -1408,7 +1407,7 @@ extern "C"
 
     static int uniform3iv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLint *value;
         GLsizei count;
         GLsizei len;
@@ -1416,8 +1415,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLint *) &userdata->data;
             count = len / sizeof(GLint);
         }
         else
@@ -1438,7 +1437,7 @@ extern "C"
 
     static int uniform4iv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLint *value;
         GLsizei count;
         GLsizei len;
@@ -1446,8 +1445,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLint *) &userdata->data;
             count = len / sizeof(GLint);
         }
         else
@@ -1468,7 +1467,7 @@ extern "C"
 
     static int uniform1fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLfloat *value;
         GLsizei count;
         GLsizei len;
@@ -1476,8 +1475,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat);
         }
         else
@@ -1498,7 +1497,7 @@ extern "C"
 
     static int uniform2fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLfloat *value;
         GLsizei count;
         GLsizei len;
@@ -1506,8 +1505,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat);
         }
         else
@@ -1528,7 +1527,7 @@ extern "C"
 
     static int uniform3fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLfloat *value;
         GLsizei count;
         GLsizei len;
@@ -1536,8 +1535,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat);
         }
         else
@@ -1558,7 +1557,7 @@ extern "C"
 
     static int uniform4fv(lua_State *L)
     {
-        const location = luaL_checkinteger(L, 1);
+        const GLint location = (GLint) luaL_checkinteger(L, 1);
         GLfloat *value;
         GLsizei count;
         GLsizei len;
@@ -1566,8 +1565,8 @@ extern "C"
         if (lua_type(L, 2) == LUA_TUSERDATA)
         {
             ArrayContainer *userdata = (ArrayContainer *)lua_topointer(L, 2);
-            len = userdata->bytesLength;
-            value = &userdata->data;
+            len = (GLsizei) userdata->bytesLength;
+            value = (GLfloat *) &userdata->data;
             count = len / sizeof(GLfloat);
         }
         else
@@ -1588,7 +1587,7 @@ extern "C"
 
     static int cullFace(lua_State *L)
     {
-        const GLenum mode = luaL_checkinteger(L, 1);
+        const GLenum mode = (GLenum) luaL_checkinteger(L, 1);
 
         glCullFace(mode);
 
@@ -1603,7 +1602,7 @@ extern "C"
 
     static int frontFace(lua_State *L)
     {
-        const GLenum mode = luaL_checkinteger(L, 1);
+        const GLenum mode = (GLenum) luaL_checkinteger(L, 1);
 
         glFrontFace(mode);
 
@@ -1618,10 +1617,10 @@ extern "C"
 
     static int drawElements(lua_State *L)
     {
-        const GLenum mode = luaL_checkinteger(L, 1);
-        const GLsizei count = luaL_checkinteger(L, 2);
-        const GLenum type = luaL_checkinteger(L, 3);
-        const GLvoid *indices = luaL_checkinteger(L, 4);
+        const GLenum mode = (GLenum) luaL_checkinteger(L, 1);
+        const GLsizei count = (GLsizei) luaL_checkinteger(L, 2);
+        const GLenum type = (GLenum) luaL_checkinteger(L, 3);
+        const GLvoid* indices = (GLvoid*) luaL_checkinteger(L, 4);
 
         glDrawElements(mode, count, type, indices);
 
@@ -1636,9 +1635,9 @@ extern "C"
 
     static int drawArrays(lua_State *L)
     {
-        const GLenum mode = luaL_checkinteger(L, 1);
-        const GLint first = luaL_checkinteger(L, 2);
-        const GLsizei count = luaL_checkinteger(L, 3);
+        const GLenum mode = (GLenum) luaL_checkinteger(L, 1);
+        const GLint first = (GLint) luaL_checkinteger(L, 2);
+        const GLsizei count = (GLsizei) luaL_checkinteger(L, 3);
 
         glDrawArrays(mode, first, count);
 
