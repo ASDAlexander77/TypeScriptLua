@@ -1,4 +1,8 @@
 __get_undefined__ = function (t, k) {
+
+    print('get: ', t, k);
+    return;
+
     const values: object = rawget(t, "__super");
     if (values !== null) {
         return values[k];
@@ -13,6 +17,9 @@ __get_undefined__ = function (t, k) {
 };
 
 __set_undefined__ = function (t, k, v) {
+
+    print('set: ', t, k, v);
+
     if (v === null) {
         const nullsHolder: object = rawget(t, "__nulls");
         if (nullsHolder === null) {
