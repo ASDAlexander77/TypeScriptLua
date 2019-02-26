@@ -128,7 +128,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         return false;                                               \
-    }                                                               \
+    };                                                              \
                                                                     \
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let get_: object = rawget(t, "__get__");                    \
@@ -160,7 +160,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         return undefined;                                           \
-    }                                                               \
+    };                                                              \
                                                                     \
     __set_call_undefined__ = __set_call_undefined__ || function (t, k, v) { \
         let proto: object = t;                                      \
@@ -197,7 +197,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         rawset(t, k, v0);                                           \
-    }                                                               \
+    };                                                              \
                                                                     \
     __wrapper = __wrapper || function(method: object, _this: object) { \
         if (!method) {                                              \
@@ -207,7 +207,7 @@ export class Emitter {
         return function (...params: any[]) {                        \
             return method(_this, ...params);                        \
         };                                                          \
-    }                                                               \
+    };                                                              \
                                                                     \
     __bind = __bind || function(method: object, _this: object, ...prependParams: any[]) { \
         if (!method) {                                              \
@@ -223,7 +223,7 @@ export class Emitter {
         return function (...params: any[]) {                        \
             return prependParams && method(_this, ...params);       \
         };                                                          \
-    }                                                               \
+    };                                                              \
                                                                     \
     __get_undefined__ = __get_undefined__ || function (t, k) {      \
         const values: object = rawget(t, "__super");                \
@@ -237,7 +237,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         return undefined;                                           \
-    }                                                               \
+    };                                                              \
                                                                     \
     __set_undefined__ = __set_undefined__ || function (t, k, v) {   \
         if (v === null) {                                           \
@@ -262,7 +262,7 @@ export class Emitter {
         }                                                           \
                                                                     \
         rawset(t, k, v0);                                           \
-    }                                                               \
+    };                                                              \
     ';
 
     /*
