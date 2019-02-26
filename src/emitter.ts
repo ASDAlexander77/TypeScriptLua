@@ -36,8 +36,8 @@ export class Emitter {
         private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
 
         // TODO: experimental settings, not working in BABYLON test app
-        // this.varAsLet = true;
-        this.varAsLet = false;
+        this.varAsLet = true;
+        // this.varAsLet = false;
 
         this.resolver = new IdentifierResolver(typeChecker, this.varAsLet);
         this.typeInfo = new TypeInfo(this.resolver);

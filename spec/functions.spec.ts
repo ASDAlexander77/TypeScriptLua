@@ -179,13 +179,13 @@ describe('Functions', () => {
     '])).to.equals('[01]:\r\n'));
 
     it('function var scope',  () => expect(new Run().test([
-        'function f() {                                                         \
+        'var a = 1;                                                             \
+        function f() {                                                          \
         	var b = 2;                                                          \
 	        console.log(a);                                                     \
             console.log(b);                                                     \
         }                                                                       \
                                                                                 \
-        var a = 1;                                                              \
         f();                                                                    \
                                                                                 \
         console.log(a);                                                         \
