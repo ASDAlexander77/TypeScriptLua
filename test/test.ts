@@ -1,30 +1,26 @@
+const g__rawget: any = rawget;
+const g__rawset: any = rawset;
+const g__undefined: any = undefined;
 __get_undefined__ = function (t, k) {
-
-    print('get: ', t, k);
-    return;
-
-    const values: object = rawget(t, "__super");
+    const values: object = g__rawget(t, "_UP_ENV");
     if (values !== null) {
         return values[k];
     }
 
-    const nullsHolder: object = rawget(t, "__nulls");
+    const nullsHolder: object = g__rawget(t, "__nulls");
     if (nullsHolder && nullsHolder[k]) {
         return null;
     }
 
-    return undefined;
+    return g__undefined;
 };
 
 __set_undefined__ = function (t, k, v) {
-
-    print('set: ', t, k, v);
-
     if (v === null) {
-        const nullsHolder: object = rawget(t, "__nulls");
+        const nullsHolder: object = g__rawget(t, "__nulls");
         if (nullsHolder === null) {
             nullsHolder = {};
-            rawset(t, "__nulls", nullsHolder);
+            g__.rawset(t, "__nulls", nullsHolder);
         }
 
         nullsHolder[k] = true;
@@ -32,8 +28,8 @@ __set_undefined__ = function (t, k, v) {
     }
 
     let v0 = v;
-    if (v === undefined) {
-        const nullsHolder: object = rawget(t, "__nulls");
+    if (v === g__undefined) {
+        const nullsHolder: object = g__rawget(t, "__nulls");
         if (nullsHolder !== null) {
             nullsHolder[k] = null;
         }
@@ -41,10 +37,10 @@ __set_undefined__ = function (t, k, v) {
         v0 = null;
     }
 
-    rawset(t, k, v0);
+    g__rawset(t, k, v0);
 };
 
-import './JS';
+//import './JS';
 
 function f() {
     var a = 10;
@@ -55,4 +51,4 @@ function f() {
 }
 
 var g = f();
-console.log(g());
+print(g());

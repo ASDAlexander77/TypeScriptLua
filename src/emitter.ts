@@ -225,26 +225,29 @@ export class Emitter {
         };                                                          \
     };                                                              \
                                                                     \
+    const g__rawget: any = rawget;                                  \
+    const g__rawset: any = rawset;                                  \
+    const g__undefined: any = undefined;                            \
     __get_undefined__ = __get_undefined__ || function (t, k) {      \
-        const values: object = rawget(t, "__super");                \
+        const values: object = g__rawget(t, "_UP_ENV");             \
         if (values !== null) {                                      \
             return values[k];                                       \
         }                                                           \
                                                                     \
-        const nullsHolder: object = rawget(t, "__nulls");           \
+        const nullsHolder: object = g__rawget(t, "__nulls");        \
         if (nullsHolder && nullsHolder[k]) {                        \
             return null;                                            \
         }                                                           \
                                                                     \
-        return undefined;                                           \
+        return g__undefined;                                        \
     };                                                              \
                                                                     \
     __set_undefined__ = __set_undefined__ || function (t, k, v) {   \
         if (v === null) {                                           \
-            const nullsHolder: object = rawget(t, "__nulls");       \
+            const nullsHolder: object = g__rawget(t, "__nulls");    \
             if (nullsHolder === null) {                             \
                 nullsHolder = {};                                   \
-                rawset(t, "__nulls", nullsHolder);                  \
+                g__.rawset(t, "__nulls", nullsHolder);              \
             }                                                       \
                                                                     \
             nullsHolder[k] = true;                                  \
@@ -252,8 +255,8 @@ export class Emitter {
         }                                                           \
                                                                     \
         let v0 = v;                                                 \
-        if (v === undefined) {                                      \
-            const nullsHolder: object = rawget(t, "__nulls");       \
+        if (v === g__undefined) {                                   \
+            const nullsHolder: object = g__rawget(t, "__nulls");    \
             if (nullsHolder !== null) {                             \
                 nullsHolder[k] = null;                              \
             }                                                       \
@@ -261,7 +264,7 @@ export class Emitter {
             v0 = null;                                              \
         }                                                           \
                                                                     \
-        rawset(t, k, v0);                                           \
+        g__rawset(t, k, v0);                                        \
     };                                                              \
     ';
 
@@ -1736,7 +1739,7 @@ export class Emitter {
         this.processStatement(this.fixupParentReferences(varStatement, location));
 
         const storeCurrentEnv = ts.createAssignment(
-            ts.createPropertyAccess(ts.createIdentifier(upEnvVar), ts.createIdentifier('_OLD')),
+            ts.createPropertyAccess(ts.createIdentifier(upEnvVar), ts.createIdentifier('_UP_ENV')),
             ts.createIdentifier('_ENV'));
 
         this.processExpression(this.fixupParentReferences(storeCurrentEnv, location));
@@ -1883,7 +1886,7 @@ export class Emitter {
                     ts.createIdentifier('_ENV'),
                     ts.createPropertyAccess(
                         ts.createIdentifier(upEnvVar),
-                        ts.createIdentifier('_OLD'))));
+                        ts.createIdentifier('_UP_ENV'))));
 
         this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
     }
