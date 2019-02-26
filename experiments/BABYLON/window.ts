@@ -39,17 +39,17 @@ export default class WindowEx {
 
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            if (state == 1) {
+            if (state === 1) {
                 const mouseup = WindowEx.events['mouseup'];
                 if (mouseup) {
                     mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
-                    //glut.postRedisplay();
+                    glut.postRedisplay();
                 }
             } else {
                 const mousedown = WindowEx.events['mousedown'];
                 if (mousedown) {
                     mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
-                    //glut.postRedisplay();
+                    glut.postRedisplay();
                 }
             }
         });
@@ -63,12 +63,12 @@ export default class WindowEx {
             const mousemove = WindowEx.events['mousemove'];
             if (mousemove) {
                 mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
-                //glut.postRedisplay();
+                glut.postRedisplay();
             }
         });
 
         glut.idle(function () {
-            //glut.postRedisplay();
+            glut.postRedisplay();
         });
 
         glut.keyboard(function (k: number, x: number, y: number) {
@@ -81,7 +81,7 @@ export default class WindowEx {
             const keydown = WindowEx.events['keydown'];
             if (keydown) {
                 keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
-                //glut.postRedisplay();
+                glut.postRedisplay();
             }
         });
 
@@ -95,7 +95,7 @@ export default class WindowEx {
             const keyup = WindowEx.events['keyup'];
             if (keyup) {
                 keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
-                //glut.postRedisplay();
+                glut.postRedisplay();
             }
         });
 
@@ -109,7 +109,7 @@ export default class WindowEx {
             const keydown = WindowEx.events['keydown'];
             if (keydown) {
                 keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
-                //glut.postRedisplay();
+                glut.postRedisplay();
             }
         });
 
@@ -123,14 +123,14 @@ export default class WindowEx {
             const keyup = WindowEx.events['keyup'];
             if (keyup) {
                 keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
-                //glut.postRedisplay();
+                glut.postRedisplay();
             }
         });
 
         glut.reshape(function (w: number, h: number) {
             WindowEx.innerWidth = w;
             WindowEx.innerHeight = h;
-            //glut.postRedisplay();
+            glut.postRedisplay();
         });
     }
 
@@ -141,7 +141,6 @@ export default class WindowEx {
 
     public static setTimeout(funct: any, millisec: number) {
         if (funct) {
-            //glut.timer(millisec, funct, 0);
             glut.timer(millisec, function () {
                 glut.postRedisplay();
                 funct();

@@ -19,6 +19,7 @@
       "types": [],
       "lib": [
         "es2018",
+        "dom"
       ]
     },
     "include": [

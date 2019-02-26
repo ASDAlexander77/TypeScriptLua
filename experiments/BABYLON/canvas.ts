@@ -442,7 +442,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     drawArrays(mode: number, first: number, count: number): void {
-        throw new Error('Method not implemented.');
+        _gl.drawArrays(mode, first, count);
     }
 
     drawElements(mode: number, count: number, type: number, offset: number): void {

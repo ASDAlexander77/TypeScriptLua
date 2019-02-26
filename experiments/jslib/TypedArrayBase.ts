@@ -66,7 +66,7 @@ module JS {
                 this.byteLength = <number>sizeOrData * sizePerElement;
             } else {
                 data = sizeOrData;
-                this.size = sizeOrData.length || ArrayHelper.getLength(sizeOrData);
+                this.size = (<any>sizeOrData).length || ArrayHelper.getLength(<any[]>sizeOrData);
                 this.byteLength = this.size * sizePerElement;
             }
 
