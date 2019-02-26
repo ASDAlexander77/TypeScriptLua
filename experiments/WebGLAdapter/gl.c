@@ -1634,6 +1634,23 @@ extern "C"
         return 0;
     }
 
+    static int drawArrays(lua_State *L)
+    {
+        const GLenum mode = luaL_checkinteger(L, 1);
+        const GLint first = luaL_checkinteger(L, 2);
+        const GLsizei count = luaL_checkinteger(L, 3);
+
+        glDrawArrays(mode, first, count);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
     typedef struct ConstPair
     {
         const char *name;
@@ -2021,6 +2038,7 @@ extern "C"
         {"cullFace", cullFace},
         {"frontFace", frontFace},
         {"drawElements", drawElements},
+        {"drawArrays", drawArrays},
         {NULL, NULL} /* sentinel */
     };
 

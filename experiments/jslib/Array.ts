@@ -58,14 +58,18 @@ module JS {
 
                 // @ts-ignore
                 const _len = ArrayHelper.getLength(this);
-                for (let i = _len; i > 0; i--) {
-                    table.insert(this._values, rawget(this, i));
-                    table.remove(this, i);
-                    delete this[i];
-                }
 
                 if (zeroVal) {
                     table.insert(this._values, zeroVal);
+                }
+
+                for (let i = 1; i <= _len; i++) {
+                    table.insert(this._values, rawget(this, i));
+                }
+
+                for (let i = _len; i > 0; i--) {
+                    table.remove(this, i);
+                    delete this[i];
                 }
 
                 // @ts-ignore

@@ -11,6 +11,17 @@
       "program": "${workspaceFolder}/babyloncli.lua",
       "luaExecutable": "lua",
       "stopOnEntry": true
-    }
+    },
+    {
+        "type": "lua",
+        "request": "launch",
+        "name": "Debug SimpleTest",
+        "cwd": "${workspaceFolder}",
+        "preLaunchTask": "npm",
+        //"program": "${workspaceFolder}/${command:AskForProgramName}",
+        "program": "${workspaceFolder}/simple_test.lua",
+        "luaExecutable": "lua",
+        "stopOnEntry": true
+      }
   ]
 }

@@ -25,6 +25,7 @@
       "babyloncli.ts",
       "canvas.ts",
       "window.ts",
+      "simple_test.ts",
       "declarations.d.ts"
     ],
     "exclude": [

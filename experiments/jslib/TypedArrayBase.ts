@@ -82,10 +82,34 @@ module JS {
                 }
             }
 
-        }
+            // @ts-ignore
+            this.__index = function (_this: TypedArrayBase, indx: number | string): any {
+                // @ts-ignore
+                // tslint:disable-next-line:triple-equals
+                if (typeof (indx) === 'number') {
+                    const bufferNative = _this.buffer.bufferNativeInstance;
+                    // @ts-ignore
+                    return _this.get(bufferNative, indx);
+                }
 
-        public static getGetter() {
+                // @ts-ignore
+                return __get_call_undefined__(_this, indx);
+            };
 
+            // @ts-ignore
+            this.__newindex = function (_this: TypedArrayBase, indx: number | string, val: T): void {
+                // @ts-ignore
+                // tslint:disable-next-line:triple-equals
+                if (typeof (indx) === 'number') {
+                    const bufferNative = _this.buffer.bufferNativeInstance;
+                    // @ts-ignore
+                    _this.set(bufferNative, indx, val);
+                    return;
+                }
+
+                // @ts-ignore
+                __set_call_undefined__(_this, indx, val);
+            };
         }
     }
 
