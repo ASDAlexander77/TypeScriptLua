@@ -224,48 +224,6 @@ export class Emitter {
             return prependParams && method(_this, ...params);       \
         };                                                          \
     };                                                              \
-                                                                    \
-    const g__rawget: any = rawget;                                  \
-    const g__rawset: any = rawset;                                  \
-    const g__undefined: any = undefined;                            \
-    __get_undefined__ = __get_undefined__ || function (t, k) {      \
-        const values: object = g__rawget(t, "_UP_ENV");             \
-        if (values !== null) {                                      \
-            return values[k];                                       \
-        }                                                           \
-                                                                    \
-        const nullsHolder: object = g__rawget(t, "__nulls");        \
-        if (nullsHolder && nullsHolder[k]) {                        \
-            return null;                                            \
-        }                                                           \
-                                                                    \
-        return g__undefined;                                        \
-    };                                                              \
-                                                                    \
-    __set_undefined__ = __set_undefined__ || function (t, k, v) {   \
-        if (v === null) {                                           \
-            const nullsHolder: object = g__rawget(t, "__nulls");    \
-            if (nullsHolder === null) {                             \
-                nullsHolder = {};                                   \
-                g__.rawset(t, "__nulls", nullsHolder);              \
-            }                                                       \
-                                                                    \
-            nullsHolder[k] = true;                                  \
-            return;                                                 \
-        }                                                           \
-                                                                    \
-        let v0 = v;                                                 \
-        if (v === g__undefined) {                                   \
-            const nullsHolder: object = g__rawget(t, "__nulls");    \
-            if (nullsHolder !== null) {                             \
-                nullsHolder[k] = null;                              \
-            }                                                       \
-                                                                    \
-            v0 = null;                                              \
-        }                                                           \
-                                                                    \
-        g__rawset(t, k, v0);                                        \
-    };                                                              \
     ';
 
     /*
@@ -1751,12 +1709,33 @@ export class Emitter {
             ts.createCall(ts.createIdentifier('setmetatable'), undefined, [
                 ts.createIdentifier(upEnvVar),
                 ts.createObjectLiteral([
-                    ts.createPropertyAssignment('__super', ts.createIdentifier(envVar)),
-                    ts.createPropertyAssignment('__index', ts.createIdentifier('__get_undefined__')),
-                    ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_undefined__'))
+                    ts.createPropertyAssignment('__index', ts.createIdentifier(envVar))
                 ])]));
 
         this.processExpression(this.fixupParentReferences(newEnv, location));
+    }
+
+    private emitRestoreFunctionEnvironment(node: ts.Node) {
+        if (!this.functionContext.has_var_declaration || !this.functionContext.has_var_declaration_done) {
+            return;
+        }
+
+        // detect nesting level
+        const level = this.getFunctionLevelScope();
+
+        const upEnvVar = '_UP' + level;
+        const envVar = level > 1 ? '_UP' + (level - 1) : '_ENV';
+
+        // create function env.
+        const restoreCurrentEnv =
+            ts.createStatement(
+                ts.createAssignment(
+                    ts.createIdentifier('_ENV'),
+                    ts.createPropertyAccess(
+                        ts.createIdentifier(upEnvVar),
+                        ts.createIdentifier('_UP_ENV'))));
+
+        this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
     }
 
     private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
@@ -1866,29 +1845,6 @@ export class Emitter {
 
             this.functionContext.code.push([Ops.RETURN, 0, 1]);
         }
-    }
-
-    private emitRestoreFunctionEnvironment(node: ts.Node) {
-        if (!this.functionContext.has_var_declaration || !this.functionContext.has_var_declaration_done) {
-            return;
-        }
-
-        // detect nesting level
-        const level = this.getFunctionLevelScope();
-
-        const upEnvVar = '_UP' + level;
-        const envVar = level > 1 ? '_UP' + (level - 1) : '_ENV';
-
-        // create function env.
-        const restoreCurrentEnv =
-            ts.createStatement(
-                ts.createAssignment(
-                    ts.createIdentifier('_ENV'),
-                    ts.createPropertyAccess(
-                        ts.createIdentifier(upEnvVar),
-                        ts.createIdentifier('_UP_ENV'))));
-
-        this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
     }
 
     private getFunctionLevelScope() {
