@@ -9,7 +9,7 @@ echo =
 echo =
 
 cd ..\..\thirdparty\Babylon.js\src
-node ../../../__out/main.js -jslib
+node ../../../__out/main.js -jslib -varAsLet
 
 rmdir /S /Q  BABYLON
 md BABYLON
@@ -45,4 +45,4 @@ echo ==================================
 echo =
 echo =
 
-node ../../__out/main.js
+node ../../__out/main.js -jslib -varAsLet
