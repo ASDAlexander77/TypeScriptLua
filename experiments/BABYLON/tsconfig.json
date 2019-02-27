@@ -26,6 +26,7 @@
       "babyloncli.ts",
       "canvas.ts",
       "window.ts",
+      "document.ts",
       "simple_test.ts",
       "declarations.d.ts"
     ],

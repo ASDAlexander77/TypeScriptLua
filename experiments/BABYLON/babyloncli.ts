@@ -87,10 +87,14 @@ import './BABYLON/Culling/babylon_ray';
 import './BABYLON/Collisions/babylon_pickingInfo';
 
 import WindowEx from './window';
+import DocumentEx from './document';
 import Canvas from './canvas';
 
 declare var window: WindowEx;
 window = new WindowEx();
+
+declare var document: DocumentEx;
+document = new DocumentEx();
 
 // hack to fix BabylonJS 3.3 code
 // @ts-ignore
@@ -166,6 +170,27 @@ class Runner {
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
         const ground = BABYLON.Mesh.CreateGround('ground1', 6, 6, 2, scene);
 
+        // wingnut crap.
+        scene.onPrePointerObservable.add(function (pointerInfo, eventState) {
+            // console.log(pointerInfo);
+            const event = pointerInfo.event;
+            let delta = 0;
+            if (event.wheelDelta) {
+                delta = event.wheelDelta;
+            } else if (event.detail) {
+                delta = -event.detail;
+            }
+
+            if (delta) {
+                const dir = scene.activeCamera.getDirection(BABYLON.Axis.Z);
+                if (delta > 0) {
+                    scene.activeCamera.position.addInPlace(dir);
+                } else {
+                    scene.activeCamera.position.subtractInPlace(dir);
+                }
+            }
+        }, BABYLON.PointerEventTypes.POINTERWHEEL, false);
+
         return scene;
     }
 
@@ -192,5 +217,7 @@ class Runner {
 
 new Runner().run();
 
+// @ts-ignore
+window.focus();
 // @ts-ignore
 window.loop();

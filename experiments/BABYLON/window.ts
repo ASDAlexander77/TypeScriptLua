@@ -38,6 +38,7 @@ export default class WindowEx {
         glut.passiveMotion(function (x: number, y: number) {
             console.log(`passive motion: x = ${x}, y = ${y}`);
 
+            /*
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
 
@@ -49,6 +50,7 @@ export default class WindowEx {
 
                 glut.postRedisplay();
             }
+            */
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
@@ -56,20 +58,40 @@ export default class WindowEx {
 
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            if (state === 1) {
-                const mouseups = WindowEx.events['mouseup'];
-                if (mouseups) {
-                    for (const mouseup of mouseups) {
-                        mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
-                    }
+            if (button < 3 || button > 4) {
+                if (state === 1) {
+                    const mouseups = WindowEx.events['mouseup'];
+                    if (mouseups) {
+                        for (const mouseup of mouseups) {
+                            mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                        }
 
-                    glut.postRedisplay();
+                        glut.postRedisplay();
+                    }
+                } else {
+                    const mousedowns = WindowEx.events['mousedown'];
+                    if (mousedowns) {
+                        for (const mousedown of mousedowns) {
+                            mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                        }
+
+                        glut.postRedisplay();
+                    }
                 }
             } else {
-                const mousedowns = WindowEx.events['mousedown'];
-                if (mousedowns) {
-                    for (const mousedown of mousedowns) {
-                        mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                const mousewheels = WindowEx.events['mousewheel'];
+                if (mousewheels) {
+                    for (const mousewheel of mousewheels) {
+                        mousewheel({
+                            pointerId: 1,
+                            type: 'mousewheel',
+                            wheelDelta: button === 3 ? 0.1 : -0.1,
+                            button,
+                            clientX: x,
+                            clientY: y,
+                            preventDefault,
+                            srcElement: WindowElement
+                        });
                     }
 
                     glut.postRedisplay();
@@ -172,6 +194,22 @@ export default class WindowEx {
         });
     }
 
+    public static focus() {
+        console.log(`focus`);
+
+        // glutGetModifiers();  ALT=4  SHIFT=1  CTRL=2
+
+        let preventedDefault = false;
+        const preventDefault = function () { preventedDefault = true; };
+
+        const focuses = WindowEx.events['focus'];
+        if (focuses) {
+            for (const focusItem of focuses) {
+                focusItem({ pointerId: 1, preventDefault, srcElement: WindowElement });
+            }
+        }
+    }
+
     // @ts-ignore
     public static addEventListener(eventName: string, cb: any, flag: boolean): void {
         let listeners = this.events[eventName];
@@ -189,7 +227,7 @@ export default class WindowEx {
                 WindowEx.__drawFunction = funct;
                 glut.postRedisplay();
                 // instead of calling draw on timer(which is working anyway), I want to call 'draw' at draw window stages
-                ///funct();
+                /// funct();
             }, 0);
         }
     }

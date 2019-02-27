@@ -31,8 +31,8 @@ extern "C"
 
     static int initWindowSizeGLUT(lua_State *L)
     {
-        const GLint width = luaL_checkinteger(L, 1);
-        const GLint height = luaL_checkinteger(L, 2);
+        const GLint width = (GLint) luaL_checkinteger(L, 1);
+        const GLint height = (GLint) luaL_checkinteger(L, 2);
 
         glutInitWindowSize(width, height);
 
@@ -41,8 +41,8 @@ extern "C"
 
     static int initWindowPositionGLUT(lua_State *L)
     {
-        const GLint top = luaL_checkinteger(L, 1);
-        const GLint left = luaL_checkinteger(L, 2);
+        const GLint top = (GLint) luaL_checkinteger(L, 1);
+        const GLint left = (GLint) luaL_checkinteger(L, 2);
 
         glutInitWindowPosition(top, left);
 
@@ -76,7 +76,7 @@ extern "C"
 
     // Display
     static int luaDisplayFunctionReference = LUA_NOREF;
-    static void displayCallback()
+    static void displayCallback(void)
     {
         if (luaDisplayFunctionReference != LUA_NOREF)
         {
@@ -185,6 +185,45 @@ extern "C"
         return 0;
     }    
 
+    // MouseWheel
+    static int luaMouseWheelFunctionReference = LUA_NOREF;
+    static void mouseWheelCallback(GLint button, GLint state, GLint x, GLint y)
+    {
+        if (luaMouseWheelFunctionReference != LUA_NOREF)
+        {
+            if (lua_rawgeti(global_L, LUA_REGISTRYINDEX, luaMouseWheelFunctionReference) != LUA_TFUNCTION)
+            {
+                luaL_error(global_L, "bad argument #%d (function expected) in callback", 1);
+                return;
+            }
+        }
+
+        lua_pushinteger(global_L, button);
+        lua_pushinteger(global_L, state);
+        lua_pushinteger(global_L, x);
+        lua_pushinteger(global_L, y);
+        lua_call(global_L, 4, 0);       
+    }
+
+    static int mouseWheelFuncGLUT(lua_State *L)
+    {
+        if (!lua_isfunction(L, 1))
+        {
+            return luaL_error(L, "bad argument #%d (function expected)", 1);
+        }
+
+        if (luaMouseWheelFunctionReference != LUA_NOREF)
+        {
+            luaL_unref(L, LUA_REGISTRYINDEX, luaMouseWheelFunctionReference);
+        }
+
+        luaMouseWheelFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        // glutMouseWheelFunc(mouseWheelCallback);
+
+        return 0;
+    }    
+
     // Motion
     static int luaMotionFunctionReference = LUA_NOREF;
     static void motionCallback(GLint x, GLint y)
@@ -224,7 +263,7 @@ extern "C"
 
     // Idle
     static int luaIdleFunctionReference = LUA_NOREF;
-    static void idleCallback()
+    static void idleCallback(void)
     {
         if (luaIdleFunctionReference != LUA_NOREF)
         {
@@ -259,7 +298,7 @@ extern "C"
 
     // Keyboard
     static int luaKeyboardFunctionReference = LUA_NOREF;
-    static void keyboardCallback(GLint k, GLint x, GLint y)
+    static void keyboardCallback(unsigned char k, GLint x, GLint y)
     {
         if (luaKeyboardFunctionReference != LUA_NOREF)
         {
@@ -274,7 +313,7 @@ extern "C"
         lua_pushinteger(global_L, x);
         lua_pushinteger(global_L, y);
         lua_call(global_L, 3, 0); 
-    }
+    } 
 
     static int keyboardFuncGLUT(lua_State *L)
     {
@@ -297,7 +336,7 @@ extern "C"
 
     // KeyboardUp
     static int luaKeyboardUpFunctionReference = LUA_NOREF;
-    static void keyboardUpCallback(GLint k, GLint x, GLint y)
+    static void keyboardUpCallback(unsigned char k, GLint x, GLint y)
     {
         if (luaKeyboardUpFunctionReference != LUA_NOREF)
         {
@@ -366,7 +405,7 @@ extern "C"
 
         luaSpecialFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutSpecialFunc(keyboardCallback);
+        glutSpecialFunc(specialCallback);
 
         return 0;
     }    
@@ -404,7 +443,7 @@ extern "C"
 
         luaSpecialUpFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-        glutSpecialUpFunc(keyboardUpCallback);
+        glutSpecialUpFunc(specialUpCallback);
 
         return 0;
     } 
@@ -465,7 +504,7 @@ extern "C"
 
     static int timerFuncGLUT(lua_State *L)
     {
-        GLint msecs = luaL_checkinteger(L, 1);
+        GLint msecs = (GLint) luaL_checkinteger(L, 1);
         if (!lua_isfunction(L, 2))
         {
             return luaL_error(L, "bad argument #%d (function expected)", 2);
@@ -480,7 +519,7 @@ extern "C"
         luaTimerFunctionReference = luaL_ref(L, LUA_REGISTRYINDEX);
 
         // 3)
-        GLint value = luaL_checkinteger(L, 3);
+        GLint value = (GLint) luaL_checkinteger(L, 3);
 
         glutTimerFunc(msecs, timerCallback, value);
 
@@ -507,7 +546,7 @@ extern "C"
 
     static int setKeyRepeatGLUT(lua_State *L)
     {
-        GLint value = luaL_checkinteger(L, 1);
+        GLint value = (GLint) luaL_checkinteger(L, 1);
         glutSetKeyRepeat(value);
         return 0;
     }
@@ -553,6 +592,7 @@ extern "C"
         {"display", displayFuncGLUT},
         {"passiveMotion", passiveMotionFuncGLUT},
         {"mouse", mouseFuncGLUT},
+        {"mouseWheel", mouseWheelFuncGLUT},
         {"motion", motionFuncGLUT},
         {"idle", idleFuncGLUT},
         {"keyboard", keyboardFuncGLUT},

@@ -381,6 +381,23 @@ export class Emitter {
         return hasVar;
     }
 
+    private getAllVar(location: ts.Node): string[] {
+        const vars = <string[]>[];
+        function checkAllVar(node: ts.Node): any {
+            if (node.kind === ts.SyntaxKind.VariableDeclarationList) {
+                if (!Helpers.isConstOrLet(node)) {
+                    (<ts.VariableDeclarationList>node).declarations.forEach(
+                        d => vars.push((<ts.Identifier>d.name).text));
+                }
+            }
+
+            ts.forEachChild(node, checkAllVar);
+        }
+
+        ts.forEachChild(location, checkAllVar);
+        return vars;
+    }
+
     private processDebugInfo(nodeIn: ts.Node, functionContext: FunctionContext) {
         let node = nodeIn;
         let file = node.getSourceFile();
@@ -1678,6 +1695,13 @@ export class Emitter {
 
     private emitBeginningOfFunctionScopeForVar(location: ts.Node) {
         if (this.varAsLet) {
+            if (location.kind !== ts.SyntaxKind.SourceFile && location.kind !== ts.SyntaxKind.ModuleBlock) {
+                const declareVars = this.getAllVar(location);
+                for (const name of declareVars) {
+                    this.processVariableDeclarationOne(name, undefined, true);
+                }
+            }
+
             return;
         }
 

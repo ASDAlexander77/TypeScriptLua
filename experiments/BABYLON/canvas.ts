@@ -35,8 +35,17 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         };
     }
 
+    public getContext(name: string, options: any) {
+        if (name === 'webgl2') {
+            return this;
+        }
+
+        return null;
+    }
+
     focus() {
         // no action
+        window.focus();
     }
 
     // @ts-ignore
