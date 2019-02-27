@@ -1,6 +1,10 @@
-module BABYLON {
-    export var CameraInputTypes = {};
 
-    (<any>CameraInputTypes)["ArcRotateCameraGamepadInput"] = true;
+function f() {
+    console.log(a);
+
+    var a = 1;
+
+    console.log(a);
 }
+
 

@@ -383,7 +383,22 @@ export class Emitter {
 
     private getAllVar(location: ts.Node): string[] {
         const vars = <string[]>[];
+        let root = true;
         function checkAllVar(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
             if (node.kind === ts.SyntaxKind.VariableDeclarationList) {
                 if (!Helpers.isConstOrLet(node)) {
                     (<ts.VariableDeclarationList>node).declarations.forEach(

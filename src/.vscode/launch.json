@@ -12,6 +12,7 @@
             "program": "${workspaceFolder}/../__out/main.js",
             "cwd": "${workspaceFolder}/../test",
             "args": [
+                "-varAsLet",
                 "tsconfig.json"
             ]
         },
