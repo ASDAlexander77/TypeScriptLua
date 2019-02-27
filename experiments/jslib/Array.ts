@@ -51,15 +51,15 @@ module JS {
 
         public constructor() {
             const zeroVal = rawget(this, 0);
-            if (zeroVal || rawget(this, 1)) {
-                if (zeroVal) {
+            if (zeroVal !== null || rawget(this, 1) !== null) {
+                if (zeroVal !== null) {
                     delete this[0];
                 }
 
                 // @ts-ignore
                 const _len = ArrayHelper.getLength(this);
 
-                if (zeroVal) {
+                if (zeroVal !== null) {
                     table.insert(this._values, zeroVal);
                 }
 

@@ -1,11 +1,23 @@
 // @ts-ignore
 import glut from 'glut';
 
+class WindowElement {
+    public static setPointerCapture(pointerId: number) {
+        console.log(`pointer capture ${pointerId}`);
+    }
+
+    public static releasePointerCapture(pointerId: number) {
+        console.log(`releaswe pointer capture ${pointerId}`);
+    }
+}
+
 export default class WindowEx {
     static events = {};
 
     static innerWidth = 640;
     static innerHeight = 480;
+
+    static __drawFunction: any;
 
     constructor() {
         /* init GLUT */
@@ -16,25 +28,27 @@ export default class WindowEx {
         glut.ignoreKeyRepeat(true);
 
         glut.display(function () {
+            if (WindowEx.__drawFunction) {
+                WindowEx.__drawFunction();
+            }
+
             glut.swapBuffers();
         });
 
         glut.passiveMotion(function (x: number, y: number) {
             console.log(`passive motion: x = ${x}, y = ${y}`);
 
-            /*
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
 
             const mousemoves = WindowEx.events['mousemove'];
             if (mousemoves) {
                 for (const mousemove of mousemoves) {
-                    mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+                    mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
             }
-            */
         });
 
         glut.mouse(function (button: number, state: number, x: number, y: number) {
@@ -46,7 +60,7 @@ export default class WindowEx {
                 const mouseups = WindowEx.events['mouseup'];
                 if (mouseups) {
                     for (const mouseup of mouseups) {
-                        mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
+                        mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                     }
 
                     glut.postRedisplay();
@@ -55,7 +69,7 @@ export default class WindowEx {
                 const mousedowns = WindowEx.events['mousedown'];
                 if (mousedowns) {
                     for (const mousedown of mousedowns) {
-                        mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
+                        mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                     }
 
                     glut.postRedisplay();
@@ -72,7 +86,7 @@ export default class WindowEx {
             const mousemoves = WindowEx.events['mousemove'];
             if (mousemoves) {
                 for (const mousemove of mousemoves) {
-                    mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+                    mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -80,7 +94,7 @@ export default class WindowEx {
         });
 
         glut.idle(function () {
-            glut.postRedisplay();
+            // glut.postRedisplay();
         });
 
         glut.keyboard(function (k: number, x: number, y: number) {
@@ -93,7 +107,7 @@ export default class WindowEx {
             const keydowns = WindowEx.events['keydown'];
             if (keydowns) {
                 for (const keydown of keydowns) {
-                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -110,7 +124,7 @@ export default class WindowEx {
             const keyups = WindowEx.events['keyup'];
             if (keyups) {
                 for (const keyup of keyups) {
-                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -127,7 +141,7 @@ export default class WindowEx {
             const keydowns = WindowEx.events['keydown'];
             if (keydowns) {
                 for (const keydown of keydowns) {
-                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -144,7 +158,7 @@ export default class WindowEx {
             const keyups = WindowEx.events['keyup'];
             if (keyups) {
                 for (const keyup of keyups) {
-                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -172,8 +186,10 @@ export default class WindowEx {
     public static setTimeout(funct: any, millisec: number) {
         if (funct) {
             glut.timer(millisec, function () {
+                WindowEx.__drawFunction = funct;
                 glut.postRedisplay();
-                funct();
+                // instead of calling draw on timer(which is working anyway), I want to call 'draw' at draw window stages
+                ///funct();
             }, 0);
         }
     }
