@@ -129,7 +129,7 @@ export default class WindowEx {
             const keydowns = WindowEx.events['keydown'];
             if (keydowns) {
                 for (const keydown of keydowns) {
-                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                    keydown({ pointerId: 1, keyCode: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -146,7 +146,7 @@ export default class WindowEx {
             const keyups = WindowEx.events['keyup'];
             if (keyups) {
                 for (const keyup of keyups) {
-                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                    keyup({ pointerId: 1, keyCode: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -163,7 +163,7 @@ export default class WindowEx {
             const keydowns = WindowEx.events['keydown'];
             if (keydowns) {
                 for (const keydown of keydowns) {
-                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                    keydown({ pointerId: 1, keyCode: k - 63, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
@@ -180,7 +180,7 @@ export default class WindowEx {
             const keyups = WindowEx.events['keyup'];
             if (keyups) {
                 for (const keyup of keyups) {
-                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
+                    keyup({ pointerId: 1, keyCode: k - 63, clientX: x, clientY: y, preventDefault, srcElement: WindowElement });
                 }
 
                 glut.postRedisplay();
