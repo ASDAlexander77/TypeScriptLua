@@ -49,7 +49,7 @@ module JS {
         // this is Hack, otherwise it will cause recusive calling of Array.constructor
         private _values: T[] = <T[]>{};
 
-        public constructor() {
+        public constructor(size?: number) {
             const zeroVal = rawget(this, 0);
             if (zeroVal !== null || rawget(this, 1) !== null) {
                 if (zeroVal !== null) {
@@ -114,6 +114,10 @@ module JS {
                 // @ts-ignore
                 __set_call_undefined__(_this, indx, val);
             };
+
+            if (size) {
+                this.length = size;
+            }
         }
 
         /*
