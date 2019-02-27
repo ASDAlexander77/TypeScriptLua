@@ -26,9 +26,12 @@ export default class WindowEx {
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
 
-            const mousemove = WindowEx.events['mousemove'];
-            if (mousemove) {
-                mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+            const mousemoves = WindowEx.events['mousemove'];
+            if (mousemoves) {
+                for (const mousemove of mousemoves) {
+                    mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+                }
+
                 glut.postRedisplay();
             }
             */
@@ -40,15 +43,21 @@ export default class WindowEx {
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
             if (state === 1) {
-                const mouseup = WindowEx.events['mouseup'];
-                if (mouseup) {
-                    mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
+                const mouseups = WindowEx.events['mouseup'];
+                if (mouseups) {
+                    for (const mouseup of mouseups) {
+                        mouseup({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
+                    }
+
                     glut.postRedisplay();
                 }
             } else {
-                const mousedown = WindowEx.events['mousedown'];
-                if (mousedown) {
-                    mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
+                const mousedowns = WindowEx.events['mousedown'];
+                if (mousedowns) {
+                    for (const mousedown of mousedowns) {
+                        mousedown({ pointerId: 1, button, clientX: x, clientY: y, preventDefault });
+                    }
+
                     glut.postRedisplay();
                 }
             }
@@ -60,9 +69,12 @@ export default class WindowEx {
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
 
-            const mousemove = WindowEx.events['mousemove'];
-            if (mousemove) {
-                mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+            const mousemoves = WindowEx.events['mousemove'];
+            if (mousemoves) {
+                for (const mousemove of mousemoves) {
+                    mousemove({ pointerId: 1, clientX: x, clientY: y, preventDefault });
+                }
+
                 glut.postRedisplay();
             }
         });
@@ -78,9 +90,12 @@ export default class WindowEx {
 
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            const keydown = WindowEx.events['keydown'];
-            if (keydown) {
-                keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+            const keydowns = WindowEx.events['keydown'];
+            if (keydowns) {
+                for (const keydown of keydowns) {
+                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                }
+
                 glut.postRedisplay();
             }
         });
@@ -92,9 +107,12 @@ export default class WindowEx {
 
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            const keyup = WindowEx.events['keyup'];
-            if (keyup) {
-                keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+            const keyups = WindowEx.events['keyup'];
+            if (keyups) {
+                for (const keyup of keyups) {
+                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                }
+
                 glut.postRedisplay();
             }
         });
@@ -106,9 +124,12 @@ export default class WindowEx {
 
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            const keydown = WindowEx.events['keydown'];
-            if (keydown) {
-                keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+            const keydowns = WindowEx.events['keydown'];
+            if (keydowns) {
+                for (const keydown of keydowns) {
+                    keydown({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                }
+
                 glut.postRedisplay();
             }
         });
@@ -120,9 +141,12 @@ export default class WindowEx {
 
             let preventedDefault = false;
             const preventDefault = function () { preventedDefault = true; };
-            const keyup = WindowEx.events['keyup'];
-            if (keyup) {
-                keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+            const keyups = WindowEx.events['keyup'];
+            if (keyups) {
+                for (const keyup of keyups) {
+                    keyup({ pointerId: 1, key: k, clientX: x, clientY: y, preventDefault });
+                }
+
                 glut.postRedisplay();
             }
         });
@@ -136,7 +160,13 @@ export default class WindowEx {
 
     // @ts-ignore
     public static addEventListener(eventName: string, cb: any, flag: boolean): void {
-        this.events[eventName] = cb;
+        let listeners = this.events[eventName];
+        if (!listeners) {
+            listeners = [];
+            this.events[eventName] = listeners;
+        }
+
+        listeners.push(cb);
     }
 
     public static setTimeout(funct: any, millisec: number) {
