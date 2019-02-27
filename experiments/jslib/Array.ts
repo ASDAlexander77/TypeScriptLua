@@ -173,7 +173,7 @@ module JS {
                     table.remove(this._values, i);
                 }
             } else {
-                for (let i = _len; i <= newSize; i++) {
+                for (let i = _len + 1; i <= newSize; i++) {
                     table.insert(this._values, i, ArrayNullElement);
                 }
             }
