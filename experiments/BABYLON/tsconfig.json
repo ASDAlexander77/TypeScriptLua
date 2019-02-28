@@ -24,6 +24,7 @@
     },
     "include": [
       "babyloncli.ts",
+      "testapp.ts",
       "canvas.ts",
       "window.ts",
       "document.ts",
