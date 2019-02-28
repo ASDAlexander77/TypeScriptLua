@@ -54,7 +54,7 @@ module JS {
         }
 
         public static substr(constString: string, begin?: number, len?: number): string {
-            return string.sub(constString, (begin || 0) + 1, (begin || 0) + (len || string.len(constString)) + 1);
+            return string.sub(constString, (begin || 0) + 1, (begin || 0) + (len || string.len(constString)));
         }
 
         public static substring(constString: string, begin?: number, end?: number): string {
