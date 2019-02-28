@@ -18,6 +18,7 @@ export default class WindowEx {
     static innerHeight = 480;
 
     static __drawFunction: any;
+    static __immediateFunction: any;
 
     public static location = { href: 'file://' };
 
@@ -223,22 +224,31 @@ export default class WindowEx {
         listeners.push(cb);
     }
 
+    private static timerCallback(value: number) {
+        if (value === 1) {
+            glut.postRedisplay();
+            return;
+        }
+
+        if (value === 2) {
+            WindowEx.__immediateFunction();
+            return;
+        }
+
+        throw new Error('wrong timer ID: ' + value);
+    }
+
     public static setTimeout(funct: any, millisec: number) {
         if (funct) {
             WindowEx.__drawFunction = funct;
-            glut.timer(millisec, function () {
-                glut.postRedisplay();
-                // instead of calling draw on timer(which is working anyway), I want to call 'draw' at draw window stages
-                /// funct();
-            }, 0);
+            glut.timer(millisec, WindowEx.timerCallback, 1);
         }
     }
 
     public static setImmediate(funct: any) {
         if (funct) {
-            glut.timer(0, function () {
-                funct();
-            }, 0);
+            WindowEx.__immediateFunction = funct;
+            glut.timer(0, WindowEx.timerCallback, 2);
         }
     }
 

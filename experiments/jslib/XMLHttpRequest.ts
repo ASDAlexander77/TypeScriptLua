@@ -41,7 +41,11 @@ module JS {
 
         public send(body?: string) {
             this.readyState = XMLHttpRequest.LOADING;
-            const file = table.pack(io.open(this.url, 'r'));
+            const prefix = 'file://';
+            const actualPrefix = this.url.substr(0, prefix.length);
+            const absPath = actualPrefix === prefix ? this.url.substr(prefix.length) : this.url;
+
+            const file = table.pack(io.open(absPath, 'r'));
             if (file[1]) {
                 const data = file[1].read('*all');
                 this.responseText = string.gsub(data, '^\xef\xbb\xbf', '');
