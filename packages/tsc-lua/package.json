@@ -1,6 +1,6 @@
 {
   "name": "typescript-lua-compiler",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "TypeScript compiler for Lua",
   "keywords": [
     "typescript",
@@ -20,7 +20,7 @@
     "fs-extra": "^7.0.1",
     "path": "^0.12.7",
     "source-map": "^0.7.3",
-    "typescript": "^3.2.2"
+    "typescript": "^3.3.3333"
   },
   "engines": {
     "node": ">=4.2.0"
@@ -35,7 +35,7 @@
   "author": "Alexander Duzhar",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ashleygwilliams/my_package/issues"
+    "url": "https://github.com/ASDAlexander77/TypeScriptLua/issues"
   },
   "homepage": "https://github.com/ASDAlexander77/TypeScriptLUA/#readme"
 }
