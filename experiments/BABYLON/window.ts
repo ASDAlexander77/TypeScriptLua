@@ -225,11 +225,19 @@ export default class WindowEx {
 
     public static setTimeout(funct: any, millisec: number) {
         if (funct) {
+            WindowEx.__drawFunction = funct;
             glut.timer(millisec, function () {
-                WindowEx.__drawFunction = funct;
                 glut.postRedisplay();
                 // instead of calling draw on timer(which is working anyway), I want to call 'draw' at draw window stages
                 /// funct();
+            }, 0);
+        }
+    }
+
+    public static setImmediate(funct: any) {
+        if (funct) {
+            glut.timer(0, function () {
+                funct();
             }, 0);
         }
     }

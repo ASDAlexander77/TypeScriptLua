@@ -33,7 +33,7 @@ module JS {
                     }
 
                     if (position > current) {
-                        const part = StringHelper.substring(constString, current, position - 1);
+                        const part = StringHelper.substring(constString, current, position);
                         ArrayHelper.pushOne(result, part);
                     }
 
@@ -58,11 +58,15 @@ module JS {
         }
 
         public static substring(constString: string, begin?: number, end?: number): string {
-            return string.sub(constString, (begin || 0) + 1, end != undefined ? end + 1 : null);
+            if (begin == end && end == null || begin === end) {
+                return '';
+            }
+
+            return string.sub(constString, (begin || 0) + 1, end != undefined ? end : null);
         }
 
         public static slice(constString: string, start?: number, end?: number): string {
-            return string.sub(constString, (start || 0) + 1, end != undefined ? end + 1 : null);
+            return string.sub(constString, (start || 0) + 1, end != undefined ? end : null);
         }
 
         public static indexOf(constString: string, pattern: string, begin?: number): number {
@@ -112,7 +116,7 @@ module JS {
                     return result;
                 }
 
-                const part = StringHelper.substring(constString, current, position - 1);
+                const part = StringHelper.substring(constString, current, position);
 
                 current = position + sizeSeparator;
 

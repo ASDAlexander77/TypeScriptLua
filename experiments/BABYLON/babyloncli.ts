@@ -88,6 +88,7 @@ import './BABYLON/Collisions/babylon_pickingInfo';
 
 import './BABYLON/Loading/babylon_sceneLoader';
 import './BABYLON/Tools/babylon_database';
+import './BABYLON/Loading/Plugins/babylon_babylonFileLoader';
 
 import WindowEx from './window';
 import DocumentEx from './document';
@@ -108,7 +109,7 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestLoadMesh().run();
+new TestApp().run();
 
 // @ts-ignore
 window.focus();

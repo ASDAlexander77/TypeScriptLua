@@ -11,6 +11,8 @@ export default class TestLoadMesh {
         this.canvas = new Canvas();
         this.engine = new BABYLON.Engine(
             this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
+        this.engine.disableManifestCheck = true;
+        this.engine.enableOfflineSupport = true;
         // this.engine = new BABYLON.NullEngine();
 
         // TODO: debug options
@@ -55,7 +57,7 @@ export default class TestLoadMesh {
         // load scene
         BABYLON.SceneLoader.Load(
             '',
-            'skull.babylon',
+            'file://skull.babylon',
             this.engine,
             (loadedScene) => {
                 this.scene = loadedScene;
