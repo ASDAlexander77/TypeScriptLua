@@ -1,10 +1,9 @@
+import './JS';
 
 function f() {
-    console.log(a);
-
-    var a = 1;
-
-    console.log(a);
+    console.log(new Date().now());
 }
 
-
+for (let i = 0; i < 100000; i++) {
+    f();
+}
