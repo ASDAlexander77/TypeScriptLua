@@ -25,6 +25,7 @@
     "include": [
       "babyloncli.ts",
       "testapp.ts",
+      "testloadmesh.ts",
       "canvas.ts",
       "window.ts",
       "document.ts",

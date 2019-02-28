@@ -9,6 +9,10 @@ module JS {
             print(...params);
         }
 
+        public static warn(...params: any[]) {
+            print(...params);
+        }
+
         public static error(...params: any[]) {
             io.stderr.write(tostring(params[0]));
         }

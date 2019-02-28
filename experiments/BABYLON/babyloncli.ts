@@ -86,11 +86,15 @@ import './BABYLON/Materials/babylon_colorCurves';
 import './BABYLON/Culling/babylon_ray';
 import './BABYLON/Collisions/babylon_pickingInfo';
 
+import './BABYLON/Loading/babylon_sceneLoader';
+import './BABYLON/Tools/babylon_database';
+
 import WindowEx from './window';
 import DocumentEx from './document';
 // @ts-ignore
 import Canvas from './canvas';
 import TestApp from './testapp';
+import TestLoadMesh from './testloadmesh';
 
 declare var window: WindowEx;
 window = new WindowEx();
@@ -104,7 +108,7 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestApp().run();
+new TestLoadMesh().run();
 
 // @ts-ignore
 window.focus();

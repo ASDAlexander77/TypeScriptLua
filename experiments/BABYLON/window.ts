@@ -19,6 +19,8 @@ export default class WindowEx {
 
     static __drawFunction: any;
 
+    public static location = { href: 'file://' };
+
     constructor() {
         /* init GLUT */
         glut.init();
