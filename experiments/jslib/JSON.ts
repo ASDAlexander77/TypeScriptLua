@@ -2,7 +2,6 @@ module JS {
 
     type TokenSingle = string | number | boolean | null | {};
     type Token = TokenSingle | Array<TokenSingle>;
-    type CallbackType = (source: object, property: any, value: Token) => any;
 
     // Internal: A map of escaped control characters and their unescaped
     // equivalents.
@@ -313,7 +312,7 @@ module JS {
         }
 
         // Public: `JSON.parse`. See ES 5.1 section 15.12.2.
-        public parse(source: string, callback?: CallbackType) {
+        public parse(source: string) {
             this.Index = 0;
             this.Source = '' + source;
             const result = this.get(this.lex());
@@ -330,8 +329,8 @@ module JS {
     }
 
     export class JSON {
-        public static parse(source: string, callback?: CallbackType): any {
-            return new JSONParse().parse(source, callback);
+        public static parse(source: string): any {
+            return new JSONParse().parse(source);
         }
     }
 }
