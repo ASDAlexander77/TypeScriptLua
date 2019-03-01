@@ -3984,7 +3984,7 @@ export class Emitter {
         // this.<...>(this support)
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
-            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference && !isMemberStatic)
+            // && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference)
             && !upvalueOrConst
             && node.parent
             && node.parent.kind === ts.SyntaxKind.CallExpression) {
