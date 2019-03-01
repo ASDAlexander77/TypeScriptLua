@@ -32,6 +32,7 @@ export class ResolvedInfo {
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
     public isDeclareVar: boolean;
+    public isGlobalReference: boolean;
     public declarationInfo: any;
     // TODO: use chainPop instead
     public popRequired: boolean;
@@ -685,7 +686,7 @@ export class IdentifierResolver {
             loadMemberInfo.kind = ResolvedKind.LoadGlobalMember;
             loadMemberInfo.objectInfo = objectInfo;
             loadMemberInfo.memberInfo = methodInfo;
-            loadMemberInfo.isTypeReference = true;
+            loadMemberInfo.isGlobalReference = true;
             return loadMemberInfo;
         }
 

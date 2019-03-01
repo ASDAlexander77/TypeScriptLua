@@ -567,10 +567,10 @@ export class Emitter {
         }
 
         // add this to object
-        let addThisAsParameter =
-            (location && location.parent && location.parent.kind === ts.SyntaxKind.PropertyAssignment)
+        let addThisAsParameter = !isAccessor &&
+            ((location && location.parent && location.parent.kind === ts.SyntaxKind.PropertyAssignment)
             || (location && location.parent && location.parent.parent
-                && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression);
+                && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression));
         if (addThisAsParameter) {
             this.functionContext.createParam('this');
         }
@@ -3773,6 +3773,7 @@ export class Emitter {
             // this is construction call
             const constructorCall = ts.createPropertyAccess(this.resolver.superClass, ts.createIdentifier('constructor'));
             constructorCall.parent = node.parent;
+            (<any>constructorCall).__self_call_required = false;
             this.processExpression(constructorCall);
         } else {
             this.processExpression(this.resolver.superClass);
@@ -3912,6 +3913,7 @@ export class Emitter {
             let memberIdentifierInfo = resolvedInfo.memberInfo;
             memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
             memberIdentifierInfo.isDeclareVar = resolvedInfo.isDeclareVar;
+            memberIdentifierInfo.isGlobalReference = resolvedInfo.isGlobalReference;
             memberIdentifierInfo.declarationInfo = resolvedInfo.declarationInfo;
 
             const resultInfo = this.functionContext.useRegisterAndPush();
@@ -3987,6 +3989,7 @@ export class Emitter {
             && objectIdentifierInfo.kind === ResolvedKind.Register
             // && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference)
             && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isDeclareVar)
+            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isGlobalReference)
             && !upvalueOrConst
             && node.parent
             && node.parent.kind === ts.SyntaxKind.CallExpression) {

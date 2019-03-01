@@ -1,5 +1,8 @@
 import './JS';
 
-declare var math;
-
-print(math.floor(1.1));
+let a = { obj: "asd", obj2: "value" };
+delete a.obj;
+for (let i in a) {
+    console.log(i);
+    console.log(a[i]);
+}

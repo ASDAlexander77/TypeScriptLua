@@ -325,6 +325,7 @@ export class Preprocessor {
         }
 
         if (memberAccess.kind === ts.SyntaxKind.SuperKeyword) {
+            (<any>memberAccess).__self_call_required = false;
             // add 'this' parameter
             callExpression.arguments = <ts.NodeArray<ts.Expression>><any>[ts.createThis(), ...callExpression.arguments];
         }
