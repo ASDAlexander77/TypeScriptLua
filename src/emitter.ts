@@ -3911,6 +3911,7 @@ export class Emitter {
             let objectIdentifierInfo = resolvedInfo.objectInfo;
             let memberIdentifierInfo = resolvedInfo.memberInfo;
             memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
+            memberIdentifierInfo.isDeclareVar = resolvedInfo.isDeclareVar;
             memberIdentifierInfo.declarationInfo = resolvedInfo.declarationInfo;
 
             const resultInfo = this.functionContext.useRegisterAndPush();
@@ -3985,6 +3986,7 @@ export class Emitter {
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
             // && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference)
+            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isDeclareVar)
             && !upvalueOrConst
             && node.parent
             && node.parent.kind === ts.SyntaxKind.CallExpression) {

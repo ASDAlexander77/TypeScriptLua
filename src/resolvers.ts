@@ -31,6 +31,7 @@ export class ResolvedInfo {
     public upvalueStackIndex: number;
     public originalInfo: ResolvedInfo;
     public isTypeReference: boolean;
+    public isDeclareVar: boolean;
     public declarationInfo: any;
     // TODO: use chainPop instead
     public popRequired: boolean;
@@ -468,6 +469,7 @@ export class IdentifierResolver {
 
                         varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
+                        varInfo.isDeclareVar = isDeclareVar;
                         return varInfo;
                     } else if ((resolved.flags & 2) === 2) {
                         varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
@@ -477,6 +479,7 @@ export class IdentifierResolver {
 
                         varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
+                        varInfo.isDeclareVar = isDeclareVar;
                         return varInfo;
                     } else {
                         console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
@@ -502,18 +505,21 @@ export class IdentifierResolver {
                 case ts.SyntaxKind.EnumDeclaration:
                     const enumInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     enumInfo.isTypeReference = true;
+                    enumInfo.isDeclareVar = isDeclareVar;
                     enumInfo.declarationInfo = declaration;
                     return enumInfo;
 
                 case ts.SyntaxKind.ClassDeclaration:
                     const classInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     classInfo.isTypeReference = true;
+                    classInfo.isDeclareVar = isDeclareVar;
                     classInfo.declarationInfo = declaration;
                     return classInfo;
 
                 case ts.SyntaxKind.ModuleDeclaration:
                     const moduleInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     moduleInfo.isTypeReference = true;
+                    moduleInfo.isDeclareVar = isDeclareVar;
                     moduleInfo.declarationInfo = declaration;
                     return moduleInfo;
 
