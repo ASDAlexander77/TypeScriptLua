@@ -10,6 +10,14 @@ module JS {
             return string.len(constString);
         }
 
+        public static fromCharCode(code: string | number): string {
+            return string.char(tonumber(code));
+        }
+
+        public static charCodeAt(constString: string, index: number): number {
+            return string.byte(constString, index + 1);
+        }
+
         public static replace(constString: string, valOrRegExp: string | RegExp, valOrFunc: string | FuncString): string {
             if (typeof valOrRegExp === 'string') {
                 return string.gsub(constString, string.gsub(valOrRegExp, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%1'), valOrFunc);
@@ -156,6 +164,10 @@ module JS {
         public replace(valOrRegExp: string | RegExp, valOrFunc: string | FuncString): String {
             // tslint:disable-next-line:no-construct
             return new String(StringHelper.replace(this.constString, valOrRegExp, valOrFunc));
+        }
+
+        public charCodeAt(index: number): number {
+            return StringHelper.charCodeAt(this.constString, index);
         }
 
         public substr(begin?: number, len?: number): String {
