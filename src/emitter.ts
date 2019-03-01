@@ -576,7 +576,9 @@ export class Emitter {
         }
 
         const origin = (<ts.Node>(<any>location).__origin);
-        if (!addThisAsParameter && isMethod && (origin || !this.functionContext.thisInUpvalue)) {
+        if (!addThisAsParameter
+            && isMethod
+            && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = (this.hasMemberThis(origin) || this.hasNodeUsedThis(location))
                 && !(isClassDeclaration && this.functionContext.isStatic && !isAccessor);
             if (createThis) {
@@ -3982,7 +3984,7 @@ export class Emitter {
         // this.<...>(this support)
         if (this.resolver.methodCall
             && objectIdentifierInfo.kind === ResolvedKind.Register
-            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference)
+            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference && !isMemberStatic)
             && !upvalueOrConst
             && node.parent
             && node.parent.kind === ts.SyntaxKind.CallExpression) {
