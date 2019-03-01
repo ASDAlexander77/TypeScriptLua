@@ -16,7 +16,10 @@ module JS {
         114: '\r'
     };
 
-    export class SyntaxError {
+    export class SyntaxError extends Error {
+        constructor() {
+            super('JSON Syntax Error');
+        }
     }
 
     export class JSONParse {

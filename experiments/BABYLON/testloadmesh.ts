@@ -57,7 +57,7 @@ export default class TestLoadMesh {
         // load scene
         BABYLON.SceneLoader.Load(
             '',
-            'file://skull.babylon',
+            'file://test.babylon',
             this.engine,
             (loadedScene) => {
                 this.scene = loadedScene;
