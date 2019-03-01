@@ -566,7 +566,11 @@ export class Emitter {
             this.processTSCode(this.libCommon, true);
         }
 
-        let addThisAsParameter = false;
+        // add this to object
+        let addThisAsParameter =
+            (location && location.parent && location.parent.kind === ts.SyntaxKind.PropertyAssignment)
+            || (location && location.parent && location.parent.parent
+                && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression);
         const origin = (<ts.Node>(<any>location).__origin);
         if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = (this.hasMemberThis(origin) || this.hasNodeUsedThis(location))
@@ -2702,6 +2706,10 @@ export class Emitter {
 
     private processTypeAssertionExpression(node: ts.TypeAssertion) {
         this.processExpression(node.expression);
+
+        if (node.type.kind === ts.SyntaxKind.InterfaceDeclaration) {
+            //
+        }
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
