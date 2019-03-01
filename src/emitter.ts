@@ -571,8 +571,12 @@ export class Emitter {
             (location && location.parent && location.parent.kind === ts.SyntaxKind.PropertyAssignment)
             || (location && location.parent && location.parent.parent
                 && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression);
+        if (addThisAsParameter) {
+            this.functionContext.createParam('this');
+        }
+
         const origin = (<ts.Node>(<any>location).__origin);
-        if (isMethod && (origin || !this.functionContext.thisInUpvalue)) {
+        if (!addThisAsParameter && isMethod && (origin || !this.functionContext.thisInUpvalue)) {
             const createThis = (this.hasMemberThis(origin) || this.hasNodeUsedThis(location))
                 && !(isClassDeclaration && this.functionContext.isStatic && !isAccessor);
             if (createThis) {
