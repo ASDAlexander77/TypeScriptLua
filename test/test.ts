@@ -1,12 +1,6 @@
 import './JS';
 
-const numLivesForCat = 9;
-const kitty = {
-    name: "Aurora",
-    numLives: numLivesForCat,
-}
+declare var A: any;
 
-kitty.name = "Rory";
-kitty.name = "Kitty";
-kitty.name = "Cat";
-console.log(kitty.name);
+
+A.print();

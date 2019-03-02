@@ -443,7 +443,8 @@ export class IdentifierResolver {
                 && declaration.parent && declaration.parent.kind === ts.SyntaxKind.VariableDeclarationList
                 && declaration.parent.parent && declaration.parent.parent.kind === ts.SyntaxKind.VariableStatement
                 && declaration.parent.parent.modifiers
-                && declaration.parent.parent.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword);
+                && declaration.parent.parent.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)
+                && declaration.type.kind === ts.SyntaxKind.AnyKeyword;
 
             const kind: ts.SyntaxKind = <ts.SyntaxKind>declaration.kind;
             switch (kind) {

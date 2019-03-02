@@ -1,7 +1,9 @@
+/// <reference path="./window.d.ts" />
+
 // @ts-ignore
 import _gl from 'webgl';
 
-declare var window: any;
+declare var window: WindowEx;
 
 // @ts-ignore
 export default class Canvas extends _gl implements WebGLRenderingContext {
