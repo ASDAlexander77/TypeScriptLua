@@ -431,12 +431,6 @@ export class IdentifierResolver {
                         ? resolved.declarations[0]
                         : undefined);
             if (!declaration) {
-                /*
-                if (resolved.name === 'undefined') {
-                    return this.returnConst(null, functionContext);
-                }
-                */
-
                 if (resolved.name === 'arguments') {
                     return this.resolveMemberOfCurrentScope('arg', functionContext);
                 }
@@ -471,6 +465,7 @@ export class IdentifierResolver {
                         varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         varInfo.isDeclareVar = isDeclareVar;
+                        varInfo.isGlobalReference = false;
                         return varInfo;
                     } else if ((resolved.flags & 2) === 2) {
                         varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
@@ -481,6 +476,7 @@ export class IdentifierResolver {
                         varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                         varInfo.isTypeReference = isAny || type && type.kind === ts.SyntaxKind.TypeReference;
                         varInfo.isDeclareVar = isDeclareVar;
+                        varInfo.isGlobalReference = false;
                         return varInfo;
                     } else {
                         console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
@@ -492,7 +488,7 @@ export class IdentifierResolver {
                             }
                         }
 
-                        this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     }
 
                     break;
@@ -501,13 +497,16 @@ export class IdentifierResolver {
                     return this.returnLocalOrUpvalue(identifier.text, functionContext);
 
                 case ts.SyntaxKind.FunctionDeclaration:
-                    return this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    const funcInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                    funcInfo.isGlobalReference = false;
+                    return funcInfo;
 
                 case ts.SyntaxKind.EnumDeclaration:
                     const enumInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     enumInfo.isTypeReference = true;
                     enumInfo.isDeclareVar = isDeclareVar;
                     enumInfo.declarationInfo = declaration;
+                    enumInfo.isGlobalReference = false;
                     return enumInfo;
 
                 case ts.SyntaxKind.ClassDeclaration:
@@ -515,6 +514,7 @@ export class IdentifierResolver {
                     classInfo.isTypeReference = true;
                     classInfo.isDeclareVar = isDeclareVar;
                     classInfo.declarationInfo = declaration;
+                    classInfo.isGlobalReference = false;
                     return classInfo;
 
                 case ts.SyntaxKind.ModuleDeclaration:
@@ -522,16 +522,19 @@ export class IdentifierResolver {
                     moduleInfo.isTypeReference = true;
                     moduleInfo.isDeclareVar = isDeclareVar;
                     moduleInfo.declarationInfo = declaration;
+                    moduleInfo.isGlobalReference = false;
                     return moduleInfo;
 
                 case ts.SyntaxKind.MethodDeclaration:
                     const methodInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     methodInfo.declarationInfo = declaration;
+                    methodInfo.isGlobalReference = false;
                     return methodInfo;
 
                 case ts.SyntaxKind.PropertyDeclaration:
                     const propertyInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
                     propertyInfo.declarationInfo = declaration;
+                    propertyInfo.isGlobalReference = false;
                     return propertyInfo;
             }
         }

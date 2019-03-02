@@ -167,7 +167,7 @@ export class Preprocessor {
 
             // in case of getting method
             if ((isRightOfBinaryExpression || isCallParameter || declar)
-                && this.typeInfo.isResultNonStaticMethodReference(propertyAccessExpression)
+                /*&& this.typeInfo.isResultNonStaticMethodReference(propertyAccessExpression)*/
                 && !(<any>propertyAccessExpression).__self_call_required) {
                 // wrap it into method
                 (<any>propertyAccessExpression).__self_call_required = true;
