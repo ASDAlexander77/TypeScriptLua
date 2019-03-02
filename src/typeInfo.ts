@@ -102,6 +102,16 @@ export class TypeInfo {
         return functionType;
     }
 
+    public isResultMethodReference(expression: ts.Expression) {
+        const type = this.resolver.getTypeAtLocation(expression);
+        const nonStaticMethod = type
+            && type.symbol
+            && type.symbol.valueDeclaration
+            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
+
+        return nonStaticMethod;
+    }
+
     public isResultNonStaticMethodReference(expression: ts.Expression) {
         const type = this.resolver.getTypeAtLocation(expression);
         const nonStaticMethod = type
@@ -112,6 +122,25 @@ export class TypeInfo {
                  && type.symbol.valueDeclaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
 
         return nonStaticMethod;
+    }
+
+    public isResultMethodReferenceOrFunctionType(expression: ts.Expression) {
+        const type = this.resolver.getTypeAtLocation(expression);
+        const nonStaticMethod = type
+            && type.symbol
+            && type.symbol.valueDeclaration
+            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
+        if (nonStaticMethod) {
+            return true;
+        }
+
+        const functionType = type
+            && type.symbol
+            && type.symbol.declarations
+            && type.symbol.declarations[0]
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
+
+        return functionType;
     }
 
     public isResultNonStaticMethodReferenceOrFunctionType(expression: ts.Expression) {

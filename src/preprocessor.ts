@@ -168,6 +168,7 @@ export class Preprocessor {
             // in case of getting method
             if ((isRightOfBinaryExpression || isCallParameter || declar)
                 /*&& this.typeInfo.isResultNonStaticMethodReference(propertyAccessExpression)*/
+                && this.typeInfo.isResultMethodReference(propertyAccessExpression)
                 && !(<any>propertyAccessExpression).__self_call_required) {
                 // wrap it into method
                 (<any>propertyAccessExpression).__self_call_required = true;
@@ -267,7 +268,7 @@ export class Preprocessor {
 
         const isBindCallOfMethod =
             propertyAccessExpression.name.text === 'bind'
-            && this.typeInfo.isResultNonStaticMethodReferenceOrFunctionType(propertyAccessExpression.expression);
+            && this.typeInfo.isResultMethodReferenceOrFunctionType(propertyAccessExpression.expression);
         if (!isBindCallOfMethod) {
             return undefined;
         }

@@ -593,7 +593,12 @@ export class Emitter {
         if (parameters) {
             let dotDotDotAny = false;
             parameters.forEach(p => {
-                this.functionContext.createParam((<ts.Identifier>p.name).text);
+                const paramName = (<ts.Identifier>p.name).text;
+                if (addThisAsParameter && paramName === 'this') {
+                    return;
+                }
+
+                this.functionContext.createParam(paramName);
                 if (p.dotDotDotToken) {
                     dotDotDotAny = true;
                 }
