@@ -3754,6 +3754,11 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
+
+        const thisInfo = this.resolver.returnLocalOrUpvalue('this', this.functionContext);
+        this.emitLoadValue(thisInfo);
+
+        /*
         if (this.functionContext.thisInUpvalue) {
             const resolvedInfo = this.resolver.returnThisUpvalue(this.functionContext);
 
@@ -3771,6 +3776,7 @@ export class Emitter {
         const resultThisInfo = this.functionContext.useRegisterAndPush();
         resultThisInfo.originalInfo = this.resolver.returnThis(this.functionContext);
         this.functionContext.code.push([Ops.MOVE, resultThisInfo.getRegister(), resultThisInfo.originalInfo.getRegisterOrIndex()]);
+        */
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
@@ -3885,6 +3891,10 @@ export class Emitter {
 
     private processIndentifier(node: ts.Identifier): void {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
+        this.emitLoadValue(resolvedInfo);
+    }
+
+    private emitLoadValue(resolvedInfo: ResolvedInfo) {
         if (resolvedInfo.kind === ResolvedKind.Register) {
             const resultInfo = this.functionContext.useRegisterAndPush();
             resultInfo.originalInfo = resolvedInfo;

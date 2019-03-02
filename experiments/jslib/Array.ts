@@ -11,24 +11,24 @@ module JS {
 
     export class ArrayHelper {
         @len
-        public static getLength(_this: any[] | Array<any>): number {
+        public static getLength(this: any[] | Array<any>): number {
             // implemented in the compiler
             throw 0;
         }
 
-        public static pushOne<T>(_this: any[] | Array<T>, obj: T) {
-            const vals = (<any>_this)._values;
+        public static pushOne<T>(this: any[] | Array<T>, obj: T) {
+            const vals = (<any>this)._values;
             if (vals) {
                 table.insert(vals, obj);
                 return;
             }
 
-            if (!_this[0]) {
-                _this[0] = obj;
+            if (!this[0]) {
+                this[0] = obj;
                 return;
             }
 
-            table.insert(_this, obj);
+            table.insert(this, obj);
         }
     }
 
