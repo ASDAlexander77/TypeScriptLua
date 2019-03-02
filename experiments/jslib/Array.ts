@@ -57,7 +57,7 @@ module JS {
                 }
 
                 // @ts-ignore
-                const _len = ArrayHelper.getLength(this);
+                const _len = this.getLength();
 
                 if (zeroVal !== null) {
                     table.insert(this._values, zeroVal);
@@ -159,11 +159,11 @@ module JS {
         }
 
         public get length(): number {
-            return ArrayHelper.getLength(this._values);
+            return this._values.getLength();
         }
 
         public set length(newSize: number) {
-            const _len = ArrayHelper.getLength(this._values);
+            const _len = this._values.getLength();
             if (_len === newSize) {
                 return;
             }
@@ -181,7 +181,7 @@ module JS {
 
         public indexOf(val: T): number {
             const vals = this._values;
-            const length_ = ArrayHelper.getLength(vals);
+            const length_ = vals.getLength();
             for (let i = 1; i <= length_; i++) {
                 // tslint:disable-next-line:triple-equals
                 if (rawget(vals, i) == val) {
@@ -214,7 +214,7 @@ module JS {
             const retArr = new Array<T>();
 
             const _vals = this._values;
-            const _len = ArrayHelper.getLength(_vals);
+            const _len = _vals.getLength();
             for (let i = 1; i <= _len; i++) {
                 table.insert(retArr._values, _vals[i]);
             }
@@ -232,7 +232,7 @@ module JS {
 
             let index = 0;
             const _vals = this._values;
-            const _len = ArrayHelper.getLength(_vals);
+            const _len = _vals.getLength();
             for (let i = 1; i <= _len; i++) {
                 // @ts-ignore
                 const obj = func(_vals[i], index++, this);
@@ -249,7 +249,7 @@ module JS {
 
             let index = 0;
             const _vals = this._values;
-            const _len = ArrayHelper.getLength(_vals);
+            const _len = _vals.getLength();
             for (let i = 1; i <= _len; i++) {
                 const val = _vals[i];
                 // @ts-ignore
@@ -267,7 +267,7 @@ module JS {
         public forEach(func: (currentValue: T, index: number, arr: T[]) => boolean, thisValue?: any): void {
             let index = 0;
             const _vals = this._values;
-            const _len = ArrayHelper.getLength(_vals);
+            const _len = _vals.getLength();
             for (let i = 1; i <= _len; i++) {
                 // @ts-ignore
                 func(val, index++, this);
@@ -296,7 +296,7 @@ module JS {
             }
 
             if (items) {
-                const length_ = ArrayHelper.getLength(items);
+                const length_ = items.getLength();
                 for (let i = 0; i < length_; i++) {
                     const ind = i + index + 1;
                     table.insert(this._values, ind, items[i]);
