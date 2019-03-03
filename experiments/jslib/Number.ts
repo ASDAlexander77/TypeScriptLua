@@ -3,8 +3,8 @@ declare var tostring: any;
 module TS {
 
     export class NumberHelper {
-        public static toString(constNumber: number, ...params: any[]): string {
-            return tostring(constNumber);
+        public static toString(this: number, ...params: any[]): string {
+            return tostring(this);
         }
     }
 
