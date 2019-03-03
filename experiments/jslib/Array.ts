@@ -16,19 +16,19 @@ module JS {
             throw 0;
         }
 
-        public static pushOne<T>(this: any[] | Array<T>, obj: T) {
-            const vals = (<any>this)._values;
+        public static pushOne<T>(_this: any[] | Array<T>, obj: T) {
+            const vals = (<any>_this)._values;
             if (vals) {
                 table.insert(vals, obj);
                 return;
             }
 
-            if (!this[0]) {
-                this[0] = obj;
+            if (!_this[0]) {
+                _this[0] = obj;
                 return;
             }
 
-            table.insert(this, obj);
+            table.insert(_this, obj);
         }
     }
 
