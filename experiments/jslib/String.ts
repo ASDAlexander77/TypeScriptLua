@@ -163,44 +163,44 @@ module JS {
 
         public replace(valOrRegExp: string | RegExp, valOrFunc: string | FuncString): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.replace(this.constString, valOrRegExp, valOrFunc));
+            return new String(this.constString.replace(valOrRegExp, valOrFunc));
         }
 
         public charCodeAt(index: number): number {
-            return StringHelper.charCodeAt(this.constString, index);
+            return this.constString.charCodeAt(index);
         }
 
         public substr(begin?: number, len?: number): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.substr(this.constString, begin, len));
+            return new String(this.constString.substr(begin, len));
         }
 
         public substring(begin?: number, end?: number): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.substring(this.constString, begin, end));
+            return new String(this.constString.substring(begin, end));
         }
 
         public indexOf(pattern: string, begin?: number): number {
-            return StringHelper.indexOf(this.constString, pattern, begin);
+            return this.constString.indexOf(pattern, begin);
         }
 
         public split(separator: string): Array<string> {
-            return StringHelper.split(this.constString, separator);
+            return this.constString.split(separator);
         }
 
         public slice(start?: number, end?: number): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.substring(this.constString, start, end));
+            return new String(this.constString.substring(start, end));
         }
 
         public toLowerCase(): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.toLowerCase(this.constString));
+            return new String(this.constString.toLowerCase());
         }
 
         public toUpperCase(): String {
             // tslint:disable-next-line:no-construct
-            return new String(StringHelper.toUpperCase(this.constString));
+            return new String(this.constString.toUpperCase());
         }
 
         public get length(): number {
