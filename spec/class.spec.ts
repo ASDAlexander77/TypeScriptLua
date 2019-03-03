@@ -185,6 +185,33 @@ describe('Classes', () => {
         console.log(c2.method1());                          \
     '])));
 
+    it('Class inheritance - call super class with this', () => expect(new Run().test([
+        'class Class1 {                                     \
+            public class0 = false;                          \
+            public method1(): boolean {                     \
+                this.class1 = false;                        \
+                return false;                               \
+            }                                               \
+        }                                                   \
+        class Class2 extends Class1 {                       \
+            public method1(): boolean {                     \
+                this.class1 = true;                         \
+                this.class2 = false;                        \
+                return super.method1();                     \
+            }                                               \
+        }                                                   \
+        const c1 = new Class1();                            \
+        c1.method1();                                       \
+        console.log(c1.class0);                             \
+        console.log(c1.class1);                             \
+        const c2 = new Class2();                            \
+        c2.method1();                                       \
+        console.log(c2.class0);                             \
+        console.log(c2.class1);                             \
+        console.log(c2.class2);                             \
+    '])).to.equals('false\r\nfalse\r\nfalse\r\nfalse\r\nfalse\r\n'));
+
+
     it('Class inheritance - instance', () => expect('true\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
         'class Class1 {                                             \
         }                                                           \
