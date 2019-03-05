@@ -90,8 +90,8 @@ import './BABYLON/Loading/babylon_sceneLoader';
 import './BABYLON/Tools/babylon_database';
 import './BABYLON/Loading/Plugins/babylon_babylonFileLoader';
 
-import './BABYLON/Cameras/babylon_universalCamera';
 import './BABYLON/Cameras/babylon_touchCamera';
+import './BABYLON/Cameras/babylon_universalCamera';
 
 import WindowEx from './window';
 import DocumentEx from './document';
