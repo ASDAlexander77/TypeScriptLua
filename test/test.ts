@@ -7,7 +7,7 @@ class Class1 {
         return false;
     }
 }
-class Class2 extends Class1 {
+class Class2 extends Class1__ {
     public method1(): boolean {
         this.class1 = true;
         this.class2 = false;

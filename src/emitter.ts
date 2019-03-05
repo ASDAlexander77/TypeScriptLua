@@ -1234,6 +1234,19 @@ export class Emitter {
         */
         const extend = this.getInheritanceFirst(node);
         if (extend) {
+            const baseClass = ts.createIdentifier(extend.getText());
+
+            // added check if class exists
+            const condExpr = ts.createPrefix(ts.SyntaxKind.ExclamationToken, baseClass);
+            const throwExpr = ts.createThrow(ts.createStringLiteral('Base class is not defined: ' + (<ts.Identifier>baseClass).text));
+
+            const throwIfClassIsNotDefined = ts.createIf(
+                condExpr,
+                throwExpr);
+
+            this.processStatement(this.fixupParentReferences(throwIfClassIsNotDefined, node));
+
+            // set base class
             properties.push(ts.createPropertyAssignment('__proto', ts.createIdentifier(extend.getText())));
             /*
             if (!anyGetStaticAccessor && !anySetStaticAccessor) {
