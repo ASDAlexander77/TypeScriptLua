@@ -58,9 +58,9 @@ export default class TestApp {
             if (delta) {
                 const dir = scene.activeCamera.getDirection(BABYLON.Axis.Z);
                 if (delta > 0) {
-                    scene.activeCamera.position.addInPlace(dir);
+                    scene.activeCamera.position.addInPlace(dir.scaleInPlace(delta * 10));
                 } else {
-                    scene.activeCamera.position.subtractInPlace(dir);
+                    scene.activeCamera.position.subtractInPlace(dir.scaleInPlace(-delta * 10));
                 }
             }
         }, BABYLON.PointerEventTypes.POINTERWHEEL, false);

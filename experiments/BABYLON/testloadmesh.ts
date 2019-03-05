@@ -34,27 +34,6 @@ export default class TestLoadMesh {
         // This attaches the camera to the canvas
         camera.attachControl(this.canvas, true);
 
-        // wingnut crap.
-        scene.onPrePointerObservable.add(function (pointerInfo, eventState) {
-            // console.log(pointerInfo);
-            const event = pointerInfo.event;
-            let delta = 0;
-            if (event.wheelDelta) {
-                delta = event.wheelDelta;
-            } else if (event.detail) {
-                delta = -event.detail;
-            }
-
-            if (delta) {
-                const dir = scene.activeCamera.getDirection(BABYLON.Axis.Z);
-                if (delta > 0) {
-                    scene.activeCamera.position.addInPlace(dir);
-                } else {
-                    scene.activeCamera.position.subtractInPlace(dir);
-                }
-            }
-        }, BABYLON.PointerEventTypes.POINTERWHEEL, false);
-
         // load scene
         BABYLON.SceneLoader.Load(
             '',
@@ -64,6 +43,27 @@ export default class TestLoadMesh {
                 this.scene = loadedScene;
                 // Attach the camera to the scene
                 this.scene.activeCamera.attachControl(this.canvas);
+
+                // wingnut crap.
+                scene.onPrePointerObservable.add(function (pointerInfo, eventState) {
+                    // console.log(pointerInfo);
+                    const event = pointerInfo.event;
+                    let delta = 0;
+                    if (event.wheelDelta) {
+                        delta = event.wheelDelta;
+                    } else if (event.detail) {
+                        delta = -event.detail;
+                    }
+
+                    if (delta) {
+                        const dir = scene.activeCamera.getDirection(BABYLON.Axis.Z);
+                        if (delta > 0) {
+                            scene.activeCamera.position.addInPlace(dir.scaleInPlace(delta * 100));
+                        } else {
+                            scene.activeCamera.position.subtractInPlace(dir.scaleInPlace(-delta * 100));
+                        }
+                    }
+                }, BABYLON.PointerEventTypes.POINTERWHEEL, false);
             });
 
         return scene;
