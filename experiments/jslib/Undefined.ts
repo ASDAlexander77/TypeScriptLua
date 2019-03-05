@@ -24,7 +24,7 @@ module JS {
         }
 
         public static __len(_this: any): number {
-            throw new Error('Object is possibly \'undefined\'');
+            return 0;
         }
 
         // TODO: do not use it, very dangerous

@@ -194,6 +194,14 @@ export class Preprocessor {
 
         // replace <XXX>.prototype  to <XXX>.__proto
         if (propertyAccessExpression.name.text === 'prototype') {
+
+            // if access object is Type then prototype is Type thus access to prototype object should be removed
+            const exprTypeInfo = this.typeInfo.getDeclarationOfTypeOfNode(propertyAccessExpression.expression);
+            if (exprTypeInfo && exprTypeInfo.kind === ts.SyntaxKind.ClassDeclaration) {
+                return propertyAccessExpression.expression;
+            }
+
+            // otherwise rename it into __proto
             const protoIdentifier = ts.createIdentifier('__proto');
             protoIdentifier.parent = propertyAccessExpression.name.parent;
             propertyAccessExpression.name = protoIdentifier;

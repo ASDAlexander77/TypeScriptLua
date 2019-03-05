@@ -90,7 +90,11 @@ import './BABYLON/Loading/babylon_sceneLoader';
 import './BABYLON/Tools/babylon_database';
 import './BABYLON/Loading/Plugins/babylon_babylonFileLoader';
 
+import './BABYLON/Gamepad/babylon_gamepad';
+import './BABYLON/Gamepad/babylon_gamepadManager';
+
 import './BABYLON/Cameras/Inputs/babylon_freeCameraTouchInput';
+import './BABYLON/Cameras/Inputs/babylon_freeCameraGamepadInput';
 import './BABYLON/Cameras/babylon_touchCamera';
 import './BABYLON/Cameras/babylon_universalCamera';
 import './BABYLON/Gamepad/babylon_gamepadSceneComponent';
@@ -105,6 +109,9 @@ import TestLoadMesh from './testloadmesh';
 declare var window: WindowEx;
 window = new WindowEx();
 
+declare var setTimeout: (funct: any, millisec: number) => number;
+setTimeout = window.setTimeout;
+
 declare var document: DocumentEx;
 document = new DocumentEx();
 
@@ -114,7 +121,7 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestLoadMesh().run();
+new TestApp().run();
 
 // @ts-ignore
 window.focus();

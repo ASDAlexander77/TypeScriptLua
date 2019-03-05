@@ -49,6 +49,15 @@ export class TypeInfo {
         return typeName;
     }
 
+    public getDeclarationOfTypeOfNode(node: ts.Node) {
+        if ((<any>node).__return_type_declaration) {
+            return (<any>node).__return_type_declaration;
+        }
+
+        this.getTypeOfNode(node);
+        return (<any>node).__return_type_declaration;
+    }
+
     public getTypeOfNode(node: ts.Node) {
         if (!node) {
             return undefined;
@@ -71,6 +80,10 @@ export class TypeInfo {
                     }
                 } else {
                     typeName = this.getNameFromTypeNode(detectType);
+                }
+
+                if (typeName && detectType.symbol) {
+                    (<any>node).__return_type_declaration = detectType.symbol.valueDeclaration;
                 }
             }
 

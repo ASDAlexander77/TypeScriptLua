@@ -14,11 +14,13 @@ class WindowElement {
 export default class WindowEx {
     static events = {};
 
+    static timerCallbackIndex = 0;
+    static timerCallbackMap = {};
+
     static innerWidth = 640;
     static innerHeight = 480;
 
     static __drawFunction: any;
-    static __immediateFunction: any;
 
     public static location = { href: 'file://' };
 
@@ -225,30 +227,27 @@ export default class WindowEx {
     }
 
     private static timerCallback(value: number) {
-        if (value === 1) {
-            glut.postRedisplay();
-            return;
+        WindowEx.__drawFunction = WindowEx.timerCallbackMap[value];
+        if (!WindowEx.__drawFunction) {
+            throw new Error('Wrong timer.');
         }
 
-        if (value === 2) {
-            WindowEx.__immediateFunction();
-            return;
-        }
-
-        throw new Error('wrong timer ID: ' + value);
+        glut.postRedisplay();
     }
 
-    public static setTimeout(funct: any, millisec: number) {
+    public static setTimeout(funct: any, millisec: number): number {
         if (funct) {
-            WindowEx.__drawFunction = funct;
-            glut.timer(millisec, WindowEx.timerCallback, 1);
+            glut.timer(millisec, WindowEx.timerCallback, ++WindowEx.timerCallbackIndex);
+            WindowEx.timerCallbackMap[WindowEx.timerCallbackIndex] = funct;
+            return WindowEx.timerCallbackIndex;
         }
     }
 
-    public static setImmediate(funct: any) {
+    public static setImmediate(funct: any): number {
         if (funct) {
-            WindowEx.__immediateFunction = funct;
-            glut.timer(0, WindowEx.timerCallback, 2);
+            glut.timer(0, WindowEx.timerCallback, ++WindowEx.timerCallbackIndex);
+            WindowEx.timerCallbackMap[WindowEx.timerCallbackIndex] = funct;
+            return WindowEx.timerCallbackIndex;
         }
     }
 
