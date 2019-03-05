@@ -1247,7 +1247,7 @@ export class Emitter {
             this.processStatement(this.fixupParentReferences(throwIfClassIsNotDefined, node));
 
             // set base class
-            properties.push(ts.createPropertyAssignment('__proto', ts.createIdentifier(extend.getText())));
+            properties.push(ts.createPropertyAssignment('__proto', baseClass));
             /*
             if (!anyGetStaticAccessor && !anySetStaticAccessor) {
                 properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier(extend.getText())));

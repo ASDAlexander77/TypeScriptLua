@@ -3,19 +3,6 @@ module JS {
     type TokenSingle = string | number | boolean | null | {};
     type Token = TokenSingle | Array<TokenSingle>;
 
-    // Internal: A map of escaped control characters and their unescaped
-    // equivalents.
-    const Unescapes = {
-        92: '\\',
-        34: '"',
-        47: '/',
-        98: '\b',
-        116: '\t',
-        110: '\n',
-        102: '\f',
-        114: '\r'
-    };
-
     export class SyntaxError extends Error {
         constructor() {
             super('JSON Syntax Error');
@@ -23,6 +10,19 @@ module JS {
     }
 
     export class JSONParse {
+
+        // Internal: A map of escaped control characters and their unescaped
+        // equivalents.
+        private Unescapes = {
+            92: '\\',
+            34: '"',
+            47: '/',
+            98: '\b',
+            116: '\t',
+            110: '\n',
+            102: '\f',
+            114: '\r'
+        };
 
         // Internal: Stores the parser state.
         private Index: number;
@@ -73,7 +73,7 @@ module JS {
                                 switch (charCode) {
                                     case 92: case 34: case 47: case 98: case 116: case 110: case 102: case 114:
                                         // Revive escaped control characters.
-                                        value += Unescapes[charCode];
+                                        value += this.Unescapes[charCode];
                                         this.Index++;
                                         break;
                                     case 117:

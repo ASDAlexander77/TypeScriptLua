@@ -49,7 +49,7 @@ module JS {
                 // tslint:disable-next-line:forin
                 for (const k in current) {
                     const val = current[k];
-                    if (typeof val == 'function') {
+                    if (typeof val === 'function') {
                         continue;
                     }
 
@@ -63,6 +63,35 @@ module JS {
             return a;
         }
 
+        public static defineProperty(obj: any, name: string, opts: any) {
+            if (opts.get !== null) {
+                if (!obj.__get__) {
+                    obj.__get__ = {};
+                    delete obj.__get__.__index;
+                }
+
+                obj.__get__[name] = opts.get;
+                if (typeof(obj.__index) !== 'function') {
+                    obj.__index = __get_call_undefined__;
+                }
+            }
+
+            if (opts.set !== null) {
+                if (!obj.__set__) {
+                    obj.__set__ = {};
+                    delete obj.__set__.__newindex;
+                }
+
+                obj.__set__[name] = opts.set;
+                if (typeof(obj.__newindex) !== 'function') {
+                    obj.__newindex = __set_call_undefined__;
+                }
+            }
+        }
+
+        public static getPrototypeOf(obj: any): any {
+            return obj.__proto;
+        }
     }
 
 }

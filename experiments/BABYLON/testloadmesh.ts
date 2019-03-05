@@ -1,5 +1,6 @@
+/// <reference path="./canvas.d.ts" />
+
 declare var os: any;
-declare var Canvas: any;
 
 export default class TestLoadMesh {
     private canvas: any;
@@ -57,7 +58,7 @@ export default class TestLoadMesh {
         // load scene
         BABYLON.SceneLoader.Load(
             '',
-            'file://skull.babylon',
+            'file://Spaceship.babylon',
             this.engine,
             (loadedScene) => {
                 this.scene = loadedScene;
