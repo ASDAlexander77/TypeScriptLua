@@ -40,12 +40,11 @@ export default class TestLoadMesh {
             'file://Spaceship.babylon',
             this.engine,
             (loadedScene) => {
-                this.scene = loadedScene;
                 // Attach the camera to the scene
-                this.scene.activeCamera.attachControl(this.canvas);
+                loadedScene.activeCamera.attachControl(this.canvas);
 
                 // wingnut crap.
-                scene.onPrePointerObservable.add(function (pointerInfo, eventState) {
+                loadedScene.onPrePointerObservable.add(function (pointerInfo, eventState) {
                     // console.log(pointerInfo);
                     const event = pointerInfo.event;
                     let delta = 0;
@@ -56,14 +55,16 @@ export default class TestLoadMesh {
                     }
 
                     if (delta) {
-                        const dir = scene.activeCamera.getDirection(BABYLON.Axis.Z);
+                        const dir = loadedScene.activeCamera.getDirection(BABYLON.Axis.Z);
                         if (delta > 0) {
-                            scene.activeCamera.position.addInPlace(dir.scaleInPlace(delta * 100));
+                            loadedScene.activeCamera.position.addInPlace(dir.scaleInPlace(delta * 100));
                         } else {
-                            scene.activeCamera.position.subtractInPlace(dir.scaleInPlace(-delta * 100));
+                            loadedScene.activeCamera.position.subtractInPlace(dir.scaleInPlace(-delta * 100));
                         }
                     }
                 }, BABYLON.PointerEventTypes.POINTERWHEEL, false);
+
+                this.scene = loadedScene;
             });
 
         return scene;
