@@ -198,7 +198,7 @@ export class Emitter {
     };                                                              \
                                                                     \
     __wrapper = __wrapper || function(method: object, _this: object) { \
-        if (!method) {                                              \
+        if (!method || typeof(method) !== "function") {             \
             return method;                                          \
         }                                                           \
                                                                     \
@@ -208,7 +208,7 @@ export class Emitter {
     };                                                              \
                                                                     \
     __bind = __bind || function(method: object, _this: object, ...prependParams: any[]) { \
-        if (!method) {                                              \
+        if (!method || typeof(method) !== "function") {             \
             return method;                                          \
         }                                                           \
                                                                     \

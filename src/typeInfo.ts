@@ -151,7 +151,8 @@ export class TypeInfo {
             && type.symbol
             && type.symbol.declarations
             && type.symbol.declarations[0]
-            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType
+                || type.symbol.declarations[0].kind === ts.SyntaxKind.TypeParameter);
 
         return functionType;
     }
