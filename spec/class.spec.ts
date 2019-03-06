@@ -406,6 +406,24 @@ describe('Classes', () => {
         console.log(c.name);                                            \
     '])).to.equals('asd\r\nasd\r\n'));
 
+    it('Class - call base class constructor with abstract method',  () => expect(new Run().test([
+        'class Test {                                                   \
+            public constructor(private name: string) {                  \
+                console.log(this.name);                                 \
+            }                                                           \
+        }                                                               \
+                                                                        \
+        class Test2 extends Test {                                      \
+            protected abstract _abstr(): void;                          \
+        }                                                               \
+                                                                        \
+        class Test3 extends Test2 {                                     \
+        }                                                               \
+                                                                        \
+        const c = new Test3("asd");                                     \
+        console.log(c.name);                                            \
+    '])).to.equals('asd\r\nasd\r\n'));
+
     // function is not using 'this' and thus making issue with parameters
     it('Class - generic',  () => expect(new Run().test([
         'class GenericNumber<T> {                                           \
