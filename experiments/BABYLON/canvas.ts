@@ -389,7 +389,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     createTexture(): WebGLTexture {
-        throw new Error('Method not implemented.');
+        const val = _gl.createTexture();
+        if (val >= 0) {
+            return <WebGLShader>{ value: val };
+        }
+
+        return null;
     }
 
     // @ts-ignore

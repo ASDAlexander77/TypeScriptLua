@@ -49,13 +49,37 @@ export class TypeInfo {
         return typeName;
     }
 
-    public getDeclarationOfTypeOfNode(node: ts.Node) {
-        if ((<any>node).__return_type_declaration) {
-            return (<any>node).__return_type_declaration;
+    public getVariableDeclarationOfTypeOfNode(node: ts.Node) {
+        if ((<any>node).__return_variable_type_declaration) {
+            return (<any>node).__return_variable_type_declaration;
         }
 
         this.getTypeOfNode(node);
-        return (<any>node).__return_type_declaration;
+        return (<any>node).__return_variable_type_declaration;
+    }
+
+    public getTypeObject(node: ts.Node) {
+        let detectType = this.resolver.getTypeAtLocation(node);
+        if (detectType.types && detectType.types[0]) {
+            // if unit type, just select first one
+            detectType = detectType.types[0];
+        }
+
+        if (!detectType || detectType && detectType.intrinsicName === 'error') {
+            // fallback scenario
+            const symbol = this.resolver.getSymbolAtLocation(node);
+            if (symbol && symbol.valueDeclaration && symbol.valueDeclaration.initializer) {
+                detectType = this.resolver.getTypeAtLocation(symbol.valueDeclaration.initializer);
+                if (detectType && detectType.types && detectType.types[0]) {
+                    // if unit type, just select first one
+                    detectType = detectType.types[0];
+                }
+
+                return detectType;
+            }
+        }
+
+        return detectType;
     }
 
     public getTypeOfNode(node: ts.Node) {
@@ -70,20 +94,10 @@ export class TypeInfo {
         try {
             let typeName = this.getTypeNameFromKind(node);
             if (!typeName) {
-                let detectType = this.resolver.getTypeAtLocation(node);
-                if (!detectType || detectType && detectType.intrinsicName === 'error') {
-                    // fallback scenario
-                    const symbol = this.resolver.getSymbolAtLocation(node);
-                    if (symbol && symbol.valueDeclaration && symbol.valueDeclaration.initializer) {
-                        detectType = this.resolver.getTypeAtLocation(symbol.valueDeclaration.initializer);
-                        typeName = this.getNameFromTypeNode(detectType);
-                    }
-                } else {
-                    typeName = this.getNameFromTypeNode(detectType);
-                }
-
+                const detectType = this.getTypeObject(node);
+                typeName = this.getNameFromTypeNode(detectType);
                 if (typeName && detectType.symbol) {
-                    (<any>node).__return_type_declaration = detectType.symbol.valueDeclaration;
+                    (<any>node).__return_variable_type_declaration = detectType.symbol.valueDeclaration;
                 }
             }
 

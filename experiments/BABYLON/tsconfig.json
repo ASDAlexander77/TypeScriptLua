@@ -24,12 +24,14 @@
     },
     "include": [
       "babyloncli.ts",
-      "testapp.ts",
-      "testloadmesh.ts",
       "canvas.ts",
       "window.ts",
       "document.ts",
+      "image.ts",
       "simple_test.ts",
+      "testapp.ts",
+      "testapp2.ts",
+      "testloadmesh.ts",
       "declarations.d.ts"
     ],
     "exclude": [

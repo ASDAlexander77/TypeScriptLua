@@ -1,17 +1,8 @@
 import './JS';
 
-const a = `{"name":" \\/ 0"}`;
-
-const b = JSON.parse(a);
-
-class Test
-{
-
+function SetCorsBehavior(url: string | string[]): void {
+    if (url && url.indexOf("data:") === 0) {
+        return;
+    }
 }
 
-Test.prototype.hello = function () {
-    console.log("Hello");
-}
-
-const t = new Test();
-t.hello();

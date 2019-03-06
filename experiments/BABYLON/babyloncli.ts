@@ -99,11 +99,16 @@ import './BABYLON/Cameras/babylon_touchCamera';
 import './BABYLON/Cameras/babylon_universalCamera';
 import './BABYLON/Gamepad/babylon_gamepadSceneComponent';
 
+import './BABYLON/Lights/babylon_shadowLight';
+import './BABYLON/Lights/babylon_pointLight';
+
 import WindowEx from './window';
 import DocumentEx from './document';
+import Image from './image';
 // @ts-ignore
 import Canvas from './canvas';
 import TestApp from './testapp';
+import TestApp2 from './testapp2';
 import TestLoadMesh from './testloadmesh';
 
 declare var window: WindowEx;
@@ -121,7 +126,7 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestLoadMesh().run();
+new TestApp2().run();
 
 // @ts-ignore
 window.focus();

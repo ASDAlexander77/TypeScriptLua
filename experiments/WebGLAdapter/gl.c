@@ -1650,6 +1650,22 @@ extern "C"
         return 0;
     }    
 
+    static int createTexture(lua_State *L)
+    {
+        GLuint val;
+        glGenTextures(1, &val);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushinteger(L, val);
+
+        return 1;
+    }
+
     typedef struct ConstPair
     {
         const char *name;
@@ -2038,6 +2054,7 @@ extern "C"
         {"frontFace", frontFace},
         {"drawElements", drawElements},
         {"drawArrays", drawArrays},
+        {"createTexture", createTexture},
         {NULL, NULL} /* sentinel */
     };
 

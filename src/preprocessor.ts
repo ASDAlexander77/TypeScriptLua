@@ -196,7 +196,7 @@ export class Preprocessor {
         if (propertyAccessExpression.name.text === 'prototype') {
 
             // if access object is Type then prototype is Type thus access to prototype object should be removed
-            const exprTypeInfo = this.typeInfo.getDeclarationOfTypeOfNode(propertyAccessExpression.expression);
+            const exprTypeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(propertyAccessExpression.expression);
             if (exprTypeInfo && exprTypeInfo.kind === ts.SyntaxKind.ClassDeclaration) {
                 return propertyAccessExpression.expression;
             }
@@ -300,7 +300,7 @@ export class Preprocessor {
         let isConstNumber = propertyAccessExpression.expression.kind === ts.SyntaxKind.NumericLiteral;
         if (!isConstString && !isConstNumber) {
             try {
-                const typeResult = this.resolver.getTypeAtLocation(propertyAccessExpression.expression);
+                const typeResult = this.typeInfo.getTypeObject(propertyAccessExpression.expression);
                 if (typeResult) {
                     isConstString = (typeResult.intrinsicName || typeof (typeResult.value)) === 'string';
                     isConstNumber = (typeResult.intrinsicName || typeof (typeResult.value)) === 'number';
