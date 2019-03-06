@@ -1212,6 +1212,10 @@ export class Emitter {
                 return propertyAssignment;
             });
 
+        // we need to know if there is any super class before generating default constructor
+        const extend = this.getInheritanceFirst(node);
+        this.resolver.superClass = extend;
+
         if (this.isDefaultCtorRequired(node)) {
             // create defualt Ctor to initialize readonlys
             this.createDefaultCtor(node, properties);
@@ -1232,7 +1236,6 @@ export class Emitter {
         const anyGetStaticAccessor = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor && this.isStatic(m));
         const anySetStaticAccessor = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor && this.isStatic(m));
         */
-        const extend = this.getInheritanceFirst(node);
         if (extend) {
             const baseClass = ts.createIdentifier(extend.getText());
 
@@ -1267,8 +1270,6 @@ export class Emitter {
 
         properties.push(ts.createPropertyAssignment('__index', ts.createIdentifier('__get_call_undefined__')));
         properties.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call_undefined__')));
-
-        this.resolver.superClass = extend;
 
         const prototypeObject = ts.createObjectLiteral(properties);
         properties.forEach(p => p.parent = prototypeObject);
@@ -1359,11 +1360,28 @@ export class Emitter {
     }
 
     private createDefaultCtor(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[]) {
-        const defaultCtor = ts.createConstructor(undefined, undefined, [], <ts.Block><any>{
-            kind: ts.SyntaxKind.Block,
-            statements: []
-        });
-        defaultCtor.parent = node;
+        const defaultCtor = this.resolver.superClass != null
+            ? ts.createConstructor(
+                undefined,
+                undefined,
+                [ ts.createParameter(undefined, undefined, ts.createToken(ts.SyntaxKind.DotDotDotToken), 'params') ],
+                <ts.Block><any>{
+                kind: ts.SyntaxKind.Block,
+                statements: [
+                    ts.createIf(
+                        ts.createPropertyAccess(this.resolver.superClass, 'constructor'),
+                        ts.createStatement(ts.createCall(ts.createSuper(), undefined, [ ts.createSpread(ts.createIdentifier('params')) ])))
+                ]})
+            : ts.createConstructor(
+                undefined,
+                undefined,
+                [],
+                <ts.Block><any>{
+                kind: ts.SyntaxKind.Block,
+                statements: [
+                ]});
+
+        this.fixupParentReferences(defaultCtor, node);
         properties.push(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
     }
 
@@ -1476,7 +1494,6 @@ export class Emitter {
     }
 
     private isPropertyWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
-        // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
             (<ts.PropertyDeclaration>memberDeclaration).initializer &&
             !this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
@@ -1487,7 +1504,6 @@ export class Emitter {
     }
 
     private isPropertyWithArrowFunctionInitializer(memberDeclaration: ts.ClassElement): any {
-        // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
             (<ts.PropertyDeclaration>memberDeclaration).initializer &&
             (<ts.PropertyDeclaration>memberDeclaration).initializer.kind === ts.SyntaxKind.ArrowFunction) {
@@ -1498,7 +1514,6 @@ export class Emitter {
     }
 
     private isStatic(memberDeclaration: ts.Node): any {
-        // we do not need - abstract elements
         if (memberDeclaration.modifiers &&
             memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword)) {
             return true;
@@ -1551,7 +1566,6 @@ export class Emitter {
     }
 
     private isClassMemberAccepted(memberDeclaration: ts.ClassElement): any {
-        // we do not need - abstract elements
         if (this.isAbstract(memberDeclaration)) {
             return false;
         }

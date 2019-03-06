@@ -406,7 +406,7 @@ describe('Classes', () => {
         console.log(c.name);                                            \
     '])).to.equals('asd\r\nasd\r\n'));
 
-    it('Class - call base class constructor with abstract method',  () => expect(new Run().test([
+    it('Class - call base class constructor with abstract method and default constructor',  () => expect(new Run().test([
         'class Test {                                                   \
             public constructor(private name: string) {                  \
                 console.log(this.name);                                 \
@@ -414,6 +414,7 @@ describe('Classes', () => {
         }                                                               \
                                                                         \
         class Test2 extends Test {                                      \
+            private _t: boolean = true;                                 \
             protected abstract _abstr(): void;                          \
         }                                                               \
                                                                         \
