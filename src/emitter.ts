@@ -2238,13 +2238,10 @@ export class Emitter {
 
     private processForOfStatement(node: ts.ForOfStatement): void {
 
-        const expressionType = this.typeInfo.getTypeOfNode(node.expression);
         // we need to find out type of element
-        const typeOfExpression = this.resolver.getTypeAtLocation(node.expression);
-        const typeOfElement =
-            typeOfExpression.typeArguments
-            && typeOfExpression.typeArguments[0]
-            && typeOfExpression.typeArguments[0];
+        const typeOfExpression = this.typeInfo.getTypeObject(node.expression);
+        const expressionType = this.typeInfo.getNameFromTypeNode(typeOfExpression);
+        const typeOfElement = typeOfExpression.typeArguments && typeOfExpression.typeArguments[0];
         let expressionTypeNode;
         let typeNode;
         if (typeOfElement) {

@@ -7,11 +7,11 @@ export class TypeInfo {
     }
 
     public isTypeOfNode(node: ts.Node, typeName: string) {
-        return this.getTypeOfNode(node) === typeName;
+        return this.getTypeNameOfNode(node) === typeName;
     }
 
     public isTypesOfNode(node: ts.Node, typeNames: string[]) {
-        const res = this.getTypeOfNode(node);
+        const res = this.getTypeNameOfNode(node);
         return typeNames.some(t => t === res);
     }
 
@@ -54,13 +54,13 @@ export class TypeInfo {
             return (<any>node).__return_variable_type_declaration;
         }
 
-        this.getTypeOfNode(node);
+        this.getTypeNameOfNode(node);
         return (<any>node).__return_variable_type_declaration;
     }
 
     public getTypeObject(node: ts.Node) {
         let detectType = this.resolver.getTypeAtLocation(node);
-        if (detectType.types && detectType.types[0]) {
+        if (detectType && detectType.types && detectType.types[0]) {
             // if unit type, just select first one
             detectType = detectType.types[0];
         }
@@ -82,7 +82,7 @@ export class TypeInfo {
         return detectType;
     }
 
-    public getTypeOfNode(node: ts.Node) {
+    public getTypeNameOfNode(node: ts.Node) {
         if (!node) {
             return undefined;
         }
@@ -119,7 +119,7 @@ export class TypeInfo {
     }
 
     public isResultFunctioinType(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
+        const type = this.getTypeObject(expression);
         const functionType = type
             && type.symbol
             && type.symbol.declarations
@@ -130,7 +130,7 @@ export class TypeInfo {
     }
 
     public isResultMethodReference(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
+        const type = this.getTypeObject(expression);
         const nonStaticMethod = type
             && type.symbol
             && type.symbol.valueDeclaration
@@ -140,7 +140,7 @@ export class TypeInfo {
     }
 
     public isResultNonStaticMethodReference(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
+        const type = this.getTypeObject(expression);
         const nonStaticMethod = type
             && type.symbol
             && type.symbol.valueDeclaration
@@ -152,7 +152,7 @@ export class TypeInfo {
     }
 
     public isResultMethodReferenceOrFunctionType(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
+        const type = this.getTypeObject(expression);
         const nonStaticMethod = type
             && type.symbol
             && type.symbol.valueDeclaration
@@ -172,7 +172,7 @@ export class TypeInfo {
     }
 
     public isResultNonStaticMethodReferenceOrFunctionType(expression: ts.Expression) {
-        const type = this.resolver.getTypeAtLocation(expression);
+        const type = this.getTypeObject(expression);
         const nonStaticMethod = type
             && type.symbol
             && type.symbol.valueDeclaration

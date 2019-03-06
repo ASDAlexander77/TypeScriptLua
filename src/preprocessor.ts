@@ -347,7 +347,7 @@ export class Preprocessor {
 
         const newArguments = new Array<ts.Expression>();
 
-        const methodDelc = this.resolver.getTypeAtLocation(callExpression.expression);
+        const methodDelc = this.typeInfo.getTypeObject(callExpression.expression);
         const parameters = methodDelc
             && methodDelc.symbol
             && methodDelc.symbol.valueDeclaration
@@ -364,7 +364,7 @@ export class Preprocessor {
             const any = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.AnyKeyword;
             if (any) {
                 // if string
-                const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
+                const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
                 switch (typeName) {
                     case 'string':
                         const identString = ts.createIdentifier('String');
@@ -389,7 +389,7 @@ export class Preprocessor {
             const stringConstType = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.StringKeyword;
             if (stringConstType) {
                 // if string
-                const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
+                const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
                 switch (typeName) {
                     case 'string':
                     case '__function':
@@ -410,7 +410,7 @@ export class Preprocessor {
             const numberConstType = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.NumberKeyword;
             if (numberConstType) {
                 // if string
-                const typeName = this.typeInfo.getTypeOfNode(currentOrNewArgument);
+                const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
                 switch (typeName) {
                     case 'number':
                     case '__function':
