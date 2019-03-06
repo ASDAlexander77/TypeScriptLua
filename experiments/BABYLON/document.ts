@@ -18,4 +18,11 @@ export default class DocumentEx {
 
         listeners.push(cb);
     }
+
+    public static removeEventListener(eventName: string, cb: any): void {
+        const listeners = this.events[eventName];
+        if (listeners) {
+            listeners.remove(cb);
+        }
+    }
 }

@@ -226,6 +226,13 @@ export default class WindowEx {
         listeners.push(cb);
     }
 
+    public static removeEventListener(eventName: string, cb: any): void {
+        const listeners = this.events[eventName];
+        if (listeners) {
+            listeners.remove(cb);
+        }
+    }
+
     private static timerCallback(value: number) {
         WindowEx.__drawFunction = WindowEx.timerCallbackMap[value];
         if (!WindowEx.__drawFunction) {

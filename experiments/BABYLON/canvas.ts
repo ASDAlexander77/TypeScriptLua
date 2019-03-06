@@ -55,6 +55,10 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         window.addEventListener(eventName, cb, flag);
     }
 
+    removeEventListener(eventName: string, cb: any): void {
+        window.removeEventListener(eventName, cb);
+    }
+
     // @ts-ignore
     drawArraysInstanced(mode: number, first: number, count: number, primcount: number): void {
         throw new Error('Method not implemented.');
