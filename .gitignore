@@ -17,5 +17,7 @@ __build
 /thirdparty/glew-2.2.0/bin
 /thirdparty/glew-2.2.0/lib
 /thirdparty/freeimage-3.18.0/Dist
+/thirdparty/freeimage-3.18.0/Wrapper/FreeImagePlus/dist 
+/thirdparty/freeimage-3.18.0/Wrapper/FreeImagePlus/x64
 /packages/tsc-lua/lib
 /packages/tsc-lua/node_modules

@@ -10,11 +10,13 @@ cd ..\freeimage-3.18.0
 if not defined DevEnvDir (@call "%VS150COMNTOOLS%\..\..\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64)
 "%VS150COMNTOOLS%\..\..\MSBuild\15.0\Bin\MSBuild" FreeImage.2017.sln /m:8 /p:Configuration=%Mode% /p:Platform="x64"
 IF "%Mode%" NEQ "Debug" GOTO :skip_debug_copy
-copy bin\%Mode%\freeimaged.dll ..\..\..\..\__dist\freeimaged.dll
-copy bin\%Mode%\freeimaged.dll ..\..\..\..\__dist\freeimage.dll
+copy Dist\x64\freeimaged.dll ..\..\__dist\freeimaged.dll
+copy Dist\x64\freeimaged.dll ..\..\__dist\freeimage.dll
+rem clean.bat
 GOTO :end
 :skip_debug_copy
-copy bin\%Mode%\freeimage.dll ..\..\..\..\__dist
+copy Dist\x64\freeimage.dll ..\..\__dist
+rem clean.bat
 GOTO :end
 :mingw32
 IF NOT EXIST __build MKDIR __build

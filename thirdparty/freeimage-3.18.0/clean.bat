@@ -1,12 +1,12 @@
 del *.aps /s /q
 del *.bak /s /q
 del *.bsc /s /q
-del *.dll /s /q
+rem del *.dll /s /q
 del *.exe /s /q
 del *.exp /s /q
 del *.idb /s /q
 del *.ilk /s /q
-del *.lib /s /q
+rem del *.lib /s /q
 del *.mdb /s /q
 del *.ncb /s /q
 del *.o /s /q
@@ -20,6 +20,7 @@ del *.sql /s /q
 del *.suo /s /q /a:h
 del *.user /s /q
 del *.opensdf /s /q /a:h
+del *.tlog /s /q
 del TestAPI\*.tif
 del TestAPI\blob.png
 del TestAPI\buffer.png
@@ -92,8 +93,8 @@ rd Win32 /s /q
 rd x64 /s /q
 rd Debug /s /q
 rd Release /s /q
-del Dist\FreeImage.h
-rd Dist\x32 /s /q
-rd Dist\x64 /s /q
+rem del Dist\FreeImage.h
+rem rd Dist\x32 /s /q
+rem rd Dist\x64 /s /q
 rd .vs /s /q
 
