@@ -19,47 +19,54 @@ extern "C"
 {
 #endif
 
-    static int FreeImage_GetFileType_Wrapper (lua_State *L)
+    static int FreeImage_GetFileType_Wrapper(lua_State *L)
+    {
+        const char *filePath = luaL_checkstring(L, 1);
+        int size = luaL_checkinteger(L, 2);
+
+        FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(filePath, size);
+
+        lua_pushinteger(L, fif);
+
+        return 1;
+    }
+
+    static int FreeImage_GetFIFFromFilename_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_GetFIFFromFilename_Wrapper (lua_State *L)
+    static int FreeImage_FIFSupportsReading_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_FIFSupportsReading_Wrapper (lua_State *L)
+    static int FreeImage_Load_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_Load_Wrapper (lua_State *L)
+    static int FreeImage_ConvertTo32Bits_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_ConvertTo32Bits_Wrapper (lua_State *L)
+    static int FreeImage_GetWidth_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_GetWidth_Wrapper (lua_State *L)
+    static int FreeImage_GetHeight_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_GetHeight_Wrapper (lua_State *L)
+    static int FreeImage_GetBits_Wrapper(lua_State *L)
     {
         return 0;
     }
 
-    static int FreeImage_GetBits_Wrapper (lua_State *L)
-    {
-        return 0;
-    }
-
-    static int FreeImage_Unload_Wrapper (lua_State *L)
+    static int FreeImage_Unload_Wrapper(lua_State *L)
     {
         return 0;
     }
