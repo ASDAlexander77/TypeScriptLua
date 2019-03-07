@@ -7,3 +7,15 @@
 [submodule "thirdparty/pcre2"]
 	path = thirdparty/pcre2
 	url = https://github.com/svn2github/pcre2
+[submodule "thirdparty/freeimage"]
+	path = thirdparty/freeimage
+	url = https://github.com/imazen/freeimage.git
+[submodule "thirdparty/zlib"]
+	path = thirdparty/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "thirdparty/libpng"]
+	path = thirdparty/libpng
+	url = https://github.com/glennrp/libpng.git
+[submodule "thirdparty/thirdparty/libjpeg-turbo"]
+	path = thirdparty/thirdparty/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
