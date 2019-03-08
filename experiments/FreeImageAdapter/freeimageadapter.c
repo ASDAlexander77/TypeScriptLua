@@ -19,6 +19,8 @@ extern "C"
 {
 #endif
 
+#define FREEIMAGE_GC_METATABLENAME "__freeimage_adapter_metatable"
+
     static int FreeImage_GetFileType_Wrapper(lua_State *L)
     {
         const char *filePath = luaL_checkstring(L, 1);
@@ -78,7 +80,8 @@ extern "C"
         FIBITMAP *dib32bit;
         dib32bit = FreeImage_ConvertTo32Bits(dib);
 
-        FreeImage_Unload(dib);
+        // TODO: do not forget to free it
+        //FreeImage_Unload(dib);
 
         lua_pushlightuserdata(L, dib32bit);
 
@@ -126,7 +129,8 @@ extern "C"
         unsigned char* bits;
 	    bits = FreeImage_GetBits(dib);
 
-        FreeImage_Unload(dib);
+        // TODO: do not forget to free it
+        //FreeImage_Unload(dib);
 
         lua_pushlightuserdata(L, bits);
 
@@ -146,6 +150,104 @@ extern "C"
         return 0;
     }
 
+    static int FreeImage_LoadImage_Wrapper(lua_State *L)
+    {
+        const char *filePath = luaL_checkstring(L, 1);
+
+        // load image
+        FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+        // pointer to the image, once loaded
+        FIBITMAP *dib;
+
+        // check the file signature and deduce its format
+        fif = FreeImage_GetFileType(filePath, 0);
+        // if still unknown, try to guess the file format from the file extension
+        if (fif == FIF_UNKNOWN) 
+        {
+            fif = FreeImage_GetFIFFromFilename(filePath);
+        }
+
+        // if still unkown, return failure
+        if (fif == FIF_UNKNOWN)
+        {
+            lua_pushnil(L);
+            return 1;
+        }
+
+        // check that the plugin has reading capabilities and load the file
+        if (FreeImage_FIFSupportsReading(fif))
+        {
+            dib = FreeImage_Load(fif, filePath, 0);
+        }
+
+        // if the image failed to load, return failure
+        if (!dib)
+        {
+            lua_pushnil(L);
+            return 1;
+        }
+
+        // retrieve the image data
+        // get the image width and height
+        FIBITMAP *dib32bit = FreeImage_ConvertTo32Bits(dib);
+
+        // Free FreeImage's copy of the data
+        FreeImage_Unload(dib);
+
+        int width = FreeImage_GetWidth(dib32bit);
+        int height = FreeImage_GetHeight(dib32bit);
+
+        unsigned char* bits = FreeImage_GetBits(dib32bit);
+
+        // if this somehow one of these failed (they shouldn't), return failure
+        if ((bits == 0) || (width == 0) || (height == 0))
+        {
+            FreeImage_Unload(dib32bit);
+            lua_pushnil(L);
+            return 1;
+        }
+
+        // Free FreeImage's copy of the data
+        //FreeImage_Unload(dib32bit);
+
+        lua_newtable(L);
+
+        lua_pushstring(L, "width");
+        lua_pushinteger(L, width);
+        lua_settable(L, -3);    
+
+        lua_pushstring(L, "height");
+        lua_pushinteger(L, height);
+        lua_settable(L, -3);                    
+
+        // add allocated data;
+        lua_pushstring(L, "dib32bit");
+        lua_pushlightuserdata(L, dib32bit);
+        lua_settable(L, -3);           
+
+        lua_pushstring(L, "bits");
+        lua_pushlightuserdata(L, bits);
+        lua_settable(L, -3);           
+
+        // set metatable
+        luaL_getmetatable(L, FREEIMAGE_GC_METATABLENAME);
+        lua_setmetatable(L, -2);        
+
+        return 1;
+    }
+
+    static int reg_gc (lua_State *L)
+    {
+        lua_getfield(L, -1, "dib32bit");
+        if (lua_islightuserdata(L, 1)) 
+        {
+            FIBITMAP * dib32bit = (FIBITMAP *) lua_topointer(L, 1);
+            FreeImage_Unload(dib32bit);
+        }
+
+        return 1; /* new userdatum is already on the stack */
+    }
+
     static const struct luaL_Reg freeimageadapter[] = {
         {"getFileType", FreeImage_GetFileType_Wrapper},
         {"getFIFFromFilename", FreeImage_GetFIFFromFilename_Wrapper},
@@ -156,12 +258,21 @@ extern "C"
         {"getHeight", FreeImage_GetHeight_Wrapper},
         {"getBits", FreeImage_GetBits_Wrapper},
         {"unload", FreeImage_Unload_Wrapper},
+        {"loadImage", FreeImage_LoadImage_Wrapper},
         {NULL, NULL} /* sentinel */
     };
 
     //name of this function is not flexible
     LIBRARY_API int luaopen_freeimageadapter(lua_State *L)
     {
+        // we need to create metatable for UserData to set __gc to clear the resource up later
+        luaL_newmetatable(L, FREEIMAGE_GC_METATABLENAME);
+        
+        /* set its __gc field */
+        lua_pushstring(L, "__gc");
+        lua_pushcfunction(L, reg_gc);
+        lua_settable(L, -3);
+
         luaL_newlib(L, freeimageadapter);
         return 1;
     }

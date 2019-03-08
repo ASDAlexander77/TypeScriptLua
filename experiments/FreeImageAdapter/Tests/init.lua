@@ -16,16 +16,15 @@ else
 	print ("file not supported")
 end
 
-if dip == nil then
+if dib == nil then
 	print ("can't load.")
 end
 
 dib32bit = fi.convertTo32Bits(dib)
-if dip == nil then
+fi.unload(dib)
+if dib32bit == nil then
 	print ("can't convert.")
 end
-
-fi.unload(dib)
 
 width = fi.getWidth(dib32bit)
 height = fi.getHeight(dib32bit)
@@ -34,10 +33,17 @@ print ("width = " .. width .. ", height = " .. height)
 
 bits = fi.getBits(dib32bit)
 
-if dip == nil then
+if bits == nil then
 	print ("can't get bits.")
 end
 
-fif.unload(dib32bit)
+fi.unload(dib32bit)
 
-print ("All done.")
+print ("All done. 1")
+
+mi = fi.loadImage(url);
+if mi == nil then
+	print ("can't load.")
+end
+
+print ("Image data, width = " .. mi.width .. ", height = " .. mi.height)
