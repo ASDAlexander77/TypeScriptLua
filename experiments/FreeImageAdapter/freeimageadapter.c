@@ -69,7 +69,11 @@ extern "C"
 
     static int FreeImage_ConvertTo32Bits_Wrapper(lua_State *L)
     {
-        FIBITMAP *dib = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+        FIBITMAP *dib = (FIBITMAP *) (lua_islightuserdata(L, 1) ? lua_topointer(L, 1) : NULL);
+        if (!dib) 
+        {
+            luaL_argerror(L, 1, "No image data");
+        }
 
         FIBITMAP *dib32bit;
         dib32bit = FreeImage_ConvertTo32Bits(dib);
@@ -83,9 +87,13 @@ extern "C"
 
     static int FreeImage_GetWidth_Wrapper(lua_State *L)
     {
-        FIBITMAP *dip = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+        FIBITMAP *dib = (FIBITMAP *) (lua_islightuserdata(L, 1) ? lua_topointer(L, 1) : NULL);
+        if (!dib) 
+        {
+            luaL_argerror(L, 1, "No image data");
+        }
 
-        int width = FreeImage_GetWidth(dip);
+        int width = FreeImage_GetWidth(dib);
 
         lua_pushnumber(L, width);
 
@@ -94,7 +102,11 @@ extern "C"
 
     static int FreeImage_GetHeight_Wrapper(lua_State *L)
     {
-        FIBITMAP *dib = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+        FIBITMAP *dib = (FIBITMAP *) (lua_islightuserdata(L, 1) ? lua_topointer(L, 1) : NULL);
+        if (!dib) 
+        {
+            luaL_argerror(L, 1, "No image data");
+        }
 
         int height = FreeImage_GetHeight(dib);
 
@@ -105,7 +117,11 @@ extern "C"
 
     static int FreeImage_GetBits_Wrapper(lua_State *L)
     {
-        FIBITMAP *dib = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+        FIBITMAP *dib = (FIBITMAP *) (lua_islightuserdata(L, 1) ? lua_topointer(L, 1) : NULL);
+        if (!dib) 
+        {
+            luaL_argerror(L, 1, "No image data");
+        }
 
         unsigned char* bits;
 	    bits = FreeImage_GetBits(dib);
@@ -119,9 +135,13 @@ extern "C"
 
     static int FreeImage_Unload_Wrapper(lua_State *L)
     {
-        FIBITMAP *dip = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+        FIBITMAP *dib = (FIBITMAP *) (lua_islightuserdata(L, 1) ? lua_topointer(L, 1) : NULL);
+        if (!dib) 
+        {
+            luaL_argerror(L, 1, "No image data");
+        }
 
-        FreeImage_Unload(dip);
+        FreeImage_Unload(dib);
 
         return 0;
     }
