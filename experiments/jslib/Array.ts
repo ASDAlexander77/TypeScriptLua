@@ -196,6 +196,10 @@ module JS {
             return table.concat(this._values);
         }
 
+        public sort() {
+            table.sort(this._values);
+        }
+
         public shift(): T {
             const v = table.remove(this._values, 1);
             // @ts-ignore
@@ -225,6 +229,13 @@ module JS {
 
             // @ts-ignore
             return retArr;
+        }
+
+        public remove(obj: T) {
+            const idx = this.indexOf(obj);
+            if (idx !== -1) {
+                table.remove(this._values, idx + 1);
+            }
         }
 
         public map(func: (currentValue: T, index: number, arr: T[]) => T, thisValue?: any): T[] {

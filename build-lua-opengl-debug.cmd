@@ -38,3 +38,13 @@ rem Building GLUT
 cd experiments\WebGLAdapter
 @call build.cmd win64 Debug
 cd ..\..\..\..
+
+rem Building FreeImage
+cd thirdparty\freeimage-build\
+@call build.cmd win64 Debug
+cd ..\..\..\..
+
+rem Building FreeImage Adapter
+cd experiments\FreeImageAdapter
+@call build.cmd win64 Debug
+cd ..\..\..\..

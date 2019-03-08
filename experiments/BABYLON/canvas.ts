@@ -230,7 +230,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     activeTexture(texture: number): void {
-        throw new Error('Method not implemented.');
+        _gl.activeTexture(texture);
     }
 
     // @ts-ignore
@@ -259,7 +259,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     bindTexture(target: number, texture: WebGLTexture): void {
-        throw new Error('Method not implemented.');
+        _gl.bindTexture(target, texture ? (<any>texture).value : 0);
     }
 
     // @ts-ignore
@@ -718,7 +718,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     pixelStorei(pname: number, param: number): void {
-        throw new Error('Method not implemented.');
+        // tslint:disable-next-line:triple-equals
+        if (pname == undefined) {
+            return;
+        }
+
+        _gl.pixelStorei(pname, param);
     }
 
     // @ts-ignore
@@ -789,7 +794,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         source: ImageBitmap | ImageData | HTMLVideoElement | HTMLImageElement | HTMLCanvasElement): void;
     // @ts-ignore
     texImage2D(target: any, level: any, internalformat: any, width: any, height: any, border: any, format?: any, type?: any, pixels?: any) {
-        throw new Error('Method not implemented.');
+        if (format) {
+            _gl.texImage2D(target, level, internalformat, width, height, border, format, type, (<any>pixels).buffer.bufferNativeInstance);
+        } else {
+            // border = source, width = format, height = type
+            _gl.texImage2D(target, level, internalformat, border.width, border.height, 0, width, height, border.bits);
+        }
     }
 
     // @ts-ignore
@@ -799,7 +809,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     texParameteri(target: number, pname: number, param: number): void {
-        throw new Error('Method not implemented.');
+        _gl.texParameteri(target, pname, param);
     }
 
     // @ts-ignore

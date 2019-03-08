@@ -1666,6 +1666,107 @@ extern "C"
         return 1;
     }
 
+    static int activeTexture(lua_State *L)
+    {
+        const GLint tex = (GLint) luaL_checkinteger(L, 1);
+        glActiveTexture(tex);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int bindTexture(lua_State *L)
+    {
+        const GLint target = (GLint) luaL_checkinteger(L, 1);
+        const GLint buffer = (GLint) luaL_checkinteger(L, 2);
+        glBindTexture(target, buffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int pixelStorei(lua_State *L)
+    {
+        const GLint pname = (GLint) luaL_checkinteger(L, 1);
+        const GLint param = (GLint) luaL_checkinteger(L, 2);
+        glPixelStorei(pname, param);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int texImage2D(lua_State *L)
+    {
+        const GLint target = (GLint) luaL_checkinteger(L, 1);
+        const GLint level = (GLint) luaL_checkinteger(L, 2);
+        const GLint internalformat = (GLint) luaL_checkinteger(L, 3);
+        const GLint width = (GLint) luaL_checkinteger(L, 4);
+        const GLint height = (GLint) luaL_checkinteger(L, 5);
+        const GLint border = (GLint) luaL_checkinteger(L, 6);
+        const GLint format = (GLint) luaL_checkinteger(L, 7);
+        const GLint type = (GLint) luaL_checkinteger(L, 8);
+        const void* pixels = NULL;
+
+        if (lua_islightuserdata(L, 9)) 
+        {
+            pixels = lua_topointer(L, 9);
+        } 
+        else if (lua_type(L, 9) == LUA_TUSERDATA) 
+        {
+            const ArrayContainer *userdata = lua_topointer(L, 9);
+            pixels = (const char*) &userdata->data;
+        }
+        else if (lua_isnoneornil(L, 9)) 
+        {
+            pixels = NULL;
+        } 
+        else
+        {
+            return luaL_argerror(L, 9, "Bad argument");
+        }
+
+        glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int texParameteri(lua_State *L)
+    {
+        const GLint target = (GLint) luaL_checkinteger(L, 1);
+        const GLint pname = (GLint) luaL_checkinteger(L, 2);
+        const GLint param = (GLint) luaL_checkinteger(L, 3);
+        glTexParameteri(target, pname, param);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }       
+
     typedef struct ConstPair
     {
         const char *name;
@@ -1971,7 +2072,60 @@ extern "C"
         {"VERTEX_ATTRIB_ARRAY_TYPE", GL_VERTEX_ATTRIB_ARRAY_TYPE},
         {"VERTEX_SHADER", GL_VERTEX_SHADER},
         {"VIEWPORT", GL_VIEWPORT},
-        {"ZERO", GL_ZERO}};
+        {"ZERO", GL_ZERO},
+        // added
+        {"ALPHA", GL_ALPHA},
+        {"LUMINANCE", GL_LUMINANCE},
+        {"LUMINANCE_ALPHA", GL_LUMINANCE_ALPHA},
+        {"R11F_G11F_B10F", GL_R11F_G11F_B10F},
+        {"R16F", GL_R16F},
+        {"R16I", GL_R16I},
+        {"R16UI", GL_R16UI},
+        {"R32F", GL_R32F},
+        {"R32I", GL_R32I},
+        {"R32UI", GL_R32UI},
+        {"R8", GL_R8},
+        {"R8_SNORM", GL_R8_SNORM},
+        {"R8I", GL_R8I},
+        {"R8UI", GL_R8UI},
+        {"RG16F", GL_RG16F},
+        {"RG16I", GL_RG16I},
+        {"RG16UI", GL_RG16UI},
+        {"RG32F", GL_RG32F},
+        {"RG32I", GL_RG32I},
+        {"RG32UI", GL_RG32UI},
+        {"RG8", GL_RG8},
+        {"RG8_SNORM", GL_RG8_SNORM},
+        {"RG8I", GL_RG8I},
+        {"RG8UI", GL_RG8UI},
+        {"RGB10_A2", GL_RGB10_A2},
+        {"RGB10_A2UI", GL_RGB10_A2UI},
+        {"RGB16F", GL_RGB16F},
+        {"RGB16I", GL_RGB16I},
+        {"RGB16UI", GL_RGB16UI},
+        {"RGB32F", GL_RGB32F},
+        {"RGB32I", GL_RGB32I},
+        {"RGB32UI", GL_RGB32UI},
+        {"RGB5_A1", GL_RGB5_A1},
+        {"RGB565", GL_RGB565},
+        {"RGB8", GL_RGB8},
+        {"RGB8_SNORM", GL_RGB8_SNORM},
+        {"RGB8I", GL_RGB8I},
+        {"RGB8UI", GL_RGB8UI},
+        {"RGB9_E5", GL_RGB9_E5},
+        {"RGBA", GL_RGBA},
+        {"RGBA16F", GL_RGBA16F},
+        {"RGBA16I", GL_RGBA16I},
+        {"RGBA16UI", GL_RGBA16UI},
+        {"RGBA32F", GL_RGBA32F},
+        {"RGBA32I", GL_RGBA32I},
+        {"RGBA32UI", GL_RGBA32UI},
+        {"RGBA4", GL_RGBA4},
+        {"RGBA8", GL_RGBA8},
+        {"RGBA8_SNORM", GL_RGBA8_SNORM},
+        {"RGBA8I", GL_RGBA8I},
+        {"RGBA8UI", GL_RGBA8UI}
+    };
 
     static void AddConstsGL(lua_State *L)
     {
@@ -2055,6 +2209,11 @@ extern "C"
         {"drawElements", drawElements},
         {"drawArrays", drawArrays},
         {"createTexture", createTexture},
+        {"activeTexture", activeTexture},
+        {"bindTexture", bindTexture},
+        {"pixelStorei", pixelStorei},
+        {"texImage2D", texImage2D},
+        {"texParameteri", texParameteri},
         {NULL, NULL} /* sentinel */
     };
 
