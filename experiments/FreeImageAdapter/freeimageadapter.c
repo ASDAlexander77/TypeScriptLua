@@ -22,7 +22,7 @@ extern "C"
     static int FreeImage_GetFileType_Wrapper(lua_State *L)
     {
         const char *filePath = luaL_checkstring(L, 1);
-        int size = luaL_checkinteger(L, 2);
+        int size = (int) (!lua_isnoneornil(L, 2) ? luaL_checkinteger(L, 2) : 0);
 
         FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(filePath, size);
 
@@ -33,41 +33,96 @@ extern "C"
 
     static int FreeImage_GetFIFFromFilename_Wrapper(lua_State *L)
     {
-        return 0;
+        const char *filePath = luaL_checkstring(L, 1);
+
+        FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(filePath);
+
+        lua_pushinteger(L, fif);
+
+        return 1;
     }
 
     static int FreeImage_FIFSupportsReading_Wrapper(lua_State *L)
     {
-        return 0;
+        FREE_IMAGE_FORMAT fif = (FREE_IMAGE_FORMAT) luaL_checkinteger(L, 1);
+
+        BOOL val = FreeImage_FIFSupportsReading(fif);
+
+        lua_pushboolean(L, val ? 1 : 0);
+
+        return 1;
     }
 
     static int FreeImage_Load_Wrapper(lua_State *L)
     {
-        return 0;
+        FREE_IMAGE_FORMAT fif = (FREE_IMAGE_FORMAT) luaL_checkinteger(L, 1);
+        const char *filePath = luaL_checkstring(L, 2);
+        int flags = (int) (!lua_isnoneornil(L, 3) ? luaL_checkinteger(L, 3) : 0);
+
+        FIBITMAP *dib;
+        dib = FreeImage_Load(fif, filePath, flags);
+
+        lua_pushlightuserdata(L, dib);
+
+        return 1;
     }
 
     static int FreeImage_ConvertTo32Bits_Wrapper(lua_State *L)
     {
-        return 0;
+        FIBITMAP *dib = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+
+        FIBITMAP *dib32bit;
+        dib32bit = FreeImage_ConvertTo32Bits(dib);
+
+        FreeImage_Unload(dib);
+
+        lua_pushlightuserdata(L, dib32bit);
+
+        return 1;
     }
 
     static int FreeImage_GetWidth_Wrapper(lua_State *L)
     {
-        return 0;
+        FIBITMAP *dip = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+
+        int width = FreeImage_GetWidth(dip);
+
+        lua_pushnumber(L, width);
+
+        return 1;
     }
 
     static int FreeImage_GetHeight_Wrapper(lua_State *L)
     {
-        return 0;
+        FIBITMAP *dib = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+
+        int height = FreeImage_GetHeight(dib);
+
+        lua_pushnumber(L, height);
+
+        return 1;
     }
 
     static int FreeImage_GetBits_Wrapper(lua_State *L)
     {
-        return 0;
+        FIBITMAP *dib = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+
+        unsigned char* bits;
+	    bits = FreeImage_GetBits(dib);
+
+        FreeImage_Unload(dib);
+
+        lua_pushlightuserdata(L, bits);
+
+        return 1;
     }
 
     static int FreeImage_Unload_Wrapper(lua_State *L)
     {
+        FIBITMAP *dip = (FIBITMAP *) luaL_checkudata(L, 1, NULL);
+
+        FreeImage_Unload(dip);
+
         return 0;
     }
 

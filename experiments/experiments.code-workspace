@@ -23,6 +23,10 @@
 		{
 			"name": "PCRE2 adapter",
 			"path": "./Pcre2Adapter"
+		},
+		{
+			"name": "FreeImage adapter",
+			"path": "./FreeImageAdapter"
 		}
 	],
     "settings": {

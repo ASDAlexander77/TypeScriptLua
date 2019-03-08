@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 
-project (pcre2adapter_wrappers) 
+project (freeimageadapter_wrappers) 
 
 if (MSVC)
     SET(MYCFLAGS "")
@@ -53,35 +53,30 @@ else()
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall -O2 -Wfatal-errors -fno-stack-protector -fno-common ${EXTRA_C_FLAGS}")
 endif()
 
-file(GLOB PRE2ADAPTER_SRC
-    "${PROJECT_SOURCE_DIR}/pcre2adapter.c"
+file(GLOB FREEIMAGEADAPTER_SRC
+    "${PROJECT_SOURCE_DIR}/freeimageadapter.c"
 )
 
 include_directories("${PROJECT_SOURCE_DIR}/../../thirdparty/lua/src/")
 
 #-----------------------------------------------------------------------------
-# Configure PCRE2
+# Configure FREEIMAGE
 
 if(WIN32)
-	set(PCRE2_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2/src")
+	set(FREEIMAGE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-3.18.0/Dist/x64")
 	if (MSVC)                                                       
-		set(PCRE2_INCLUDE_PATH2 "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2-build/__build/win64")
-		set(PCRE2_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2-build/__build/win64/${CMAKE_BUILD_TYPE}/pcre2-8${CMAKE_DEBUG_POSTFIX}.lib")
-		set(PCRE2_LIBRARY_POSIX "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2-build/__build/win64/${CMAKE_BUILD_TYPE}/pcre2-posix${CMAKE_DEBUG_POSTFIX}.lib")
+		set(FREEIMAGE_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-3.18.0/Dist/x64/Freeimage${CMAKE_DEBUG_POSTFIX}.lib")
 	else()
-		set(PCRE2_INCLUDE_PATH2 "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2-build/__build/mingw32")
-		set(PCRE2_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2-build/__build/mingw32/pcre2-8.a")
-		set(PCRE2_LIBRARY_POSIX "${CMAKE_SOURCE_DIR}/../../thirdparty/pcre2-build/__build/mingw32/pcre2-posix.a")
+ 		set(FREEIMAGE_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-build/__build/mingw32/freeimage.a")
 		set(CMAKE_SHARED_LIBRARY_PREFIX "")
 	endif()
 endif()
 
 include_directories(SYSTEM 
-	${PCRE2_INCLUDE_PATH}
-	${PCRE2_INCLUDE_PATH2}
+	${FREEIMAGE_INCLUDE_PATH}
 )
 
-add_library (pcre2adapter SHARED ${PRE2ADAPTER_SRC})
-target_link_libraries (pcre2adapter ${LUA_LIBRARY} ${PCRE2_LIBRARY} ${PCRE2_LIBRARY_POSIX})
+add_library (freeimageadapter SHARED ${FREEIMAGEADAPTER_SRC})
+target_link_libraries (freeimageadapter ${LUA_LIBRARY} ${FREEIMAGE_LIBRARY})
 
-add_custom_command(TARGET pcre2adapter POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:pcre2adapter> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:pcre2adapter>") 
+add_custom_command(TARGET freeimageadapter POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:freeimageadapter> "${PROJECT_SOURCE_DIR}/../../__dist/$<TARGET_FILE_NAME:freeimageadapter>") 
