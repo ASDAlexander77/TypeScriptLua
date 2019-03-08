@@ -277,6 +277,22 @@ extern "C"
         return 1;
     }
 
+    static int createFramebuffer(lua_State *L)
+    {
+        GLuint val;
+        glGenFramebuffers(1, &val);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushinteger(L, val);
+
+        return 1;
+    }
+
     static int createShader(lua_State *L)
     {
         const GLenum type = (GLenum) luaL_checkinteger(L, 1);
@@ -2149,6 +2165,7 @@ extern "C"
         {"clearStencil", clearStencil},
         {"viewport", viewport},
         {"createBuffer", createBuffer},
+        {"createFramebuffer", createFramebuffer},
         {"bindBuffer", bindBuffer},
         {"bindBufferBase", bindBufferBase},
         {"bufferData", bufferData},

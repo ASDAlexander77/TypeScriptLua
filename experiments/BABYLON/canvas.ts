@@ -365,7 +365,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     createFramebuffer(): WebGLFramebuffer {
-        throw new Error('Method not implemented.');
+        const val = _gl.createFramebuffer();
+        if (val >= 0) {
+            return <WebGLBuffer><any>{ value: val };
+        }
+
+        return null;
     }
 
     createProgram(): WebGLProgram {
@@ -795,7 +800,8 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
     // @ts-ignore
     texImage2D(target: any, level: any, internalformat: any, width: any, height: any, border: any, format?: any, type?: any, pixels?: any) {
         if (format) {
-            _gl.texImage2D(target, level, internalformat, width, height, border, format, type, (<any>pixels).buffer.bufferNativeInstance);
+            _gl.texImage2D(target, level, internalformat, width, height, border, format, type,
+                pixels ? (<any>pixels).buffer.bufferNativeInstance : null);
         } else {
             // border = source, width = format, height = type
             _gl.texImage2D(target, level, internalformat, border.width, border.height, 0, width, height, border.bits);
