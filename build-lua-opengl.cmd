@@ -47,7 +47,7 @@ cd ..\..\..\..
 rem Building FreeImage
 cd thirdparty\freeimage-build\
 @call build.cmd win64 Release
-cd ..\..\..\..
+cd ..\..
 
 rem Building FreeImage Adapter
 cd experiments\FreeImageAdapter

@@ -102,6 +102,9 @@ import './BABYLON/Gamepad/babylon_gamepadSceneComponent';
 import './BABYLON/Lights/babylon_shadowLight';
 import './BABYLON/Lights/babylon_pointLight';
 
+import './BABYLON/PostProcess/babylon_postProcess';
+import './BABYLON/PostProcess/babylon_passPostProcess';
+
 import WindowEx from './window';
 import DocumentEx from './document';
 import Image from './image';

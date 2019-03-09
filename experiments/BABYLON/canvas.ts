@@ -249,12 +249,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     bindFramebuffer(target: number, framebuffer: WebGLFramebuffer): void {
-        throw new Error('Method not implemented.');
+        _gl.bindFramebuffer(target, framebuffer ? (<any>framebuffer).value : 0);
     }
 
     // @ts-ignore
     bindRenderbuffer(target: number, renderbuffer: WebGLRenderbuffer): void {
-        throw new Error('Method not implemented.');
+        _gl.bindRenderbuffer(target, renderbuffer ? (<any>renderbuffer).value : 0);
     }
 
     // @ts-ignore
@@ -384,7 +384,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     createRenderbuffer(): WebGLRenderbuffer {
-        throw new Error('Method not implemented.');
+        const val = _gl.createRenderbuffer();
+        if (val >= 0) {
+            return <WebGLRenderbuffer>{ value: val };
+        }
+
+        return null;
     }
 
     createShader(type: number): WebGLShader {
@@ -493,12 +498,12 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     framebufferRenderbuffer(target: number, attachment: number, renderbuffertarget: number, renderbuffer: WebGLRenderbuffer): void {
-        throw new Error('Method not implemented.');
+        _gl.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer ? (<any>renderbuffer).value : 0);
     }
 
     // @ts-ignore
     framebufferTexture2D(target: number, attachment: number, textarget: number, texture: WebGLTexture, level: number): void {
-        throw new Error('Method not implemented.');
+        _gl.framebufferTexture2D(target, attachment, textarget, texture ? (<any>texture).value : 0, level);
     }
 
     frontFace(mode: number): void {
@@ -507,7 +512,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     generateMipmap(target: number): void {
-        throw new Error('Method not implemented.');
+        _gl.generateMipmap(target);
     }
 
     // @ts-ignore
@@ -743,7 +748,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     renderbufferStorage(target: number, internalformat: number, width: number, height: number): void {
-        throw new Error('Method not implemented.');
+        _gl.renderbufferStorage(target, internalformat, width, height);
     }
 
     // @ts-ignore

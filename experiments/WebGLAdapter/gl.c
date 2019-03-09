@@ -293,6 +293,22 @@ extern "C"
         return 1;
     }
 
+    static int createRenderbuffer(lua_State *L)
+    {
+        GLuint val;
+        glGenRenderbuffers(1, &val);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        lua_pushinteger(L, val);
+
+        return 1;
+    }
+
     static int createShader(lua_State *L)
     {
         const GLenum type = (GLenum) luaL_checkinteger(L, 1);
@@ -939,6 +955,54 @@ extern "C"
 
         return 0;
     }
+
+    static int bindFramebuffer(lua_State *L)
+    {
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLuint buffer = (GLuint) luaL_checkinteger(L, 2);
+        glBindFramebuffer(target, buffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int bindRenderbuffer(lua_State *L)
+    {
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLuint renderbuffer = (GLuint) luaL_checkinteger(L, 2);
+        glBindRenderbuffer(target, renderbuffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }
+
+    static int renderbufferStorage(lua_State *L)
+    {
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLuint internalformat = (GLuint) luaL_checkinteger(L, 2);
+        const GLuint width = (GLuint) luaL_checkinteger(L, 3);
+        const GLuint height = (GLuint) luaL_checkinteger(L, 4);
+
+        glRenderbufferStorage(target, internalformat, width, height);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
 
     typedef struct ArrayContainerType
     {
@@ -1783,6 +1847,58 @@ extern "C"
         return 0;
     }       
 
+    static int framebufferTexture2D(lua_State *L)
+    {
+        const GLint target = (GLint) luaL_checkinteger(L, 1);
+        const GLint attachment = (GLint) luaL_checkinteger(L, 2);
+        const GLint textarget = (GLint) luaL_checkinteger(L, 3);
+        const GLint texture = (GLint) luaL_checkinteger(L, 4);
+        const GLint level = (GLint) luaL_checkinteger(L, 5);
+
+        glFramebufferTexture2D(target, attachment, textarget, texture, level);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
+    static int framebufferRenderbuffer(lua_State *L)
+    {
+        const GLint target = (GLint) luaL_checkinteger(L, 1);
+        const GLint attachment = (GLint) luaL_checkinteger(L, 2);
+        const GLint renderbuffertarget = (GLint) luaL_checkinteger(L, 3);
+        const GLint renderbuffer = (GLint) luaL_checkinteger(L, 4);
+
+        glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
+    static int generateMipmap(lua_State *L)
+    {
+        const GLint target = (GLint) luaL_checkinteger(L, 1);
+
+        glGenerateMipmap(target);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
     typedef struct ConstPair
     {
         const char *name;
@@ -2166,8 +2282,11 @@ extern "C"
         {"viewport", viewport},
         {"createBuffer", createBuffer},
         {"createFramebuffer", createFramebuffer},
+        {"createRenderbuffer", createRenderbuffer},
         {"bindBuffer", bindBuffer},
         {"bindBufferBase", bindBufferBase},
+        {"bindFramebuffer", bindFramebuffer},
+        {"bindRenderbuffer", bindRenderbuffer},
         {"bufferData", bufferData},
         {"bufferSubData", bufferSubData},
         {"createShader", createShader},
@@ -2231,6 +2350,10 @@ extern "C"
         {"pixelStorei", pixelStorei},
         {"texImage2D", texImage2D},
         {"texParameteri", texParameteri},
+        {"framebufferTexture2D", framebufferTexture2D},
+        {"renderbufferStorage", renderbufferStorage},
+        {"framebufferRenderbuffer", framebufferRenderbuffer},
+        {"generateMipmap", generateMipmap},
         {NULL, NULL} /* sentinel */
     };
 
