@@ -648,7 +648,7 @@ export class Emitter {
                 .map(p => {
                     return this.fixupParentReferences(
                         ts.createIf(
-                            ts.createBinary(<ts.Identifier>p.name, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNull()),
+                            ts.createBinary(<ts.Identifier>p.name, ts.SyntaxKind.EqualsEqualsToken, ts.createNull()),
                             ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, p.initializer))),
                         location);
                 })
