@@ -411,18 +411,16 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     deleteFramebuffer(framebuffer: WebGLFramebuffer): void {
-        throw new Error('Method not implemented.');
+        _gl.deleteFramebuffer(framebuffer ? (<any>framebuffer).value : 0);
     }
 
     deleteProgram(program: WebGLProgram): void {
         _gl.deleteProgram(program ? (<any>program).value : 0);
     }
 
-    // @ts-ignore
     deleteRenderbuffer(renderbuffer: WebGLRenderbuffer): void {
-        throw new Error('Method not implemented.');
+        _gl.deleteRenderbuffer(renderbuffer ? (<any>renderbuffer).value : 0);
     }
 
     deleteShader(shader: WebGLShader): void {
@@ -431,7 +429,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     deleteTexture(texture: WebGLTexture): void {
-        throw new Error('Method not implemented.');
+        _gl.deleteTexture(texture ? (<any>texture).value : 0);
     }
 
     depthFunc(func: number): void {

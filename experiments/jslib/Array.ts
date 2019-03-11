@@ -280,6 +280,7 @@ module JS {
             const _vals = this._values;
             const _len = ArrayHelper.getLength(_vals);
             for (let i = 1; i <= _len; i++) {
+                const val = _vals[i];
                 // @ts-ignore
                 func(val, index++, this);
             }

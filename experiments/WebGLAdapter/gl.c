@@ -1921,6 +1921,48 @@ extern "C"
         return 0;
     }  
 
+    static int deleteFramebuffer(lua_State *L)
+    {
+        const GLuint framebuffer = (GLuint) luaL_checkinteger(L, 1);
+        glDeleteFramebuffers(1, &framebuffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }     
+
+    static int deleteRenderbuffer(lua_State *L)
+    {
+        const GLuint renderbuffer = (GLuint) luaL_checkinteger(L, 1);
+        glDeleteRenderbuffers(1, &renderbuffer);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }    
+
+    static int deleteTexture(lua_State *L)
+    {
+        const GLuint texture = (GLuint) luaL_checkinteger(L, 1);
+        glDeleteTextures(1, &texture);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }        
+
     typedef struct ConstPair
     {
         const char *name;
@@ -2187,6 +2229,7 @@ extern "C"
         {"TEXTURE8", GL_TEXTURE8},
         {"TEXTURE9", GL_TEXTURE9},
         {"TEXTURE_2D", GL_TEXTURE_2D},
+        {"TEXTURE_3D", GL_TEXTURE_3D},
         {"TEXTURE_BINDING_2D", GL_TEXTURE_BINDING_2D},
         {"TEXTURE_BINDING_CUBE_MAP", GL_TEXTURE_BINDING_CUBE_MAP},
         {"TEXTURE_CUBE_MAP", GL_TEXTURE_CUBE_MAP},
@@ -2377,6 +2420,9 @@ extern "C"
         {"framebufferRenderbuffer", framebufferRenderbuffer},
         {"generateMipmap", generateMipmap},
         {"copyTexImage2D", copyTexImage2D},
+        {"deleteFramebuffer", deleteFramebuffer},
+        {"deleteRenderbuffer", deleteRenderbuffer},
+        {"deleteTexture", deleteTexture},
         {NULL, NULL} /* sentinel */
     };
 
