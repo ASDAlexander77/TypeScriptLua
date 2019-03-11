@@ -964,7 +964,7 @@ describe('Classes', () => {
             }                                                                           \
         }                                                                               \
                                                                                         \
-        Node1.AddNodeConstructor("asd", {});                                            \
+        Node1.AddNodeConstructor("asd", () => {});                                      \
                                                                                         \
         console.log("Run");                                                             \
     '])));

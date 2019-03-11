@@ -1184,9 +1184,10 @@ export class Emitter {
             properties.push(valueProperty);
         }
 
-        const prototypeObject = ts.createAssignment(node.name, ts.createObjectLiteral(properties));
-        prototypeObject.parent = node;
-        this.processExpression(prototypeObject);
+        const enumLiteralObject = ts.createObjectLiteral(properties);
+        (<any>enumLiteralObject).__origin = node;
+        const prototypeObject = ts.createAssignment(node.name, enumLiteralObject);
+        this.processExpression(this.fixupParentReferences(prototypeObject, node));
 
         this.emitExport(node.name, node);
 

@@ -382,6 +382,16 @@ export class Preprocessor {
                         currentOrNewArgument = newNumber;
                         anyNewArgument = true;
                         break;
+                    case '__object':
+                        // we need to have Dynamic object which converts all const values such as string into String classes
+                        // and numbers into Number classes as 'any' can't tell us which type we are using
+                        const identObject = ts.createIdentifier('Object');
+                        const newObject = ts.createNew(identObject, undefined, [ currentOrNewArgument ]);
+                        newObject.parent = currentOrNewArgument.parent;
+                        identObject.parent = newObject;
+                        currentOrNewArgument = newObject;
+                        anyNewArgument = true;
+                        break;
                 }
             }
 
