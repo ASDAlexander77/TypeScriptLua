@@ -6,6 +6,31 @@ module JS {
 
     export class Object {
 
+        // to make dynamic object to convert string into 'new String' and number to 'new Number'
+        constructor(private obj: object = {}) {
+            // @ts-ignore
+            this.__index = function (_this: object, indx: number | string): any {
+                // @ts-ignore
+                const val = _this.obj[indx];
+                switch (typeof(val)) {
+                    case 'number':
+                        return new Number(val);
+                    case 'string':
+                        return new String(val);
+                    case 'table':
+                        return new Object(val);
+                }
+
+                return val;
+            };
+
+            // @ts-ignore
+            this.__newindex = function (_this: object, indx: number | string, val: T): void {
+                // @ts-ignore
+                _this.obj[indx] = val;
+            };
+        }
+
         public static create(proto: any): any {
             if (!proto) {
                 throw new Error('Prototype can\'t be undefined or null');

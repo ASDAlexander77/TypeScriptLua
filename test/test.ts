@@ -1,13 +1,19 @@
 import './JS';
 
-export class Node1 {
-    private static _NodeConstructors: {[key: string]: any} = {};
+let a: string = "asd 1";
 
-    public static AddNodeConstructor(type: string, constructorFunc: any) {
-        this._NodeConstructors[type] = constructorFunc;
-    }
+let b = { asd: a };
+
+let c = b.asd.length;
+
+console.log(c);
+
+function f(d: any) {
+
+	let e = d.asd.length;
+
+	console.log(e);
+
 }
 
-Node1.AddNodeConstructor("asd", {});
-
-console.log("Run");
+f(b);
