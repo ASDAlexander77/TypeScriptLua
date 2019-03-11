@@ -96,6 +96,11 @@ export class Emitter {
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
+    ___type = ___type || function(inst:object) {                    \
+        const tp = __type(inst);                                    \
+        return tp === "table" ? "object" : tp;                      \
+    };                                                              \
+                                                                    \
     __instanceof = __instanceof || function(inst:object, type:object) { \
         if (inst === null) {                                        \
             return false;                                           \
@@ -1137,7 +1142,7 @@ export class Emitter {
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        const typeCall = ts.createCall(ts.createIdentifier('__type'), undefined, [node.expression]);
+        const typeCall = ts.createCall(ts.createIdentifier('___type'), undefined, [node.expression]);
         typeCall.parent = node;
         this.processExpression(typeCall);
     }

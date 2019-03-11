@@ -94,8 +94,7 @@ module JS {
                     // @ts-ignore
                     const v = rawget(_this._values, indx + 1);
                     // @ts-ignore
-                    // tslint:disable-next-line:triple-equals typeof-compare
-                    return typeof (v) === 'table' && (<any>v).isNull ? null : v === null ? undefined : v;
+                    return typeof (v) === 'object' && (<any>v).isNull ? null : v === null ? undefined : v;
                 }
 
                 // @ts-ignore
@@ -154,8 +153,7 @@ module JS {
 
             const v = table.remove(this._values);
             // @ts-ignore
-            // tslint:disable-next-line:triple-equals typeof-compare
-            return typeof (v) === 'table' && (<any>v).isNull ? null : v === null ? undefined : v;
+            return typeof (v) === 'object' && (<any>v).isNull ? null : v === null ? undefined : v;
         }
 
         public get length(): number {
@@ -203,8 +201,7 @@ module JS {
         public shift(): T {
             const v = table.remove(this._values, 1);
             // @ts-ignore
-            // tslint:disable-next-line:triple-equals typeof-compare
-            return typeof (v) == 'table' && (<any>v).isNull ? null : v == null ? undefined : v;
+            return typeof (v) === 'object' && (<any>v).isNull ? null : v == null ? undefined : v;
         }
 
         public unshift(...objs: T[]) {
