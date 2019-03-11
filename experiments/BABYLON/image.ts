@@ -52,6 +52,10 @@ export default class Image {
         return this._imageData ? this._imageData.bits : 0;
     }
 
+    public set onload(cb: any) {
+        this.addEventListener('load', cb, false);
+    }
+
     public addEventListener(eventName: string, cb: any, flag: boolean): void {
         let listeners = this.events[eventName];
         if (!listeners) {

@@ -1,27 +1,38 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "lua",
-      "request": "launch",
-      "name": "Debug Babyloncli",
-      "cwd": "${workspaceFolder}",
-      "preLaunchTask": "npm",
-      //"program": "${workspaceFolder}/${command:AskForProgramName}",
-      "program": "${workspaceFolder}/babyloncli.lua",
-      "luaExecutable": "lua",
-      "stopOnEntry": true
-    },
-    {
-        "type": "lua",
-        "request": "launch",
-        "name": "Debug SimpleTest",
-        "cwd": "${workspaceFolder}",
-        "preLaunchTask": "npm",
-        //"program": "${workspaceFolder}/${command:AskForProgramName}",
-        "program": "${workspaceFolder}/simple_test.lua",
-        "luaExecutable": "lua",
-        "stopOnEntry": true
-      }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lua",
+            "request": "launch",
+            "name": "Debug Babyloncli",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "npm",
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${workspaceFolder}/babyloncli.lua",
+            "luaExecutable": "lua",
+            "stopOnEntry": true
+        },
+        {
+            "type": "lua",
+            "request": "launch",
+            "name": "Debug SimpleTest",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "npm",
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${workspaceFolder}/simple_test.lua",
+            "luaExecutable": "lua",
+            "stopOnEntry": true
+        },
+        {
+            "type": "lua",
+            "request": "launch",
+            "name": "Debug SimpleTest 2",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "npm",
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${workspaceFolder}/simple_test2.lua",
+            "luaExecutable": "lua",
+            "stopOnEntry": true
+        }
+    ]
 }

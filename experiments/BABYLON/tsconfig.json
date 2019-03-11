@@ -29,6 +29,7 @@
       "document.ts",
       "image.ts",
       "simple_test.ts",
+      "simple_test2.ts",
       "testapp.ts",
       "testapp2.ts",
       "testloadmesh.ts",
