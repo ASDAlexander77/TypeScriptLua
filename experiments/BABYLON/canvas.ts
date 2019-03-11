@@ -50,7 +50,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         window.focus();
     }
 
-    // @ts-ignore
     addEventListener(eventName: string, cb: any, flag: boolean): void {
         window.addEventListener(eventName, cb, flag);
     }
@@ -228,12 +227,10 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     activeTexture(texture: number): void {
         _gl.activeTexture(texture);
     }
 
-    // @ts-ignore
     attachShader(program: WebGLProgram, shader: WebGLShader): void {
         _gl.attachShader(program ? (<any>program).value : 0, shader ? (<any>shader).value : 0);
     }
@@ -247,17 +244,14 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.bindBuffer(target, buffer ? (<any>buffer).value : 0);
     }
 
-    // @ts-ignore
     bindFramebuffer(target: number, framebuffer: WebGLFramebuffer): void {
         _gl.bindFramebuffer(target, framebuffer ? (<any>framebuffer).value : 0);
     }
 
-    // @ts-ignore
     bindRenderbuffer(target: number, renderbuffer: WebGLRenderbuffer): void {
         _gl.bindRenderbuffer(target, renderbuffer ? (<any>renderbuffer).value : 0);
     }
 
-    // @ts-ignore
     bindTexture(target: number, texture: WebGLTexture): void {
         _gl.bindTexture(target, texture ? (<any>texture).value : 0);
     }
@@ -340,11 +334,9 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     copyTexImage2D(target: number, level: number, internalformat: number, x: number, y: number, width: number,
-        // @ts-ignore
         height: number, border: number): void {
-        throw new Error('Method not implemented.');
+        _gl.copyTexImage2D(target, level, internalformat, x, y, width, height, border);
     }
 
     // @ts-ignore
@@ -401,7 +393,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         return null;
     }
 
-    // @ts-ignore
     createTexture(): WebGLTexture {
         const val = _gl.createTexture();
         if (val >= 0) {
@@ -411,7 +402,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         return null;
     }
 
-    // @ts-ignore
     cullFace(mode: number): void {
         _gl.cullFace(mode);
     }
@@ -470,7 +460,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.disableVertexAttribArray(index);
     }
 
-    // @ts-ignore
     drawArrays(mode: number, first: number, count: number): void {
         _gl.drawArrays(mode, first, count);
     }
@@ -496,12 +485,10 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.flush();
     }
 
-    // @ts-ignore
     framebufferRenderbuffer(target: number, attachment: number, renderbuffertarget: number, renderbuffer: WebGLRenderbuffer): void {
         _gl.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer ? (<any>renderbuffer).value : 0);
     }
 
-    // @ts-ignore
     framebufferTexture2D(target: number, attachment: number, textarget: number, texture: WebGLTexture, level: number): void {
         _gl.framebufferTexture2D(target, attachment, textarget, texture ? (<any>texture).value : 0, level);
     }
@@ -510,7 +497,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.frontFace(mode);
     }
 
-    // @ts-ignore
     generateMipmap(target: number): void {
         _gl.generateMipmap(target);
     }
@@ -607,7 +593,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         return _gl.getParameter(pname);
     }
 
-    // @ts-ignore
     getProgramInfoLog(program: WebGLProgram): string {
         return _gl.getProgramInfoLog(program ? (<any>program).value : 0);
     }
@@ -726,7 +711,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.linkProgram(program ? (<any>program).value : 0);
     }
 
-    // @ts-ignore
     pixelStorei(pname: number, param: number): void {
         // tslint:disable-next-line:triple-equals
         if (pname == undefined) {
@@ -746,7 +730,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     renderbufferStorage(target: number, internalformat: number, width: number, height: number): void {
         _gl.renderbufferStorage(target, internalformat, width, height);
     }
@@ -766,7 +749,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.shaderSource(shader ? (<any>shader).value : 0, newSource);
     }
 
-    // @ts-ignore
     stencilFunc(func: number, ref: number, mask: number): void {
         _gl.stencilFunc(func, ref, mask);
     }
@@ -776,7 +758,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     stencilMask(mask: number): void {
         _gl.stencilMask(mask);
     }
@@ -786,7 +767,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     stencilOp(fail: number, zfail: number, zpass: number): void {
         _gl.stencilOp(fail, zfail, zpass);
     }
@@ -818,7 +798,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         throw new Error('Method not implemented.');
     }
 
-    // @ts-ignore
     texParameteri(target: number, pname: number, param: number): void {
         _gl.texParameteri(target, pname, param);
     }
@@ -914,7 +893,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.useProgram(program ? (<any>program).value : 0);
     }
 
-    // @ts-ignore
     validateProgram(program: WebGLProgram): void {
         _gl.validateProgram(program ? (<any>program).value : 0);
     }
@@ -963,7 +941,6 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.vertexAttribPointer(index, size, type, normalized, stride, offset);
     }
 
-    // @ts-ignore
     viewport(x: number, y: number, width: number, height: number): void {
         _gl.viewport(x, y, width, height);
     }

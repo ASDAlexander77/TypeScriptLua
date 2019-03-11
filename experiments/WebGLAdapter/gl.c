@@ -1868,10 +1868,10 @@ extern "C"
 
     static int framebufferRenderbuffer(lua_State *L)
     {
-        const GLint target = (GLint) luaL_checkinteger(L, 1);
-        const GLint attachment = (GLint) luaL_checkinteger(L, 2);
-        const GLint renderbuffertarget = (GLint) luaL_checkinteger(L, 3);
-        const GLint renderbuffer = (GLint) luaL_checkinteger(L, 4);
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLenum attachment = (GLenum) luaL_checkinteger(L, 2);
+        const GLenum renderbuffertarget = (GLenum) luaL_checkinteger(L, 3);
+        const GLuint renderbuffer = (GLuint) luaL_checkinteger(L, 4);
 
         glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 
@@ -1898,6 +1898,28 @@ extern "C"
 
         return 0;
     }     
+
+    static int copyTexImage2D(lua_State *L)
+    {
+        const GLenum target = (GLenum) luaL_checkinteger(L, 1);
+        const GLint level = (GLint) luaL_checkinteger(L, 2);
+        const GLenum internalformat = (GLenum) luaL_checkinteger(L, 3);
+        const GLint x = (GLint) luaL_checkinteger(L, 4);
+        const GLint y = (GLint) luaL_checkinteger(L, 5);
+        const GLsizei width = (GLsizei) luaL_checkinteger(L, 6);
+        const GLsizei height = (GLsizei) luaL_checkinteger(L, 7);
+        const GLint border = (GLint) luaL_checkinteger(L, 8);
+
+        glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    }  
 
     typedef struct ConstPair
     {
@@ -2354,6 +2376,7 @@ extern "C"
         {"renderbufferStorage", renderbufferStorage},
         {"framebufferRenderbuffer", framebufferRenderbuffer},
         {"generateMipmap", generateMipmap},
+        {"copyTexImage2D", copyTexImage2D},
         {NULL, NULL} /* sentinel */
     };
 

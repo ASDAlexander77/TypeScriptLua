@@ -102,6 +102,7 @@ import './BABYLON/Gamepad/babylon_gamepadSceneComponent';
 import './BABYLON/Lights/babylon_shadowLight';
 import './BABYLON/Lights/babylon_pointLight';
 
+import './BABYLON/PostProcess/babylon_postProcessManager';
 import './BABYLON/PostProcess/babylon_postProcess';
 import './BABYLON/PostProcess/babylon_passPostProcess';
 
