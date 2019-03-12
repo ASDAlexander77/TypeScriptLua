@@ -135,7 +135,7 @@ export class Emitter {
                                                                     \
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let get_: object = rawget(t, "__get__");                    \
-        let getmethod: object = get_ && get_[k];                    \
+        let getmethod: object = get_ && rawget(get_, k);            \
         if (getmethod !== null) {                                   \
             return getmethod(t);                                    \
         }                                                           \
@@ -146,7 +146,7 @@ export class Emitter {
             let v = rawget(proto, k);                               \
             if (v === null) {                                       \
                 const nullsHolder: object = rawget(t, "__nulls");   \
-                if (nullsHolder && nullsHolder[k]) {                \
+                if (nullsHolder && rawget(nullsHolder, k)) {        \
                     return null;                                    \
                 }                                                   \
             } else {                                                \
@@ -154,7 +154,7 @@ export class Emitter {
             }                                                       \
                                                                     \
             get_ = rawget(proto, "__get__");                        \
-            getmethod = get_ && get_[k];                            \
+            getmethod = get_ && rawget(get_, k);                    \
             if (getmethod !== null) {                               \
                 return getmethod(t);                                \
             }                                                       \
@@ -169,7 +169,7 @@ export class Emitter {
         let proto: object = t;                                      \
         while (proto !== null) {                                    \
             let set_: object = rawget(proto, "__set__");            \
-            const setmethod: object = set_ && set_[k];              \
+            const setmethod: object = set_ && rawget(set_, k);      \
             if (setmethod !== null) {                               \
                 setmethod(t, v);                                    \
                 return;                                             \
@@ -185,7 +185,7 @@ export class Emitter {
                 rawset(t, "__nulls", nullsHolder);                  \
             }                                                       \
                                                                     \
-            nullsHolder[k] = true;                                  \
+            rawset(nullsHolder, k, true);                           \
             return;                                                 \
         }                                                           \
                                                                     \
@@ -193,7 +193,7 @@ export class Emitter {
         if (v === undefined) {                                      \
             const nullsHolder: object = rawget(t, "__nulls");       \
             if (nullsHolder !== null) {                             \
-                nullsHolder[k] = null;                              \
+                rawset(nullsHolder, k, null);                       \
             }                                                       \
                                                                     \
             v0 = null;                                              \
