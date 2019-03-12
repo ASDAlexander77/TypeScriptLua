@@ -12,7 +12,7 @@ module JS {
             this.__index = function (_this: object, indx: number | string): any {
                 // @ts-ignore
                 const val = _this.obj[indx];
-                switch (typeof(val)) {
+                switch (typeof (val)) {
                     case 'number':
                         return new Number(val);
                     case 'string':
@@ -96,24 +96,25 @@ module JS {
                 }
 
                 obj.__get__[name] = opts.get;
-                if (typeof(obj.__index) !== 'function') {
+                if (typeof (obj.__index) !== 'function') {
                     obj.__index = __get_call_undefined__;
                 }
             }
 
-            if (opts.set !== null) {
+            const setMethod = opts.set || ((opts.value && typeof(opts.value) === 'function') ? opts.value : null);
+            if (setMethod) {
                 if (!obj.__set__) {
                     obj.__set__ = {};
                     delete obj.__set__.__newindex;
                 }
 
-                obj.__set__[name] = opts.set;
-                if (typeof(obj.__newindex) !== 'function') {
+                obj.__set__[name] = setMethod;
+                if (typeof (obj.__newindex) !== 'function') {
                     obj.__newindex = __set_call_undefined__;
                 }
             }
 
-            if (opts.value !== null) {
+            if (opts.value && typeof(opts.value) !== 'function') {
                 obj[name] = opts.value;
             }
         }
@@ -122,7 +123,7 @@ module JS {
             const opts = {};
             if (obj.__get__) {
                 const getMethod = obj.__get__[name];
-                if (typeof(getMethod) === 'function') {
+                if (typeof (getMethod) === 'function') {
                     // @ts-ignore
                     opts['get'] = getMethod;
                 }
@@ -130,7 +131,7 @@ module JS {
 
             if (obj.__set__) {
                 const setMethod = obj.__set__[name];
-                if (typeof(setMethod) === 'function') {
+                if (typeof (setMethod) === 'function') {
                     // @ts-ignore
                     opts['set'] = setMethod;
                 }
