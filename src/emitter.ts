@@ -227,6 +227,40 @@ export class Emitter {
             return prependParams && method(_this, ...params);       \
         };                                                          \
     };                                                              \
+                                                                    \
+    __decorate = __decorate || function (                           \
+        decors: any[], proto: any, propertyName: string, descriptorOrParameterIndex: any | undefined | null) \
+    {                                                                                                   \
+        const isClassDecorator = propertyName === undefined;                                            \
+        const isMethodDecoratorOrParameterDecorator = descriptorOrParameterIndex !== undefined;         \
+                                                                                                        \
+        let protoOrDescriptorOrParameterIndex = isClassDecorator                                        \
+            ? proto                                                                                     \
+            : null === descriptorOrParameterIndex                                                       \
+                ? descriptorOrParameterIndex = Object.getOwnPropertyDescriptor(proto, propertyName)     \
+                : descriptorOrParameterIndex;                                                           \
+                                                                                                        \
+        for (let l = decors.length - 1; l >= 0; l--)                                                    \
+        {                                                                                               \
+            const decoratorItem = decors[l];                                                            \
+            if (decoratorItem) {                                                                        \
+                protoOrDescriptorOrParameterIndex =                                                     \
+                    (isClassDecorator                                                                   \
+                        ? decoratorItem(protoOrDescriptorOrParameterIndex)                              \
+                        : isMethodDecoratorOrParameterDecorator                                         \
+                            ? decoratorItem(proto, propertyName, protoOrDescriptorOrParameterIndex)     \
+                            : decoratorItem(proto, propertyName))                                       \
+                || protoOrDescriptorOrParameterIndex;                                                   \
+            }                                                                                           \
+        }                                                                                               \
+                                                                                                        \
+        if (isMethodDecoratorOrParameterDecorator && protoOrDescriptorOrParameterIndex)                 \
+        {                                                                                               \
+            Object.defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex);              \
+        }                                                                                               \
+                                                                                                        \
+        return protoOrDescriptorOrParameterIndex;                                                       \
+    };                                                                                                  \
     ';
 
     /*
@@ -1293,14 +1327,18 @@ export class Emitter {
         // }
 
         // process static members
-        // process properties later to allow stitic members to access method in class
+        // process properties later to allow static members to access method in class
         node.members
             .filter(m => this.isClassMemberAccepted(m) && this.isStaticProperty(m) && this.isPropertyWithNonConstInitializer(m))
             .map(m => ts.createAssignment(
-                ts.createPropertyAccess(
-                    node.name,
-                    this.getClassMemberName(m)),
+                ts.createPropertyAccess(node.name, this.getClassMemberName(m)),
                 this.createClassMember(m)))
+            .forEach(p => this.processExpression(p));
+
+        // process decorators
+        node.members
+            .filter(m => m.decorators && m.decorators.length > 0)
+            .map(m => this.getDecoratorsCallForMember(m))
             .forEach(p => this.processExpression(p));
 
         this.emitExport(node.name, node);
@@ -1497,6 +1535,44 @@ export class Emitter {
             default:
                 return (<ts.Identifier>memberDeclaration.name).text;
         }
+    }
+
+    private getDecoratorsCallForMember(member: ts.ClassElement): ts.Expression {
+        /*
+         __decorate([ BABYLON.serialize() ], Material.prototype, "id", void 0);
+        */
+
+        const classNode = member.parent.kind === ts.SyntaxKind.ClassDeclaration ? (<ts.ClassDeclaration>member.parent) : null;
+        if (!classNode) {
+            throw new Error('Class node can\'t be found');
+        }
+
+        const decorators = [];
+        for (const decor of member.decorators) {
+            if (decor.expression.kind === ts.SyntaxKind.Identifier) {
+                const callExprDecor = ts.createCall(decor.expression, undefined, []);
+                this.fixupParentReferences(callExprDecor, decor);
+                decorators.push(callExprDecor);
+            } else if (decor.expression.kind === ts.SyntaxKind.CallExpression) {
+                decorators.push(decor.expression);
+            } else {
+                throw new Error('Not implemented.');
+            }
+        }
+
+        const descriptorValue = member.kind === ts.SyntaxKind.PropertyDeclaration ? ts.createVoidZero() : ts.createNull();
+        const callParameters = [
+            ts.createArrayLiteral(decorators),
+            classNode.name,
+            ts.createStringLiteral((<ts.Identifier>member.name).text),
+            descriptorValue
+        ];
+
+        const callExpr = ts.createCall(ts.createIdentifier('__decorate'), undefined, callParameters);
+
+        this.fixupParentReferences(callExpr, member.parent);
+
+        return callExpr;
     }
 
     private isPropertyWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {

@@ -1,19 +1,28 @@
 import './JS';
 
-let a: string = "asd 1";
+function log(target: Function, key: string, value: any) {
 
-let b = { asd: a };
+    // target === C.prototype
+    // key === "foo"
+    // value === Object.getOwnPropertyDescriptor(C.prototype, "foo")
 
-let c = b.asd.length;
+    return {
+        value: function (...args: any[]) {
+            console.log(`Call: ...`);
 
-console.log(c);
-
-function f(d: any) {
-
-	let e = d.asd.length;
-
-	console.log(e);
-
+            return 2;
+        }
+    };
 }
 
-f(b);
+class C {
+    @log
+    foo(n: number) {
+        return n * 2;
+    }
+}
+
+const c = new C();
+const r = c.foo(23);
+
+console.log(r);
