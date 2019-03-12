@@ -112,6 +112,37 @@ module JS {
                     obj.__newindex = __set_call_undefined__;
                 }
             }
+
+            if (opts.value !== null) {
+                obj[name] = opts.value;
+            }
+        }
+
+        public static getOwnPropertyDescriptor(obj: any, name: string) {
+            const opts = {};
+            if (obj.__get__) {
+                const getMethod = obj.__get__[name];
+                if (typeof(getMethod) === 'function') {
+                    // @ts-ignore
+                    opts['get'] = getMethod;
+                }
+            }
+
+            if (obj.__set__) {
+                const setMethod = obj.__set__[name];
+                if (typeof(setMethod) === 'function') {
+                    // @ts-ignore
+                    opts['set'] = setMethod;
+                }
+            }
+
+            const value = obj[name];
+            if (value) {
+                // @ts-ignore
+                opts['value'] = value;
+            }
+
+            return opts;
         }
 
         public static getPrototypeOf(obj: any): any {

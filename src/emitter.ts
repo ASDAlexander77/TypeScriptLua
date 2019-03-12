@@ -533,7 +533,7 @@ export class Emitter {
     private getBodyByDecorators(statementsIn: ts.NodeArray<ts.Statement>, location: ts.Node): ts.NodeArray<ts.Statement> {
         const len = location.decorators
             && location.decorators.some(
-                m => m.expression.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>m.expression).text === 'len');
+                m => this.isInternalDecorator(m));
 
         if (len) {
             const firstParam = (<ts.MethodDeclaration>location).parameters[0];
@@ -555,6 +555,10 @@ export class Emitter {
         }
 
         return statementsIn;
+    }
+
+    private isInternalDecorator(m: ts.Decorator): boolean {
+        return m.expression.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>m.expression).text === '__len__';
     }
 
     private processFunctionWithinContext(
@@ -1337,7 +1341,7 @@ export class Emitter {
 
         // process decorators
         node.members
-            .filter(m => m.decorators && m.decorators.length > 0)
+            .filter(m => m.decorators && m.decorators.some(d => !this.isInternalDecorator(d)))
             .map(m => this.getDecoratorsCallForMember(m))
             .forEach(p => this.processExpression(p));
 
@@ -1548,7 +1552,7 @@ export class Emitter {
         }
 
         const decorators = [];
-        for (const decor of member.decorators) {
+        for (const decor of member.decorators.filter(d => !this.isInternalDecorator(d))) {
             if (decor.expression.kind === ts.SyntaxKind.Identifier) {
                 const callExprDecor = ts.createCall(decor.expression, undefined, []);
                 this.fixupParentReferences(callExprDecor, decor);

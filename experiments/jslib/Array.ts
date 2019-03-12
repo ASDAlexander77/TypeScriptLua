@@ -10,7 +10,7 @@ declare var rawset: any;
 module JS {
 
     export class ArrayHelper {
-        @len
+        @__len__
         public static getLength(_this: any[] | Array<any>): number {
             // implemented in the compiler
             throw 0;
