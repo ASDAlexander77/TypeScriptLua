@@ -57,3 +57,11 @@ const c = new C();
 const r = c.foo(23);
 
 console.log(r);
+
+module Test1 {
+    function log1(key: string, value: any) {
+        console.log(`Call: ...`);
+    }
+}
+
+log1("test2", "test3");

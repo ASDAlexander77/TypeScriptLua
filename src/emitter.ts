@@ -228,6 +228,22 @@ export class Emitter {
         };                                                          \
     };                                                              \
                                                                     \
+    __call = __call || function(method: object, _this: object, ...params: any[]) { \
+        if (!method || typeof(method) !== "function") {             \
+            return method.call(_this, ...params);                   \
+        }                                                           \
+                                                                    \
+        return method(_this, ...params);                            \
+    };                                                              \
+                                                                    \
+    __apply = __apply || function(method: object, _this: object, params?: any[]): any { \
+        if (!method || typeof(method) !== "function") {             \
+            return method.apply(_this, ...params);                  \
+        }                                                           \
+                                                                    \
+        return method(_this, ...params);                            \
+    };                                                              \
+                                                                    \
     __decorate = __decorate || function (                           \
         decors: any[], proto: any, propertyName: string, descriptorOrParameterIndex: any | undefined | null) \
     {                                                                                                   \
@@ -390,7 +406,22 @@ export class Emitter {
 
     private hasNodeUsedThis(location: ts.Node): boolean {
         let createThis = false;
+        let root = true;
         function checkThisKeyward(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
             if (node.kind === ts.SyntaxKind.ThisKeyword) {
                 createThis = true;
                 return true;
@@ -405,7 +436,22 @@ export class Emitter {
 
     private hasNodeUsedVar(location: ts.Node): boolean {
         let hasVar = false;
+        let root = true;
         function checkVar(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
             if (node.kind === ts.SyntaxKind.VariableDeclarationList) {
                 hasVar = !Helpers.isConstOrLet(node);
                 if (hasVar) {

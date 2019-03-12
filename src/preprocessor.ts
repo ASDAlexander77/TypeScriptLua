@@ -269,20 +269,20 @@ export class Preprocessor {
     }
 
     // BIND
-    // convert <xxx>.bind(this) into __bind(<xxx>, this, ...);
+    // convert <xxx>.bind(this) into __bind(<xxx>, this, ...); +apply, +call
     // check if end propertyaccess is 'bind'
     private preprocessBinding(callExpression: ts.CallExpression): ts.Expression {
         const propertyAccessExpression = <ts.PropertyAccessExpression>callExpression.expression;
 
         const isBindCallOfMethod =
-            propertyAccessExpression.name.text === 'bind'
+            (propertyAccessExpression.name.text in ['bind', 'apply', 'call'])
             && this.typeInfo.isResultMethodReferenceOrFunctionType(propertyAccessExpression.expression);
         if (!isBindCallOfMethod) {
             return undefined;
         }
 
         const methodBindCall = ts.createCall(
-            ts.createIdentifier('__bind'),
+            ts.createIdentifier('__' + propertyAccessExpression.name.text),
             undefined,
             [propertyAccessExpression.expression, ...callExpression.arguments]);
         // do not use METHOD as parent, otherwise processCallExpression will mess up with return pareneters
