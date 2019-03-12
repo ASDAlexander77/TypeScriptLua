@@ -171,6 +171,30 @@ export class TypeInfo {
         return functionType;
     }
 
+    public isResultMethodReferenceOrFunctionTypeOrAny(expression: ts.Expression) {
+        const type = this.getTypeObject(expression);
+        const nonStaticMethod = type
+            && type.symbol
+            && type.symbol.valueDeclaration
+            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
+        if (nonStaticMethod) {
+            return true;
+        }
+
+        if (this.getNameFromTypeNode(type) === 'any') {
+            return true;
+        }
+
+        const functionType = type
+            && type.symbol
+            && type.symbol.declarations
+            && type.symbol.declarations[0]
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType
+                || type.symbol.declarations[0].kind === ts.SyntaxKind.TypeParameter);
+
+        return functionType;
+    }
+
     public isResultNonStaticMethodReferenceOrFunctionType(expression: ts.Expression) {
         const type = this.getTypeObject(expression);
         const nonStaticMethod = type

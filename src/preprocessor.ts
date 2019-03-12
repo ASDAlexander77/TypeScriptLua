@@ -132,7 +132,7 @@ export class Preprocessor {
         if (callExpression.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
 
             const newExpression =
-                this.preprocessBinding(callExpression)
+                this.preprocessBindingApplyingOrCalling(callExpression)
                 || this.preprocessConstCast(callExpression);
 
             if (newExpression) {
@@ -271,12 +271,13 @@ export class Preprocessor {
     // BIND
     // convert <xxx>.bind(this) into __bind(<xxx>, this, ...); +apply, +call
     // check if end propertyaccess is 'bind'
-    private preprocessBinding(callExpression: ts.CallExpression): ts.Expression {
+    private preprocessBindingApplyingOrCalling(callExpression: ts.CallExpression): ts.Expression {
         const propertyAccessExpression = <ts.PropertyAccessExpression>callExpression.expression;
 
+        const propertyName = propertyAccessExpression.name.text;
         const isBindCallOfMethod =
-            (propertyAccessExpression.name.text in ['bind', 'apply', 'call'])
-            && this.typeInfo.isResultMethodReferenceOrFunctionType(propertyAccessExpression.expression);
+            (propertyName === 'bind' || propertyName === 'apply' || propertyName === 'call')
+            && this.typeInfo.isResultMethodReferenceOrFunctionTypeOrAny(propertyAccessExpression.expression);
         if (!isBindCallOfMethod) {
             return undefined;
         }

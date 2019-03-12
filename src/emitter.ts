@@ -217,7 +217,7 @@ export class Emitter {
             return method;                                          \
         }                                                           \
                                                                     \
-        if (prependParams[0]) {                                     \
+        if (prependParams && prependParams[0]) {                    \
             return function (...params: any[]) {                    \
                 return method(_this, ...prependParams, ...params);  \
             };                                                      \
@@ -233,7 +233,11 @@ export class Emitter {
             return _this.call(...params);                           \
         }                                                           \
                                                                     \
-        return method(_this, ...params);                            \
+        if (params && params[0]) {                                  \
+            return method(_this, ...params);                        \
+        }                                                           \
+                                                                    \
+        return method(_this);                                       \
     };                                                              \
                                                                     \
     __apply = __apply || function(method: object, _this: object, params?: any[]): any { \
@@ -241,7 +245,11 @@ export class Emitter {
             return _this.apply(_this, ...params);                   \
         }                                                           \
                                                                     \
-        return method(_this, ...params);                            \
+        if (params && params[0]) {                                  \
+            return method(_this, ...params);                        \
+        }                                                           \
+                                                                    \
+        return method(_this);                                       \
     };                                                              \
                                                                     \
     __decorate = __decorate || function (                           \

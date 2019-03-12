@@ -98,6 +98,18 @@ function __decorate(
     return protoOrDescriptorOrParameterIndex;
 }
 
+function __apply(method: object, _this: object, params?: any[]): any {
+    if (!method || typeof (method) !== "function") {
+        return _this.apply(_this, ...params);
+    }
+
+    if (params && params[0]) {
+        return method(_this, ...params);
+    }
+
+    return method(_this);
+}
+
 import './JS';
 
 declare var os: any;
