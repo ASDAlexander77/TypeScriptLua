@@ -1553,15 +1553,7 @@ export class Emitter {
 
         const decorators = [];
         for (const decor of member.decorators.filter(d => !this.isInternalDecorator(d))) {
-            if (decor.expression.kind === ts.SyntaxKind.Identifier) {
-                const callExprDecor = ts.createCall(decor.expression, undefined, []);
-                this.fixupParentReferences(callExprDecor, decor);
-                decorators.push(callExprDecor);
-            } else if (decor.expression.kind === ts.SyntaxKind.CallExpression) {
-                decorators.push(decor.expression);
-            } else {
-                throw new Error('Not implemented.');
-            }
+            decorators.push(decor.expression);
         }
 
         const descriptorValue = member.kind === ts.SyntaxKind.PropertyDeclaration ? ts.createVoidZero() : ts.createNull();
