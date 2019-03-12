@@ -1484,7 +1484,10 @@ export class Emitter {
                 ]});
 
         this.fixupParentReferences(defaultCtor, node);
-        properties.push(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
+
+        // ctor MUST be first
+        //properties.push(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
+        properties.unshift(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
     }
 
     private createAccessorsCollection(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[], isGet: boolean) {
@@ -1518,9 +1521,21 @@ export class Emitter {
                 return propertyDeclaration.initializer || ts.createIdentifier('undefined');
             case ts.SyntaxKind.Constructor:
                 const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
-                if (!constructorDeclaration.body) {
-                    throw 1;
+
+                const statements = constructorDeclaration.body.statements;
+
+                // check if first is super();
+                let firstStatements = 0;
+                if (statements.length > 0 && statements[0].kind === ts.SyntaxKind.ExpressionStatement) {
+                    const firstCallStatement = <ts.ExpressionStatement>statements[0];
+                    if (firstCallStatement.expression.kind === ts.SyntaxKind.CallExpression) {
+                        const firstCall = <ts.CallExpression>firstCallStatement.expression;
+                        if (firstCall.expression.kind === ts.SyntaxKind.SuperKeyword) {
+                            firstStatements = 1;
+                        }
+                    }
                 }
+
                 const constructorFunction = ts.createFunctionExpression(
                     undefined,
                     undefined,
@@ -1530,6 +1545,8 @@ export class Emitter {
                     constructorDeclaration.type, <ts.Block><any>{
                         kind: ts.SyntaxKind.Block,
                         statements: [
+                            // super(xxx) call first
+                            ...(firstStatements > 0 ? statements.slice(0, firstStatements) : []),
                             ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
                             // initialized members
                             ...((<ts.ClassDeclaration>constructorDeclaration.parent).members
@@ -1556,7 +1573,7 @@ export class Emitter {
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
                                         <ts.Identifier>p.name))),
-                            ...constructorDeclaration.body.statements
+                            ...statements.slice(firstStatements)
                         ]
                     });
                 (<any>constructorFunction).__origin = constructorDeclaration;
