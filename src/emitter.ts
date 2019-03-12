@@ -230,7 +230,7 @@ export class Emitter {
                                                                     \
     __call = __call || function(method: object, _this: object, ...params: any[]) { \
         if (!method || typeof(method) !== "function") {             \
-            return method.call(_this, ...params);                   \
+            return _this.call(...params);                           \
         }                                                           \
                                                                     \
         return method(_this, ...params);                            \
@@ -238,7 +238,7 @@ export class Emitter {
                                                                     \
     __apply = __apply || function(method: object, _this: object, params?: any[]): any { \
         if (!method || typeof(method) !== "function") {             \
-            return method.apply(_this, ...params);                  \
+            return _this.apply(_this, ...params);                   \
         }                                                           \
                                                                     \
         return method(_this, ...params);                            \
