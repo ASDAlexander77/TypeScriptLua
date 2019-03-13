@@ -1527,14 +1527,12 @@ export class Emitter {
 
                 // check if first is super();
                 let firstStatements = 0;
-                if (this.resolver.superClass) {
-                    if (statements.length > 0 && statements[0].kind === ts.SyntaxKind.ExpressionStatement) {
-                        const firstCallStatement = <ts.ExpressionStatement>statements[0];
-                        if (firstCallStatement.expression.kind === ts.SyntaxKind.CallExpression) {
-                            const firstCall = <ts.CallExpression>firstCallStatement.expression;
-                            if (firstCall.expression.kind === ts.SyntaxKind.SuperKeyword) {
-                                firstStatements = 1;
-                            }
+                if (statements.length > 0 && statements[0].kind === ts.SyntaxKind.ExpressionStatement) {
+                    const firstCallStatement = <ts.ExpressionStatement>statements[0];
+                    if (firstCallStatement.expression.kind === ts.SyntaxKind.CallExpression) {
+                        const firstCall = <ts.CallExpression>firstCallStatement.expression;
+                        if (firstCall.expression.kind === ts.SyntaxKind.SuperKeyword) {
+                            firstStatements = 1;
                         }
                     }
                 }
@@ -1550,7 +1548,7 @@ export class Emitter {
                         statements: [
                             // super(xxx) call first
                             ...(firstStatements > 0 ? statements.slice(0, firstStatements) : []),
-                            ...(!this.resolver.superClass ? this.getClassInitStepsToSupportGetSetAccessor() : []),
+                            ...this.getClassInitStepsToSupportGetSetAccessor(),
                             // initialized members
                             ...((<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => !this.isStaticProperty(cm)
@@ -1786,11 +1784,20 @@ export class Emitter {
         statements.push(ts.createStatement(
             ts.createAssignment(
                 ts.createPropertyAccess(ts.createThis(), '__index'),
-                ts.createIdentifier('__get_call_undefined__'))));
+                ts.createConditional(
+                    ts.createBinary(
+                        ts.createTypeOf(ts.createPropertyAccess(ts.createThis(), '__index')),
+                        ts.SyntaxKind.EqualsEqualsEqualsToken,
+                        ts.createStringLiteral('function')),
+                    ts.createPropertyAccess(ts.createThis(), '__index'),
+                    ts.createIdentifier('__get_call_undefined__')))));
         statements.push(ts.createStatement(
             ts.createAssignment(
                 ts.createPropertyAccess(ts.createThis(), '__newindex'),
-                ts.createIdentifier('__set_call_undefined__'))));
+                ts.createBinary(
+                    ts.createPropertyAccess(ts.createThis(), '__newindex'),
+                    ts.SyntaxKind.BarBarToken,
+                    ts.createIdentifier('__set_call_undefined__')))));
 
         return statements;
     }
