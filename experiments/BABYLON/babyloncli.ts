@@ -1,72 +1,4 @@
-function __get_call_undefined__(t, k) {
-    let get_: object = rawget(t, "__get__");
-    let getmethod: object = get_ && rawget(get_, k);
-    if (getmethod !== null) {
-        return getmethod(t);
-    }
-
-    let proto: object = rawget(t, "__proto");
-
-    while (proto !== null) {
-        let v = rawget(proto, k);
-        if (v === null) {
-            const nullsHolder: object = rawget(t, "__nulls");
-            if (nullsHolder && rawget(nullsHolder, k)) {
-                return null;
-            }
-        } else {
-            return v;
-        }
-
-        get_ = rawget(proto, "__get__");
-        getmethod = get_ && rawget(get_, k);
-        if (getmethod !== null) {
-            return getmethod(t);
-        }
-
-        proto = rawget(proto, "__proto");
-    }
-
-    return undefined;
-}
-
-function __set_call_undefined__(t, k, v) {
-    let proto: object = t;
-    while (proto !== null) {
-        let set_: object = rawget(proto, "__set__");
-        const setmethod: object = set_ && rawget(set_, k);
-        if (setmethod !== null) {
-            setmethod(t, v);
-            return;
-        }
-
-        proto = rawget(proto, "__proto");
-    }
-
-    if (v === null) {
-        const nullsHolder: object = rawget(t, "__nulls");
-        if (nullsHolder === null) {
-            nullsHolder = {};
-            rawset(t, "__nulls", nullsHolder);
-        }
-
-        rawset(nullsHolder, k, true);
-        return;
-    }
-
-    let v0 = v;
-    if (v === undefined) {
-        const nullsHolder: object = rawget(t, "__nulls");
-        if (nullsHolder !== null) {
-            rawset(nullsHolder, k, null);
-        }
-
-        v0 = null;
-    }
-
-    rawset(t, k, v0);
-}
-
+/*
 function __decorate(
     decors: any[], proto: any, propertyName: string, descriptorOrParameterIndex: any | undefined | null) {
     const isClassDecorator = propertyName === undefined;
@@ -109,6 +41,7 @@ function __apply(method: object, _this: object, params?: any[]): any {
 
     return method(_this);
 }
+*/
 
 import './JS';
 

@@ -1470,6 +1470,7 @@ export class Emitter {
                 <ts.Block><any>{
                 kind: ts.SyntaxKind.Block,
                 statements: [
+                    // TODO: find out why you need if to call super class constructor (as it should be all the time)
                     ts.createIf(
                         ts.createPropertyAccess(this.resolver.superClass, 'constructor'),
                         ts.createStatement(ts.createCall(ts.createSuper(), undefined, [ ts.createSpread(ts.createIdentifier('params')) ])))
@@ -1518,7 +1519,7 @@ export class Emitter {
         switch (memberDeclaration.kind) {
             case ts.SyntaxKind.PropertyDeclaration:
                 const propertyDeclaration = <ts.PropertyDeclaration>memberDeclaration;
-                return propertyDeclaration.initializer || ts.createIdentifier('undefined');
+                return propertyDeclaration.initializer/* || ts.createIdentifier('undefined')*/;
             case ts.SyntaxKind.Constructor:
                 const constructorDeclaration = <ts.ConstructorDeclaration>memberDeclaration;
 
@@ -1526,12 +1527,14 @@ export class Emitter {
 
                 // check if first is super();
                 let firstStatements = 0;
-                if (statements.length > 0 && statements[0].kind === ts.SyntaxKind.ExpressionStatement) {
-                    const firstCallStatement = <ts.ExpressionStatement>statements[0];
-                    if (firstCallStatement.expression.kind === ts.SyntaxKind.CallExpression) {
-                        const firstCall = <ts.CallExpression>firstCallStatement.expression;
-                        if (firstCall.expression.kind === ts.SyntaxKind.SuperKeyword) {
-                            firstStatements = 1;
+                if (this.resolver.superClass) {
+                    if (statements.length > 0 && statements[0].kind === ts.SyntaxKind.ExpressionStatement) {
+                        const firstCallStatement = <ts.ExpressionStatement>statements[0];
+                        if (firstCallStatement.expression.kind === ts.SyntaxKind.CallExpression) {
+                            const firstCall = <ts.CallExpression>firstCallStatement.expression;
+                            if (firstCall.expression.kind === ts.SyntaxKind.SuperKeyword) {
+                                firstStatements = 1;
+                            }
                         }
                     }
                 }
@@ -1547,12 +1550,12 @@ export class Emitter {
                         statements: [
                             // super(xxx) call first
                             ...(firstStatements > 0 ? statements.slice(0, firstStatements) : []),
-                            ...this.getClassInitStepsToSupportGetSetAccessor(memberDeclaration),
+                            ...(!this.resolver.superClass ? this.getClassInitStepsToSupportGetSetAccessor() : []),
                             // initialized members
                             ...((<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => !this.isStaticProperty(cm)
                                     && this.isProperty(cm)
-                                    && !this.isPropertyWithNonConstInitializer(cm)
+                                    && this.isPropertyWithConstInitializer(cm)
                                     && !this.isPropertyWithArrowFunctionInitializer(cm)))
                                 .concat(((<ts.ClassDeclaration>constructorDeclaration.parent).members
                                     .filter(cm => !this.isStaticProperty(cm)
@@ -1562,7 +1565,7 @@ export class Emitter {
                                 .map(p => ts.createStatement(
                                     ts.createAssignment(
                                         ts.createPropertyAccess(ts.createThis(), <ts.Identifier>p.name),
-                                        (<ts.PropertyDeclaration>p).initializer || ts.createIdentifier('undefined')))),
+                                        (<ts.PropertyDeclaration>p).initializer/* || ts.createIdentifier('undefined')*/))),
                             // members of class provided in ctor parameters
                             ...constructorDeclaration.parameters
                                 .filter(p => p.modifiers && p.modifiers.some(md =>
@@ -1640,6 +1643,16 @@ export class Emitter {
         this.fixupParentReferences(callExpr, member.parent);
 
         return callExpr;
+    }
+
+    private isPropertyWithConstInitializer(memberDeclaration: ts.ClassElement): any {
+        if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
+            (<ts.PropertyDeclaration>memberDeclaration).initializer &&
+            this.isConstExpression((<ts.PropertyDeclaration>memberDeclaration).initializer)) {
+            return true;
+        }
+
+        return false;
     }
 
     private isPropertyWithNonConstInitializer(memberDeclaration: ts.ClassElement): any {
@@ -1768,7 +1781,7 @@ export class Emitter {
         return statements;
     }
 
-    private getClassInitStepsToSupportGetSetAccessor(memberDeclaration: ts.ClassElement): any {
+    private getClassInitStepsToSupportGetSetAccessor(): any {
         const statements = [];
         statements.push(ts.createStatement(
             ts.createAssignment(
