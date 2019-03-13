@@ -330,7 +330,7 @@ module JS {
             }
 
             for (let i = from; i < to; i++) {
-                table.insert(retArr, rawget(this._values, i));
+                table.insert(retArr._values, rawget(this._values, i + 1));
             }
 
             // @ts-ignore

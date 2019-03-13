@@ -1963,6 +1963,23 @@ extern "C"
         return 0;
     }        
 
+    static int blendFuncSeparate(lua_State *L)
+    {
+        const GLenum srcRGB = (GLenum) luaL_checkinteger(L, 1);
+        const GLenum dstRGB = (GLenum) luaL_checkinteger(L, 2);
+        const GLenum srcAlpha = (GLenum) luaL_checkinteger(L, 3);
+        const GLenum dstAlpha = (GLenum) luaL_checkinteger(L, 4);
+        glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+
+        int error = errorCheck(L);
+        if (error)
+        {
+            return error;
+        }
+
+        return 0;
+    } 
+
     typedef struct ConstPair
     {
         const char *name;
@@ -2423,6 +2440,7 @@ extern "C"
         {"deleteFramebuffer", deleteFramebuffer},
         {"deleteRenderbuffer", deleteRenderbuffer},
         {"deleteTexture", deleteTexture},
+        {"blendFuncSeparate", blendFuncSeparate},
         {NULL, NULL} /* sentinel */
     };
 

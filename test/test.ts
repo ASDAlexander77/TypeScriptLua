@@ -1,9 +1,7 @@
 import './JS';
 
-export class Matrix {
-    public _identityReadOnly = this._value;
+let a = 10;
 
-    public _value = 1;
+if (a > 11) {
+    console.log('asd');
 }
-
-console.log(new Matrix()._identityReadOnly);

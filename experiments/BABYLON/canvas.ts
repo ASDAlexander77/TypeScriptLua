@@ -278,7 +278,7 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
 
     // @ts-ignore
     blendFuncSeparate(srcRGB: number, dstRGB: number, srcAlpha: number, dstAlpha: number): void {
-        throw new Error('Method not implemented.');
+        _gl.blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
     }
 
     bufferData(target: number, sizeOrData: number | BufferSource, usage: number): void;
