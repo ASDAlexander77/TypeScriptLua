@@ -16,6 +16,10 @@ declare var _gl: any;
 declare var window: WindowEx;
 window = new WindowEx();
 
+function alert(s: string) {
+    console.log(s);
+}
+
 class Runner {
     private canvas: any;
     private engine: any;
@@ -197,6 +201,7 @@ class Runner {
         // Vertex shader program
 
         const vsSource = `
+      #version 440
       attribute vec4 aVertexPosition;
       attribute vec2 aTextureCoord;
 
@@ -214,6 +219,7 @@ class Runner {
         // Fragment shader program
 
         const fsSource = `
+      #version 440
       varying highp vec2 vTextureCoord;
 
       uniform sampler2D uSampler;
