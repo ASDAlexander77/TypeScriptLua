@@ -26,6 +26,14 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         return window.innerHeight;
     }
 
+    get clientWidth(): number {
+        return window.innerWidth;
+    }
+
+    get clientHeight(): number {
+        return window.innerHeight;
+    }
+
     getBoundingClientRect() {
         return {
             bottom: window.innerHeight,

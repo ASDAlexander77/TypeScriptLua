@@ -142,5 +142,10 @@ export default class TestApp2 {
             const time = (os.clock() - before);
             console.log(`Render time: ${time} sec.`);
         });
+
+        // Resize
+        window.addEventListener('resize', () => {
+            this.engine.resize();
+        });
     }
 }
