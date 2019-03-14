@@ -1,6 +1,9 @@
 declare var math: any;
 declare var tonumber: any;
 
+// @ts-ignore
+Infinity = tonumber("1e+1000");
+
 // dummy function
 function decodeURIComponent(s: string) {
     return s;

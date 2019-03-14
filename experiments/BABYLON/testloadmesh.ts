@@ -40,6 +40,9 @@ export default class TestLoadMesh {
             'file://Spaceship.babylon',
             this.engine,
             (loadedScene) => {
+
+                console.log('Scene loaded');
+
                 // Attach the camera to the scene
                 loadedScene.activeCamera.attachControl(this.canvas);
 
