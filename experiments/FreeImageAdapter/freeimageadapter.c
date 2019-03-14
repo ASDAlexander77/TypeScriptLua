@@ -150,6 +150,18 @@ extern "C"
         return 0;
     }
 
+    static void FreeImage_SwapColorOrder(BYTE *target, BYTE *source, int width_in_pixels, int step) 
+    {
+        for (int cols = 0; cols < width_in_pixels; cols++) 
+        {
+            auto tmp = target[FI_RGBA_RED];
+            target[FI_RGBA_RED] = source[FI_RGBA_BLUE];
+            target[FI_RGBA_BLUE] = tmp;	
+            target += step;
+            source += step;
+        }
+    }
+
     static int FreeImage_LoadImage_Wrapper(lua_State *L)
     {
         const char *filePath = luaL_checkstring(L, 1);
@@ -202,6 +214,11 @@ extern "C"
 
         int width = FreeImage_GetWidth(dib);
         int height = FreeImage_GetHeight(dib);
+
+        // fix color order
+        for (int rows = 0; rows < height; rows++) {
+            FreeImage_SwapColorOrder(FreeImage_GetScanLine(dib, rows), FreeImage_GetScanLine(dib, rows), width, is32bit ? 4 : 3);
+        }
 
         unsigned char* bits = FreeImage_GetBits(dib);
 
