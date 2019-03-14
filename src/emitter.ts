@@ -2682,7 +2682,7 @@ export class Emitter {
     private emitNumericConst(text: string): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
         const resolvedInfo = this.resolver.returnConst(
-            text.indexOf('.') === -1 ? parseInt(text, 10) : parseFloat(text), this.functionContext);
+            text.indexOf('.') === -1 && text.indexOf('e') === -1 ? parseInt(text, 10) : parseFloat(text), this.functionContext);
         // LOADK A Bx    R(A) := Kst(Bx)
         this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
     }
@@ -4343,7 +4343,7 @@ export class Emitter {
                         this.writer.writeByte(c ? 1 : 0);
                         break;
                     case 'number':
-                        if (Number.isInteger(c)) {
+                        if (Number.isSafeInteger(c)) {
                             this.writer.writeByte(LuaTypes.LUA_TNUMINT);
                             this.writer.writeInteger(c);
                         } else {

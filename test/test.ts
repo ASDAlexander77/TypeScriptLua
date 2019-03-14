@@ -1,7 +1,7 @@
 import './JS';
 
-let a = 10;
+const MAX_VALUE = 1.7976931348623e+308;
+const MIN_VALUE = 4.9406564584125e-324;
 
-if (a > 11) {
-    console.log('asd');
-}
+console.log(MAX_VALUE);
+console.log(MIN_VALUE);
