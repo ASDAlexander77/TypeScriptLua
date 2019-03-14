@@ -15,12 +15,12 @@ module TS {
             return op ** op2;
         }
 
-        public static min(op: number): number {
-            return math.min(op);
+        public static min(op: number, op2: number): number {
+            return math.min(op, op2);
         }
 
-        public static max(op: number): number {
-            return math.max(op);
+        public static max(op: number, op2: number): number {
+            return math.max(op, op2);
         }
 
         public static sin(op: number): number {

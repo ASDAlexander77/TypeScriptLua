@@ -189,26 +189,32 @@ extern "C"
 
         // retrieve the image data
         // get the image width and height
-        FIBITMAP *dib32bit = FreeImage_ConvertTo32Bits(dib);
+        int is32bit = 0;
+        if (fif != FIF_JPEG) {
+            FIBITMAP *dib32bit = FreeImage_ConvertTo32Bits(dib);
 
-        // Free FreeImage's copy of the data
-        FreeImage_Unload(dib);
+            // Free FreeImage's copy of the data
+            FreeImage_Unload(dib);
 
-        int width = FreeImage_GetWidth(dib32bit);
-        int height = FreeImage_GetHeight(dib32bit);
+            dib = dib32bit;
+            is32bit = 1;
+        }
 
-        unsigned char* bits = FreeImage_GetBits(dib32bit);
+        int width = FreeImage_GetWidth(dib);
+        int height = FreeImage_GetHeight(dib);
+
+        unsigned char* bits = FreeImage_GetBits(dib);
 
         // if this somehow one of these failed (they shouldn't), return failure
         if ((bits == 0) || (width == 0) || (height == 0))
         {
-            FreeImage_Unload(dib32bit);
+            FreeImage_Unload(dib);
             lua_pushnil(L);
             return 1;
         }
 
         // Free FreeImage's copy of the data
-        //FreeImage_Unload(dib32bit);
+        //FreeImage_Unload(dib);
 
         lua_newtable(L);
 
@@ -221,13 +227,17 @@ extern "C"
         lua_settable(L, -3);                    
 
         // add allocated data;
-        lua_pushstring(L, "dib32bit");
-        lua_pushlightuserdata(L, dib32bit);
+        lua_pushstring(L, "dib");
+        lua_pushlightuserdata(L, dib);
         lua_settable(L, -3);           
 
         lua_pushstring(L, "bits");
         lua_pushlightuserdata(L, bits);
         lua_settable(L, -3);           
+
+        lua_pushstring(L, "is32bit");
+        lua_pushboolean(L, is32bit);
+        lua_settable(L, -3);              
 
         // set metatable
         luaL_getmetatable(L, FREEIMAGE_GC_METATABLENAME);
@@ -238,11 +248,11 @@ extern "C"
 
     static int reg_gc (lua_State *L)
     {
-        lua_getfield(L, -1, "dib32bit");
+        lua_getfield(L, -1, "dib");
         if (lua_islightuserdata(L, 1)) 
         {
-            FIBITMAP * dib32bit = (FIBITMAP *) lua_topointer(L, 1);
-            FreeImage_Unload(dib32bit);
+            FIBITMAP * dib = (FIBITMAP *) lua_topointer(L, 1);
+            FreeImage_Unload(dib);
         }
 
         return 1; /* new userdatum is already on the stack */
