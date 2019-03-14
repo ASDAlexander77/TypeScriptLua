@@ -21,7 +21,7 @@ export default class TestApp2 {
         const scene = new BABYLON.Scene(this.engine);
 
         // This creates and positions a free camera (non-mesh)
-        const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, 10), scene);
+        const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, 150), scene);
 
         // This targets the camera to scene origin
         camera.setTarget(BABYLON.Vector3.Zero());
@@ -29,8 +29,8 @@ export default class TestApp2 {
         // This attaches the camera to the canvas
         camera.attachControl(this.canvas, true);
 
-        //const light0 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(20, 20, 100), scene);
-        const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+        const light0 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(20, 20, 100), scene);
+        //const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
 
         // Creation of 6 spheres
         const sphere1 = BABYLON.Mesh.CreateSphere("Sphere1", 10, 6.0, scene);
