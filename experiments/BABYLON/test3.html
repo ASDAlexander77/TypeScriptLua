@@ -31,7 +31,6 @@
 	<canvas id="renderCanvas"></canvas>
 	<script>
 		class Runner {
-
 			constructor() {
 				this.canvas = document.getElementById("renderCanvas");
 				this.engine = new BABYLON.Engine(this.canvas, true, { stencil: true, disableWebGL2Support: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
@@ -41,11 +40,10 @@
 
 			createScene() {
 				// This creates a basic Babylon Scene object (non-mesh)
-				var scene = new BABYLON.Scene(this.engine);
-				scene.forceWireframe = true;
+				const scene = new BABYLON.Scene(this.engine);
 
 				// This creates and positions a free camera (non-mesh)
-				var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -10), scene);
+				const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, 150), scene);
 
 				// This targets the camera to scene origin
 				camera.setTarget(BABYLON.Vector3.Zero());
@@ -53,49 +51,16 @@
 				// This attaches the camera to the canvas
 				camera.attachControl(this.canvas, true);
 
-				// This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-				var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
-
-				// Default intensity is 1. Let's dim the light a small amount
-				light.intensity = 0.7;
-
-				// Our built-in 'sphere' shape. Params: name, subdivs, size, scene
-				var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
-
-				// Move the sphere upward 1/2 its height
-				sphere.position.y = 1;
-
-				// Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-				var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
-
-
-				// wingnut crap.
-				scene.onPrePointerObservable.add(function (pointerInfo, eventState) {
-					// console.log(pointerInfo);
-					const event = pointerInfo.event;
-					let delta = 0;
-					if (event.wheelDelta) {
-						delta = event.wheelDelta;
-					} else if (event.detail) {
-						delta = -event.detail;
-					}
-
-					if (delta) {
-						const dir = scene.activeCamera.getDirection(BABYLON.Axis.Z);
-						if (delta > 0) {
-							scene.activeCamera.position.addInPlace(dir.scaleInPlace(delta));
-						} else {
-							scene.activeCamera.position.subtractInPlace(dir.scaleInPlace(-delta));
-						}
-					}
-				}, BABYLON.PointerEventTypes.POINTERWHEEL, false);
-
 				// load scene
 				BABYLON.SceneLoader.Load(
 					'',
 					'Spaceship.babylon',
 					this.engine,
 					(loadedScene) => {
+
+						console.log('Scene loaded');
+
+						// Attach the camera to the scene
 						loadedScene.activeCamera.attachControl(this.canvas);
 
 						// wingnut crap.
