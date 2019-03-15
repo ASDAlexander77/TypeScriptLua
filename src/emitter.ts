@@ -133,6 +133,14 @@ export class Emitter {
         return false;                                               \
     };                                                              \
                                                                     \
+    __tostring = __tostring || function (v) {                       \
+        if (v === null || v === undefined) {                        \
+            return v;                                               \
+        }                                                           \
+                                                                    \
+        return tostring(v);                                         \
+    }                                                               \
+                                                                    \
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let get_: object = rawget(t, "__get__");                    \
         let getmethod: object = get_ && rawget(get_, k);            \

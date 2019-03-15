@@ -408,7 +408,7 @@ export class Preprocessor {
                         break;
                     case 'any':
                     default:
-                        const ident = ts.createIdentifier('tostring');
+                        const ident = ts.createIdentifier('__tostring');
                         const tostringCall = ts.createCall(ident, undefined, [ currentOrNewArgument ]);
                         ident.parent = tostringCall;
                         tostringCall.parent = currentOrNewArgument.parent;
