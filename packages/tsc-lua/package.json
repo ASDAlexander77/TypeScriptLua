@@ -1,6 +1,6 @@
 {
   "name": "typescript-lua-compiler",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "TypeScript compiler for Lua",
   "keywords": [
     "typescript",
