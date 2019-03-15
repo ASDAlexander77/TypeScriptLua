@@ -1,5 +1,6 @@
 import './JS';
 
+declare var arg: any;
 declare var os: any;
 declare var navigator: any;
 
@@ -134,8 +135,25 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestApp3().run();
-//new TestLoadMesh().run((arg[1] && arg[1] !== '-i') ? arg[1] : undefined);
+const argNumber = arg[1] !== '-i' ? 1 : 2;
+
+// tslint:disable-next-line:radix
+const number = parseInt(arg[argNumber]);
+number = 3;
+switch (number) {
+    case 1:
+        new TestApp().run();
+        break;
+    case 2:
+        new TestApp2().run();
+        break;
+    case 3:
+        new TestApp3().run();
+        break;
+    default:
+        new TestLoadMesh().run(arg[argNumber]);
+        break;
+}
 
 // @ts-ignore
 window.focus();
