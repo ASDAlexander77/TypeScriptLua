@@ -68,7 +68,9 @@ export class TypeInfo {
             if (detectType
                 && unionTypes
                 && unionTypes.length > 1
-                && (detectType.intrinsicName === 'error' || detectType.intrinsicName === 'undefined')) {
+                && (detectType.intrinsicName === 'error'
+                    || detectType.intrinsicName === 'undefined'
+                    || detectType.intrinsicName === 'null')) {
                     // use next type in case of error or undefined type
                 detectType = unionTypes[1];
             }
