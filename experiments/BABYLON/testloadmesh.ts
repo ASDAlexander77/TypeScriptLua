@@ -26,7 +26,7 @@ export default class TestLoadMesh {
         const scene = new BABYLON.Scene(this.engine);
 
         // This creates and positions a free camera (non-mesh)
-        const camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -10), scene);
+        const camera = new BABYLON.FreeCamera('Camera', new BABYLON.Vector3(0, 5, -10), scene);
 
         // This targets the camera to scene origin
         camera.setTarget(BABYLON.Vector3.Zero());
@@ -37,7 +37,7 @@ export default class TestLoadMesh {
         // load scene
         BABYLON.SceneLoader.Load(
             '',
-            'file://' + (fileName || 'skull.babylon'),
+            'file://' + (fileName || 'seagulf.glb'),
             this.engine,
             (loadedScene) => {
 

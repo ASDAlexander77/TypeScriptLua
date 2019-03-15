@@ -150,6 +150,7 @@ export class Preprocessor {
     private preprocessPropertyAccessExpression(propertyAccessExpression: ts.PropertyAccessExpression): ts.Expression {
         if (propertyAccessExpression.parent
             && (propertyAccessExpression.parent.kind === ts.SyntaxKind.VariableDeclaration
+                || propertyAccessExpression.parent.kind === ts.SyntaxKind.PropertyDeclaration
                 || propertyAccessExpression.parent.kind === ts.SyntaxKind.BinaryExpression
                 || propertyAccessExpression.parent.kind === ts.SyntaxKind.CallExpression)) {
 
@@ -163,7 +164,8 @@ export class Preprocessor {
                 && (<ts.CallExpression>propertyAccessExpression.parent).expression !== propertyAccessExpression;
 
             const declar =
-                propertyAccessExpression.parent.kind === ts.SyntaxKind.VariableDeclaration;
+                propertyAccessExpression.parent.kind === ts.SyntaxKind.VariableDeclaration
+                || propertyAccessExpression.parent.kind === ts.SyntaxKind.PropertyDeclaration;
 
             // in case of getting method
             if ((isRightOfBinaryExpression || isCallParameter || declar)

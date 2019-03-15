@@ -1,13 +1,14 @@
 import './JS';
 
-function generateSerializableMember(type: number, sourceName?: string) {
-    return sourceName;
+class Tools {
+    public static _WarnEnabled(message: string): void {
+        console.warn("BJS - " + message);
+    }
 }
 
-function serialize(sourceName?: string) {
-    return generateSerializableMember(0, sourceName); // value member
+class Test1 {
+    public static Warn: (message: string) => void = Tools._WarnEnabled;
 }
 
-const s = serialize();
 
-console.log(s);
+Test1.Warn("Hello");
