@@ -1495,7 +1495,6 @@ export class Emitter {
         this.fixupParentReferences(defaultCtor, node);
 
         // ctor MUST be first
-        //properties.push(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
         properties.unshift(ts.createPropertyAssignment(this.getClassMemberName(defaultCtor), this.createClassMember(defaultCtor)));
     }
 
