@@ -33,11 +33,11 @@ module JS {
         }
         */
 
-        public static __lt(_this: any): boolean {
+        public static __lt(_this: any, other: number): boolean {
             return false;
         }
 
-        public static __le(_this: any): boolean {
+        public static __le(_this: any, other: number): boolean {
             return false;
         }
     }

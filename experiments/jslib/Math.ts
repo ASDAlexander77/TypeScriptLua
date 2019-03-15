@@ -71,6 +71,10 @@ module TS {
             return math.log(op);
         }
 
+        public static exp(op: number): number {
+            return math.exp(op);
+        }
+
         public static random(): number {
             return math.random();
         }

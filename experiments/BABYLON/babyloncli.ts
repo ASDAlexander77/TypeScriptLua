@@ -106,6 +106,9 @@ import './BABYLON/PostProcess/babylon_postProcessManager';
 import './BABYLON/PostProcess/babylon_postProcess';
 import './BABYLON/PostProcess/babylon_passPostProcess';
 
+import './BABYLON/Mesh/babylon_linesMesh';
+import './BABYLON/Materials/babylon_shaderMaterial';
+
 import WindowEx from './window';
 import DocumentEx from './document';
 import Image from './image';
@@ -113,6 +116,7 @@ import Image from './image';
 import Canvas from './canvas';
 import TestApp from './testapp';
 import TestApp2 from './testapp2';
+import TestApp3 from './testapp3';
 import TestLoadMesh from './testloadmesh';
 
 declare var window: WindowEx;
@@ -130,7 +134,8 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestLoadMesh().run((arg[1] && arg[1] !== '-i') ? arg[1] : undefined);
+new TestApp3().run();
+//new TestLoadMesh().run((arg[1] && arg[1] !== '-i') ? arg[1] : undefined);
 
 // @ts-ignore
 window.focus();

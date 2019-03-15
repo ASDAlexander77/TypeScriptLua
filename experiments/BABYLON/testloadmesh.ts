@@ -37,7 +37,7 @@ export default class TestLoadMesh {
         // load scene
         BABYLON.SceneLoader.Load(
             '',
-            'file://' + (fileName || 'seagulf.glb'),
+            'file://' + (fileName || 'Spaceship.babylon'),
             this.engine,
             (loadedScene) => {
 

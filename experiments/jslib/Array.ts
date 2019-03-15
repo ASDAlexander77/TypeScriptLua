@@ -33,14 +33,20 @@ module JS {
     }
 
     export class ArrayNullElement {
-        public static isNull = true;
+        public static __isNull = true;
 
         public static __tostring(): string {
             return 'null';
         }
     }
 
-    setmetatable(ArrayNullElement, ArrayNullElement);
+    export class ArrayUndefinedElement {
+        public static __isUndefined = true;
+
+        public static __tostring(): string {
+            return 'undefined';
+        }
+    }
 
     export class Array<T> {
 
@@ -94,7 +100,14 @@ module JS {
                     // @ts-ignore
                     const v = rawget(_this._values, indx + 1);
                     // @ts-ignore
-                    return typeof (v) === 'object' && (<any>v).isNull ? null : v === null ? undefined : v;
+                    const isObject = typeof (v) === 'object';
+                    return isObject && (<any>v).__isNull
+                                ? null
+                                : isObject && (<any>v).__isUndefined
+                                    ? undefined
+                                    : v === null
+                                        ? undefined
+                                        : v;
                 }
 
                 // @ts-ignore
@@ -172,7 +185,7 @@ module JS {
                 }
             } else {
                 for (let i = _len + 1; i <= newSize; i++) {
-                    table.insert(this._values, i, ArrayNullElement);
+                    table.insert(this._values, i, ArrayUndefinedElement);
                 }
             }
         }
