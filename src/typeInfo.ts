@@ -62,7 +62,16 @@ export class TypeInfo {
         let detectType = this.resolver.getTypeAtLocation(node);
         if (detectType && detectType.types && detectType.types[0]) {
             // if unit type, just select first one
-            detectType = detectType.types[0];
+            const unionTypes = detectType.types;
+            detectType = unionTypes[0];
+
+            if (detectType
+                && unionTypes
+                && unionTypes.length > 1
+                && (detectType.intrinsicName === 'error' || detectType.intrinsicName === 'undefined')) {
+                    // use next type in case of error or undefined type
+                detectType = unionTypes[1];
+            }
         }
 
         if (!detectType || detectType && detectType.intrinsicName === 'error') {

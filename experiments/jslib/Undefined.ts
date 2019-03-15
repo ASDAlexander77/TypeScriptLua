@@ -7,8 +7,7 @@ module JS {
         public static name = 'undefined';
 
         public static __tostring(): string {
-            // throw new Error('Object is possibly \'undefined\'');
-            return undefined.name;
+            throw new Error('Object is possibly \'undefined\'');
         }
 
         public static __index(_this: any, indx: number | string): any {

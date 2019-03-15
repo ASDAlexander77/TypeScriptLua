@@ -1,7 +1,13 @@
 import './JS';
 
-const MAX_VALUE = 1.7976931348623e+308;
-const MIN_VALUE = 4.9406564584125e-324;
+function generateSerializableMember(type: number, sourceName?: string) {
+    return sourceName;
+}
 
-console.log(MAX_VALUE);
-console.log(MIN_VALUE);
+function serialize(sourceName?: string) {
+    return generateSerializableMember(0, sourceName); // value member
+}
+
+const s = serialize();
+
+console.log(s);

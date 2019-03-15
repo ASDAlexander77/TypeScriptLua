@@ -311,6 +311,10 @@ export class IdentifierResolver {
         '__set_undefined__': true, '_ENV': true, '_G': true, '__decorate': true
     };
 
+    private skipResolvingFilter = {
+        'undefined': true, '__set_call_undefined__': true
+    };
+
     public methodCall: boolean;
     public thisMethodCall: ResolvedInfo;
     public prefixPostfix: boolean;
@@ -386,7 +390,7 @@ export class IdentifierResolver {
             }
         } else {
             try {
-                if (!resolved && functionContext.current_location_node && !isFakeName) {
+                if (!resolved && !(identifier.text in this.skipResolvingFilter) && functionContext.current_location_node && !isFakeName) {
                     resolved = (<any>this.typeChecker).resolveName(
                         identifier.text,
                         functionContext.current_location_node,
@@ -396,7 +400,10 @@ export class IdentifierResolver {
             }
 
             try {
-                if (!resolved && functionContext.function_or_file_location_node && !isFakeName) {
+                if (!resolved
+                    && !(identifier.text in this.skipResolvingFilter)
+                    && functionContext.function_or_file_location_node
+                    && !isFakeName) {
                     let originLocation = functionContext.function_or_file_location_node;
                     if ((<any>originLocation).__origin) {
                         originLocation = (<any>originLocation).__origin;
