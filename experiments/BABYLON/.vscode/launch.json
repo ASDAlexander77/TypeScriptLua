@@ -8,7 +8,7 @@
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "npm",
             //"program": "${workspaceFolder}/${command:AskForProgramName}",
-            "program": "${workspaceFolder}/babyloncli.lua skull.babylon",
+            "program": "${workspaceFolder}/babyloncli.lua",
             "luaExecutable": "lua",
             "stopOnEntry": true
         },

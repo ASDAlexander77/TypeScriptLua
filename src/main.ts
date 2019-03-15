@@ -13,7 +13,7 @@ try {
 }
 
 function print() {
-    console.log(`Version 1.0.7
+    console.log(`Version 1.0.10
     Syntax:   tsc-lua [options] [file...]
 
     Examples: tsc-lua hello.ts
