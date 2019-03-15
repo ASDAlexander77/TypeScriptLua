@@ -130,7 +130,7 @@ BABYLON.Viewport.toGlobal = function (renderWidth: number, renderHeight: number)
     return new BABYLON.Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
 };
 
-new TestLoadMesh().run();
+new TestLoadMesh().run((arg[1] && arg[1] !== '-i') ? arg[1] : undefined);
 
 // @ts-ignore
 window.focus();

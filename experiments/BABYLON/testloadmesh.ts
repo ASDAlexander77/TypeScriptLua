@@ -21,7 +21,7 @@ export default class TestLoadMesh {
         BABYLON.Engine.ShadersRepository = 'Shaders/';
     }
 
-    createScene() {
+    createScene(fileName: string) {
         // This creates a basic Babylon Scene object (non-mesh)
         const scene = new BABYLON.Scene(this.engine);
 
@@ -37,7 +37,7 @@ export default class TestLoadMesh {
         // load scene
         BABYLON.SceneLoader.Load(
             '',
-            'file://Spaceship.babylon',
+            'file://' + (fileName || 'Spaceship.babylon'),
             this.engine,
             (loadedScene) => {
 
@@ -73,8 +73,8 @@ export default class TestLoadMesh {
         return scene;
     }
 
-    run() {
-        this.scene = this.createScene();
+    run(fileName: string) {
+        this.scene = this.createScene(fileName);
 
         this.engine.runRenderLoop(() => {
             const before = os.clock();
