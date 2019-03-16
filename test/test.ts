@@ -1,14 +1,10 @@
 import './JS';
 
-class Tools {
-    public static _WarnEnabled(message: string): void {
-        console.warn("BJS - " + message);
+
+class ShaderMaterial {
+    constructor(shaderPath: any) {
+        console.log(shaderPath.substr(0, 3));
     }
 }
 
-class Test1 {
-    public static Warn: (message: string) => void = Tools._WarnEnabled;
-}
-
-
-Test1.Warn("Hello");
+let _colorShader = new ShaderMaterial("color");

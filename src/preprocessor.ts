@@ -30,6 +30,10 @@ export class Preprocessor {
 
         let newExpression: ts.Expression;
         switch (node.kind) {
+            case ts.SyntaxKind.NewExpression:
+                newExpression = this.preprocessNewExpression(<ts.NewExpression>node);
+                break;
+
             case ts.SyntaxKind.CallExpression:
                 newExpression = this.preprocessCallExpression(<ts.CallExpression>node);
                 break;
@@ -120,6 +124,27 @@ export class Preprocessor {
         right.parent = binaryExpression;
         (<any>right).__undefined_only = true;
         binaryExpression.right = <ts.UnaryExpression><any>right;
+
+        return undefined;
+    }
+
+    private preprocessNewExpression(newExpression: ts.NewExpression): ts.Expression {
+
+        if (newExpression.arguments.length === 0) {
+            return;
+        }
+
+        const methodDelc = this.typeInfo.getTypeObject(newExpression.expression);
+        const constructs = methodDelc
+            && methodDelc.symbol
+            && methodDelc.symbol.valueDeclaration
+            && methodDelc.symbol.valueDeclaration.members.filter(m => m.kind === ts.SyntaxKind.Constructor);
+        const parameters = constructs && constructs.length > 0 && constructs[0].parameters;
+
+        const newArgs = <any>this.preprocessCallParameters(newExpression.arguments, parameters);
+        if (newArgs) {
+            newExpression.arguments = newArgs;
+        }
 
         return undefined;
     }
@@ -348,23 +373,40 @@ export class Preprocessor {
             return;
         }
 
-        const newArguments = new Array<ts.Expression>();
-
         const methodDelc = this.typeInfo.getTypeObject(callExpression.expression);
         const parameters = methodDelc
             && methodDelc.symbol
             && methodDelc.symbol.valueDeclaration
             && methodDelc.symbol.valueDeclaration.parameters;
 
-        const length = callExpression.arguments.length;
+        const newArgs = <any>this.preprocessCallParameters(callExpression.arguments, parameters);
+        if (newArgs) {
+            callExpression.arguments = newArgs;
+        }
+    }
+
+    private preprocessCallParameters(
+        args: ts.NodeArray<ts.Expression>,
+        parameters: ts.NodeArray<ts.ParameterDeclaration>): ts.Expression[] {
+        if (!args || args.length === 0) {
+            return null;
+        }
+
+        if (!parameters || parameters.length === 0) {
+            return null;
+        }
+
+        const newArguments = new Array<ts.Expression>();
+
+        const length = args.length;
         let anyNewArgument = false;
         for (let i = 0; i < length; i++) {
-            let currentOrNewArgument = callExpression.arguments[i];
-            const parameter = parameters && parameters[i];
+            let currentOrNewArgument = args[i];
+            const parameter = parameters[i];
             // if paraneter is NULL treaqt it as "custom code which is not required correction, for example rowget(t, '__get__')"
 
             // case 'Any'
-            const any = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.AnyKeyword;
+            const any = parameter.type && parameter.type.kind === ts.SyntaxKind.AnyKeyword;
             if (any) {
                 // if string
                 const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
@@ -399,7 +441,7 @@ export class Preprocessor {
             }
 
             // case 'string'
-            const stringConstType = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.StringKeyword;
+            const stringConstType = parameter.type && parameter.type.kind === ts.SyntaxKind.StringKeyword;
             if (stringConstType) {
                 // if string
                 const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
@@ -420,7 +462,7 @@ export class Preprocessor {
                 }
             }
 
-            const numberConstType = parameter && parameter.type && parameter.type.kind === ts.SyntaxKind.NumberKeyword;
+            const numberConstType = parameter.type && parameter.type.kind === ts.SyntaxKind.NumberKeyword;
             if (numberConstType) {
                 // if string
                 const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
@@ -449,7 +491,9 @@ export class Preprocessor {
         }
 
         if (anyNewArgument) {
-            callExpression.arguments = <any>newArguments;
+            return newArguments;
         }
+
+        return null;
     }
 }
