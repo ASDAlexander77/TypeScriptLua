@@ -57,6 +57,8 @@ export default class TestApp3 {
             new BABYLON.Vector3(0, 0, 10)
         ], scene);
 
+        lines.color = new BABYLON.Color3(100, 200, 0);
+
         // Creation of a ribbon
         // let's first create many paths along a maths exponential function as an example
         const exponentialPath = function (p) {
