@@ -403,6 +403,10 @@ export class Preprocessor {
         for (let i = 0; i < length; i++) {
             let currentOrNewArgument = args[i];
             const parameter = parameters[i];
+            if (!parameter) {
+                continue;
+            }
+
             // if paraneter is NULL treaqt it as "custom code which is not required correction, for example rowget(t, '__get__')"
 
             // case 'Any'
