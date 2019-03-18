@@ -407,10 +407,17 @@ export class Preprocessor {
                 continue;
             }
 
+            let typeOfParameter = parameter.type;
+            if (typeOfParameter
+                && typeOfParameter.kind === ts.SyntaxKind.ArrayType
+                && parameter.dotDotDotToken.kind === ts.SyntaxKind.DotDotDotToken) {
+                typeOfParameter = (<ts.ArrayTypeNode>typeOfParameter).elementType;
+            }
+
             // if paraneter is NULL treaqt it as "custom code which is not required correction, for example rowget(t, '__get__')"
 
             // case 'Any'
-            const any = parameter.type && parameter.type.kind === ts.SyntaxKind.AnyKeyword;
+            const any = typeOfParameter && typeOfParameter.kind === ts.SyntaxKind.AnyKeyword;
             if (any) {
                 // if string
                 const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);
@@ -445,7 +452,7 @@ export class Preprocessor {
             }
 
             // case 'string'
-            const stringConstType = parameter.type && parameter.type.kind === ts.SyntaxKind.StringKeyword;
+            const stringConstType = typeOfParameter && typeOfParameter.kind === ts.SyntaxKind.StringKeyword;
             if (stringConstType) {
                 // if string
                 const typeName = this.typeInfo.getTypeNameOfNode(currentOrNewArgument);

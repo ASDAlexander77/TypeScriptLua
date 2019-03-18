@@ -161,7 +161,7 @@ const argNumber = arg[1] !== '-i' ? 1 : 2;
 
 // tslint:disable-next-line:radix
 const number = parseInt(arg[argNumber]);
-number = 6;
+number = 5;
 switch (number) {
     case 1:
         new TestApp().run();
