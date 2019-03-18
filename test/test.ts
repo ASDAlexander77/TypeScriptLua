@@ -1,6 +1,6 @@
 import './JS';
 
-function f(...args: any[]) {
+function f<T>(...args: T[]) {
 
 }
 
