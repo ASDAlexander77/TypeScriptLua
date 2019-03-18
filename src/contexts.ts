@@ -171,6 +171,18 @@ export class CodeStorage {
 export class NamespaceStorage extends BaseStorage<ts.ModuleDeclaration> {
 }
 
+class Scope {
+    public isFile: boolean;
+    public isModule: boolean;
+    public isClass: boolean;
+    public isFunction: boolean;
+    public Name: string;
+
+    constructor(name: string) {
+        this.Name = name;
+    }
+}
+
 export class FunctionContext {
     public function_or_file_location_node: ts.Node;
     public current_location_node: ts.Node;
@@ -205,6 +217,8 @@ export class FunctionContext {
     // to support break, continue in loops
     public breaks_scopes: Array<any> = [];
     public continues_scopes: Array<any> = [];
+    public scope: Scope = new Scope('<root>');
+    public scope_scopes: Array<any> = [];
     public thisInUpvalue: boolean;
     public isStatic: boolean;
     public isFinalReturnAdded: boolean;
@@ -252,6 +266,35 @@ export class FunctionContext {
 
         this.breaks = this.breaks_scopes.pop();
         this.continues = this.continues_scopes.pop();
+    }
+
+    public newScope(name: string) {
+        this.scope_scopes.push(this.scope);
+        this.scope = new Scope(name);
+    }
+
+    public newFileScope(name: string) {
+        this.newScope(name);
+        this.scope.isFile = true;
+    }
+
+    public newModuleScope(name: string) {
+        this.newScope(name);
+        this.scope.isModule = true;
+    }
+
+    public newClassScope(name: string) {
+        this.newScope(name);
+        this.scope.isClass = true;
+    }
+
+    public newFunctionScope(name: string) {
+        this.newScope(name);
+        this.scope.isFunction = true;
+    }
+
+    public restoreScope() {
+        this.scope = this.scope_scopes.pop();
     }
 
     public debugInfoMarkEndOfScopeForLocals() {

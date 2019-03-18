@@ -489,8 +489,6 @@ export class IdentifierResolver {
                         varInfo.isGlobalReference = false;
                         return varInfo;
                     } else {
-                        console.warn('Can\'t detect scope (let, const, var) for \'' + identifier.text + '\'');
-
                         if (this.varAsLet && !isDeclareVar) {
                             varInfo = this.returnLocalOrUpvalueNoException(identifier.text, functionContext);
                             if (varInfo) {
@@ -498,7 +496,9 @@ export class IdentifierResolver {
                             }
                         }
 
+                        // when variable declared in Module
                         varInfo = this.resolveMemberOfCurrentScope(identifier.text, functionContext);
+                        return varInfo;
                     }
 
                     break;

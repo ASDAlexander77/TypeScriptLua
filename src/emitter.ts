@@ -633,6 +633,10 @@ export class Emitter {
         const effectiveLocation = (<any>location).__origin ? (<any>location).__origin : location;
         const statements = this.getBodyByDecorators(statementsIn, effectiveLocation);
 
+        if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
+            this.functionContext.newFunctionScope(effectiveLocation.name ? effectiveLocation.name.text : '<noname>');
+        }
+
         this.functionContext.newLocalScope(effectiveLocation);
 
         this.functionContext.isStatic =
@@ -820,6 +824,9 @@ export class Emitter {
         }
 
         this.functionContext.restoreLocalScope();
+        if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
+            this.functionContext.restoreScope();
+        }
 
         if (this.functionContext.availableRegister !== 0) {
             throw new Error('stack is not cleaned up');
@@ -850,6 +857,9 @@ export class Emitter {
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
+
+        this.functionContext.newFileScope(sourceFile.fileName);
+
         if (this.generateSourceMap) {
             const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
             this.filePathLua = filePath.replace(/\.ts$/, '.lua');
@@ -886,6 +896,8 @@ export class Emitter {
         this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[], !this.functionContext.environmentCreated, true);
         this.functionContext.environmentCreated = true;
         this.functionContext.is_vararg = true;
+
+        this.functionContext.restoreScope();
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -1300,6 +1312,7 @@ export class Emitter {
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
+        this.functionContext.newClassScope(node.name.text);
         this.functionContext.newLocalScope(node);
 
         this.resolver.thisClassName = node.name;
@@ -1410,6 +1423,7 @@ export class Emitter {
         this.emitExport(node.name, node);
 
         this.functionContext.restoreLocalScope();
+        this.functionContext.restoreScope();
     }
 
     private emitExport(name: ts.Identifier, node: ts.Node, fullNamespace?: boolean) {
@@ -1418,8 +1432,12 @@ export class Emitter {
             return;
         }
 
+        this.emitExportInternal(name, node, fullNamespace);
+    }
+
+    private emitExportInternal(name: ts.Identifier, node?: ts.Node, fullNamespace?: boolean) {
         if (this.functionContext.namespaces.length === 0) {
-            const isDefaultExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
+            const isDefaultExport = node && node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             if (!isDefaultExport) {
                 this.emitGetOrCreateObjectExpression(node, 'exports');
                 const setExport = ts.createAssignment(
@@ -1827,12 +1845,13 @@ export class Emitter {
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
-        const isModuleDeclaratino = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword);
-        if (isModuleDeclaratino) {
+        const isModuleDeclaration = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword);
+        if (isModuleDeclaration) {
             return;
         }
 
         this.functionContext.namespaces.push(node);
+        this.functionContext.newModuleScope(node.name.text);
 
         this.emitGetOrCreateObjectExpression(node, node.name.text);
         if (node.body) {
@@ -1842,6 +1861,8 @@ export class Emitter {
         this.functionContext.namespaces.pop();
 
         this.emitSaveToNamespace(<ts.Identifier>node.name);
+
+        this.functionContext.restoreScope();
     }
 
     private processNamespaceDeclaration(node: ts.NamespaceDeclaration): void {
@@ -1917,13 +1938,13 @@ export class Emitter {
         }
     }
 
-    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): void {
+    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.ModuleDeclaration;
         declarationList.declarations.forEach(
             d => this.processVariableDeclarationOne(
-                (<ts.Identifier>d.name).text, d.initializer, Helpers.isConstOrLet(declarationList) || varAsLet));
+                <ts.Identifier>d.name, d.initializer, Helpers.isConstOrLet(declarationList) || varAsLet, isExport));
     }
 
     private emitBeginningOfFunctionScopeForVar(location: ts.Node) {
@@ -1931,7 +1952,9 @@ export class Emitter {
             if (location.kind !== ts.SyntaxKind.SourceFile && location.kind !== ts.SyntaxKind.ModuleBlock) {
                 const declareVars = this.getAllVar(location);
                 for (const name of declareVars) {
-                    this.processVariableDeclarationOne(name, undefined, true);
+                    const identifier = ts.createIdentifier(name);
+                    identifier.parent = location;
+                    this.processVariableDeclarationOne(identifier, undefined, true);
                 }
             }
 
@@ -2004,36 +2027,51 @@ export class Emitter {
         this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
     }
 
-    private processVariableDeclarationOne(name: string, initializer: ts.Expression, isLetOrConst: boolean) {
-        const localVar = this.functionContext.findScopedLocal(name, true);
-        if (isLetOrConst && localVar === -1) {
-            const localVarRegisterInfo = this.functionContext.createLocal(name);
-            if (initializer) {
-                this.processExpression(initializer);
-            } else {
-                // this.processNullLiteral(null);
-                this.processExpression(ts.createIdentifier('undefined'));
-            }
+    private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, isLetOrConst: boolean, isExport?: boolean) {
+        const nameText: string = name.text;
+        const isModuleScope = this.functionContext.scope.isModule;
+        if (!isModuleScope) {
+            const localVar = this.functionContext.findScopedLocal(nameText, true);
+            if (isLetOrConst && localVar === -1) {
+                const localVarRegisterInfo = this.functionContext.createLocal(nameText);
+                if (initializer) {
+                    this.processExpression(initializer);
+                } else {
+                    // this.processNullLiteral(null);
+                    this.processExpression(ts.createIdentifier('undefined'));
+                }
 
-            const rightNode = this.functionContext.stack.pop();
-            this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
-        } else if (localVar !== -1) {
-            if (initializer) {
-                const localVarRegisterInfo = this.resolver.returnLocal(name, this.functionContext);
-                this.processExpression(initializer);
                 const rightNode = this.functionContext.stack.pop();
                 this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
+            } else if (localVar !== -1) {
+                if (initializer) {
+                    const localVarRegisterInfo = this.resolver.returnLocal(nameText, this.functionContext);
+                    this.processExpression(initializer);
+                    const rightNode = this.functionContext.stack.pop();
+                    this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
+                }
+            } else {
+                // var declaration
+                if (initializer) {
+                    this.processExpression(initializer);
+                    this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(nameText, this.functionContext));
+                }
             }
         } else {
+            // initialize module variable
             if (initializer) {
                 this.processExpression(initializer);
-                this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(name, this.functionContext));
+                this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(nameText, this.functionContext));
+                if (isExport) {
+                    this.emitExportInternal(name);
+                }
             }
         }
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
-        this.processVariableDeclarationList(node.declarationList);
+        const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
+        this.processVariableDeclarationList(node.declarationList, isExport);
     }
 
     private emitStoreToEnvObjectProperty(nameConstIndex: ResolvedInfo) {
@@ -2219,7 +2257,7 @@ export class Emitter {
     private declareLoopVariables(initializer: ts.Expression) {
         if (initializer) {
             if (initializer.kind === ts.SyntaxKind.Identifier) {
-                this.processVariableDeclarationOne(initializer.getText(), undefined, true);
+                this.processVariableDeclarationOne(<ts.Identifier>initializer, undefined, true);
             } else {
                 this.processExpression(<ts.Expression>initializer);
             }
