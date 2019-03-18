@@ -4,9 +4,26 @@ declare var arg: any;
 declare var os: any;
 declare var navigator: any;
 
+// init global classes
 navigator = <Navigator>{};
 
-// Core
+import WindowEx from './window';
+import DocumentEx from './document';
+
+declare var window: WindowEx;
+window = new WindowEx();
+(<any>window).self = window;
+
+declare var self: WindowEx;
+self = window;
+
+declare var setTimeout: (funct: any, millisec: number) => number;
+setTimeout = WindowEx.setTimeout;
+
+declare var document: DocumentEx;
+document = new DocumentEx();
+
+// Load BabylonJS - Core
 import './BABYLON/Materials/babylon_effect';
 import './BABYLON/babylon_types';
 import './BABYLON/Events/babylon_keyboardEvents';
@@ -102,6 +119,7 @@ import './BABYLON/Gamepad/babylon_gamepadSceneComponent';
 
 import './BABYLON/Lights/babylon_shadowLight';
 import './BABYLON/Lights/babylon_pointLight';
+import './BABYLON/Lights/babylon_directionalLight';
 
 import './BABYLON/PostProcess/babylon_postProcessManager';
 import './BABYLON/PostProcess/babylon_postProcess';
@@ -110,24 +128,18 @@ import './BABYLON/PostProcess/babylon_passPostProcess';
 import './BABYLON/Mesh/babylon_linesMesh';
 import './BABYLON/Materials/babylon_shaderMaterial';
 
-import WindowEx from './window';
-import DocumentEx from './document';
+import './BABYLON/Collisions/babylon_collider';
+import './BABYLON/Collisions/babylon_collisionCoordinator';
+import './BABYLON/Collisions/babylon_collisionWorker';
+
 import Image from './image';
 // @ts-ignore
 import Canvas from './canvas';
 import TestApp from './testapp';
 import TestApp2 from './testapp2';
 import TestApp3 from './testapp3';
+import TestApp4 from './testapp4';
 import TestLoadMesh from './testloadmesh';
-
-declare var window: WindowEx;
-window = new WindowEx();
-
-declare var setTimeout: (funct: any, millisec: number) => number;
-setTimeout = WindowEx.setTimeout;
-
-declare var document: DocumentEx;
-document = new DocumentEx();
 
 // hack to fix BabylonJS 3.3 code
 // @ts-ignore
@@ -139,6 +151,7 @@ const argNumber = arg[1] !== '-i' ? 1 : 2;
 
 // tslint:disable-next-line:radix
 const number = parseInt(arg[argNumber]);
+number = 4;
 switch (number) {
     case 1:
         new TestApp().run();
@@ -148,6 +161,9 @@ switch (number) {
         break;
     case 3:
         new TestApp3().run();
+        break;
+    case 4:
+        new TestApp4().run();
         break;
     default:
         new TestLoadMesh().run(arg[argNumber]);

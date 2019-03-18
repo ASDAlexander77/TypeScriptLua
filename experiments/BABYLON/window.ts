@@ -207,6 +207,15 @@ export default class WindowEx {
         });
     }
 
+    public static postMessage(message: any, targetOrigin: any, transfer?: any) {
+        const messages = WindowEx.events['message'];
+        if (messages) {
+            for (const messageItem of messages) {
+                messageItem(message);
+            }
+        }
+    }
+
     public static focus() {
         console.log(`focus`);
 
