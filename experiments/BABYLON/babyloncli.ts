@@ -132,6 +132,13 @@ import './BABYLON/Collisions/babylon_collider';
 import './BABYLON/Collisions/babylon_collisionCoordinator';
 import './BABYLON/Collisions/babylon_collisionWorker';
 
+import './BABYLON/Animations/babylon_animation';
+import './BABYLON/Animations/babylon_animatable';
+import './BABYLON/Animations/babylon_animationGroup';
+import './BABYLON/Animations/babylon_animationPropertiesOverride';
+import './BABYLON/Animations/babylon_easing';
+import './BABYLON/Animations/babylon_runtimeAnimation';
+
 import Image from './image';
 // @ts-ignore
 import Canvas from './canvas';
@@ -139,6 +146,7 @@ import TestApp from './testapp';
 import TestApp2 from './testapp2';
 import TestApp3 from './testapp3';
 import TestApp4 from './testapp4';
+import TestApp5 from './testapp5';
 import TestLoadMesh from './testloadmesh';
 
 // hack to fix BabylonJS 3.3 code
@@ -163,6 +171,9 @@ switch (number) {
         break;
     case 4:
         new TestApp4().run();
+        break;
+    case 5:
+        new TestApp5().run();
         break;
     default:
         new TestLoadMesh().run(arg[argNumber]);
