@@ -410,6 +410,7 @@ export class Preprocessor {
             let typeOfParameter = parameter.type;
             if (typeOfParameter
                 && typeOfParameter.kind === ts.SyntaxKind.ArrayType
+                && parameter.dotDotDotToken
                 && parameter.dotDotDotToken.kind === ts.SyntaxKind.DotDotDotToken) {
                 typeOfParameter = (<ts.ArrayTypeNode>typeOfParameter).elementType;
             }
