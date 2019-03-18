@@ -127,6 +127,7 @@ import './BABYLON/PostProcess/babylon_passPostProcess';
 
 import './BABYLON/Mesh/babylon_linesMesh';
 import './BABYLON/Materials/babylon_shaderMaterial';
+import './BABYLON/Materials/Textures/babylon_cubeTexture';
 
 import './BABYLON/Collisions/babylon_collider';
 import './BABYLON/Collisions/babylon_collisionCoordinator';
@@ -147,6 +148,7 @@ import TestApp2 from './testapp2';
 import TestApp3 from './testapp3';
 import TestApp4 from './testapp4';
 import TestApp5 from './testapp5';
+import TestApp6 from './testapp6';
 import TestLoadMesh from './testloadmesh';
 
 // hack to fix BabylonJS 3.3 code
@@ -159,6 +161,7 @@ const argNumber = arg[1] !== '-i' ? 1 : 2;
 
 // tslint:disable-next-line:radix
 const number = parseInt(arg[argNumber]);
+number = 6;
 switch (number) {
     case 1:
         new TestApp().run();
@@ -174,6 +177,9 @@ switch (number) {
         break;
     case 5:
         new TestApp5().run();
+        break;
+    case 6:
+        new TestApp6().run();
         break;
     default:
         new TestLoadMesh().run(arg[argNumber]);

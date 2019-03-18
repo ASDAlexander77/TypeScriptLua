@@ -1,3 +1,6 @@
+// @ts-ignore
+import Canvas2d from './canvas2d';
+
 export default class DocumentEx {
     static events = {};
 
@@ -5,7 +8,15 @@ export default class DocumentEx {
     }
 
     public static createElement(name: string): any {
-        return { tag: name };
+        return { tag: name, getContext: DocumentEx.getContext };
+    }
+
+    public static getContext(contextName: string): any {
+        if (contextName === '2d') {
+            return new Canvas2d();
+        }
+
+        throw new Error('Context ' + contextName + ' is not supported.');
     }
 
     // @ts-ignore

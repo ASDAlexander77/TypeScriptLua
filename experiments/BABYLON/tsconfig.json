@@ -25,6 +25,7 @@
     "include": [
       "babyloncli.ts",
       "canvas.ts",
+      "canvas2d.ts",
       "window.ts",
       "document.ts",
       "image.ts",
@@ -35,6 +36,7 @@
       "testapp3.ts",
       "testapp4.ts",
       "testapp5.ts",
+      "testapp6.ts",
       "testloadmesh.ts",
       "declarations.d.ts"
     ],
