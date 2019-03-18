@@ -34,9 +34,9 @@ export default class TestApp6 {
 
         // Ground
         const groundMaterial = new BABYLON.StandardMaterial('ground', scene);
-        groundMaterial.diffuseTexture = new BABYLON.Texture('earth.jpg', scene);
+        groundMaterial.diffuseTexture = new BABYLON.Texture('Textures/earth.jpg', scene);
 
-        const ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground', 'worldHeightMap.jpg', 200, 200, 250, 0, 10, scene, false);
+        const ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground', 'Textures/worldHeightMap.jpg', 200, 200, 250, 0, 10, scene, false);
         ground.material = groundMaterial;
 
         // Sphere to see the light's position

@@ -64,11 +64,11 @@ export default class TestApp2 {
 
         // Creation of a material with an image
         const materialSphere3 = new BABYLON.StandardMaterial("texture3", scene);
-        materialSphere3.diffuseTexture = new BABYLON.Texture("text.jpg", scene);
+        materialSphere3.diffuseTexture = new BABYLON.Texture("Textures/text.jpg", scene);
 
         // Creation of a material, with translated texture
         const materialSphere4 = new BABYLON.StandardMaterial("texture4", scene);
-        materialSphere4.diffuseTexture = new BABYLON.Texture("text.jpg", scene);
+        materialSphere4.diffuseTexture = new BABYLON.Texture("Textures/text.jpg", scene);
         materialSphere4.diffuseTexture.vOffset = 0.1;
         materialSphere4.diffuseTexture.uOffset = 0.4;
         // Offset of 10% vertical
@@ -76,18 +76,18 @@ export default class TestApp2 {
 
         // Creation of a material with alpha texture
         const materialSphere5 = new BABYLON.StandardMaterial("texture5", scene);
-        materialSphere5.diffuseTexture = new BABYLON.Texture("Planet.png", scene); // Planet
+        materialSphere5.diffuseTexture = new BABYLON.Texture("Textures/Planet.png", scene); // Planet
         materialSphere5.diffuseTexture.hasAlpha = true; // Have an alpha
 
         // Creation of a material and allways show all the faces
         const materialSphere6 = new BABYLON.StandardMaterial("texture6", scene);
-        materialSphere6.diffuseTexture = new BABYLON.Texture("Planet.png", scene); // Planet
+        materialSphere6.diffuseTexture = new BABYLON.Texture("Textures/Planet.png", scene); // Planet
         materialSphere6.diffuseTexture.hasAlpha = true; // Have an alpha
         materialSphere6.backFaceCulling = false; // Allways show all the faces of the element
 
         // Creation of a repeated textured material
         const materialPlan = new BABYLON.StandardMaterial("texturePlane", scene);
-        materialPlan.diffuseTexture = new BABYLON.Texture("grass_texture.jpg", scene);
+        materialPlan.diffuseTexture = new BABYLON.Texture("Textures/grass_texture.jpg", scene);
         materialPlan.diffuseTexture.uScale = 5.0;
         materialPlan.diffuseTexture.vScale = 5.0;
         // Wood effect

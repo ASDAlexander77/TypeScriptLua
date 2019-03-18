@@ -38,7 +38,7 @@ export default class TestApp4 {
         // Simple crate
         const box = BABYLON.Mesh.CreateBox('crate', 2, scene);
         box.material = new BABYLON.StandardMaterial('Mat', scene);
-        box.material.diffuseTexture = new BABYLON.Texture('crate.png', scene);
+        box.material.diffuseTexture = new BABYLON.Texture('Textures/crate.png', scene);
         box.material.diffuseTexture.hasAlpha = true;
         box.position = new BABYLON.Vector3(5, -9, -10);
 

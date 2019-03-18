@@ -7,8 +7,9 @@ export default class Canvas2d implements CanvasRenderingContext2D {
     constructor() {
     }
 
-    public drawImage(image: ImageObject, sx: number, sy: number, sw: number,
+    // @ts-ignore
+    public drawImage(image: CanvasImageSource, sx: number, sy: number, sw: number,
         sh: number, dx: number, dy: number, dw: number, dh: number): void {
-            throw new Error('Not Implemented');
+            const img = <ImageObject><any>image;
     }
 }
