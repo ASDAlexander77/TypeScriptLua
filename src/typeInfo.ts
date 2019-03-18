@@ -60,33 +60,36 @@ export class TypeInfo {
 
     public getTypeObject(node: ts.Node) {
         let detectType = this.resolver.getTypeAtLocation(node);
+        detectType = this.UnwrapUnionType(detectType);
+
+        if (!detectType || detectType && detectType.intrinsicName === 'error') {
+            // fallback scenario
+            const symbol = this.resolver.getSymbolAtLocation(node);
+            if (symbol && symbol.valueDeclaration && symbol.valueDeclaration.initializer) {
+                detectType = this.resolver.getTypeAtLocation(symbol.valueDeclaration.initializer)
+                    || symbol.valueDeclaration.initializer;
+                this.UnwrapUnionType(detectType);
+
+                return detectType;
+            }
+        }
+
+        return detectType;
+    }
+
+    private UnwrapUnionType(detectType: any) {
         if (detectType && detectType.types && detectType.types[0]) {
             // if unit type, just select first one
             const unionTypes = detectType.types;
             detectType = unionTypes[0];
-
             if (detectType
                 && unionTypes
                 && unionTypes.length > 1
                 && (detectType.intrinsicName === 'error'
                     || detectType.intrinsicName === 'undefined'
                     || detectType.intrinsicName === 'null')) {
-                    // use next type in case of error or undefined type
+                // use next type in case of error or undefined type
                 detectType = unionTypes[1];
-            }
-        }
-
-        if (!detectType || detectType && detectType.intrinsicName === 'error') {
-            // fallback scenario
-            const symbol = this.resolver.getSymbolAtLocation(node);
-            if (symbol && symbol.valueDeclaration && symbol.valueDeclaration.initializer) {
-                detectType = this.resolver.getTypeAtLocation(symbol.valueDeclaration.initializer);
-                if (detectType && detectType.types && detectType.types[0]) {
-                    // if unit type, just select first one
-                    detectType = detectType.types[0];
-                }
-
-                return detectType;
             }
         }
 
@@ -145,7 +148,8 @@ export class TypeInfo {
         const nonStaticMethod = type
             && type.symbol
             && type.symbol.valueDeclaration
-            && type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
+            && (type.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+                || type.symbol.valueDeclaration.kind === ts.SyntaxKind.ArrowFunction);
 
         return nonStaticMethod;
     }

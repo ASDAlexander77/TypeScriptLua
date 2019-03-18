@@ -1,15 +1,20 @@
 import './JS';
 
-module Module1
-{
-    export const Epsilon1 = 0.0001;
+class Test1 {
+    public test() {
+        this.getNewPosition(this._onCollisionPositionChange);
+    }
 
-    export class Test1 {
-        public static print() {
-            console.log(Epsilon1);
-        }
+    private _onCollisionPositionChange = (collisionId: number) => {
+        console.log(collisionId);
+        console.log(this);
+    }
+
+    public getNewPosition(onNewPosition: (collisionIndex: number) => void): void {
+        onNewPosition(1);
     }
 }
 
-Module1.Test1.print();
-console.log(Module1.Epsilon1);
+const c = new Test1();
+c.test();
+
