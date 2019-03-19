@@ -265,6 +265,10 @@ extern "C"
 
     static int reg_gc (lua_State *L)
     {
+#if _DEBUG
+            printf("Calling GC for Image data\n");
+#endif   
+
         lua_getfield(L, -1, "dib");
         if (lua_islightuserdata(L, 1)) 
         {

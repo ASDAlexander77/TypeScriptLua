@@ -49,7 +49,7 @@ export default class Image {
     }
 
     public get bits(): any {
-        return this._imageData ? this._imageData.bits : 0;
+        return this._imageData ? this._imageData.bits : null;
     }
 
     public set onload(cb: any) {

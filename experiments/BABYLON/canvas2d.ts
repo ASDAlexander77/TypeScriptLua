@@ -16,8 +16,8 @@ export default class Canvas2d implements CanvasRenderingContext2D {
     }
 
     public getImageData(sx: number, sy: number, sw: number, sh: number): ImageData {
-        const data = new Uint8Array(0);
-        (<any>data).buffer = (<any>this.img.bits).buffer;
+        const data = new Uint8Array(this.img.width * this.img.height * 4);
+        // (<any>this.img.bits) -> wrap into array
         return { data: <ImageData><any>data };
     }
 }
