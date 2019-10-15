@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import * as fs from 'fs-extra';
 import { spawn } from 'cross-spawn';
 import { Emitter } from './emitter';
+import { EmitterLua } from './emitterlua';
 import { Helpers } from './helpers';
 
 export enum ForegroundColorEscapeSequences {
@@ -208,6 +209,7 @@ export class Run {
 
         const sourceFiles = program.getSourceFiles();
 
+        const textOutput = cmdLineOptions && cmdLineOptions.text;
         const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
         if (!isSingleModule) {
             sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
@@ -244,7 +246,9 @@ export class Run {
                     + ForegroundColorEscapeSequences.White
                     + s.fileName
                     + resetEscapeSequence);
-                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
+                const emitter = textOutput
+                    ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory())
+                    : new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
 
                 emitter.processNode(s);
                 emitter.save();
@@ -263,7 +267,9 @@ export class Run {
                 fs.writeFileSync(fileName, emitter.writer.getBytes());
             });
         } else {
-            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory());
+            const emitter = textOutput
+                ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory())
+                : new Emitter(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
                 const paths = sources.filter(sf => s.fileName.endsWith(sf));
                 if (paths && paths.length > 0) {
@@ -296,6 +302,8 @@ export class Run {
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
         const tempLuaFiles = sources.map((s: string, index: number) => 'test' + index + '.lua');
 
+        const textOutput = cmdLineOptions && cmdLineOptions.text;
+
         // clean up
         tempSourceFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
@@ -326,7 +334,9 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                    const emitter = textOutput
+                        ? new EmitterLua(program.getTypeChecker(), undefined, cmdLineOptions || {}, false)
+                        : new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
                     emitter.processNode(s);
                     emitter.save();
 

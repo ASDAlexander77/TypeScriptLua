@@ -30,6 +30,7 @@
   "dependencies": {
     "cross-spawn": "^6.0.5",
     "fs-extra": "^7.0.1",
+    "npm": "^6.12.0",
     "path": "^0.12.7",
     "source-map": "^0.7.3",
     "typescript": "^3.3.3333"
