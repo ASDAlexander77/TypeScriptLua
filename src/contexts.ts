@@ -168,6 +168,41 @@ export class CodeStorage {
     }
 }
 
+export class TextCodeStorage {
+    private code: string[] = [];
+
+    public constructor(private functionContext: FunctionContext) {
+    }
+
+    public push(opCode: string) {
+        this.code.push(opCode);
+    }
+
+    public pop(): string {
+        return this.code.pop();
+    }
+
+    public get length(): number {
+        return this.code.length;
+    }
+
+    public get latest(): string {
+        return this.code[this.code.length - 1];
+    }
+
+    public forEach(action: (element) => void) {
+        this.code.forEach(action);
+    }
+
+    public codeAt(index: number): string {
+        return this.code[index];
+    }
+
+    public setCodeAt(index: number, opCode: string) {
+        this.code[index] = opCode;
+    }
+}
+
 export class NamespaceStorage extends BaseStorage<ts.ModuleDeclaration> {
 }
 
@@ -194,6 +229,7 @@ export class FunctionContext {
     public stack = new StackResolver(this);
     // code stack
     public code = new CodeStorage(this);
+    public textCode = new TextCodeStorage(this);
     // namespace scopes
     public namespaces = new NamespaceStorage(this);
     public environmentCreated: boolean;

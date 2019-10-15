@@ -332,13 +332,10 @@ export class EmitterLua {
     public save() {
         // add final return
         if (!this.functionContext.isFinalReturnAdded) {
-            this.functionContext.code.push([Ops.RETURN, 0, 1]);
+            this.functionContext.textCode.push("return");
             this.functionContext.isFinalReturnAdded = true;
         }
 
-        this.emitHeader();
-        // f->sizeupvalues (byte)
-        this.writer.writeByte(this.functionContext.upvalues.length);
         this.emitFunction(this.functionContext);
     }
 
@@ -504,79 +501,6 @@ export class EmitterLua {
         return vars;
     }
 
-    private processDebugInfo(nodeIn: ts.Node, functionContext: FunctionContext) {
-        let node = nodeIn;
-        let file = node.getSourceFile();
-        if (!file) {
-            node = (<any>node).__origin;
-            file = node.getSourceFile();
-            if (!file) {
-                return;
-            }
-        }
-
-        if (node.pos === -1) {
-            return;
-        }
-
-        const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.getStart(node.getSourceFile()));
-        const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.getEnd());
-
-        if (!functionContext.debug_location) {
-            functionContext.debug_location = '@' + file.fileName;
-        } else {
-            functionContext.debug_location = '@' + this.fileModuleName + '.lua';
-        }
-
-        switch (node.kind) {
-            case ts.SyntaxKind.FunctionDeclaration:
-                functionContext.debug_location +=
-                    ':' + ((<ts.FunctionDeclaration>node).name ? (<ts.FunctionDeclaration>node).name.text : 'noname');
-                break;
-            case ts.SyntaxKind.FunctionExpression:
-                functionContext.debug_location +=
-                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'noname');
-                break;
-            case ts.SyntaxKind.ArrowFunction:
-                functionContext.debug_location +=
-                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'arrow');
-                break;
-            case ts.SyntaxKind.TryStatement:
-                functionContext.debug_location += ':try';
-                break;
-            case ts.SyntaxKind.Constructor:
-                functionContext.debug_location += ':' + (<ts.ClassDeclaration>node.parent).name.text + ':ctor';
-                break;
-            case ts.SyntaxKind.MethodDeclaration:
-                functionContext.debug_location +=
-                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                    ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
-                break;
-            case ts.SyntaxKind.GetAccessor:
-                functionContext.debug_location +=
-                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                    ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
-                break;
-            case ts.SyntaxKind.SetAccessor:
-                functionContext.debug_location +=
-                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                    ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
-                break;
-            case ts.SyntaxKind.SourceFile:
-                break;
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        if (node.kind !== ts.SyntaxKind.SourceFile) {
-            functionContext.linedefined = locStart.line + 1;
-            functionContext.lastlinedefined = locEnd.line + 1;
-        } else {
-            functionContext.linedefined = 0;
-            functionContext.lastlinedefined = 0;
-        }
-    }
-
     private getBodyByDecorators(statementsIn: ts.NodeArray<ts.Statement>, location: ts.Node): ts.NodeArray<ts.Statement> {
         const len = location.decorators
             && location.decorators.some(
@@ -645,9 +569,6 @@ export class EmitterLua {
 
         const isAccessor = effectiveLocation.kind === ts.SyntaxKind.SetAccessor
             || effectiveLocation.kind === ts.SyntaxKind.GetAccessor;
-
-        // debug info
-        this.processDebugInfo(location, this.functionContext);
 
         this.functionContext.has_var_declaration =
             location.kind !== ts.SyntaxKind.SourceFile
@@ -4272,22 +4193,6 @@ export class EmitterLua {
         getOrCreateObjectExpr.parent = node.parent;
 
         this.processExpression(getOrCreateObjectExpr);
-    }
-
-    private emitHeader(): void {
-        // writing header
-        // LUA_SIGNATURE
-        this.writer.writeArray([0x1b, 0x4c, 0x75, 0x61]);
-        // LUAC_VERSION, LUAC_FORMAT
-        this.writer.writeArray([0x53, 0x00]);
-        // LUAC_DATA: data to catch conversion errors
-        this.writer.writeArray([0x19, 0x93, 0x0d, 0x0a, 0x1a, 0x0a]);
-        // sizeof(int), sizeof(size_t), sizeof(Instruction), sizeof(lua_Integer), sizeof(lua_Number)
-        this.writer.writeArray([0x04, 0x08, 0x04, 0x08, 0x08]);
-        // LUAC_INT
-        this.writer.writeArray([0x78, 0x56, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]);
-        // LUAC_NUM
-        this.writer.writeArray([0x0, 0x0, 0x0, 0x0, 0x0, 0x28, 0x77, 0x40]);
     }
 
     private emitFunction(functionContext: FunctionContext): void {
