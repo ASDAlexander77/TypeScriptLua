@@ -1,11 +1,9 @@
 import * as ts from 'typescript';
-import * as sourceMap from 'source-map';
 import { BinaryWriter } from './binarywriter';
 import { FunctionContext, UpvalueInfo } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
-import * as path from 'path';
 import { Preprocessor } from './preprocessor';
 import { TypeInfo } from './typeInfo';
 
@@ -24,10 +22,6 @@ export class EmitterLua {
     private allowConstBigger255 = false;
     // can be used for testing to load const separately
     private splitConstFromOpCode = false;
-    private sourceMapGenerator: sourceMap.SourceMapGenerator;
-    private filePathLua: string;
-    private filePathLuaMap: string;
-    private ignoreDebugInfo: boolean;
     private jsLib: boolean;
     private varAsLet: boolean;
 
@@ -346,10 +340,6 @@ export class EmitterLua {
         // f->sizeupvalues (byte)
         this.writer.writeByte(this.functionContext.upvalues.length);
         this.emitFunction(this.functionContext);
-
-        if (this.sourceMapGenerator) {
-            ts.sys.writeFile(this.filePathLuaMap, this.sourceMapGenerator.toString());
-        }
     }
 
     private pushFunctionContext(location: ts.Node) {
@@ -532,63 +522,58 @@ export class EmitterLua {
         const locStart = (<any>ts).getLineAndCharacterOfPosition(file, node.getStart(node.getSourceFile()));
         const locEnd = (<any>ts).getLineAndCharacterOfPosition(file, node.getEnd());
 
-        if (this.sourceMapGenerator) {
-            const fileSubPath = Helpers.getSubPath(this.filePathLua, (<any>this.sourceMapGenerator)._sourceRoot);
-            functionContext.debug_location = '@' + fileSubPath;
+        if (!functionContext.debug_location) {
+            functionContext.debug_location = '@' + file.fileName;
         } else {
-            if (!functionContext.debug_location) {
-                functionContext.debug_location = '@' + file.fileName;
-            } else {
-                functionContext.debug_location = '@' + this.fileModuleName + '.lua';
-            }
+            functionContext.debug_location = '@' + this.fileModuleName + '.lua';
+        }
 
-            switch (node.kind) {
-                case ts.SyntaxKind.FunctionDeclaration:
-                    functionContext.debug_location +=
-                        ':' + ((<ts.FunctionDeclaration>node).name ? (<ts.FunctionDeclaration>node).name.text : 'noname');
-                    break;
-                case ts.SyntaxKind.FunctionExpression:
-                    functionContext.debug_location +=
-                        ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'noname');
-                    break;
-                case ts.SyntaxKind.ArrowFunction:
-                    functionContext.debug_location +=
-                        ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'arrow');
-                    break;
-                case ts.SyntaxKind.TryStatement:
-                    functionContext.debug_location += ':try';
-                    break;
-                case ts.SyntaxKind.Constructor:
-                    functionContext.debug_location += ':' + (<ts.ClassDeclaration>node.parent).name.text + ':ctor';
-                    break;
-                case ts.SyntaxKind.MethodDeclaration:
-                    functionContext.debug_location +=
-                        ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                        ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
-                    break;
-                case ts.SyntaxKind.GetAccessor:
-                    functionContext.debug_location +=
-                        ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                        ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
-                    break;
-                case ts.SyntaxKind.SetAccessor:
-                    functionContext.debug_location +=
-                        ':' + (<ts.ClassDeclaration>node.parent).name.text +
-                        ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
-                    break;
-                case ts.SyntaxKind.SourceFile:
-                    break;
-                default:
-                    throw new Error('Not Implemented');
-            }
+        switch (node.kind) {
+            case ts.SyntaxKind.FunctionDeclaration:
+                functionContext.debug_location +=
+                    ':' + ((<ts.FunctionDeclaration>node).name ? (<ts.FunctionDeclaration>node).name.text : 'noname');
+                break;
+            case ts.SyntaxKind.FunctionExpression:
+                functionContext.debug_location +=
+                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'noname');
+                break;
+            case ts.SyntaxKind.ArrowFunction:
+                functionContext.debug_location +=
+                    ':' + ((<ts.FunctionExpression>node).name ? (<ts.FunctionExpression>node).name.text : 'arrow');
+                break;
+            case ts.SyntaxKind.TryStatement:
+                functionContext.debug_location += ':try';
+                break;
+            case ts.SyntaxKind.Constructor:
+                functionContext.debug_location += ':' + (<ts.ClassDeclaration>node.parent).name.text + ':ctor';
+                break;
+            case ts.SyntaxKind.MethodDeclaration:
+                functionContext.debug_location +=
+                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                    ':' + (<ts.Identifier>(<ts.MethodDeclaration>node).name).text;
+                break;
+            case ts.SyntaxKind.GetAccessor:
+                functionContext.debug_location +=
+                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                    ':' + (<ts.Identifier>(<ts.GetAccessorDeclaration>node).name).text + ':get';
+                break;
+            case ts.SyntaxKind.SetAccessor:
+                functionContext.debug_location +=
+                    ':' + (<ts.ClassDeclaration>node.parent).name.text +
+                    ':' + (<ts.Identifier>(<ts.SetAccessorDeclaration>node).name).text + ':set';
+                break;
+            case ts.SyntaxKind.SourceFile:
+                break;
+            default:
+                throw new Error('Not Implemented');
+        }
 
-            if (node.kind !== ts.SyntaxKind.SourceFile) {
-                functionContext.linedefined = locStart.line + 1;
-                functionContext.lastlinedefined = locEnd.line + 1;
-            } else {
-                functionContext.linedefined = 0;
-                functionContext.lastlinedefined = 0;
-            }
+        if (node.kind !== ts.SyntaxKind.SourceFile) {
+            functionContext.linedefined = locStart.line + 1;
+            functionContext.lastlinedefined = locEnd.line + 1;
+        } else {
+            functionContext.linedefined = 0;
+            functionContext.lastlinedefined = 0;
         }
     }
 
@@ -862,33 +847,14 @@ export class EmitterLua {
 
         if (this.generateSourceMap) {
             const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
-            this.filePathLua = filePath.replace(/\.ts$/, '.lua');
-            this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
             // check if we have module declaration
             if (this.singleModule) {
                 if (!this.fileModuleName) {
                     this.fileModuleName = this.discoverModuleNode(sourceFile);
                 }
-
-                if (this.fileModuleName) {
-                    this.filePathLua = path.join(path.dirname(filePath), this.fileModuleName + '.lua');
-                    this.filePathLuaMap = path.join(path.dirname(filePath), this.fileModuleName + '.lua.map');
-                }
-            }
-
-            const firstFile = !this.sourceMapGenerator;
-            this.sourceMapGenerator = this.sourceMapGenerator || new sourceMap.SourceMapGenerator({
-                file: path.basename(this.filePathLua),
-                sourceRoot: Helpers.cleanUpPath(
-                    this.rootFolder || filePath.substr(0, (<any>sourceFile).path.length - sourceFile.fileName.length))
-            });
-
-            if (firstFile) {
-                (<any>this.sourceMapGenerator).__lastDebugLine = 0;
             }
         }
-
 
         this.functionContext.function_or_file_location_node = sourceFile;
 
@@ -935,10 +901,6 @@ export class EmitterLua {
 
     private processStatementInternal(nodeIn: ts.Statement): void {
         const node = this.preprocessor.preprocessStatement(nodeIn);
-
-        if (!this.ignoreDebugInfo) {
-            this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
-        }
 
         if (this.extraDebugEmbed) {
             this.extraDebugTracePrint(node);
@@ -1136,28 +1098,21 @@ export class EmitterLua {
     private processTSNode(node: ts.Node, transformText?: (string) => string) {
         const statements = this.transpileTSNode(node, transformText);
         statements.forEach(s => {
-            this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
-            this.ignoreDebugInfo = true;
             this.processStatementInternal(s);
-            this.ignoreDebugInfo = false;
         });
     }
 
     private processTSCode(code: string, parse?: any) {
         const statements = (!parse) ? this.transpileTSCode(code) : this.parseTSCode(code);
         statements.forEach(s => {
-            this.ignoreDebugInfo = true;
             this.processStatementInternal(s);
-            this.ignoreDebugInfo = false;
         });
     }
 
     private processJSCode(code: string) {
         const statements = this.parseJSCode(code);
         statements.forEach(s => {
-            this.ignoreDebugInfo = true;
             this.processStatementInternal(s);
-            this.ignoreDebugInfo = false;
         });
     }
 
