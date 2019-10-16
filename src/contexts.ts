@@ -170,8 +170,30 @@ export class CodeStorage {
 
 export class TextCodeStorage {
     private code: string[] = [];
+    private spaces: number;
+    private indent: string;
 
     public constructor(private functionContext: FunctionContext) {
+        this.spaces = 0;
+    }
+
+    private increment() {
+        this.spaces += 4;
+        this.indent = " ".repeat(this.spaces);
+    }
+
+    public decrement() {
+        this.spaces -= 4;
+        this.indent = " ".repeat(this.spaces);
+
+        const v = this.code[this.code.length - 1];
+        if (!v || /^\s*$/.test(v)) {
+            this.pop();
+            if (this.spaces > 0)
+            {
+                this.code.push(this.indent);
+            }
+        }
     }
 
     public push(opCode: string) {
@@ -184,6 +206,20 @@ export class TextCodeStorage {
     public pushNewLine(opCode?: string) {
         this.push(opCode);
         this.code.push("\r\n");
+        if (this.spaces > 0)
+        {
+            this.code.push(this.indent);
+        }
+    }
+
+    public pushNewLineIncrement(opCode?: string) {
+        this.push(opCode);
+        this.code.push("\r\n");
+        this.increment();
+        if (this.spaces > 0)
+        {
+            this.code.push(this.indent);
+        }
     }
 
     public pop(): string {

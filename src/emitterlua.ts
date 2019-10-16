@@ -644,9 +644,9 @@ export class EmitterLua {
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
             this.functionContext.textCode.push("function " + name);
 
+            this.functionContext.textCode.push("(");
             if (parameters.length > 0)
             {
-                this.functionContext.textCode.push("(");
                 parameters.forEach(p => {
                     if (p.name.kind === ts.SyntaxKind.Identifier) {
                         this.functionContext.textCode.push(p.name.text);
@@ -658,8 +658,9 @@ export class EmitterLua {
                 // remove last one
                 this.functionContext.textCode.pop();
 
-                this.functionContext.textCode.pushNewLine(")");
             }
+
+            this.functionContext.textCode.pushNewLineIncrement(")");
         }
 
         this.emitBeginningOfFunctionScopeForVar(location);
@@ -731,28 +732,6 @@ export class EmitterLua {
                         localVar,
                         resultInfo.getRegister()
                     ]);
-                } else {
-                    this.functionContext.code.push([Ops.NEWTABLE, localVar + 1, 0, 0]);
-                    this.functionContext.code.push([Ops.VARARG, localVar + 2, 0, 0]);
-                    this.functionContext.code.push([Ops.SETLIST, localVar + 1, 0, 1]);
-
-                    // workaround 0 element
-                    const zeroIndexInfo = this.resolver.returnConst(0, this.functionContext);
-                    this.functionContext.code.push(
-                        [Ops.SETTABLE,
-                        localVar + 1,
-                        zeroIndexInfo.getRegisterOrIndex(),
-                            localVar]);
-
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        localVar,
-                        localVar + 1]);
-
-                    // set length for table
-                    const reservedResult = this.functionContext.useRegisterAndPush();
-                    this.AddLengthToConstArray(localVar);
-                    this.functionContext.stack.pop();
                 }
             });
         }
@@ -762,6 +741,8 @@ export class EmitterLua {
         });
 
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
+            this.functionContext.textCode.decrement();
+
             this.functionContext.textCode.pushNewLine("end");
         }
 
@@ -1851,12 +1832,15 @@ export class EmitterLua {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
+
+        const ignoreDeclVar = declarationList.parent.kind == ts.SyntaxKind.ForStatement;
+
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.ModuleDeclaration;
         declarationList.declarations.forEach(
             d => this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, Helpers.isConstOrLet(declarationList) || varAsLet, isExport));
+                <ts.Identifier>d.name, d.initializer, Helpers.isConstOrLet(declarationList) || varAsLet, isExport, ignoreDeclVar));
     }
 
     private emitBeginningOfFunctionScopeForVar(location: ts.Node) {
@@ -1939,18 +1923,21 @@ export class EmitterLua {
         this.processStatement(this.fixupParentReferences(restoreCurrentEnv, node));
     }
 
-    private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, isLetOrConst: boolean, isExport?: boolean) {
+    private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, isLetOrConst: boolean, isExport?: boolean, ignoreDeclVar?: boolean) {
         const nameText: string = name.text;
         const isModuleScope = this.functionContext.scope.isModule;
         if (!isModuleScope) {
             const localVar = this.functionContext.findScopedLocal(nameText, true);
             if (isLetOrConst && localVar === -1) {
 
-                this.functionContext.textCode.push("local ");
+                if (!ignoreDeclVar)
+                {
+                    this.functionContext.textCode.push("local ");
+                }
+
                 this.functionContext.textCode.push(nameText);
                 this.functionContext.textCode.push(" = ");
 
-                const localVarRegisterInfo = this.functionContext.createLocal(nameText);
                 if (initializer) {
                     this.processExpression(initializer);
                 } else {
@@ -1959,8 +1946,6 @@ export class EmitterLua {
                 }
             } else if (localVar !== -1) {
                 if (initializer) {
-                    const localVarRegisterInfo = this.resolver.returnLocal(nameText, this.functionContext);
-
                     this.functionContext.textCode.push(nameText);
                     this.functionContext.textCode.push(" = ");
 
@@ -2093,14 +2078,14 @@ export class EmitterLua {
 
         this.processExpression(node.expression);
 
-        this.functionContext.textCode.pushNewLine(" then ")
-
+        this.functionContext.textCode.pushNewLineIncrement(" then ")
         this.processStatement(node.thenStatement);
+        this.functionContext.textCode.decrement();
 
         if (node.elseStatement) {
-            this.functionContext.textCode.pushNewLine(" else ")
-
+            this.functionContext.textCode.pushNewLineIncrement(" else ")
             this.processStatement(node.elseStatement);
+            this.functionContext.textCode.decrement();
         }
 
         this.functionContext.textCode.push("end")
@@ -2118,9 +2103,10 @@ export class EmitterLua {
 
         this.processExpression(node.expression);
 
-        this.functionContext.textCode.pushNewLine(" do")
+        this.functionContext.textCode.pushNewLineIncrement(" do")
 
         this.processStatement(node.statement);
+        this.functionContext.textCode.decrement();
 
         this.functionContext.textCode.push("end")
 
@@ -2134,14 +2120,14 @@ export class EmitterLua {
         this.functionContext.textCode.push("for ")
 
         this.processExpression(<ts.Expression>node.initializer);
-        this.functionContext.textCode.pushNewLine(", ")
+        this.functionContext.textCode.push(", ")
         this.processExpression(node.condition);
-        this.functionContext.textCode.pushNewLine(", ")
+        this.functionContext.textCode.push(", ")
         this.processExpression(node.incrementor);
 
-        this.functionContext.textCode.pushNewLine(" do")
-
+        this.functionContext.textCode.pushNewLineIncrement(" do")
         this.processStatement(node.statement);
+        this.functionContext.textCode.decrement();
 
         this.functionContext.textCode.push("end")
 
@@ -2634,11 +2620,8 @@ export class EmitterLua {
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.NEWTABLE,
-            resultInfo.getRegister(),
-            node.properties.length,
-            0]);
+
+        this.functionContext.textCode.pushNewLineIncrement("{");
 
         let callSetMetatable = false;
         let props: Array<ts.Node> = node.properties.slice(0);
@@ -2656,6 +2639,8 @@ export class EmitterLua {
             this.processExpression(<ts.Expression><any>e.name);
             this.resolver.Scope.pop();
 
+            this.functionContext.textCode.push(" = ");
+
             // we need to remove scope as expression is not part of object
             if (e.kind === ts.SyntaxKind.ShorthandPropertyAssignment) {
                 this.processExpression(<ts.Expression><any>e.name);
@@ -2665,14 +2650,7 @@ export class EmitterLua {
                 throw new Error('Not Implemented');
             }
 
-            const propertyValueInfo = this.functionContext.stack.pop().optimize();
-            const propertyIndexInfo = this.functionContext.stack.pop().optimize();
-
-            this.functionContext.code.push(
-                [Ops.SETTABLE,
-                resultInfo.getRegister(),
-                propertyIndexInfo.getRegisterOrIndex(),
-                propertyValueInfo.getRegisterOrIndex()]);
+            this.functionContext.textCode.pushNewLine(",");
         });
 
         props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
@@ -2693,15 +2671,15 @@ export class EmitterLua {
             // TODO: but it does not work here, why?
             // this.bind(forInSetStatement);
 
-            this.functionContext.newLocalScope(forInSetStatement);
-            this.functionContext.createLocal('obj_', resultInfo);
             this.processForInStatementNoScope(forInSetStatement);
-            this.functionContext.restoreLocalScope();
         });
 
         if (callSetMetatable) {
-            this.emitSetMetatableCall(resultInfo);
+            //this.emitSetMetatableCall(resultInfo);
         }
+
+        this.functionContext.textCode.decrement();
+        this.functionContext.textCode.push("}");
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
@@ -2772,53 +2750,15 @@ export class EmitterLua {
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
         this.processExpression(node.expression);
+        this.functionContext.textCode.push("[");
         this.processExpression(node.argumentExpression);
-
-        /*
-        if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'any'])) {
-            // add +1 if number
-            const op1 = this.functionContext.stack.peek();
-
-            this.functionContext.newLocalScope(node);
-
-            this.functionContext.createLocal('<op1>', op1);
-            const localOp1Ident = ts.createIdentifier('<op1>');
-
-            const condition = ts.createBinary(
-                        ts.createTypeOf(localOp1Ident), ts.SyntaxKind.EqualsEqualsToken, ts.createStringLiteral('number'));
-
-            const condExpression = ts.createConditional(condition,
-                ts.createBinary(localOp1Ident, ts.SyntaxKind.PlusToken, ts.createNumericLiteral('1')), localOp1Ident);
-            condExpression.parent = node;
-            condition.parent = condExpression;
-            this.processExpression(condExpression);
-
-            this.functionContext.restoreLocalScope();
-
-            const result = this.functionContext.stack.pop();
-            this.functionContext.code.push([
-                Ops.MOVE,
-                op1.getRegister(),
-                result.getRegister(),
-                0]);
-            // end of adding +1 if number
-        }
-        */
-
-        // perform load
-        const indexInfo = this.functionContext.stack.pop().optimize();
-        const variableInfo = this.functionContext.stack.pop().optimize();
-
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push(
-            [Ops.GETTABLE,
-            resultInfo.getRegister(),
-            variableInfo.getRegisterOrIndex(),
-            indexInfo.getRegisterOrIndex()]);
+        this.functionContext.textCode.push("]");
     }
 
     private processParenthesizedExpression(node: ts.ParenthesizedExpression) {
+        this.functionContext.textCode.push("(");
         this.processExpression(node.expression);
+        this.functionContext.textCode.push(")");
     }
 
     private processTypeAssertionExpression(node: ts.TypeAssertion) {
@@ -3701,22 +3641,6 @@ export class EmitterLua {
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
 
-        // HACK: special case to support #len
-        if ((<any>node.name).__len) {
-            const expressionInfo = this.functionContext.stack.pop().optimize();
-            const lenResultInfo = this.functionContext.useRegisterAndPush();
-            this.functionContext.code.push(
-                [Ops.LEN,
-                lenResultInfo.getRegister(),
-                expressionInfo.getRegisterOrIndex()]);
-            return;
-        }
-
-        this.resolver.Scope.push(this.functionContext.stack.peek());
-        this.processExpression(node.name);
-        this.resolver.Scope.pop();
-
-        let prefixPostfix = this.resolver.prefixPostfix;
         // perform load
         // we can call collapseConst becasee member is name all the time which means it is const value
         let memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
@@ -3763,43 +3687,17 @@ export class EmitterLua {
             opCode = Ops.GETTABLE;
         }
 
-        const readOpCode = this.functionContext.code.latest;
-        if (opCode === Ops.GETTABLE && readOpCode && readOpCode[0] === Ops.GETUPVAL) {
-            if (prefixPostfix) {
-                prefixPostfix = false;
-                this.functionContext.stack.pop();
-            }
-
-            this.functionContext.code.pop();
-            opCode = Ops.GETTABUP;
-            objectIdentifierInfo.register = readOpCode[2];
-        }
-
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        if (prefixPostfix) {
-            // to cause chain pop
-            this.popDependancy(resultInfo, objectIdentifierInfo);
-        }
-
-        objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
-        const reservedSpace = this.functionContext.useRegisterAndPush();
-        memberIdentifierInfo = this.preprocessConstAndUpvalues(memberIdentifierInfo);
-        resultInfo.originalInfo = memberIdentifierInfo.originalInfo;
-
-        this.functionContext.code.push(
-            [opCode,
-                resultInfo.getRegister(),
-                objectIdentifierInfo.getRegisterOrIndex(),
-                memberIdentifierInfo.getRegisterOrIndex()]);
-
         if (opCode === Ops.SELF && !wrapMethodCall) {
             this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
+
+            this.functionContext.textCode.push(":");
+        }
+        else
+        {
+            this.functionContext.textCode.push(".");
         }
 
-        this.stackCleanup(memberIdentifierInfo);
-        // clear up reserved
-        this.functionContext.stack.pop();
-        this.stackCleanup(objectIdentifierInfo);
+        this.processExpression(node.name);
     }
 
     private emitGetOrCreateObjectExpression(node: ts.Node, globalVariableName: string) {
