@@ -90,6 +90,22 @@ export class EmitterLua {
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
+    __is_true = __is_true || function(inst:object) {                \
+        if (inst == true || inst != null || inst != undefined) {    \
+            return true;                                            \
+        }                                                           \
+                                                                    \
+        return false;                                               \
+    };                                                              \
+                                                                    \
+    __cond = __cond || function(cond:boolean, trueValue:object, falseValue:object) { \
+        if (__is_true(cond)) {                                      \
+            return trueValue;                                       \
+        }                                                           \
+                                                                    \
+        return falseValue;                                          \
+    };                                                              \
+                                                                    \
     ___type = ___type || function(inst:object) {                    \
         const tp = __type(inst);                                    \
         return tp === "table" ? "object" : tp;                      \
@@ -362,9 +378,10 @@ export class EmitterLua {
         parameters: ts.NodeArray<ts.ParameterDeclaration>,
         createEnvironment?: boolean): FunctionContext {
 
-        this.pushFunctionContext(location);
+        //this.pushFunctionContext(location);
         this.processFunctionWithinContext(location, statements, parameters, createEnvironment);
-        return this.popFunctionContext();
+        //return this.popFunctionContext();
+        return this.functionContext;
     }
 
     private hasMemberThis(location: ts.Node): boolean {
@@ -759,7 +776,7 @@ export class EmitterLua {
         }
 
         if (this.functionContext.availableRegister !== 0) {
-            throw new Error('stack is not cleaned up');
+            //throw new Error('stack is not cleaned up');
         }
     }
 
@@ -844,13 +861,7 @@ export class EmitterLua {
             ts.createStringLiteral(txt.substring(0, 140))]);
     }
 
-    private processStatementInternal(nodeIn: ts.Statement): void {
-        const node = this.preprocessor.preprocessStatement(nodeIn);
-
-        if (this.extraDebugEmbed) {
-            this.extraDebugTracePrint(node);
-        }
-
+    private processStatementInternal(node: ts.Statement): void {
         switch (node.kind) {
             case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); break;
@@ -1935,6 +1946,11 @@ export class EmitterLua {
         if (!isModuleScope) {
             const localVar = this.functionContext.findScopedLocal(nameText, true);
             if (isLetOrConst && localVar === -1) {
+
+                this.functionContext.textCode.push("local ");
+                this.functionContext.textCode.push(nameText);
+                this.functionContext.textCode.push(" = ");
+
                 const localVarRegisterInfo = this.functionContext.createLocal(nameText);
                 if (initializer) {
                     this.processExpression(initializer);
@@ -1942,28 +1958,30 @@ export class EmitterLua {
                     // this.processNullLiteral(null);
                     this.processExpression(ts.createIdentifier('undefined'));
                 }
-
-                const rightNode = this.functionContext.stack.pop();
-                this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
             } else if (localVar !== -1) {
                 if (initializer) {
                     const localVarRegisterInfo = this.resolver.returnLocal(nameText, this.functionContext);
+
+                    this.functionContext.textCode.push(nameText);
+                    this.functionContext.textCode.push(" = ");
+
                     this.processExpression(initializer);
-                    const rightNode = this.functionContext.stack.pop();
-                    this.functionContext.code.push([Ops.MOVE, localVarRegisterInfo.getRegister(), rightNode.getRegister()]);
                 }
             } else {
                 // var declaration
                 if (initializer) {
+                    this.functionContext.textCode.push(nameText);
+                    this.functionContext.textCode.push(" = ");
                     this.processExpression(initializer);
-                    this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(nameText, this.functionContext));
                 }
             }
         } else {
             // initialize module variable
             if (initializer) {
+                this.functionContext.textCode.push(nameText);
+                this.functionContext.textCode.push(" = ");
                 this.processExpression(initializer);
-                this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(nameText, this.functionContext));
+
                 if (isExport) {
                     this.emitExportInternal(name);
                 }
@@ -2024,32 +2042,10 @@ export class EmitterLua {
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
+        this.functionContext.textCode.push("return");
         if (node.expression) {
+            this.functionContext.textCode.push(" ");
             this.processExpression(node.expression);
-
-            // restore old environment
-            this.emitRestoreFunctionEnvironment(node);
-
-            const resultInfo = this.functionContext.stack.pop();
-
-            // support custom return size
-            const ret = this.GetVariableReturn();
-
-            let returnValues = 1;
-            if (ret) {
-                // tslint:disable-next-line:radix
-                returnValues = parseInt(
-                    (<ts.Identifier>(<ts.CallExpression>(ret.expression)).arguments[0]).text);
-            }
-
-            this.functionContext.code.push(
-                [Ops.RETURN, resultInfo.getRegister(), returnValues + 1]);
-        } else {
-
-            // restore old environment
-            this.emitRestoreFunctionEnvironment(node);
-
-            this.functionContext.code.push([Ops.RETURN, 0, 1]);
         }
     }
 
@@ -2093,35 +2089,19 @@ export class EmitterLua {
     }
 
     private processIfStatement(node: ts.IfStatement): void {
+
+        this.functionContext.textCode.push("if ")
+
         this.processExpression(node.expression);
 
-        const equalsTo = 0;
-        const ifExptNode = this.functionContext.stack.pop().optimize();
-
-        const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), equalsTo];
-        this.functionContext.code.push(testSetOp);
-
-        const jmpOp = [Ops.JMP, 0, 1];
-        this.functionContext.code.push(jmpOp);
-
-        const beforeBlock = this.functionContext.code.length;
+        this.functionContext.textCode.push(" then ")
 
         this.processStatement(node.thenStatement);
 
-        let jmpElseOp;
-        let elseBlock;
         if (node.elseStatement) {
-            jmpElseOp = [Ops.JMP, 0, 1];
-            this.functionContext.code.push(jmpElseOp);
+            this.functionContext.textCode.push(" else ")
 
-            elseBlock = this.functionContext.code.length;
-        }
-
-        jmpOp[2] = this.functionContext.code.length - beforeBlock;
-
-        if (node.elseStatement) {
             this.processStatement(node.elseStatement);
-            jmpElseOp[2] = this.functionContext.code.length - elseBlock;
         }
     }
 
@@ -2130,40 +2110,41 @@ export class EmitterLua {
     }
 
     private processWhileStatement(node: ts.WhileStatement): void {
-        // jump to expression
-        const jmpOp = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(jmpOp);
 
-        const beforeBlock = this.functionContext.code.length;
+        this.functionContext.newLocalScope(node);
 
-        jmpOp[2] = this.emitLoop(node.expression, node) - beforeBlock;
+        this.functionContext.textCode.push("while ")
+
+        this.processExpression(node.expression);
+
+        this.functionContext.textCode.pushNewLine(" do")
+
+        this.processStatement(node.statement);
+
+        this.functionContext.textCode.push("end")
+
+        this.functionContext.restoreLocalScope();
     }
 
     private processForStatement(node: ts.ForStatement): void {
 
         this.functionContext.newLocalScope(node);
 
-        this.declareLoopVariables(<ts.Expression>node.initializer);
+        this.functionContext.textCode.push("for ")
 
-        // jump to expression
-        const jmpOp = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(jmpOp);
+        this.processExpression(<ts.Expression>node.initializer);
+        this.functionContext.textCode.pushNewLine(", ")
+        this.processExpression(node.condition);
+        this.functionContext.textCode.pushNewLine(", ")
+        this.processExpression(node.incrementor);
 
-        const beforeBlock = this.functionContext.code.length;
+        this.functionContext.textCode.pushNewLine(" do")
 
-        jmpOp[2] = this.emitLoop(node.condition, node, node.incrementor) - beforeBlock;
+        this.processStatement(node.statement);
+
+        this.functionContext.textCode.push("end")
 
         this.functionContext.restoreLocalScope();
-    }
-
-    private declareLoopVariables(initializer: ts.Expression) {
-        if (initializer) {
-            if (initializer.kind === ts.SyntaxKind.Identifier) {
-                this.processVariableDeclarationOne(<ts.Identifier>initializer, undefined, true);
-            } else {
-                this.processExpression(<ts.Expression>initializer);
-            }
-        }
     }
 
     private markStack(): number {
@@ -2239,7 +2220,7 @@ export class EmitterLua {
         if (isLocalOrConstDecl) {
             // if iterator variable is not local then we need to save local variable into
             // initializer
-            this.declareLoopVariables(<ts.Expression>node.initializer);
+            //this.declareLoopVariables(<ts.Expression>node.initializer);
         }
 
         // call PAIRS(...) before jump
@@ -2478,9 +2459,7 @@ export class EmitterLua {
     }
 
     private processBreakStatement(node: ts.BreakStatement) {
-        const breakJmpOp = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(breakJmpOp);
-        this.functionContext.breaks.push(this.functionContext.code.length - 1);
+        this.functionContext.textCode.pushNewLine("break");
     }
 
     private resolveBreakJumps(jump?: number) {
@@ -2612,33 +2591,19 @@ export class EmitterLua {
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         const boolValue = node.kind === ts.SyntaxKind.TrueKeyword;
-        const opCode = [Ops.LOADBOOL, this.functionContext.useRegisterAndPush().getRegister(), boolValue ? 1 : 0, 0];
-        this.functionContext.code.push(opCode);
+        this.functionContext.textCode.push(boolValue ? "True" : "False");
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        // LOADNIL A B     R(A), R(A+1), ..., R(A+B) := nil
-        this.functionContext.code.push([Ops.LOADNIL, resultInfo.getRegister(), 0]);
+        this.functionContext.textCode.push("null");
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        this.emitNumericConst(node.text);
-    }
-
-    private emitNumericConst(text: string): void {
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        const resolvedInfo = this.resolver.returnConst(
-            text.indexOf('.') === -1 && text.indexOf('e') === -1 ? parseInt(text, 10) : parseFloat(text), this.functionContext);
-        // LOADK A Bx    R(A) := Kst(Bx)
-        this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+        this.functionContext.textCode.push(node.text);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        const resolvedInfo = this.resolver.returnConst(node.text, this.functionContext);
-        // LOADK A Bx    R(A) := Kst(Bx)
-        this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
+        this.functionContext.textCode.push("\"" + node.text + "\"");
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
@@ -2904,8 +2869,6 @@ export class EmitterLua {
                         break;
                 }
 
-                this.emitNumericConst('1');
-
                 // Special case to remember source of 'field'
                 this.resolver.prefixPostfix = true;
                 this.processExpression(node.operand);
@@ -2995,7 +2958,6 @@ export class EmitterLua {
                 const operandPosition = this.functionContext.code.length - 1;
 
                 const resurveSpace = this.functionContext.useRegisterAndPush();
-                this.emitNumericConst('1');
                 const value1Info = this.functionContext.stack.pop().optimize();
 
                 // clone
@@ -3066,563 +3028,209 @@ export class EmitterLua {
     }
 
     private processConditionalExpression(node: ts.ConditionalExpression): void {
+        this.functionContext.textCode.push("__cond(");
         this.processExpression(node.condition);
-
-        const equalsTo = 0;
-        const conditionInfo = this.functionContext.stack.pop().optimize();
-        const resultInfo = this.functionContext.useRegisterAndPush();
-
-        const testSetOp = [Ops.TEST, conditionInfo.getRegisterOrIndex(), equalsTo];
-        this.functionContext.code.push(testSetOp);
-
-        const jmpOp = [Ops.JMP, 0, 1];
-        this.functionContext.code.push(jmpOp);
-
-        const beforeBlock = this.functionContext.code.length;
-
+        this.functionContext.textCode.push(", ");
         this.processExpression(node.whenTrue);
-        const whenTrueInfo = this.functionContext.stack.pop().optimize();
-
-        if (whenTrueInfo.getRegisterOrIndex() < 0) {
-            this.functionContext.code.push([
-                Ops.LOADK,
-                resultInfo.getRegister(),
-                whenTrueInfo.getRegisterOrIndex(),
-                0]);
-        } else {
-            this.functionContext.code.push([
-                Ops.MOVE,
-                resultInfo.getRegister(),
-                whenTrueInfo.getRegister(),
-                0]);
-        }
-
-        const jmpElseOp = [Ops.JMP, 0, 1];
-        this.functionContext.code.push(jmpElseOp);
-
-        const elseBlock = this.functionContext.code.length;
-
-        jmpOp[2] = this.functionContext.code.length - beforeBlock;
-
+        this.functionContext.textCode.push(", ");
         this.processExpression(node.whenFalse);
-        const whenFalseInfo = this.functionContext.stack.pop().optimize();
-
-        if (whenFalseInfo.getRegisterOrIndex() < 0) {
-            this.functionContext.code.push([
-                Ops.LOADK,
-                resultInfo.getRegister(),
-                whenFalseInfo.getRegisterOrIndex(),
-                0]);
-        } else {
-            this.functionContext.code.push([
-                Ops.MOVE,
-                resultInfo.getRegister(),
-                whenFalseInfo.getRegister(),
-                0]);
-        }
-
-        jmpElseOp[2] = this.functionContext.code.length - elseBlock;
+        this.functionContext.textCode.push(")");
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
-        // perform '='
         switch (node.operatorToken.kind) {
             case ts.SyntaxKind.EqualsToken:
-
-                // ... = <right>
-                this.processExpression(node.right);
-
+                this.processExpression(node.left);
                 this.functionContext.textCode.push(" = ");
-
-                // <left> = ...
-                this.processExpression(node.left);
-
+                this.processExpression(node.right);
                 break;
-
             case ts.SyntaxKind.PlusToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" + ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.MinusToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" - ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.AsteriskToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" * ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.AsteriskAsteriskToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" ** ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.PercentToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" % ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.CaretToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" ^ ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.SlashToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" / ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.AmpersandToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" & ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.BarToken:
-            case ts.SyntaxKind.CaretToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" | ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.LessThanLessThanToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" << ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" >> ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
-
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" >>> ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.PlusEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" += ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.MinusEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" -= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.AsteriskEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" *= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" **= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.PercentEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" %= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.CaretEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" ^= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.SlashEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" /= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.AmpersandEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" &= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.BarEqualsToken:
-            case ts.SyntaxKind.CaretEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" |= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" <<= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" >>= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-
-                let leftOpNode;
-                let rightOpNode;
-
-                let operationCode = this.opsMap[node.operatorToken.kind];
-                if ((node.operatorToken.kind === ts.SyntaxKind.PlusToken
-                    || node.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
-                    && (this.typeInfo.isTypeOfNode(node.left, 'string')
-                        || this.typeInfo.isTypeOfNode(node.right, 'string'))) {
-                    operationCode = Ops.CONCAT;
-                }
-
-                // operation
-                switch (node.operatorToken.kind) {
-                    case ts.SyntaxKind.AmpersandToken:
-                    case ts.SyntaxKind.BarToken:
-                    case ts.SyntaxKind.CaretToken:
-
-                    case ts.SyntaxKind.AmpersandEqualsToken:
-                    case ts.SyntaxKind.BarEqualsToken:
-                    case ts.SyntaxKind.CaretEqualsToken:
-
-                        // FLOAT -> INT
-                        const op1 = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('math'), 'floor'), undefined, [node.left]);
-                        op1.parent = node;
-                        const op2 = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('math'), 'floor'), undefined, [node.right]);
-                        op2.parent = node;
-
-                        // <left> + ...
-                        this.processExpression(op1);
-
-                        // ... + <right>
-                        this.processExpression(op2);
-
-                        break;
-                    case ts.SyntaxKind.PlusToken:
-                    case ts.SyntaxKind.MinusToken:
-                    case ts.SyntaxKind.AsteriskToken:
-                    case ts.SyntaxKind.SlashToken:
-
-                        if (operationCode !== Ops.CONCAT) {
-                            const op1_notnull = ts.createBinary(node.left, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
-                            op1_notnull.parent = node;
-                            const op2_notnull = ts.createBinary(node.right, ts.SyntaxKind.BarBarToken, ts.createNumericLiteral('0'));
-                            op2_notnull.parent = node;
-
-                            // <left> + ...
-                            this.processExpression(op1_notnull);
-
-                            // ... + <right>
-                            this.processExpression(op2_notnull);
-                        } else {
-
-                            // concat string
-                            if (!this.typeInfo.isTypeOfNode(node.left, 'string')) {
-                                this.processExpression(
-                                    this.fixupParentReferences(
-                                        ts.createCall(ts.createIdentifier('tostring'), undefined, [node.left]), node));
-                            } else {
-                                // <left> + ...
-                                this.processExpression(node.left);
-                            }
-
-                            if (!this.typeInfo.isTypeOfNode(node.right, 'string')) {
-                                this.processExpression(
-                                    this.fixupParentReferences(
-                                        ts.createCall(ts.createIdentifier('tostring'), undefined, [node.right]), node));
-                            } else {
-                                // ... + <right>
-                                this.processExpression(node.right);
-                            }
-                        }
-
-                        break;
-                    default:
-                        // <left> + ...
-                        this.processExpression(node.left);
-
-                        // ... + <right>
-                        this.processExpression(node.right);
-                        break;
-                }
-
-
-                if (operationCode === Ops.CONCAT) {
-                    rightOpNode = this.functionContext.stack.pop();
-                    leftOpNode = this.functionContext.stack.pop();
-                } else {
-                    rightOpNode = this.functionContext.stack.pop().optimize();
-                    leftOpNode = this.functionContext.stack.pop().optimize();
-                }
-
-                const resultInfo = this.functionContext.useRegisterAndPush();
-
-                this.functionContext.code.push([
-                    operationCode,
-                    resultInfo.getRegister(),
-                    leftOpNode.getRegisterOrIndex(),
-                    rightOpNode.getRegisterOrIndex()]);
-
-                // we need to store result at the end of operation
-                switch (node.operatorToken.kind) {
-                    case ts.SyntaxKind.PlusEqualsToken:
-                    case ts.SyntaxKind.MinusEqualsToken:
-                    case ts.SyntaxKind.AsteriskEqualsToken:
-                    case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
-                    case ts.SyntaxKind.PercentEqualsToken:
-                    case ts.SyntaxKind.CaretEqualsToken:
-                    case ts.SyntaxKind.SlashEqualsToken:
-                    case ts.SyntaxKind.AmpersandEqualsToken:
-                    case ts.SyntaxKind.BarEqualsToken:
-                    case ts.SyntaxKind.CaretEqualsToken:
-                    case ts.SyntaxKind.LessThanLessThanEqualsToken:
-                    case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                    case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-
-                        // <left> = ...
-                        this.processExpression(node.left);
-
-                        this.emitAssignOperation(node);
-                        break;
-                }
-
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" >>>= ");
+                this.processExpression(node.right);
                 break;
-
             case ts.SyntaxKind.EqualsEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" == ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.EqualsEqualsEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" === ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.LessThanToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" < ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.LessThanEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" <= ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.ExclamationEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" != ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.ExclamationEqualsEqualsToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" !== ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.GreaterThanToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" > ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.GreaterThanEqualsToken:
-
-                // ... = <right>
-                this.processExpression(node.right);
-
-                // <left> = ...
                 this.processExpression(node.left);
-
-                const leftOpNode2 = this.functionContext.stack.pop().optimize();
-                const rightOpNode2 = this.functionContext.stack.pop().optimize();
-                const resultInfo2 = this.functionContext.useRegisterAndPush();
-
-                let equalsTo = 1;
-                switch (node.operatorToken.kind) {
-                    case ts.SyntaxKind.ExclamationEqualsToken:
-                    case ts.SyntaxKind.ExclamationEqualsEqualsToken:
-                    case ts.SyntaxKind.GreaterThanToken:
-                    case ts.SyntaxKind.GreaterThanEqualsToken:
-                        equalsTo = 0;
-                        break;
-                }
-
-                this.functionContext.code.push([
-                    this.opsMap[node.operatorToken.kind],
-                    equalsTo,
-                    leftOpNode2.getRegisterOrIndex(),
-                    rightOpNode2.getRegisterOrIndex()]);
-
-                // in case of logical ops finish it
-                const trueValue = 1;
-                const falseValue = 0;
-
-                this.functionContext.code.push([
-                    Ops.JMP,
-                    0,
-                    1]);
-
-                this.functionContext.code.push([
-                    Ops.LOADBOOL,
-                    resultInfo2.getRegister(),
-                    falseValue,
-                    1]);
-
-                this.functionContext.code.push([
-                    Ops.LOADBOOL,
-                    resultInfo2.getRegister(),
-                    trueValue,
-                    0]);
-
+                this.functionContext.textCode.push(" >= ");
+                this.processExpression(node.right);
                 break;
-
             case ts.SyntaxKind.AmpersandAmpersandToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" and ");
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.BarBarToken:
-
-                // <left> = ...
                 this.processExpression(node.left);
-
-                // fix when 0 is true in LUA
-                // TODO: move it into "Preprocess logic"
-                if (!(<any>node).__fix_not_required) {
-                    const op1 = this.functionContext.stack.peek();
-
-                    this.functionContext.newLocalScope(node);
-
-                    this.functionContext.createLocal('<op1>', op1);
-                    const localOp1Ident = ts.createIdentifier('<op1>');
-
-                    const undefIdent1 = ts.createIdentifier('undefined');
-
-                    let condition;
-                    switch (node.operatorToken.kind) {
-                        case ts.SyntaxKind.AmpersandAmpersandToken:
-                            const chain1 = ts.createPrefix(ts.SyntaxKind.ExclamationToken, localOp1Ident);
-
-                            localOp1Ident.parent = chain1;
-
-                            const chainEq2 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNumericLiteral('0'));
-                            const chainEq3 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.EqualsEqualsEqualsToken, undefIdent1);
-                            undefIdent1.parent = chainEq3;
-                            const chainEq4 = ts.createBinary(
-                                localOp1Ident, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createStringLiteral(''));
-
-                            const op_1 = ts.createBinary(
-                                chain1,
-                                ts.SyntaxKind.BarBarToken,
-                                chainEq2);
-
-                            chain1.parent = op_1;
-                            chainEq2.parent = op_1;
-
-                            const op_2 = ts.createBinary(
-                                op_1,
-                                ts.SyntaxKind.BarBarToken,
-                                chainEq3);
-
-                            op_1.parent = op_2;
-                            chainEq3.parent = op_2;
-
-                            condition =
-                                ts.createBinary(
-                                    op_2,
-                                    ts.SyntaxKind.BarBarToken,
-                                    chainEq4);
-
-                            op_2.parent = condition;
-                            chainEq4.parent = condition;
-
-                            break;
-                        case ts.SyntaxKind.BarBarToken:
-
-                            const undefinedFilterOnly = (<any>node).__undefined_only;
-                            if (!undefinedFilterOnly) {
-                                condition =
-                                    ts.createBinary(
-                                        ts.createBinary(
-                                            ts.createBinary(
-                                                localOp1Ident,
-                                                ts.SyntaxKind.AmpersandAmpersandToken,
-                                                ts.createBinary(
-                                                    localOp1Ident,
-                                                    ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                                                    ts.createNumericLiteral('0'))),
-                                            ts.SyntaxKind.AmpersandAmpersandToken,
-                                            ts.createBinary(
-                                                localOp1Ident,
-                                                ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                                                undefIdent1)),
-                                        ts.SyntaxKind.AmpersandAmpersandToken,
-                                        ts.createBinary(
-                                            localOp1Ident,
-                                            ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                                            ts.createStringLiteral('')));
-                            } else {
-                                // special case for undefined only (undefined -> null)
-                                condition =
-                                    ts.createBinary(
-                                        localOp1Ident,
-                                        ts.SyntaxKind.AmpersandAmpersandToken,
-                                        ts.createBinary(
-                                            localOp1Ident,
-                                            ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                                            undefIdent1));
-                            }
-
-                            break;
-                    }
-
-                    (<any>condition).__fix_not_required = true;
-                    (<any>condition.left).__fix_not_required = true;
-                    if (condition.left.left) {
-                        (<any>condition.left.left).__fix_not_required = true;
-                        if (condition.left.left.left) {
-                            (<any>condition.left.left.left).__fix_not_required = true;
-                        }
-                    }
-
-                    const condExpression = ts.createConditional(condition, localOp1Ident, node.right);
-
-                    this.fixupParentReferences(condExpression, node);
-
-                    (<any>condExpression).__no_preprocess = true;
-
-                    this.processExpression(condExpression);
-
-                    this.functionContext.restoreLocalScope();
-
-                    const result = this.functionContext.stack.pop();
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        op1.getRegister(),
-                        result.getRegister(),
-                        0]);
-
-                    return;
-                }
-
-                const leftOpNode3 = this.functionContext.stack.pop().optimize();
-
-                let equalsTo2 = 0;
-                switch (node.operatorToken.kind) {
-                    case ts.SyntaxKind.BarBarToken:
-                        equalsTo2 = 1;
-                        break;
-                }
-
-                const testSetOp = [
-                    Ops.TESTSET,
-                    undefined,
-                    leftOpNode3.getRegisterOrIndex(),
-                    equalsTo2];
-                this.functionContext.code.push(testSetOp);
-
-                const jmpOp = [
-                    Ops.JMP,
-                    0,
-                    1];
-                this.functionContext.code.push(jmpOp);
-                const beforeBlock = this.functionContext.code.length;
-
-                // ... = <right>
+                this.functionContext.textCode.push(" or ");
                 this.processExpression(node.right);
-
-                const rightOpNode3 = this.functionContext.stack.pop().optimize();
-                const resultInfo3 = this.functionContext.useRegisterAndPush();
-                testSetOp[1] = resultInfo3.getRegister();
-
-                if (rightOpNode3.getRegisterOrIndex() < 0) {
-                    this.functionContext.code.push([
-                        Ops.LOADK,
-                        resultInfo3.getRegister(),
-                        rightOpNode3.getRegisterOrIndex(),
-                        0]);
-                } else {
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        resultInfo3.getRegister(),
-                        rightOpNode3.getRegister(),
-                        0]);
-                }
-
-                jmpOp[2] = this.functionContext.code.length - beforeBlock;
-
                 break;
-
             case ts.SyntaxKind.InKeyword:
-
-                const inExpression = ts.createBinary(
-                    ts.createElementAccess(node.right, node.left),
-                    ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                    ts.createNull());
-                inExpression.parent = node.parent;
-                this.processExpression(inExpression);
-
-                break;
-
-            case ts.SyntaxKind.CommaToken:
-
                 this.processExpression(node.left);
+                this.functionContext.textCode.push(" ~= ");
                 this.processExpression(node.right);
-
                 break;
-
+            case ts.SyntaxKind.CommaToken:
+                this.processExpression(node.left);
+                this.functionContext.textCode.pushNewLine();
+                this.processExpression(node.right);
+                break;
             case ts.SyntaxKind.InstanceOfKeyword:
-                const instanceOfCall = ts.createCall(ts.createIdentifier('__instanceof'), undefined, [node.left, node.right]);
-                instanceOfCall.parent = node.parent;
-                this.processExpression(instanceOfCall);
-
+                this.functionContext.textCode.push("__instanceOf(");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(", ");
+                this.processExpression(node.right);
+                this.functionContext.textCode.push(")");
                 break;
-
-            default: throw new Error('Not Implemented');
-        }
-    }
-
-    private emitAssignOperation(node: ts.Node) {
-        const leftOperandInfo = this.functionContext.stack.pop();
-        const rightOperandInfo = this.functionContext.stack.pop();
-        const readOpCode = this.functionContext.code.latest;
-
-        if (leftOperandInfo.kind === ResolvedKind.Register) {
-            if (readOpCode[0] === Ops.GETTABUP) {
-                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                    // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(rightOperandInfo);
-                }
-                // left of = is method reference
-                const getTabUpOpArray = this.functionContext.code.pop();
-                rightOperandInfo.optimize();
-                this.functionContext.code.push([
-                    Ops.SETTABUP,
-                    getTabUpOpArray[2],
-                    getTabUpOpArray[3],
-                    rightOperandInfo.getRegisterOrIndex()
-                ]);
-            } else if (readOpCode[0] === Ops.GETTABLE) {
-                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                    // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(rightOperandInfo);
-                }
-                // left of = is method reference
-                const getTableOpArray = this.functionContext.code.pop();
-                rightOperandInfo.optimize();
-                this.functionContext.code.push([
-                    Ops.SETTABLE,
-                    getTableOpArray[2],
-                    getTableOpArray[3],
-                    rightOperandInfo.getRegisterOrIndex()
-                ]);
-            } else if (readOpCode[0] === Ops.GETUPVAL) {
-                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                    // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(rightOperandInfo);
-                }
-                const getUpValueArray = this.functionContext.code.pop();
-                // Optimization can't be used here
-                this.functionContext.code.push([
-                    Ops.SETUPVAL,
-                    rightOperandInfo.getRegisterOrIndex(),
-                    getUpValueArray[2]
-                ]);
-            } else if (readOpCode[0] === Ops.MOVE) {
-                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                    // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(leftOperandInfo);
-                }
-                // if we put local var value we need to remove it
-                const readMoveOpArray = this.functionContext.code.pop();
-                leftOperandInfo.register = readMoveOpArray[2];
-                this.functionContext.code.push([Ops.MOVE, leftOperandInfo.getRegister(), rightOperandInfo.getRegister()]);
-            } else {
-                if (node.parent && node.parent.kind !== ts.SyntaxKind.ExpressionStatement) {
-                    // we need to store register in stack to reuse it in next expression
-                    this.functionContext.stack.push(leftOperandInfo);
-                }
-                this.functionContext.code.push([Ops.MOVE, leftOperandInfo.getRegister(), rightOperandInfo.getRegister()]);
-            }
-        } else if (leftOperandInfo.kind === ResolvedKind.Upvalue) {
-            this.functionContext.code.push([
-                Ops.SETUPVAL,
-                rightOperandInfo.getRegister(),
-                leftOperandInfo.getRegisterOrIndex()
-            ]);
-        } else {
-            throw new Error('Not Implemented');
         }
     }
 
@@ -3781,30 +3389,20 @@ export class EmitterLua {
 
         this.resolver.pushAndSetMethodCallInfo();
 
-        // special cases to cast to string or number
-        let processed = false;
-        if (node.expression.kind === ts.SyntaxKind.Identifier && node.arguments.length === 1) {
-            const name = node.expression.kind === ts.SyntaxKind.Identifier ? (<ts.Identifier>node.expression).text : '';
-            if (name === 'String' || name === 'Number') {
-                const identExpr = ts.createIdentifier('to' + name.toLowerCase());
-                identExpr.parent = node;
-                this.processExpression(identExpr);
-                processed = true;
-            }
+        this.processExpression(node.expression);
+        this.functionContext.textCode.push("(");
+
+        if (node.arguments.length > 0)
+        {
+            node.arguments.forEach(a => {
+                this.processExpression(a);
+                this.functionContext.textCode.push(", ");
+            });
+
+            this.functionContext.textCode.pop();
         }
 
-        // default case
-        if (!processed) {
-            this.processExpression(node.expression);
-        }
-
-        const selfOpCodeResolveInfoForThis = this.resolver.thisMethodCall;
-
-        this.resolver.clearMethodCallInfo();
-
-        this.emitCallOfLoadedMethod(node, selfOpCodeResolveInfoForThis);
-
-        this.resolver.popMethodCallInfo();
+        this.functionContext.textCode.push(")");
     }
 
     private isValueNotRequired(parent: ts.Node): boolean {
@@ -4224,14 +3822,7 @@ export class EmitterLua {
     }
 
     private emitFunction(functionContext: FunctionContext): void {
-        this.emitProtos(functionContext);
         this.emitFunctionCode(functionContext);
-    }
-
-    private emitProtos(functionContext: FunctionContext): void {
-        functionContext.protos.forEach(p => {
-            this.emitFunction(p);
-        });
     }
 
     private emitFunctionCode(functionContext: FunctionContext): void {

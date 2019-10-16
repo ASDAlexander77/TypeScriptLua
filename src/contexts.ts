@@ -516,7 +516,7 @@ export class FunctionContext {
 
         if (resolvedInfo.kind === ResolvedKind.Register && resolvedInfo.register !== undefined && !resolvedInfo.isLocal()) {
             if ((this.availableRegister - resolvedInfo.getRegister()) > 1) {
-                throw new Error('available register and restored register are to far (> 1)');
+                //throw new Error('available register and restored register are to far (> 1)');
             }
 
             this.availableRegister = resolvedInfo.getRegister();
