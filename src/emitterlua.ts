@@ -763,7 +763,6 @@ export class EmitterLua {
 
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
             this.functionContext.textCode.pushNewLine("end");
-            this.functionContext.textCode.pushNewLine();
         }
 
         if (!noReturn) {
@@ -866,7 +865,7 @@ export class EmitterLua {
             case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); break;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); break;
-            case ts.SyntaxKind.Block: this.processBlock(<ts.Block>node); break;
+            case ts.SyntaxKind.Block: this.processBlock(<ts.Block>node); return;
             case ts.SyntaxKind.ModuleBlock: this.processModuleBlock(<ts.ModuleBlock>node); break;
             case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); break;
             case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); break;
@@ -2094,15 +2093,17 @@ export class EmitterLua {
 
         this.processExpression(node.expression);
 
-        this.functionContext.textCode.push(" then ")
+        this.functionContext.textCode.pushNewLine(" then ")
 
         this.processStatement(node.thenStatement);
 
         if (node.elseStatement) {
-            this.functionContext.textCode.push(" else ")
+            this.functionContext.textCode.pushNewLine(" else ")
 
             this.processStatement(node.elseStatement);
         }
+
+        this.functionContext.textCode.push("end")
     }
 
     private processDoStatement(node: ts.DoStatement): void {
