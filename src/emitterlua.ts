@@ -3042,7 +3042,7 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" >>> ");
+                this.functionContext.textCode.push(" >> ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.PlusEqualsToken:
@@ -3102,7 +3102,7 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" >>>= ");
+                this.functionContext.textCode.push(" >>= ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
@@ -3112,7 +3112,7 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.EqualsEqualsEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" === ");
+                this.functionContext.textCode.push(" == ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.LessThanToken:
@@ -3132,7 +3132,7 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.ExclamationEqualsEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" !== ");
+                this.functionContext.textCode.push(" != ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.GreaterThanToken:
@@ -3493,6 +3493,8 @@ export class EmitterLua {
         zeroElementAccessExpression.parent = node;
         this.processExpression(zeroElementAccessExpression);
 
+        this.functionContext.textCode.push(", ");
+
         const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('table'), ts.createIdentifier('unpack'));
         const spreadCall = ts.createCall(
             propertyAccessExpression,
@@ -3500,13 +3502,6 @@ export class EmitterLua {
             [node.expression]);
         spreadCall.parent = node;
         this.processExpression(spreadCall);
-
-        // discard 1 element in stack
-        const spreadInfo = this.functionContext.stack.pop();
-        const zeroElementInfo = this.functionContext.stack.pop();
-
-        // store result again
-        this.functionContext.useRegisterAndPush();
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
