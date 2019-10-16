@@ -2472,86 +2472,44 @@ export class EmitterLua {
     }
 
     private processSwitchStatement(node: ts.SwitchStatement) {
+
+        this.functionContext.textCode.push("local op1 = ");
         this.processExpression(node.expression);
+        this.functionContext.textCode.pushNewLine();
 
-        this.functionContext.newLocalScope(node);
-
-        this.functionContext.newBreakContinueScope();
-
-        const switchResultInfo = this.functionContext.stack.peek();
-
-        let previousCaseJmpIndex = -1;
-        let lastCaseJmpIndexes: number[] = [];
+        let count = 0;
         node.caseBlock.clauses.forEach(c => {
-
-            // set jump for previouse 'false' case;
-            if (previousCaseJmpIndex !== -1) {
-                if (this.functionContext.code.codeAt(previousCaseJmpIndex)[2] !== 0) {
-                    throw new Error('Jump is set already');
-                }
-
-                this.functionContext.code.codeAt(previousCaseJmpIndex)[2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
-                previousCaseJmpIndex = -1;
+            if (count)
+            {
+                this.functionContext.textCode.decrement();
+                this.functionContext.textCode.push("else");
             }
+
+            this.functionContext.textCode.push("if op1 == ");
 
             if (c.kind === ts.SyntaxKind.CaseClause) {
                 // process 'case'
                 const caseClause = <ts.CaseClause>c;
                 this.processExpression(caseClause.expression);
-
-                const caseResultInfo = this.functionContext.stack.pop().optimize();
-
-                const equalsTo = 1;
-                this.functionContext.code.push([
-                    Ops.EQ, equalsTo, switchResultInfo.getRegisterOrIndex(), caseResultInfo.getRegisterOrIndex()]);
-                const jmpOp = [Ops.JMP, 0, 0];
-                this.functionContext.code.push(jmpOp);
-                lastCaseJmpIndexes.push(this.functionContext.code.length - 1);
             }
 
-            if (c.statements.length > 0) {
-                if (c.kind === ts.SyntaxKind.CaseClause) {
-                    // jump over the case
-                    const jmpOp = [Ops.JMP, 0, 0];
-                    this.functionContext.code.push(jmpOp);
-                    previousCaseJmpIndex = this.functionContext.code.length - 1;
-                }
-
-                // set jump to body of the case
-                lastCaseJmpIndexes.forEach(j => {
-                    if (this.functionContext.code.codeAt(j)[2] !== 0) {
-                        throw new Error('Jump is set already');
-                    }
-
-                    this.functionContext.code.codeAt(j)[2] = this.functionContext.code.length - j - 1;
-                });
-
-                lastCaseJmpIndexes = [];
-            }
+            this.functionContext.textCode.pushNewLineIncrement(" then");
 
             // case or default body
-            c.statements.forEach(s => this.processStatement(s));
-        });
-
-        // last case jump
-        // set jump for previouse 'false' case;
-        if (previousCaseJmpIndex !== -1) {
-            if (this.functionContext.code.codeAt(previousCaseJmpIndex)[2] !== 0) {
-                throw new Error('Jump is set already');
+            let statements: any = c.statements;
+            const lastStatement = c.statements[c.statements.length - 1];
+            if (lastStatement.kind === ts.SyntaxKind.BreakStatement)
+            {
+                statements = c.statements.slice(0, c.statements.length - 1);
             }
 
-            this.functionContext.code.codeAt(previousCaseJmpIndex)[2] = this.functionContext.code.length - previousCaseJmpIndex - 1;
-            previousCaseJmpIndex = -1;
-        }
+            statements.forEach(s => this.processStatement(s));
 
-        this.functionContext.restoreLocalScope();
+            count++;
+        });
 
-        this.functionContext.stack.pop();
-
-        // clearup switch result;
-        this.resolveBreakJumps();
-
-        this.functionContext.restoreBreakContinueScope();
+        this.functionContext.textCode.decrement();
+        this.functionContext.textCode.push('end');
     }
 
     private processBlock(node: ts.Block): void {
