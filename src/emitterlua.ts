@@ -899,8 +899,8 @@ export class EmitterLua {
         this.functionContext.textCode.pushNewLine();
     }
 
-    private processExpression(nodeIn: ts.Expression): void {
-        const node = this.preprocessor.preprocessExpression(nodeIn);
+    private processExpression(node: ts.Expression): void {
+        //const node = this.preprocessor.preprocessExpression(nodeIn);
 
         // we need to process it for statements only
         //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
