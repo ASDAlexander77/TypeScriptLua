@@ -106,6 +106,11 @@ export class EmitterLua {
         return falseValue;                                          \
     };                                                              \
                                                                     \
+    __assign = __assign || function(left:object, right:object) {    \
+        left = right;                                               \
+        return right;                                               \
+    };                                                              \
+                                                                    \
     ___type = ___type || function(inst:object) {                    \
         const tp = __type(inst);                                    \
         return tp === "table" ? "object" : tp;                      \
@@ -2939,9 +2944,19 @@ export class EmitterLua {
     private processBinaryExpression(node: ts.BinaryExpression): void {
         switch (node.operatorToken.kind) {
             case ts.SyntaxKind.EqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.right);
+
+                if (!this.isValueNotRequired(node.parent)) {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" = ");
+                    this.processExpression(node.right);
+                } else {
+                    this.functionContext.textCode.push("__assign(");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(", ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(")");
+                }
+
                 break;
             case ts.SyntaxKind.PlusToken:
                 this.processExpression(node.left);
