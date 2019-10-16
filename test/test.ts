@@ -1,8 +1,6 @@
-import './JS';
-
-function f<T>(...args: T[]) {
+function f1(a: string) {
 
 }
 
-f({a: 1, b: 2});
+f("asd");
 

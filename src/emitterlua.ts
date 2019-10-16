@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { BinaryWriter } from './binarywriter';
+import { TextWriter } from './textwriter';
 import { FunctionContext, UpvalueInfo } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
@@ -8,7 +8,7 @@ import { Preprocessor } from './preprocessor';
 import { TypeInfo } from './typeInfo';
 
 export class EmitterLua {
-    public writer: BinaryWriter = new BinaryWriter();
+    public writer: TextWriter = new TextWriter();
     public fileModuleName: string;
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
@@ -332,7 +332,6 @@ export class EmitterLua {
     public save() {
         // add final return
         if (!this.functionContext.isFinalReturnAdded) {
-            this.functionContext.textCode.push("return");
             this.functionContext.isFinalReturnAdded = true;
         }
 
@@ -541,9 +540,10 @@ export class EmitterLua {
 
         const effectiveLocation = (<any>location).__origin ? (<any>location).__origin : location;
         const statements = this.getBodyByDecorators(statementsIn, effectiveLocation);
-
+        let name = '';
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
-            this.functionContext.newFunctionScope(effectiveLocation.name ? effectiveLocation.name.text : '<noname>');
+            name = effectiveLocation.name ? effectiveLocation.name.text : '';
+            this.functionContext.newFunctionScope(name);
         }
 
         this.functionContext.newLocalScope(effectiveLocation);
@@ -621,6 +621,28 @@ export class EmitterLua {
 
             this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) /*- (dotDotDotAny ? 1 : 0)*/;
             this.functionContext.is_vararg = dotDotDotAny;
+        }
+
+        // functino begin
+        if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
+            this.functionContext.textCode.push("function " + name);
+
+            if (parameters.length > 0)
+            {
+                this.functionContext.textCode.push("(");
+                parameters.forEach(p => {
+                    if (p.name.kind === ts.SyntaxKind.Identifier) {
+                        this.functionContext.textCode.push(p.name.text);
+                    }
+
+                    this.functionContext.textCode.push(", ");
+                });
+
+                // remove last one
+                this.functionContext.textCode.pop();
+
+                this.functionContext.textCode.pushNewLine(")");
+            }
         }
 
         this.emitBeginningOfFunctionScopeForVar(location);
@@ -722,11 +744,13 @@ export class EmitterLua {
             this.processStatement(s);
         });
 
+        if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
+            this.functionContext.textCode.pushNewLine("end");
+            this.functionContext.textCode.pushNewLine();
+        }
+
         if (!noReturn) {
             this.emitRestoreFunctionEnvironment(location);
-
-            // add final 'RETURN'
-            this.functionContext.code.push([Ops.RETURN, 0, 1]);
         }
 
         this.functionContext.restoreLocalScope();
@@ -829,37 +853,39 @@ export class EmitterLua {
 
         switch (node.kind) {
             case ts.SyntaxKind.EmptyStatement: return;
-            case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); return;
-            case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
-            case ts.SyntaxKind.Block: this.processBlock(<ts.Block>node); return;
-            case ts.SyntaxKind.ModuleBlock: this.processModuleBlock(<ts.ModuleBlock>node); return;
-            case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); return;
-            case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); return;
-            case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); return;
-            case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); return;
-            case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.ForStatement>node); return;
-            case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); return;
-            case ts.SyntaxKind.ForOfStatement: this.processForOfStatement(<ts.ForOfStatement>node); return;
-            case ts.SyntaxKind.BreakStatement: this.processBreakStatement(<ts.BreakStatement>node); return;
-            case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); return;
-            case ts.SyntaxKind.SwitchStatement: this.processSwitchStatement(<ts.SwitchStatement>node); return;
-            case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); return;
-            case ts.SyntaxKind.TryStatement: this.processTryStatement(<ts.TryStatement>node); return;
-            case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); return;
-            case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
-            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
-            case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
-            case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
-            case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
-            case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
-            case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
+            case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); break;
+            case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); break;
+            case ts.SyntaxKind.Block: this.processBlock(<ts.Block>node); break;
+            case ts.SyntaxKind.ModuleBlock: this.processModuleBlock(<ts.ModuleBlock>node); break;
+            case ts.SyntaxKind.ReturnStatement: this.processReturnStatement(<ts.ReturnStatement>node); break;
+            case ts.SyntaxKind.IfStatement: this.processIfStatement(<ts.IfStatement>node); break;
+            case ts.SyntaxKind.DoStatement: this.processDoStatement(<ts.DoStatement>node); break;
+            case ts.SyntaxKind.WhileStatement: this.processWhileStatement(<ts.WhileStatement>node); break;
+            case ts.SyntaxKind.ForStatement: this.processForStatement(<ts.ForStatement>node); break;
+            case ts.SyntaxKind.ForInStatement: this.processForInStatement(<ts.ForInStatement>node); break;
+            case ts.SyntaxKind.ForOfStatement: this.processForOfStatement(<ts.ForOfStatement>node); break;
+            case ts.SyntaxKind.BreakStatement: this.processBreakStatement(<ts.BreakStatement>node); break;
+            case ts.SyntaxKind.ContinueStatement: this.processContinueStatement(<ts.ContinueStatement>node); break;
+            case ts.SyntaxKind.SwitchStatement: this.processSwitchStatement(<ts.SwitchStatement>node); break;
+            case ts.SyntaxKind.ExpressionStatement: this.processExpressionStatement(<ts.ExpressionStatement>node); break;
+            case ts.SyntaxKind.TryStatement: this.processTryStatement(<ts.TryStatement>node); break;
+            case ts.SyntaxKind.ThrowStatement: this.processThrowStatement(<ts.ThrowStatement>node); break;
+            case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); break;
+            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); break;
+            case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); break;
+            case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); break;
+            case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); break;
+            case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); break;
+            case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); break;
             case ts.SyntaxKind.InterfaceDeclaration: /*nothing to do*/ return;
             case ts.SyntaxKind.TypeAliasDeclaration: /*nothing to do*/ return;
             case ts.SyntaxKind.ExportAssignment: /*nothing to do*/ return;
+            default:
+                // TODO: finish it
+                throw new Error('Method not implemented.');
         }
 
-        // TODO: finish it
-        throw new Error('Method not implemented.');
+        this.functionContext.textCode.pushNewLine();
     }
 
     private processExpression(nodeIn: ts.Expression): void {
@@ -3106,10 +3132,10 @@ export class EmitterLua {
                 // ... = <right>
                 this.processExpression(node.right);
 
+                this.functionContext.textCode.push(" = ");
+
                 // <left> = ...
                 this.processExpression(node.left);
-
-                this.emitAssignOperation(node);
 
                 break;
 
@@ -4006,6 +4032,8 @@ export class EmitterLua {
     private processIndentifier(node: ts.Identifier): void {
         const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
         this.emitLoadValue(resolvedInfo);
+
+        this.functionContext.textCode.push((<ts.Identifier>node).text);
     }
 
     private emitLoadValue(resolvedInfo: ResolvedInfo) {
@@ -4196,141 +4224,19 @@ export class EmitterLua {
     }
 
     private emitFunction(functionContext: FunctionContext): void {
-        this.emitFunctionHeader(functionContext);
-        this.emitFunctionCode(functionContext);
-        this.emitConstants(functionContext);
-        this.emitUpvalues(functionContext);
         this.emitProtos(functionContext);
-        this.emitDebug(functionContext);
-    }
-
-    private emitFunctionHeader(functionContext: FunctionContext): void {
-        // write debug info, by default 0 (string)
-        this.writer.writeString(functionContext.debug_location || null);
-
-        // f->linedefined = 0, (int)
-        this.writer.writeInt(functionContext.linedefined || 0);
-
-        // f->lastlinedefined = 0, (int)
-        this.writer.writeInt(functionContext.lastlinedefined || 0);
-
-        // f->numparams (byte)
-        this.writer.writeByte(functionContext.numparams || 0);
-
-        // f->is_vararg (byte)
-        this.writer.writeByte(functionContext.is_vararg ? 1 : 0);
-
-        // f->maxstacksize
-        this.writer.writeByte(functionContext.maxstacksize + 1);
-    }
-
-    private emitFunctionCode(functionContext: FunctionContext): void {
-        this.writer.writeInt(functionContext.code.length);
-
-        functionContext.code.forEach(c => {
-            // create 4 bytes value
-            const opCodeMode: OpMode = OpCodes[c[0]];
-            const encoded = opCodeMode.encode(c);
-            this.writer.writeInt(encoded);
-        });
-    }
-
-    private emitConstants(functionContext: FunctionContext): void {
-        this.writer.writeInt(functionContext.constants.length);
-
-        functionContext.constants.forEach(c => {
-
-            if (c !== null) {
-                // create 4 bytes value
-                switch (typeof c) {
-                    case 'boolean':
-                        this.writer.writeByte(LuaTypes.LUA_TBOOLEAN);
-                        this.writer.writeByte(c ? 1 : 0);
-                        break;
-                    case 'number':
-                        if (Number.isSafeInteger(c)) {
-                            this.writer.writeByte(LuaTypes.LUA_TNUMINT);
-                            this.writer.writeInteger(c);
-                        } else {
-                            this.writer.writeByte(LuaTypes.LUA_TNUMBER);
-                            this.writer.writeNumber(c);
-                        }
-                        break;
-                    case 'string':
-                        if ((<string>c).length > 255) {
-                            this.writer.writeByte(LuaTypes.LUA_TLNGSTR);
-                        } else {
-                            this.writer.writeByte(LuaTypes.LUA_TSTRING);
-                        }
-
-                        this.writer.writeString(c);
-                        break;
-                    default: throw new Error('Method not implemeneted');
-                }
-            } else {
-                this.writer.writeByte(LuaTypes.LUA_TNIL);
-            }
-        });
-    }
-
-    private emitUpvalues(functionContext: FunctionContext): void {
-        this.writer.writeInt(functionContext.upvalues.length);
-
-        functionContext.upvalues.forEach((upvalue: UpvalueInfo, index: number) => {
-            // in stack (bool)
-            this.writer.writeByte((upvalue.instack) ? 1 : 0);
-            // index
-            this.writer.writeByte(upvalue.index !== undefined ? upvalue.index : index);
-        });
+        this.emitFunctionCode(functionContext);
     }
 
     private emitProtos(functionContext: FunctionContext): void {
-        this.writer.writeInt(functionContext.protos.length);
-
         functionContext.protos.forEach(p => {
-            // TODO: finish it
             this.emitFunction(p);
         });
     }
 
-    private emitDebug(functionContext: FunctionContext): void {
-        // line info
-        this.writer.writeInt(functionContext.code.length);
-        functionContext.code.forEach(c => {
-            this.writer.writeInt(c[4]);
-        });
-
-        // local vars
-        // assert
-        if (functionContext.debug_locals.length > 0) {
-            this.writer.writeInt(functionContext.debug_locals.filter(f => !f.fake).length);
-            const firstLocalVarRegister = Math.min(...functionContext.debug_locals.filter(f => !f.fake).map(l => l.register));
-            if (firstLocalVarRegister !== Infinity && firstLocalVarRegister > 0) {
-                console.error('Local variable does not start from 0');
-            }
-        } else {
-            this.writer.writeInt(0);
-        }
-
-        functionContext.debug_locals
-            .filter(f => !f.fake)
-            .sort((a, b) => {
-                if (a.register === b.register) {
-                    return a.debugStartCode < b.debugStartCode ? -1 : 1;
-                }
-
-                return a.register < b.register ? -1 : 1;
-            })
-            .forEach(l => {
-                this.writer.writeString(l.name);
-                this.writer.writeInt(l.debugStartCode + 1);
-                this.writer.writeInt(l.debugEndCode + 1);
-            });
-
-        // upvalues
-        this.writer.writeInt(functionContext.upvalues.length);
-        functionContext.upvalues.forEach(u => {
-            this.writer.writeString(u.name);
+    private emitFunctionCode(functionContext: FunctionContext): void {
+        functionContext.textCode.forEach(c => {
+            this.writer.writeString(c);
         });
     }
 }

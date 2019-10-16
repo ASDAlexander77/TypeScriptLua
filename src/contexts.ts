@@ -175,7 +175,15 @@ export class TextCodeStorage {
     }
 
     public push(opCode: string) {
-        this.code.push(opCode);
+        if (opCode)
+        {
+            this.code.push(opCode);
+        }
+    }
+
+    public pushNewLine(opCode?: string) {
+        this.push(opCode);
+        this.code.push("\r\n");
     }
 
     public pop(): string {

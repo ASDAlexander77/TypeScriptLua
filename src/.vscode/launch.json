@@ -13,6 +13,7 @@
             "cwd": "${workspaceFolder}/../test",
             "args": [
                 "-varAsLet",
+                "-text",
                 "tsconfig.json"
             ]
         },
