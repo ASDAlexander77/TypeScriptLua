@@ -2945,7 +2945,7 @@ export class EmitterLua {
         switch (node.operatorToken.kind) {
             case ts.SyntaxKind.EqualsToken:
 
-                if (!this.isValueNotRequired(node.parent)) {
+                if (this.isValueNotRequired(node.parent)) {
                     this.processExpression(node.left);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(node.right);
