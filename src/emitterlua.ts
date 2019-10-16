@@ -3126,13 +3126,15 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.ExclamationEqualsToken:
+                this.functionContext.textCode.push("not ");
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" != ");
+                this.functionContext.textCode.push(" == ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.ExclamationEqualsEqualsToken:
+                this.functionContext.textCode.push("not ");
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" != ");
+                this.functionContext.textCode.push(" == ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.GreaterThanToken:
