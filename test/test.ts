@@ -1,12 +1,5 @@
-        let list: number[] = [1, 2, 3];        
-        print(list[0]);                   
-        print(list[1]);                   
-        print(list[2]);                   
-        list[2] = 10;                           
-        print(list[2]);                   
-        var list2: Array<number> = [1, 2, 3];   
-        print(list2[0]);                  
-        print(list2[1]);                  
-        print(list2[2]);                  
-        list2[2] = 10;                          
-        print(list2[2]);                  
+for (let i = 0; i < 3; i++) {          
+            console.log(i);                     
+            if (i == 0) continue;               
+            break;                              
+        }
