@@ -2656,6 +2656,7 @@ export class EmitterLua {
                 this.processExpression(<ts.Expression><any>ts.createComputedPropertyName(ts.createNumericLiteral('0')));
                 this.functionContext.textCode.push(" = ");
                 this.processExpression(node.elements[0]);
+                this.functionContext.textCode.push(", ");
 
                 // set 0|1.. elements
                 const reversedValues = node.elements.slice(1);
@@ -2664,9 +2665,9 @@ export class EmitterLua {
                         this.processExpression(e);
                         this.functionContext.textCode.push(", ");
                     });
-
-                    this.functionContext.textCode.pop();
                 }
+
+                this.functionContext.textCode.pop();
 
                 if (!this.jsLib) {
                     //this.AddLengthToConstArray(arrayRef.getRegisterOrIndex());
