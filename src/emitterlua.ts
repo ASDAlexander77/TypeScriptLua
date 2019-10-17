@@ -2587,7 +2587,7 @@ export class EmitterLua {
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        this.functionContext.textCode.push("null");
+        this.functionContext.textCode.push("nil");
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
