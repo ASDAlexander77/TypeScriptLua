@@ -302,7 +302,7 @@ export class Run {
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
         const tempLuaFiles = sources.map((s: string, index: number) => 'test' + index + '.lua');
 
-        const textOutput = cmdLineOptions && cmdLineOptions.text;
+        const textOutput = true;//cmdLineOptions && cmdLineOptions.text;
 
         // clean up
         tempSourceFiles.forEach(f => {

@@ -2541,7 +2541,7 @@ export class EmitterLua {
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         const boolValue = node.kind === ts.SyntaxKind.TrueKeyword;
-        this.functionContext.textCode.push(boolValue ? "True" : "False");
+        this.functionContext.textCode.push(boolValue ? "true" : "false");
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {

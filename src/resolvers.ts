@@ -309,7 +309,7 @@ export class IdentifierResolver {
         'StringHelper': true, 'NumberHelper': true, 'string': true, 'number': true, 'coroutine': true, 'dofile': true,
         '__null_holder': true, '__get_call_undefined__': true, '__set_call_undefined__': true, '__get_undefined__': true,
         '__set_undefined__': true, '_ENV': true, '_G': true, '__decorate': true, '__tostring': true, '__cond': true,
-        '__is_true': true
+        '__is_true': true, '__assign': true, 'call': true, 'apply': true, 'unpack': true
     };
 
     private skipResolvingFilter = {
