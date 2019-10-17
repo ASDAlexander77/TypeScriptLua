@@ -490,6 +490,36 @@ export class EmitterLua {
         return hasVar;
     }
 
+    private hasContinue(location: ts.Node): boolean {
+        let hasContinueStatement = false;
+        let root = true;
+        function checkContinue(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
+            if (node.kind === ts.SyntaxKind.ContinueStatement) {
+                hasContinueStatement = true;
+                return true;
+            }
+
+            ts.forEachChild(node, checkContinue);
+        }
+
+        ts.forEachChild(location, checkContinue);
+        return hasContinueStatement;
+    }
+
     private getAllVar(location: ts.Node): string[] {
         const vars = <string[]>[];
         let root = true;
@@ -2097,7 +2127,22 @@ export class EmitterLua {
     }
 
     private processDoStatement(node: ts.DoStatement): void {
-        this.emitLoop(node.expression, node);
+        this.functionContext.newLocalScope(node);
+
+        this.functionContext.textCode.pushNewLineIncrement("repeat")
+
+        this.processStatement(node.statement);
+        this.functionContext.textCode.decrement();
+
+        if (this.hasContinue(node))
+        {
+            this.functionContext.textCode.pushNewLine("::continue::")
+        }
+
+        this.functionContext.textCode.push("until ")
+        this.processExpression(node.expression);
+
+        this.functionContext.restoreLocalScope();
     }
 
     private processWhileStatement(node: ts.WhileStatement): void {
@@ -2112,6 +2157,11 @@ export class EmitterLua {
 
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
+
+        if (this.hasContinue(node))
+        {
+            this.functionContext.textCode.pushNewLine("::continue::")
+        }
 
         this.functionContext.textCode.push("end")
 
@@ -2134,6 +2184,11 @@ export class EmitterLua {
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
 
+        if (this.hasContinue(node))
+        {
+            this.functionContext.textCode.pushNewLine("::continue::")
+        }
+
         this.functionContext.textCode.push("end")
 
         this.functionContext.restoreLocalScope();
@@ -2148,43 +2203,6 @@ export class EmitterLua {
             // we need to remove unused value
             this.functionContext.stack.pop();
         }
-    }
-
-    private emitLoop(expression: ts.Expression, node: ts.IterationStatement, incrementor?: ts.Expression): number {
-
-        this.functionContext.newBreakContinueScope();
-
-        const beforeBlock = this.functionContext.code.length;
-
-        this.processStatement(node.statement);
-
-        this.resolveContinueJumps();
-
-        if (incrementor) {
-            const stackSize = this.markStack();
-            this.processExpression(incrementor);
-            this.rollbackUnused(stackSize);
-        }
-
-        const expressionBlock = this.functionContext.code.length;
-
-        if (expression) {
-            this.processExpression(expression);
-
-            const ifExptNode = this.functionContext.stack.pop().optimize();
-
-            const equalsTo = 1;
-            const testSetOp = [Ops.TEST, ifExptNode.getRegisterOrIndex(), 0 /*unused*/, equalsTo];
-            this.functionContext.code.push(testSetOp);
-        }
-
-        const jmpOp = [Ops.JMP, 0, beforeBlock - this.functionContext.code.length - 1];
-        this.functionContext.code.push(jmpOp);
-
-        this.resolveBreakJumps();
-        this.functionContext.restoreBreakContinueScope();
-
-        return expressionBlock;
     }
 
     private processForInStatement(node: ts.ForInStatement): void {
@@ -2463,9 +2481,7 @@ export class EmitterLua {
     }
 
     private processContinueStatement(node: ts.ContinueStatement) {
-        const continueJmpOp = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(continueJmpOp);
-        this.functionContext.continues.push(this.functionContext.code.length - 1);
+        this.functionContext.textCode.pushNewLine("goto continue");
     }
 
     private resolveContinueJumps(jump?: number) {
