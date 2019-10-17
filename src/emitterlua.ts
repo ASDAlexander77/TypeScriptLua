@@ -2657,33 +2657,12 @@ export class EmitterLua {
                 this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
                 this.processExpression(node.elements[0]);
 
-                const zeroValueInfo = this.functionContext.stack.pop().optimize();
-                const zeroIndexInfo = this.functionContext.stack.pop().optimize();
-
-                this.functionContext.code.push(
-                    [Ops.SETTABLE,
-                    arrayRef.getRegister(),
-                    zeroIndexInfo.getRegisterOrIndex(),
-                    zeroValueInfo.getRegisterOrIndex()]);
-
                 // set 0|1.. elements
                 const reversedValues = node.elements.slice(1);
                 if (reversedValues.length > 0) {
                     reversedValues.forEach((e, index: number) => {
                         this.processExpression(e);
                     });
-
-                    reversedValues.forEach(a => {
-                        // pop method arguments
-                        this.functionContext.stack.pop();
-                    });
-
-                    if (node.elements.length > 511) {
-                        throw new Error('finish using C in SETLIST');
-                    }
-
-                    this.functionContext.code.push(
-                        [Ops.SETLIST, arrayRef.getRegister(), isSpreadElementOrMethodCall ? 0 : reversedValues.length, 1]);
                 }
 
                 if (!this.jsLib) {
@@ -2699,14 +2678,7 @@ export class EmitterLua {
             ident.parent = ident;
             newArray.parent = node;
             this.processNewExpression(newArray, initializeArrayFunction);
-            resultInfo = this.functionContext.stack.peek();
         } else {
-            resultInfo = this.functionContext.useRegisterAndPush();
-            this.functionContext.code.push([
-                Ops.NEWTABLE,
-                resultInfo.getRegister(),
-                node.elements.length,
-                0]);
             initializeArrayFunction(resultInfo);
         }
     }
@@ -3611,55 +3583,37 @@ export class EmitterLua {
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         this.processExpression(node.expression);
 
-        // perform load
-        // we can call collapseConst becasee member is name all the time which means it is const value
-        let memberIdentifierInfo = this.functionContext.stack.pop().collapseConst().optimize();
-        let objectIdentifierInfo = this.resolver.prefixPostfix
-            ? this.functionContext.stack.peek()
-            : this.functionContext.stack.pop().optimize();
+        let thisCall = false;
 
-        let opCode = Ops.GETTABLE;
-
-        const objectOriginalInfo = objectIdentifierInfo.originalInfo;
-        const upvalueOrConst = objectOriginalInfo
-            && (objectOriginalInfo.kind === ResolvedKind.Upvalue && objectOriginalInfo.identifierName === '_ENV'
-                                /*|| objectOriginalInfo.kind === ResolvedKind.Const*/);
-        const methodDeclInfo = this.resolver.methodCall
-            && memberIdentifierInfo.originalInfo
-            && memberIdentifierInfo.originalInfo.declarationInfo;
-
-        const methodDeclInfoModifiers = methodDeclInfo
-            && methodDeclInfo.modifiers;
-
+        /*
         const isMemberStatic = methodDeclInfoModifiers
             && methodDeclInfoModifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
+        */
 
         // this.<...>(this support)
-        if (this.resolver.methodCall
-            && objectIdentifierInfo.kind === ResolvedKind.Register
-            // && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isTypeReference)
-            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isDeclareVar)
-            && !(objectIdentifierInfo.originalInfo && objectIdentifierInfo.originalInfo.isGlobalReference)
-            && !upvalueOrConst
-            && node.parent
+        if (node.parent
             && node.parent.kind === ts.SyntaxKind.CallExpression) {
-            opCode = Ops.SELF;
+            thisCall = true;
+
+            const objectHolder = this.resolver.getSymbolAtLocation(node.expression);
+            if (objectHolder && objectHolder.valueDeclaration && objectHolder.valueDeclaration.type)
+            {
+                thisCall = objectHolder.valueDeclaration.type.kind != ts.SyntaxKind.TypeReference;
+            }
         }
 
         // support __wrapper calls
         const wrapMethodCall = (<any>node).__self_call_required === true;
         if (wrapMethodCall) {
-            opCode = Ops.SELF;
+            thisCall = true;
         }
 
         if ((<any>node).__self_call_required === false) {
             // suppress self call
-            opCode = Ops.GETTABLE;
+            thisCall = false;
         }
 
-        if (opCode === Ops.SELF && !wrapMethodCall) {
-            this.resolver.thisMethodCall = this.functionContext.useRegisterAndPush();
-
+        if (thisCall && !wrapMethodCall) {
             this.functionContext.textCode.push(":");
         }
         else
