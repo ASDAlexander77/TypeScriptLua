@@ -1868,7 +1868,7 @@ export class EmitterLua {
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
 
-        const ignoreDeclVar = declarationList.parent.kind == ts.SyntaxKind.ForStatement;
+        const ignoreDeclVar = false;// declarationList.parent.kind == ts.SyntaxKind.ForStatement;
 
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
@@ -2172,6 +2172,7 @@ export class EmitterLua {
 
         this.functionContext.newLocalScope(node);
 
+        /*
         this.functionContext.textCode.push("for ")
 
         this.processExpression(<ts.Expression>node.initializer);
@@ -2190,8 +2191,33 @@ export class EmitterLua {
         }
 
         this.functionContext.textCode.push("end")
+        */
 
-        this.functionContext.restoreLocalScope();
+       this.functionContext.newLocalScope(node);
+
+       this.processExpression(<ts.Expression>node.initializer);
+       this.functionContext.textCode.pushNewLine()
+
+       this.functionContext.textCode.push("while ")
+
+       this.processExpression(node.condition);
+
+       this.functionContext.textCode.pushNewLineIncrement(" do")
+
+       this.processStatement(node.statement);
+       this.functionContext.textCode.decrement();
+
+       if (this.hasContinue(node))
+       {
+           this.functionContext.textCode.pushNewLine("::continue::")
+       }
+
+       this.processExpression(node.incrementor);
+       this.functionContext.textCode.pushNewLine()
+
+       this.functionContext.textCode.push("end")
+
+       this.functionContext.restoreLocalScope();
     }
 
     private markStack(): number {
@@ -2469,7 +2495,7 @@ export class EmitterLua {
     }
 
     private processBreakStatement(node: ts.BreakStatement) {
-        this.functionContext.textCode.pushNewLine("break");
+        this.functionContext.textCode.push("break");
     }
 
     private resolveBreakJumps(jump?: number) {
@@ -2481,7 +2507,7 @@ export class EmitterLua {
     }
 
     private processContinueStatement(node: ts.ContinueStatement) {
-        this.functionContext.textCode.pushNewLine("goto continue");
+        this.functionContext.textCode.push("goto continue");
     }
 
     private resolveContinueJumps(jump?: number) {
@@ -2736,101 +2762,33 @@ export class EmitterLua {
         let opCode;
         switch (node.operator) {
             case ts.SyntaxKind.MinusToken:
-            case ts.SyntaxKind.TildeToken:
-            case ts.SyntaxKind.ExclamationToken:
-                switch (node.operator) {
-                    case ts.SyntaxKind.MinusToken:
-                        opCode = Ops.UNM;
-                        break;
-                    case ts.SyntaxKind.TildeToken:
-                        opCode = Ops.BNOT;
-                        break;
-                    case ts.SyntaxKind.ExclamationToken:
-                        opCode = Ops.NOT;
-                        break;
-                }
-
+                this.functionContext.textCode.push("-");
                 this.processExpression(node.operand);
-
-                // no optimization required as expecting only Registers
-                const rightNode = this.functionContext.stack.pop();
-                const resultInfo = this.functionContext.useRegisterAndPush();
-
-                this.functionContext.code.push([
-                    opCode,
-                    resultInfo.getRegister(),
-                    rightNode.getRegisterOrIndex()]);
+                break;
+            case ts.SyntaxKind.TildeToken:
+                this.functionContext.textCode.push("~");
+                this.processExpression(node.operand);
+                break;
+            case ts.SyntaxKind.ExclamationToken:
+                this.functionContext.textCode.push("not ");
+                this.processExpression(node.operand);
                 break;
 
             case ts.SyntaxKind.PlusPlusToken:
-            case ts.SyntaxKind.MinusMinusToken:
-                switch (node.operator) {
-                    case ts.SyntaxKind.PlusPlusToken:
-                        opCode = Ops.ADD;
-                        break;
-                    case ts.SyntaxKind.MinusMinusToken:
-                        opCode = Ops.SUB;
-                        break;
-                }
-
-                // Special case to remember source of 'field'
-                this.resolver.prefixPostfix = true;
                 this.processExpression(node.operand);
-                this.resolver.prefixPostfix = false;
-
-                // TODO: this code can be improved by attaching Ops codes to ResolvedInfo instead of guessing where
-                // the beginning of the command
-                const operandPosition = this.functionContext.code.length - 1;
-
-                // +/- 1
-                const operandInfo = this.functionContext.stack.pop().optimize();
-                const value1Info = this.functionContext.stack.pop().optimize();
-                const resultPlusOrMinusInfo = this.functionContext.useRegisterAndPush();
-
-                this.functionContext.code.push([
-                    opCode,
-                    resultPlusOrMinusInfo.getRegister(),
-                    operandInfo.getRegister(),
-                    value1Info.getRegisterOrIndex()]);
-
-                // save
-                const operationResultInfo = this.functionContext.stack.pop();
-
-                const readOpCode = this.functionContext.code.codeAt(operandPosition);
-                if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
-                    this.functionContext.code.push([
-                        Ops.SETTABUP,
-                        readOpCode[2],
-                        readOpCode[3],
-                        resultPlusOrMinusInfo.getRegister()
-                    ]);
-                } else if (readOpCode && readOpCode[0] === Ops.GETTABLE) {
-                    this.functionContext.code.push([
-                        Ops.SETTABLE,
-                        readOpCode[2],
-                        readOpCode[3],
-                        resultPlusOrMinusInfo.getRegister()
-                    ]);
-                } else if (readOpCode && readOpCode[0] === Ops.GETUPVAL) {
-                    this.functionContext.code.push([
-                        Ops.SETUPVAL,
-                        readOpCode[2],
-                        resultPlusOrMinusInfo.getRegister()
-                    ]);
-                } else if (operandInfo.kind === ResolvedKind.Register) {
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        (operandInfo.originalInfo || operandInfo).getRegister(),
-                        resultPlusOrMinusInfo.getRegister()]);
-                }
-
-                // clone value
-                if (!this.isValueNotRequired(node.parent)) {
-                    this.functionContext.stack.push(operationResultInfo);
-                }
-
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(" + 1");
                 break;
+            case ts.SyntaxKind.MinusMinusToken:
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(" - 1");
+                break;
+
             case ts.SyntaxKind.PlusToken:
+                this.functionContext.textCode.push("+");
                 this.processExpression(node.operand);
                 break;
             default:
@@ -2839,94 +2797,18 @@ export class EmitterLua {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
-        let opCode;
         switch (node.operator) {
             case ts.SyntaxKind.PlusPlusToken:
-            case ts.SyntaxKind.MinusMinusToken:
-                switch (node.operator) {
-                    case ts.SyntaxKind.PlusPlusToken:
-                        opCode = Ops.ADD;
-                        break;
-                    case ts.SyntaxKind.MinusMinusToken:
-                        opCode = Ops.SUB;
-                        break;
-                }
-
-                // Special case to remember source of 'field'
-                this.resolver.prefixPostfix = true;
                 this.processExpression(node.operand);
-                this.resolver.prefixPostfix = false;
-
-                // TODO: this code can be improved by ataching Ops codes to
-                // ResolvedInfo instead of guessing where the beginning of the command
-                const operandPosition = this.functionContext.code.length - 1;
-
-                const resurveSpace = this.functionContext.useRegisterAndPush();
-                const value1Info = this.functionContext.stack.pop().optimize();
-
-                // clone
-                const operandInfo = this.functionContext.stack.peekSkip(-1);
-
-                // +/- 1
-                const resultPlusOrMinuesInfo = this.functionContext.useRegisterAndPush();
-                this.functionContext.code.push([
-                    opCode,
-                    resultPlusOrMinuesInfo.getRegister(),
-                    operandInfo.getRegister(),
-                    value1Info.getRegisterOrIndex()]);
-
-                // consumed operand
-                this.functionContext.stack.pop();
-                // consume reserved space
-                this.functionContext.stack.pop();
-
-                // save
-                const readOpCode = this.functionContext.code.codeAt(operandPosition);
-                if (readOpCode && readOpCode[0] === Ops.GETTABUP) {
-                    this.functionContext.code.push([
-                        Ops.SETTABUP,
-                        readOpCode[2],
-                        readOpCode[3],
-                        resultPlusOrMinuesInfo.getRegister()
-                    ]);
-
-                    if (operandInfo.hasPopChain) {
-                        this.functionContext.stack.pop();
-                        const resultNewPositionInfo = this.functionContext.useRegisterAndPush();
-                        this.functionContext.code.push([
-                            Ops.MOVE,
-                            resultNewPositionInfo.getRegister(),
-                            resultPlusOrMinuesInfo.getRegister()]);
-                    }
-
-                } else if (readOpCode && readOpCode[0] === Ops.GETTABLE) {
-                    this.functionContext.code.push([
-                        Ops.SETTABLE,
-                        readOpCode[2],
-                        readOpCode[3],
-                        resultPlusOrMinuesInfo.getRegister()
-                    ]);
-                } else if (readOpCode && readOpCode[0] === Ops.MOVE) {
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        readOpCode[2],
-                        resultPlusOrMinuesInfo.getRegister()]);
-                }
-
-                if (this.isValueNotRequired(node.parent)) {
-                    this.functionContext.stack.pop();
-                } else if (operandInfo.hasPopChain) {
-                    const resultNewPositionInfo = this.functionContext.stack.peekSkip(-1);
-                    const clonedValue = this.functionContext.stack.pop();
-                    // 1 register is not free
-                    this.functionContext.useRegister();
-                    this.functionContext.stack.push(resultNewPositionInfo);
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        resultNewPositionInfo.getRegister(),
-                        clonedValue.getRegister()]);
-                }
-
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(" + 1");
+                break;
+            case ts.SyntaxKind.MinusMinusToken:
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(" - 1");
                 break;
         }
     }
