@@ -925,6 +925,7 @@ export class EmitterLua {
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.AwaitExpression: this.processAwaitExpression(<ts.AwaitExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
+            case ts.SyntaxKind.ComputedPropertyName: this.processComputedPropertyName(<ts.ComputedPropertyName><any>node); return;
         }
 
         // TODO: finish it
@@ -1192,10 +1193,9 @@ export class EmitterLua {
             properties.push(namedProperty);
 
             const valueProperty = ts.createPropertyAssignment(
-                ts.createNumericLiteral(value.toString()),
+                ts.createComputedPropertyName(ts.createNumericLiteral(value.toString())),
                 ts.createStringLiteral((<ts.Identifier>member.name).text));
 
-            properties.push(namedProperty);
             properties.push(valueProperty);
         }
 
@@ -2553,7 +2553,7 @@ export class EmitterLua {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.functionContext.textCode.push("\"" + node.text + "\"");
+        this.functionContext.textCode.push("\"" + node.text.replace(/(\r?\n)/g, "\\$1") + "\"");
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
@@ -2648,13 +2648,13 @@ export class EmitterLua {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
 
         const initializeArrayFunction = (arrayRef: ResolvedInfo) => {
-            if (node.elements.length > 0) {
-                const isFirstElementSpread = node.elements[0].kind === ts.SyntaxKind.SpreadElement;
-                const isLastFunctionCall = node.elements[node.elements.length - 1].kind === ts.SyntaxKind.CallExpression;
-                const isSpreadElementOrMethodCall = isFirstElementSpread || isLastFunctionCall;
 
+            this.functionContext.textCode.push("{");
+
+            if (node.elements.length > 0) {
                 // set 0 element
-                this.processExpression(<ts.NumericLiteral>{ kind: ts.SyntaxKind.NumericLiteral, text: '0' });
+                this.processExpression(<ts.Expression><any>ts.createComputedPropertyName(ts.createNumericLiteral('0')));
+                this.functionContext.textCode.push(" = ");
                 this.processExpression(node.elements[0]);
 
                 // set 0|1.. elements
@@ -2662,13 +2662,18 @@ export class EmitterLua {
                 if (reversedValues.length > 0) {
                     reversedValues.forEach((e, index: number) => {
                         this.processExpression(e);
+                        this.functionContext.textCode.push(", ");
                     });
+
+                    this.functionContext.textCode.pop();
                 }
 
                 if (!this.jsLib) {
-                    this.AddLengthToConstArray(arrayRef.getRegisterOrIndex());
+                    //this.AddLengthToConstArray(arrayRef.getRegisterOrIndex());
                 }
             }
+
+            this.functionContext.textCode.push("}");
         };
 
         let resultInfo;
@@ -2687,6 +2692,12 @@ export class EmitterLua {
         this.processExpression(node.expression);
         this.functionContext.textCode.push("[");
         this.processExpression(node.argumentExpression);
+        this.functionContext.textCode.push("]");
+    }
+
+    private processComputedPropertyName(node: ts.ComputedPropertyName): void {
+        this.functionContext.textCode.push("[");
+        this.processExpression(node.expression);
         this.functionContext.textCode.push("]");
     }
 
@@ -2931,9 +2942,20 @@ export class EmitterLua {
 
                 break;
             case ts.SyntaxKind.PlusToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" + ");
-                this.processExpression(node.right);
+
+                if (this.typeInfo.isTypeOfNode(node.left, 'string')
+                    || this.typeInfo.isTypeOfNode(node.right, 'string')) {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" .. ");
+                    this.processExpression(node.right);
+                }
+                else
+                {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" + ");
+                    this.processExpression(node.right);
+                }
+
                 break;
             case ts.SyntaxKind.MinusToken:
                 this.processExpression(node.left);
@@ -3301,6 +3323,7 @@ export class EmitterLua {
         return parent.kind === ts.SyntaxKind.ExpressionStatement
             || parent.kind === ts.SyntaxKind.VoidExpression
             || parent.kind === ts.SyntaxKind.ClassDeclaration
+            || parent.kind === ts.SyntaxKind.EnumDeclaration
             || parent.kind === ts.SyntaxKind.ImportDeclaration;
     }
 
@@ -3584,15 +3607,10 @@ export class EmitterLua {
         this.processExpression(node.expression);
 
         let thisCall = false;
-
-        /*
-        const isMemberStatic = methodDeclInfoModifiers
-            && methodDeclInfoModifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
-        */
-
         // this.<...>(this support)
         if (node.parent
-            && node.parent.kind === ts.SyntaxKind.CallExpression) {
+            && node.parent.kind === ts.SyntaxKind.CallExpression
+            && (<ts.CallExpression>node.parent).expression == node) {
             thisCall = true;
 
             const objectHolder = this.resolver.getSymbolAtLocation(node.expression);
