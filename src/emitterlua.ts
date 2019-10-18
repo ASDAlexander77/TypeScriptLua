@@ -3286,7 +3286,10 @@ export class EmitterLua {
             || parent.kind === ts.SyntaxKind.VoidExpression
             || parent.kind === ts.SyntaxKind.ClassDeclaration
             || parent.kind === ts.SyntaxKind.EnumDeclaration
-            || parent.kind === ts.SyntaxKind.ImportDeclaration;
+            || parent.kind === ts.SyntaxKind.ImportDeclaration
+            || parent.kind === ts.SyntaxKind.ForStatement
+            || parent.kind === ts.SyntaxKind.ForInStatement
+            || parent.kind === ts.SyntaxKind.ForOfStatement;
     }
 
     private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
