@@ -24,6 +24,7 @@ export class EmitterLua {
     private splitConstFromOpCode = false;
     private jsLib: boolean;
     private varAsLet: boolean;
+    private ignoreExtraLogic: boolean;
 
     public constructor(
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
@@ -91,11 +92,11 @@ export class EmitterLua {
     __type = __type || type;                                        \
                                                                     \
     __is_true = __is_true || function(inst:object) {                \
-        if (inst == true || inst != null || inst != undefined) {    \
-            return true;                                            \
+        if (inst == false || inst == null || inst == 0 || inst == undefined) {   \
+            return false;                                           \
         }                                                           \
                                                                     \
-        return false;                                               \
+        return true;                                                \
     };                                                              \
                                                                     \
     __cond = __cond || function(cond:boolean, trueValue:object, falseValue:object) { \
@@ -630,7 +631,9 @@ export class EmitterLua {
             this.resolver.createEnv(this.functionContext);
 
             // we need to inject helper functions
+            this.ignoreExtraLogic = true;
             this.processTSCode(this.libCommon, true);
+            this.ignoreExtraLogic = false;
         }
 
         // add this to object
@@ -2109,11 +2112,26 @@ export class EmitterLua {
 
     private processIfStatement(node: ts.IfStatement): void {
 
-        this.functionContext.textCode.push("if ")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.push("if ")
+        }
+        else
+        {
+            this.functionContext.textCode.push("if __is_true(")
+        }
 
         this.processExpression(node.expression);
 
-        this.functionContext.textCode.pushNewLineIncrement(" then ")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.pushNewLineIncrement(" then ")
+        }
+        else
+        {
+            this.functionContext.textCode.pushNewLineIncrement(") then ")
+        }
+
         this.processStatement(node.thenStatement);
         this.functionContext.textCode.decrement();
 
@@ -2139,8 +2157,24 @@ export class EmitterLua {
             this.functionContext.textCode.pushNewLine("::continue::")
         }
 
-        this.functionContext.textCode.push("until ")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.push("until not(")
+        }
+        else
+        {
+            this.functionContext.textCode.push("until not(__is_true(")
+        }
+
         this.processExpression(node.expression);
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.push(")")
+        }
+        else
+        {
+            this.functionContext.textCode.push("))")
+        }
 
         this.functionContext.restoreLocalScope();
     }
@@ -2149,11 +2183,25 @@ export class EmitterLua {
 
         this.functionContext.newLocalScope(node);
 
-        this.functionContext.textCode.push("while ")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.push("while ")
+        }
+        else
+        {
+            this.functionContext.textCode.push("while __is_true(")
+        }
 
         this.processExpression(node.expression);
 
-        this.functionContext.textCode.pushNewLineIncrement(" do")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.pushNewLineIncrement(" do")
+        }
+        else
+        {
+            this.functionContext.textCode.pushNewLineIncrement(") do")
+        }
 
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
@@ -2198,11 +2246,25 @@ export class EmitterLua {
        this.processExpression(<ts.Expression>node.initializer);
        this.functionContext.textCode.pushNewLine()
 
-       this.functionContext.textCode.push("while ")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.push("while ")
+        }
+        else
+        {
+            this.functionContext.textCode.push("while __is_true(")
+        }
 
-       this.processExpression(node.condition);
+        this.processExpression(node.condition);
 
-       this.functionContext.textCode.pushNewLineIncrement(" do")
+        if (this.ignoreExtraLogic)
+        {
+            this.functionContext.textCode.pushNewLineIncrement(" do")
+        }
+        else
+        {
+            this.functionContext.textCode.pushNewLineIncrement(") do")
+        }
 
        this.processStatement(node.statement);
        this.functionContext.textCode.decrement();
@@ -2770,8 +2832,9 @@ export class EmitterLua {
                 this.processExpression(node.operand);
                 break;
             case ts.SyntaxKind.ExclamationToken:
-                this.functionContext.textCode.push("not ");
+                this.functionContext.textCode.push("not(");
                 this.processExpression(node.operand);
+                this.functionContext.textCode.push(")");
                 break;
 
             case ts.SyntaxKind.PlusPlusToken:

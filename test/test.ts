@@ -1,5 +1,7 @@
-for (let i = 0; i < 3; i++) {          
-            console.log(i);                     
-            if (i == 0) continue;               
-            break;                              
-        }
+let a = 1;                                             
+        let count = 0;                                          
+        while (a) {                                             
+            a--;                                                
+            count++;                                            
+        }                                                       
+        console.log(count);                                     
