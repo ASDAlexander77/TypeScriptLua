@@ -639,8 +639,8 @@ export class EmitterLua {
         // add this to object
         let addThisAsParameter = !isAccessor &&
             ((location && location.parent && location.parent.kind === ts.SyntaxKind.PropertyAssignment)
-            || (location && location.parent && location.parent.parent
-                && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression));
+                || (location && location.parent && location.parent.parent
+                    && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression));
         if (addThisAsParameter) {
             this.functionContext.createParam('this');
         }
@@ -683,8 +683,7 @@ export class EmitterLua {
             this.functionContext.textCode.push("function " + name);
 
             this.functionContext.textCode.push("(");
-            if (parameters.length > 0)
-            {
+            if (parameters.length > 0) {
                 parameters.forEach(p => {
                     if (p.name.kind === ts.SyntaxKind.Identifier) {
                         this.functionContext.textCode.push(p.name.text);
@@ -714,9 +713,9 @@ export class EmitterLua {
                 .filter(p => p.questionToken && !p.initializer)
                 .map(p => {
                     const currentNode =
-                            ts.createIf(
-                                ts.createBinary(<ts.Identifier>p.name, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNull()),
-                                ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, ts.createIdentifier('undefined'))));
+                        ts.createIf(
+                            ts.createBinary(<ts.Identifier>p.name, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.createNull()),
+                            ts.createStatement(ts.createAssignment(<ts.Identifier>p.name, ts.createIdentifier('undefined'))));
 
                     if (lastUndefinedParam) {
                         lastUndefinedParam.thenStatement = ts.createBlock([lastUndefinedParam.thenStatement, currentNode]);
@@ -1400,23 +1399,25 @@ export class EmitterLua {
             ? ts.createConstructor(
                 undefined,
                 undefined,
-                [ ts.createParameter(undefined, undefined, ts.createToken(ts.SyntaxKind.DotDotDotToken), 'params') ],
+                [ts.createParameter(undefined, undefined, ts.createToken(ts.SyntaxKind.DotDotDotToken), 'params')],
                 <ts.Block><any>{
-                kind: ts.SyntaxKind.Block,
-                statements: [
-                    // TODO: find out why you need if to call super class constructor (as it should be all the time)
-                    ts.createIf(
-                        ts.createPropertyAccess(this.resolver.superClass, 'constructor'),
-                        ts.createStatement(ts.createCall(ts.createSuper(), undefined, [ ts.createSpread(ts.createIdentifier('params')) ])))
-                ]})
+                    kind: ts.SyntaxKind.Block,
+                    statements: [
+                        // TODO: find out why you need if to call super class constructor (as it should be all the time)
+                        ts.createIf(
+                            ts.createPropertyAccess(this.resolver.superClass, 'constructor'),
+                            ts.createStatement(ts.createCall(ts.createSuper(), undefined, [ts.createSpread(ts.createIdentifier('params'))])))
+                    ]
+                })
             : ts.createConstructor(
                 undefined,
                 undefined,
                 [],
                 <ts.Block><any>{
-                kind: ts.SyntaxKind.Block,
-                statements: [
-                ]});
+                    kind: ts.SyntaxKind.Block,
+                    statements: [
+                    ]
+                });
 
         this.fixupParentReferences(defaultCtor, node);
 
@@ -1953,8 +1954,7 @@ export class EmitterLua {
             const localVar = this.functionContext.findScopedLocal(nameText, true);
             if (isLetOrConst && localVar === -1) {
 
-                if (!ignoreDeclVar)
-                {
+                if (!ignoreDeclVar) {
                     this.functionContext.textCode.push("local ");
                 }
 
@@ -2099,23 +2099,19 @@ export class EmitterLua {
 
     private processIfStatement(node: ts.IfStatement): void {
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.push("if ")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push("if __is_true(")
         }
 
         this.processExpression(node.expression);
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.pushNewLineIncrement(" then ")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.pushNewLineIncrement(") then ")
         }
 
@@ -2139,27 +2135,22 @@ export class EmitterLua {
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
 
-        if (this.hasContinue(node))
-        {
+        if (this.hasContinue(node)) {
             this.functionContext.textCode.pushNewLine("::continue::")
         }
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.push("until not(")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push("until not(__is_true(")
         }
 
         this.processExpression(node.expression);
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.push(")")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push("))")
         }
 
@@ -2170,31 +2161,26 @@ export class EmitterLua {
 
         this.functionContext.newLocalScope(node);
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.push("while ")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push("while __is_true(")
         }
 
         this.processExpression(node.expression);
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.pushNewLineIncrement(" do")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.pushNewLineIncrement(") do")
         }
 
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
 
-        if (this.hasContinue(node))
-        {
+        if (this.hasContinue(node)) {
             this.functionContext.textCode.pushNewLine("::continue::")
         }
 
@@ -2228,45 +2214,42 @@ export class EmitterLua {
         this.functionContext.textCode.push("end")
         */
 
-       this.functionContext.newLocalScope(node);
+        this.functionContext.newLocalScope(node);
 
-       this.processExpression(<ts.Expression>node.initializer);
-       this.functionContext.textCode.pushNewLine()
+        if (node.initializer) {
+            this.processExpression(<ts.Expression>node.initializer);
+            this.functionContext.textCode.pushNewLine()
+        }
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.push("while ")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push("while __is_true(")
         }
 
         this.processExpression(node.condition);
 
-        if (this.ignoreExtraLogic)
-        {
+        if (this.ignoreExtraLogic) {
             this.functionContext.textCode.pushNewLineIncrement(" do")
         }
-        else
-        {
+        else {
             this.functionContext.textCode.pushNewLineIncrement(") do")
         }
 
-       this.processStatement(node.statement);
-       this.functionContext.textCode.decrement();
+        this.processStatement(node.statement);
+        this.functionContext.textCode.decrement();
 
-       if (this.hasContinue(node))
-       {
-           this.functionContext.textCode.pushNewLine("::continue::")
-       }
+        if (this.hasContinue(node)) {
+            this.functionContext.textCode.pushNewLine("::continue::")
+        }
 
-       this.processExpression(node.incrementor);
-       this.functionContext.textCode.pushNewLine()
+        this.processExpression(node.incrementor);
+        this.functionContext.textCode.pushNewLine()
 
-       this.functionContext.textCode.push("end")
+        this.functionContext.textCode.push("end")
 
-       this.functionContext.restoreLocalScope();
+        this.functionContext.restoreLocalScope();
     }
 
     private markStack(): number {
@@ -2298,8 +2281,7 @@ export class EmitterLua {
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
 
-        if (this.hasContinue(node))
-        {
+        if (this.hasContinue(node)) {
             this.functionContext.textCode.pushNewLine("::continue::")
         }
 
@@ -2449,26 +2431,24 @@ export class EmitterLua {
 
         var switchIndex = node.pos.toFixed();
 
-        this.functionContext.textCode.push("local op"+switchIndex+" = ");
+        this.functionContext.textCode.push("local op" + switchIndex + " = ");
         this.processExpression(node.expression);
         this.functionContext.textCode.pushNewLine();
 
         let count = 0;
         let ignoreElse = false;
         node.caseBlock.clauses.forEach(c => {
-            if (count && !ignoreElse)
-            {
+            if (count && !ignoreElse) {
                 this.functionContext.textCode.decrement();
                 this.functionContext.textCode.push("else");
             }
 
             if (c.kind !== ts.SyntaxKind.DefaultClause) {
-                if (!ignoreElse)
-                {
+                if (!ignoreElse) {
                     this.functionContext.textCode.push("if ");
                 }
 
-                this.functionContext.textCode.push("op"+switchIndex+" == ");
+                this.functionContext.textCode.push("op" + switchIndex + " == ");
             }
 
             if (c.kind === ts.SyntaxKind.CaseClause) {
@@ -2477,8 +2457,7 @@ export class EmitterLua {
                 this.processExpression(caseClause.expression);
             }
 
-            if (c.statements.length > 0)
-            {
+            if (c.statements.length > 0) {
                 if (c.kind !== ts.SyntaxKind.DefaultClause) {
                     this.functionContext.textCode.pushNewLineIncrement(" then");
                 } else {
@@ -2488,8 +2467,7 @@ export class EmitterLua {
                 // case or default body
                 let statements: any = c.statements;
                 const lastStatement = c.statements[c.statements.length - 1];
-                if (lastStatement.kind === ts.SyntaxKind.BreakStatement)
-                {
+                if (lastStatement.kind === ts.SyntaxKind.BreakStatement) {
                     statements = c.statements.slice(0, c.statements.length - 1);
                 }
 
@@ -2798,8 +2776,7 @@ export class EmitterLua {
                     this.functionContext.textCode.push(" .. ");
                     this.processExpression(node.right);
                 }
-                else
-                {
+                else {
                     this.processExpression(node.left);
                     this.functionContext.textCode.push(" + ");
                     this.processExpression(node.right);
@@ -3024,9 +3001,9 @@ export class EmitterLua {
 
         const rawsetCall = ts.createCall(
             ts.createIdentifier('rawset'), undefined, [
-                obj,
-                property && indx.kind === ts.SyntaxKind.Identifier ? ts.createStringLiteral(indx.text) : indx,
-                ts.createNull()]);
+            obj,
+            property && indx.kind === ts.SyntaxKind.Identifier ? ts.createStringLiteral(indx.text) : indx,
+            ts.createNull()]);
         this.fixupParentReferences(rawsetCall, node);
         this.processExpression(rawsetCall);
     }
@@ -3151,8 +3128,7 @@ export class EmitterLua {
         this.processExpression(node.expression);
         this.functionContext.textCode.push("(");
 
-        if (node.arguments.length > 0)
-        {
+        if (node.arguments.length > 0) {
             node.arguments.forEach(a => {
                 this.processExpression(a);
                 this.functionContext.textCode.push(", ");
@@ -3466,8 +3442,7 @@ export class EmitterLua {
             thisCall = true;
 
             const objectHolder = this.resolver.getSymbolAtLocation(node.expression);
-            if (objectHolder && objectHolder.valueDeclaration && objectHolder.valueDeclaration.type)
-            {
+            if (objectHolder && objectHolder.valueDeclaration && objectHolder.valueDeclaration.type) {
                 thisCall = objectHolder.valueDeclaration.type.kind != ts.SyntaxKind.TypeReference;
             }
         }
@@ -3486,8 +3461,7 @@ export class EmitterLua {
         if (thisCall && !wrapMethodCall) {
             this.functionContext.textCode.push(":");
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push(".");
         }
 
