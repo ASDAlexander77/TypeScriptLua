@@ -276,6 +276,25 @@ export class EmitterLua {
         return method(_this);                                       \
     };                                                              \
                                                                     \
+    __new = __new || function(proto: any, params?: any[]): any {    \
+        if (!proto) {                                               \
+            throw new Error("Prototype can\'t be undefined or null");\
+        }                                                           \
+                                                                    \
+        const obj = <any>{                                          \
+            __index: __get_call_undefined__,                        \
+            __proto: proto,                                         \
+            __newindex: __set_call_undefined__,                     \
+        };                                                          \
+        setmetatable(obj, obj);                                     \
+                                                                    \
+        if (obj.constructor) {                                      \
+            obj.constructor(...params);                             \
+        }                                                           \
+                                                                    \
+        return obj;                                                 \
+    }                                                               \
+                                                                    \
     __decorate = __decorate || function (                           \
         decors: any[], proto: any, propertyName: string, descriptorOrParameterIndex: any | undefined | null) \
     {                                                                                                   \
@@ -3036,6 +3055,11 @@ export class EmitterLua {
         }
         */
 
+        this.functionContext.textCode.push("__new(");
+        this.processExpression(node.expression);
+        this.functionContext.textCode.push(")");
+
+        /*
         // throw exception if class is not defined
         const condExpr = ts.createPrefix(ts.SyntaxKind.ExclamationToken, node.expression);
         const throwExpr = ts.createThrow(ts.createStringLiteral('Class is not defined: ' + (<ts.Identifier>node.expression).text));
@@ -3102,6 +3126,7 @@ export class EmitterLua {
 
         jmpOp2[2] = this.functionContext.code.length - beforeBlock2;
         jmpOp[2] = this.functionContext.code.length - beforeBlock;
+        */
     }
 
     private emitSetMetatableCall(resultInfo: ResolvedInfo) {
