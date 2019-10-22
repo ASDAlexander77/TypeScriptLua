@@ -680,7 +680,11 @@ export class EmitterLua {
 
         // functino begin
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
-            this.functionContext.textCode.push("function " + name);
+            this.functionContext.textCode.push("function ");
+            if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration)
+            {
+                this.functionContext.textCode.push(name);
+            }
 
             this.functionContext.textCode.push("(");
             if (parameters.length > 0) {
@@ -1304,6 +1308,8 @@ export class EmitterLua {
         prototypeObject.parent = prototypeObjectAssignment;
         prototypeObjectAssignment.parent = node;
         this.processExpression(prototypeObjectAssignment);
+
+        this.functionContext.textCode.pushNewLine();
 
         // set metatable for derived class using __index dictionary containing base class
         // if (extend || anyGetStaticAccessor || anySetStaticAccessor) {
