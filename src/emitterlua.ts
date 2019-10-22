@@ -798,29 +798,6 @@ export class EmitterLua {
         }
     }
 
-    private AddLengthToConstArray(localVar: number) {
-        const lenResult = this.functionContext.useRegisterAndPush();
-
-        this.functionContext.code.push([Ops.LEN,
-        lenResult.getRegister(),
-            localVar]);
-
-        // add +1 to length
-        const oneConstInfo = this.resolver.returnConst(1, this.functionContext);
-        this.functionContext.code.push([Ops.ADD,
-        lenResult.getRegister(),
-        lenResult.getRegister(),
-        oneConstInfo.getRegisterOrIndex()]);
-
-        const lenNameInfo = this.resolver.returnConst('length', this.functionContext);
-        this.functionContext.code.push([Ops.SETTABLE,
-            localVar,
-        lenNameInfo.getRegisterOrIndex(),
-        lenResult.getRegisterOrIndex()]);
-
-        this.functionContext.stack.pop();
-    }
-
     private processFile(sourceFile: ts.SourceFile): void {
 
         this.functionContext.newFileScope(sourceFile.fileName);
@@ -1877,8 +1854,16 @@ export class EmitterLua {
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.ModuleDeclaration;
         declarationList.declarations.forEach(
-            d => this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, Helpers.isConstOrLet(declarationList) || varAsLet, isExport, ignoreDeclVar));
+            d => {
+                this.processVariableDeclarationOne(
+                    <ts.Identifier>d.name, d.initializer,
+                    Helpers.isConstOrLet(declarationList) || varAsLet,
+                    isExport,
+                    ignoreDeclVar);
+                this.functionContext.textCode.pushNewLine();
+            });
+
+        this.functionContext.textCode.pop();
     }
 
     private emitBeginningOfFunctionScopeForVar(location: ts.Node) {
@@ -1995,6 +1980,8 @@ export class EmitterLua {
                     this.functionContext.textCode.push(nameText);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(initializer);
+                } else {
+                    this.functionContext.textCode.push(nameText);
                 }
             }
         } else {
@@ -2300,149 +2287,27 @@ export class EmitterLua {
     }
 
     private processForInStatementNoScope(node: ts.ForInStatement): void {
+        this.functionContext.newLocalScope(node);
 
-        this.functionContext.newBreakContinueScope();
-
-        // we need to generate 3 local variables for ForEach loop
-        const generatorInfo = this.functionContext.createLocal('<generator>');
-        const stateInfo = this.functionContext.createLocal('<state>');
-        const controlInfo = this.functionContext.createLocal('<control>');
-
-        const isLocalOrConstDecl =
-            ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList
-                && Helpers.isConstOrLet(<ts.VariableDeclarationList>node.initializer))
-            || ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier
-                && this.resolver.resolver(<ts.Identifier>node.initializer, this.functionContext).isLocal());
-
-        this.functionContext.createLocal('<var>');
-        if (isLocalOrConstDecl) {
-            // if iterator variable is not local then we need to save local variable into
-            // initializer
-            //this.declareLoopVariables(<ts.Expression>node.initializer);
-        }
-
-        // call PAIRS(...) before jump
-        // TODO: finish it
+        this.functionContext.textCode.push("for ")
+        this.processExpression(<ts.Expression>node.initializer);
+        this.functionContext.textCode.push(" in pairs(")
         this.processExpression(node.expression);
+        this.functionContext.textCode.pushNewLineIncrement(") do")
 
-        // tslint:disable-next-line:prefer-const
-        let iterator = 'pairs';
-        /*
-        if (this.typeInfo.isTypesOfNode(node.expression, ['Array', 'tuple', 'anonymous'])) {
-            iterator = 'ipairs';
-        }
-        */
-
-        // prepare call for _ENV "pairs"
-        // prepare consts
-        const envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        const pairsMethodInfo = this.resolver.returnConst(iterator, this.functionContext);
-
-        const expressionResultInfo = this.functionContext.stack.peek();
-        // getting method referene
-        this.functionContext.code.push(
-            [Ops.GETTABUP, generatorInfo.getRegister(), envInfo.getRegisterOrIndex(), pairsMethodInfo.getRegisterOrIndex()]);
-
-        // first parameter of method call "pairs"
-        if (expressionResultInfo.getRegisterOrIndex() < 0) {
-            this.functionContext.code.push(
-                [Ops.LOADK, stateInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
-        } else {
-            this.functionContext.code.push(
-                [Ops.MOVE, stateInfo.getRegister(), expressionResultInfo.getRegisterOrIndex()]);
-        }
-
-        // finally - calling method 'pairs'
-        this.functionContext.code.push(
-            [Ops.CALL, generatorInfo.getRegister(), 2, 4]);
-
-        // cleaning up stack, first parameter, method ref, and expression
-        this.functionContext.stack.pop();
-
-        // jump to expression
-        const initialJmpOp = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(initialJmpOp);
-
-        const beforeBlock = this.functionContext.code.length;
-
-        // save <var> into local
-        // get last identifier
-        let forInIdentifier: ts.Identifier;
-        if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.VariableDeclarationList) {
-            const decls = (<ts.VariableDeclarationList>node.initializer).declarations;
-            forInIdentifier = <ts.Identifier>decls[decls.length - 1].name;
-        } else if ((<ts.Expression>node.initializer).kind === ts.SyntaxKind.Identifier) {
-            forInIdentifier = <ts.Identifier>node.initializer;
-        } else {
-            throw new Error('Not Implemented');
-        }
-
-        const varIdent = ts.createIdentifier('<var>');
-        let assignmentOperation;
-        if (iterator === 'ipairs') {
-            assignmentOperation = ts.createAssignment(
-                forInIdentifier,
-                ts.createSubtract(varIdent, ts.createNumericLiteral('1')));
-        } else if (iterator === 'pairs') {
-            assignmentOperation = ts.createAssignment(forInIdentifier, varIdent);
-        }
-        assignmentOperation.parent = node;
-        this.processExpression(assignmentOperation);
-
-        // add filter for for/in
-        const filterExpr = ts.createIf(
-            ts.createBinary(
-                ts.createBinary(
-                    ts.createBinary(
-                        ts.createCall(ts.createIdentifier('__type'), undefined, [varIdent]),
-                        ts.SyntaxKind.EqualsEqualsToken,
-                        ts.createStringLiteral('string')),
-                    ts.SyntaxKind.AmpersandAmpersandToken,
-                    ts.createBinary(
-                        ts.createCall(
-                            ts.createPropertyAccess(
-                                ts.createIdentifier('string'), 'byte'),
-                                undefined,
-                                [varIdent, ts.createNumericLiteral('1')]),
-                        ts.SyntaxKind.EqualsEqualsToken,
-                        ts.createNumericLiteral('95'))),
-                        ts.SyntaxKind.AmpersandAmpersandToken,
-                        ts.createBinary(
-                            ts.createCall(
-                                ts.createPropertyAccess(
-                                    ts.createIdentifier('string'), 'byte'),
-                                    undefined,
-                                    [varIdent, ts.createNumericLiteral('2')]),
-                            ts.SyntaxKind.EqualsEqualsToken,
-                            ts.createNumericLiteral('95'))),
-            ts.createContinue());
-
-        this.fixupParentReferences(filterExpr, node);
-        this.processStatement(filterExpr);
-
-        // loop
         this.processStatement(node.statement);
+        this.functionContext.textCode.decrement();
 
-        const loopOpsBlock = this.functionContext.code.length;
+        if (this.hasContinue(node))
+        {
+            this.functionContext.textCode.pushNewLine("::continue::")
+        }
 
-        this.resolveContinueJumps();
+        this.functionContext.textCode.pushNewLine()
 
-        const tforCallOp = [Ops.TFORCALL, generatorInfo.getRegister(), 0, 1];
-        this.functionContext.code.push(tforCallOp);
+        this.functionContext.textCode.push("end")
 
-        // replace with TFORLOOP
-        const tforLoopOp = [Ops.TFORLOOP, controlInfo.getRegister(), beforeBlock - this.functionContext.code.length - 1];
-        this.functionContext.code.push(tforLoopOp);
-
-        // storing jump address
-        initialJmpOp[2] = loopOpsBlock - beforeBlock;
-
-        this.resolveBreakJumps();
-
-        // clean temp local variable
-        this.functionContext.stack.pop();
-
-        this.functionContext.restoreBreakContinueScope();
+        this.functionContext.restoreLocalScope();
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
@@ -2582,19 +2447,29 @@ export class EmitterLua {
 
     private processSwitchStatement(node: ts.SwitchStatement) {
 
-        this.functionContext.textCode.push("local op1 = ");
+        var switchIndex = node.pos.toFixed();
+
+        this.functionContext.textCode.push("local op"+switchIndex+" = ");
         this.processExpression(node.expression);
         this.functionContext.textCode.pushNewLine();
 
         let count = 0;
+        let ignoreElse = false;
         node.caseBlock.clauses.forEach(c => {
-            if (count)
+            if (count && !ignoreElse)
             {
                 this.functionContext.textCode.decrement();
                 this.functionContext.textCode.push("else");
             }
 
-            this.functionContext.textCode.push("if op1 == ");
+            if (c.kind !== ts.SyntaxKind.DefaultClause) {
+                if (!ignoreElse)
+                {
+                    this.functionContext.textCode.push("if ");
+                }
+
+                this.functionContext.textCode.push("op"+switchIndex+" == ");
+            }
 
             if (c.kind === ts.SyntaxKind.CaseClause) {
                 // process 'case'
@@ -2602,17 +2477,28 @@ export class EmitterLua {
                 this.processExpression(caseClause.expression);
             }
 
-            this.functionContext.textCode.pushNewLineIncrement(" then");
-
-            // case or default body
-            let statements: any = c.statements;
-            const lastStatement = c.statements[c.statements.length - 1];
-            if (lastStatement.kind === ts.SyntaxKind.BreakStatement)
+            if (c.statements.length > 0)
             {
-                statements = c.statements.slice(0, c.statements.length - 1);
-            }
+                if (c.kind !== ts.SyntaxKind.DefaultClause) {
+                    this.functionContext.textCode.pushNewLineIncrement(" then");
+                } else {
+                    this.functionContext.textCode.pushNewLineIncrement();
+                }
 
-            statements.forEach(s => this.processStatement(s));
+                // case or default body
+                let statements: any = c.statements;
+                const lastStatement = c.statements[c.statements.length - 1];
+                if (lastStatement.kind === ts.SyntaxKind.BreakStatement)
+                {
+                    statements = c.statements.slice(0, c.statements.length - 1);
+                }
+
+                statements.forEach(s => this.processStatement(s));
+                ignoreElse = false;
+            } else {
+                this.functionContext.textCode.push(" or ");
+                ignoreElse = true;
+            }
 
             count++;
         });
@@ -2771,10 +2657,11 @@ export class EmitterLua {
                     });
                 }
 
-                this.functionContext.textCode.pop();
 
                 if (!this.jsLib) {
-                    //this.AddLengthToConstArray(arrayRef.getRegisterOrIndex());
+                    this.functionContext.textCode.push("length = " + node.elements.length);
+                } else {
+                    this.functionContext.textCode.pop();
                 }
             }
 
