@@ -3448,8 +3448,12 @@ export class EmitterLua {
             thisCall = true;
 
             const objectHolder = this.resolver.getSymbolAtLocation(node.expression);
-            if (objectHolder && objectHolder.valueDeclaration && objectHolder.valueDeclaration.type) {
-                thisCall = objectHolder.valueDeclaration.type.kind != ts.SyntaxKind.TypeReference;
+            if (objectHolder && objectHolder.valueDeclaration) {
+                if (objectHolder.valueDeclaration.type) {
+                    thisCall = objectHolder.valueDeclaration.type.kind != ts.SyntaxKind.TypeReference;
+                } else {
+                    thisCall = objectHolder.valueDeclaration.kind != ts.SyntaxKind.ClassDeclaration;
+                }
             }
         }
 
