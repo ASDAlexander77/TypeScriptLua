@@ -1,7 +1,7 @@
 class Class1 {                                 
-	public show(s:string) {              
-		console.log(s);                         
-	}                                           
-}                                               
-
-new Class1().show('asd');
+            public static show() {                      
+                console.log("Hello");                   
+            }                                           
+        }                                               
+                                                        
+        Class1.show();                                  

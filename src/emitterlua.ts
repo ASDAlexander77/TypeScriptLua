@@ -706,7 +706,17 @@ export class EmitterLua {
             }
 
             this.functionContext.textCode.push("(");
+
+            if (addThisAsParameter) {
+                this.functionContext.textCode.push("this");
+            }
+
             if (parameters.length > 0) {
+
+                if (addThisAsParameter) {
+                    this.functionContext.textCode.push(", ");
+                }
+
                 parameters.forEach(p => {
                     if (p.name.kind === ts.SyntaxKind.Identifier) {
                         this.functionContext.textCode.push(p.name.text);
@@ -2047,10 +2057,8 @@ export class EmitterLua {
             return;
         }
 
-        const protoIndex = this.functionContext.createProto(
+        this.functionContext.createProto(
             this.processFunction(node, node.body.statements, node.parameters));
-        const resultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([Ops.CLOSURE, resultInfo.getRegister(), protoIndex]);
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -2070,9 +2078,9 @@ export class EmitterLua {
 
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
 
-        this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(node.name.text, this.functionContext));
+        //this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(node.name.text, this.functionContext));
 
-        this.emitExport(node.name, node);
+        //this.emitExport(node.name, node);
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
@@ -3264,29 +3272,7 @@ export class EmitterLua {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-
-        const thisInfo = this.resolver.returnLocalOrUpvalue('this', this.functionContext);
-        this.emitLoadValue(thisInfo);
-
-        /*
-        if (this.functionContext.thisInUpvalue) {
-            const resolvedInfo = this.resolver.returnThisUpvalue(this.functionContext);
-
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            resultInfo.originalInfo = resolvedInfo;
-            this.functionContext.code.push([Ops.GETUPVAL, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            return;
-        }
-
-        if (this.functionContext.isStatic) {
-            this.processExpression(this.resolver.thisClassName);
-            return;
-        }
-
-        const resultThisInfo = this.functionContext.useRegisterAndPush();
-        resultThisInfo.originalInfo = this.resolver.returnThis(this.functionContext);
-        this.functionContext.code.push([Ops.MOVE, resultThisInfo.getRegister(), resultThisInfo.originalInfo.getRegisterOrIndex()]);
-        */
+        this.functionContext.textCode.push("this");
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
@@ -3395,9 +3381,6 @@ export class EmitterLua {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        const resolvedInfo = this.resolver.resolver(<ts.Identifier>node, this.functionContext);
-        this.emitLoadValue(resolvedInfo);
-
         this.functionContext.textCode.push((<ts.Identifier>node).text);
     }
 
