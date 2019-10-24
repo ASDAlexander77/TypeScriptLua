@@ -700,7 +700,9 @@ export class EmitterLua {
         // functino begin
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
             this.functionContext.textCode.push("function ");
-            if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration)
+            if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration
+                && effectiveLocation.kind !== ts.SyntaxKind.GetAccessor
+                && effectiveLocation.kind !== ts.SyntaxKind.SetAccessor)
             {
                 this.functionContext.textCode.push(name);
             }
