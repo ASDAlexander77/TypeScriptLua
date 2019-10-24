@@ -1352,6 +1352,9 @@ export class EmitterLua {
         const setmetatableCall = ts.createCall(ts.createIdentifier('setmetatable'), undefined, [node.name, node.name]);
         setmetatableCall.parent = node;
         this.processExpression(setmetatableCall);
+
+        this.functionContext.textCode.pushNewLine();
+
         // }
 
         // process static members
@@ -1361,13 +1364,19 @@ export class EmitterLua {
             .map(m => ts.createAssignment(
                 ts.createPropertyAccess(node.name, this.getClassMemberName(m)),
                 this.createClassMember(m)))
-            .forEach(p => this.processExpression(p));
+            .forEach(p => {
+                this.processExpression(p);
+                this.functionContext.textCode.pushNewLine();
+            });
 
         // process decorators
         node.members
             .filter(m => m.decorators && m.decorators.some(d => !this.isInternalDecorator(d)))
             .map(m => this.getDecoratorsCallForMember(m))
-            .forEach(p => this.processExpression(p));
+            .forEach(p => {
+                this.processExpression(p);
+                this.functionContext.textCode.pushNewLine();
+            });
 
         this.emitExport(node.name, node);
 
@@ -1386,9 +1395,14 @@ export class EmitterLua {
 
     private emitExportInternal(name: ts.Identifier, node?: ts.Node, fullNamespace?: boolean) {
         if (this.functionContext.namespaces.length === 0) {
+
+            this.functionContext.textCode.pushNewLine();
+
             const isDefaultExport = node && node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword);
             if (!isDefaultExport) {
                 this.emitGetOrCreateObjectExpression(node, 'exports');
+                this.functionContext.textCode.pushNewLine();
+
                 const setExport = ts.createAssignment(
                     ts.createPropertyAccess(ts.createIdentifier('exports'), !isDefaultExport ? name : 'default'), name);
                 this.processExpression(setExport);
@@ -1398,6 +1412,8 @@ export class EmitterLua {
                 returnDefault.parent = node;
                 this.processStatement(returnDefault);
             }
+
+            this.functionContext.textCode.pushNewLine();
 
             return;
         }
@@ -1434,6 +1450,8 @@ export class EmitterLua {
 
         const setModuleExport = ts.createAssignment(propertyAccessExpression, name);
         this.processExpression(setModuleExport);
+
+        this.functionContext.textCode.pushNewLine();
     }
 
     private createDefaultCtor(node: ts.ClassDeclaration, properties: ts.PropertyAssignment[]) {
@@ -3503,9 +3521,7 @@ export class EmitterLua {
                 prototypeIdentifier,
                 binOper);
 
-        binOper.parent = getOrCreateObjectExpr;
-        prototypeIdentifier.parent = getOrCreateObjectExpr;
-        getOrCreateObjectExpr.parent = node.parent;
+        this.fixupParentReferences(getOrCreateObjectExpr)
 
         this.processExpression(getOrCreateObjectExpr);
     }
