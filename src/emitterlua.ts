@@ -289,7 +289,11 @@ export class EmitterLua {
         setmetatable(obj, obj);                                     \
                                                                     \
         if (obj.constructor) {                                      \
-            obj.constructor(...params);                             \
+            if (params) {                                           \
+                obj.constructor(...params);                         \
+            } else {                                                \
+                obj.constructor();                                  \
+            }                                                       \
         }                                                           \
                                                                     \
         return obj;                                                 \
@@ -1750,6 +1754,7 @@ export class EmitterLua {
 
     private getClassInitStepsToSupportGetSetAccessor(): any {
         const statements = [];
+        /*
         statements.push(ts.createStatement(
             ts.createAssignment(
                 ts.createPropertyAccess(ts.createThis(), '__index'),
@@ -1767,6 +1772,7 @@ export class EmitterLua {
                     ts.createPropertyAccess(ts.createThis(), '__newindex'),
                     ts.SyntaxKind.BarBarToken,
                     ts.createIdentifier('__set_call_undefined__')))));
+        */
 
         return statements;
     }
@@ -3461,9 +3467,9 @@ export class EmitterLua {
             if (objectHolder && objectHolder.valueDeclaration) {
                 if (objectHolder.valueDeclaration.type) {
                     thisCall = objectHolder.valueDeclaration.type.kind != ts.SyntaxKind.TypeReference;
-                } else {
+                }/* else {
                     thisCall = objectHolder.valueDeclaration.kind != ts.SyntaxKind.ClassDeclaration;
-                }
+                }*/
             }
         }
 
