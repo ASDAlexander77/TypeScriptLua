@@ -52,7 +52,7 @@
             "name": "Lua Debugger - Lua file",
             "cwd": "${workspaceFolder}/test",
             //"program": "${workspaceFolder}/${command:AskForProgramName}",
-            "program": "${workspaceFolder}/test/file.lua",
+            "program": "${workspaceFolder}/../test/test.lua",
             "luaExecutable": "lua",
             "stopOnEntry": true
         },

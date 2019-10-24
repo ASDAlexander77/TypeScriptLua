@@ -311,7 +311,7 @@ export class IdentifierResolver {
         '__set_undefined__': true, '_ENV': true, '_G': true, '__decorate': true, '__tostring': true, '__cond': true,
         '__is_true': true, '__assign': true, 'call': true, 'apply': true, 'unpack': true,
         'getOwnPropertyDescriptor': true, 'defineProperty': true, "__index": true, "__newindex": true,
-        'i_': true, 'arr_': true
+        'i_': true, 'arr_': true, '__new': true
     };
 
     private skipResolvingFilter = {
