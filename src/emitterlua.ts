@@ -4,7 +4,7 @@ import { FunctionContext, UpvalueInfo } from './contexts';
 import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
-import { Preprocessor } from './preprocessor';
+import { PreprocessorLua } from './preprocessorlua';
 import { TypeInfo } from './typeInfo';
 
 export class EmitterLua {
@@ -13,7 +13,7 @@ export class EmitterLua {
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
-    private preprocessor: Preprocessor;
+    private preprocessor: PreprocessorLua;
     private typeInfo: TypeInfo;
     private sourceFileName: string;
     private opsMap = [];
@@ -34,7 +34,7 @@ export class EmitterLua {
 
         this.resolver = new IdentifierResolver(typeChecker, this.varAsLet);
         this.typeInfo = new TypeInfo(this.resolver);
-        this.preprocessor = new Preprocessor(this.resolver, this.typeInfo);
+        this.preprocessor = new PreprocessorLua(this.resolver, this.typeInfo);
         this.functionContext = new FunctionContext();
 
         this.opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
@@ -893,7 +893,9 @@ export class EmitterLua {
             ts.createStringLiteral(txt.substring(0, 140))]);
     }
 
-    private processStatementInternal(node: ts.Statement): void {
+    private processStatementInternal(nodeIn: ts.Statement): void {
+        const node = this.preprocessor.preprocessStatement(nodeIn);
+
         switch (node.kind) {
             case ts.SyntaxKind.EmptyStatement: return;
             case ts.SyntaxKind.VariableStatement: this.processVariableStatement(<ts.VariableStatement>node); break;
@@ -931,8 +933,8 @@ export class EmitterLua {
         this.functionContext.textCode.pushNewLine();
     }
 
-    private processExpression(node: ts.Expression): void {
-        //const node = this.preprocessor.preprocessExpression(nodeIn);
+    private processExpression(nodeIn: ts.Expression): void {
+        const node = this.preprocessor.preprocessExpression(nodeIn);
 
         // we need to process it for statements only
         //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
