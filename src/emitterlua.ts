@@ -264,7 +264,7 @@ export class EmitterLua {
         return method(_this);                                       \
     };                                                              \
                                                                     \
-    __apply = __apply || function(method: object, _this: object, params?: any[]): any { \
+    __apply = __apply || function(method: object, _this: object, ...params: any[]): any { \
         if (!method || typeof(method) !== "function") {             \
             return _this.apply(_this, ...params);                   \
         }                                                           \
@@ -276,7 +276,7 @@ export class EmitterLua {
         return method(_this);                                       \
     };                                                              \
                                                                     \
-    __new = __new || function(proto: any, params?: any[]): any {    \
+    __new = __new || function(proto: any, ...params: any[]): any {  \
         if (!proto) {                                               \
             throw new Error("Prototype can\'t be undefined or null");\
         }                                                           \
@@ -289,11 +289,7 @@ export class EmitterLua {
         setmetatable(obj, obj);                                     \
                                                                     \
         if (obj.constructor) {                                      \
-            if (params) {                                           \
-                obj.constructor(...params);                         \
-            } else {                                                \
-                obj.constructor();                                  \
-            }                                                       \
+            obj.constructor(...params);                             \
         }                                                           \
                                                                     \
         return obj;                                                 \
@@ -722,7 +718,10 @@ export class EmitterLua {
                 }
 
                 parameters.forEach(p => {
-                    if (p.name.kind === ts.SyntaxKind.Identifier) {
+                    if (p.dotDotDotToken) {
+                        this.functionContext.textCode.push("...");
+                    }
+                    else if (p.name.kind === ts.SyntaxKind.Identifier) {
                         this.functionContext.textCode.push(p.name.text);
                     }
 
@@ -3073,6 +3072,12 @@ export class EmitterLua {
 
         this.functionContext.textCode.push("__new(");
         this.processExpression(node.expression);
+
+        node.arguments.forEach(argument => {
+            this.functionContext.textCode.push(", ");
+            this.processExpression(argument);
+        });
+
         this.functionContext.textCode.push(")");
 
         /*
@@ -3311,20 +3316,7 @@ export class EmitterLua {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        // load first element
-        const zeroElementAccessExpression = ts.createElementAccess(node.expression, ts.createNumericLiteral('0'));
-        zeroElementAccessExpression.parent = node;
-        this.processExpression(zeroElementAccessExpression);
-
-        this.functionContext.textCode.push(", ");
-
-        const propertyAccessExpression = ts.createPropertyAccess(ts.createIdentifier('table'), ts.createIdentifier('unpack'));
-        const spreadCall = ts.createCall(
-            propertyAccessExpression,
-            undefined,
-            [node.expression]);
-        spreadCall.parent = node;
-        this.processExpression(spreadCall);
+        this.functionContext.textCode.push('...');
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {

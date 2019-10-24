@@ -3,7 +3,7 @@
             }                                               
                                                             
             public show() {                                 
-              console.log(this.i);                          
+              print(this.i);                          
             }                                               
           }                                                 
                                                             
