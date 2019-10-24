@@ -1,14 +1,11 @@
-        class Class1 {                                 
-            private val: string;                        
-                                                        
-            public set(s: string): Class1 {             
-                this.val = s;                           
-                return this;                            
-            }                                           
-                                                        
-            public show() {                             
-                console.log(this.val);                  
-            }                                           
-        }                                               
-                                                        
-        new Class1().set("Hello").show();               
+        class Class1 {                                     
+            constructor(private i: number) {                
+            }                                               
+                                                            
+            public show() {                                 
+              console.log(this.i);                          
+            }                                               
+          }                                                 
+                                                            
+          let c = new Class1(1);                            
+          c.show();                                         
