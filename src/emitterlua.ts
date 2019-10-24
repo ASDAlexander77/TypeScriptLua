@@ -3005,7 +3005,7 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.InstanceOfKeyword:
-                this.functionContext.textCode.push("__instanceOf(");
+                this.functionContext.textCode.push("__instanceof(");
                 this.processExpression(node.left);
                 this.functionContext.textCode.push(", ");
                 this.processExpression(node.right);
