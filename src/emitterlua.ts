@@ -2042,8 +2042,6 @@ export class EmitterLua {
                     this.functionContext.textCode.push(nameText);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(initializer);
-                } else {
-                    this.functionContext.textCode.push(nameText);
                 }
             }
         } else {
