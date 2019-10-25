@@ -2900,62 +2900,86 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.PlusEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" += ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" + ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.MinusEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" -= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" - ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.AsteriskEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" *= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" * ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" **= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" ** ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.PercentEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" %= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" % ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.CaretEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" ^= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" ^ ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.SlashEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" /= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" / ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.AmpersandEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" &= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" & ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.BarEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" |= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" | ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" <<= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" << ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" >>= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" >> ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" >>= ");
+                this.functionContext.textCode.push(" = ");
+                this.processExpression(node.left);
+                this.functionContext.textCode.push(" >> ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
