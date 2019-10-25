@@ -1911,7 +1911,7 @@ export class EmitterLua {
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
 
-        const ignoreDeclVar = false;// declarationList.parent.kind == ts.SyntaxKind.ForStatement;
+        const ignoreDeclVar =  declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
 
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
@@ -1920,7 +1920,7 @@ export class EmitterLua {
             d => {
                 this.processVariableDeclarationOne(
                     <ts.Identifier>d.name, d.initializer,
-                    Helpers.isConstOrLet(declarationList) || varAsLet,
+                    (Helpers.isConstOrLet(declarationList) || varAsLet),
                     isExport,
                     ignoreDeclVar);
                 this.functionContext.textCode.pushNewLine();
@@ -2021,14 +2021,18 @@ export class EmitterLua {
                 }
 
                 this.functionContext.textCode.push(nameText);
-                this.functionContext.textCode.push(" = ");
 
-                if (initializer) {
-                    this.processExpression(initializer);
-                } else {
-                    // this.processNullLiteral(null);
-                    this.processExpression(ts.createIdentifier('undefined'));
+                if (!ignoreDeclVar || initializer) {
+                    this.functionContext.textCode.push(" = ");
+
+                    if (initializer) {
+                        this.processExpression(initializer);
+                    } else {
+                        // this.processNullLiteral(null);
+                        this.processExpression(ts.createIdentifier('undefined'));
+                    }
                 }
+
             } else if (localVar !== -1) {
                 if (initializer) {
                     this.functionContext.textCode.push(nameText);

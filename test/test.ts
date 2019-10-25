@@ -1,8 +1,8 @@
-let x: [string, number];               
-        x = ["hello", 10];                      
-        console.log(x[0]);                      
-        console.log(x[1]);                      
-        var x2: [string, number];               
-        x2 = ["hello", 10];                     
-        console.log(x2[0]);                     
-        console.log(x2[1]); 
+let a = [10, 20, 30, 40];              
+        let count = 0;                          
+        for (let i in a) {                      
+            count++;                            
+            console.log(count);                 
+            if (count == 1) continue;           
+            break;                              
+        }
