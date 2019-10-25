@@ -3477,14 +3477,14 @@ export class EmitterLua {
             && (<ts.CallExpression>node.parent).expression == node) {
             thisCall = true;
 
-            const objectHolder = this.resolver.getSymbolAtLocation(node.expression);
-            if (objectHolder && objectHolder.valueDeclaration) {
-                if (objectHolder.valueDeclaration.type) {
-                    thisCall = objectHolder.valueDeclaration.type.kind != ts.SyntaxKind.TypeReference;
-                }/* else {
-                    thisCall = objectHolder.valueDeclaration.kind != ts.SyntaxKind.ClassDeclaration;
-                }*/
+            /*
+            const typeName = this.typeInfo.getTypeNameOfNode(node.expression);
+            const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
+            if (typeInfo)
+            {
+
             }
+            */
         }
 
         // support __wrapper calls
