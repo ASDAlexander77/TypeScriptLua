@@ -2602,19 +2602,44 @@ export class EmitterLua {
             this.functionContext.textCode.pushNewLine(",");
         });
 
-        props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
-            // creating foreach loop for each spread object
-            const spreadAssignment = <ts.SpreadAssignment>e;
-            this.processSpreadElement(ts.createSpread(spreadAssignment.expression));
-            this.functionContext.textCode.pushNewLine();
-        });
-
         if (callSetMetatable) {
             //this.emitSetMetatableCall(resultInfo);
         }
 
         this.functionContext.textCode.decrement();
-        this.functionContext.textCode.push("}");
+        this.functionContext.textCode.pushNewLine("}");
+
+        if (props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).length > 0)
+        {
+            props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+                // creating foreach loop for each spread object
+                const spreadAssignment = <ts.SpreadAssignment>e;
+
+                this.functionContext.textCode.push('local obj_ = ');
+                this.processExpression((<any>node.parent).name);
+                this.functionContext.textCode.pushNewLine();
+
+                const objLocal = ts.createIdentifier('obj_');
+                objLocal.flags = ts.NodeFlags.Const;
+                const indexLocal = ts.createIdentifier('i_');
+                const forInSetStatement = ts.createForIn(
+                    ts.createVariableDeclarationList([ts.createVariableDeclaration(indexLocal)], ts.NodeFlags.Const),
+                    spreadAssignment.expression,
+                    ts.createStatement(ts.createAssignment(
+                        ts.createElementAccess(objLocal, indexLocal),
+                        ts.createElementAccess(spreadAssignment.expression, indexLocal))));
+                this.fixupParentReferences(forInSetStatement);
+                forInSetStatement.parent = node;
+                // this is important call to allow to resolve local variables
+                // TODO: but it does not work here, why?
+                // this.bind(forInSetStatement);
+
+                this.functionContext.newLocalScope(forInSetStatement);
+                this.functionContext.createLocal('obj_', resultInfo);
+                this.processForInStatementNoScope(forInSetStatement);
+                this.functionContext.restoreLocalScope();
+            });
+        }
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
