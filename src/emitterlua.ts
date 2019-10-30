@@ -1890,6 +1890,7 @@ export class EmitterLua {
                     const identifier = ts.createIdentifier(name);
                     identifier.parent = location;
                     this.processVariableDeclarationOne(identifier, undefined, true);
+                    this.functionContext.textCode.pushNewLine();
                 }
             }
 

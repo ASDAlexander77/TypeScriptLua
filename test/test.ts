@@ -1,9 +1,11 @@
-        function sum(x, y, z) {                                                
-            console.log(x);                                                     
-            console.log(y);                                                     
-            console.log(z);                                                     
+	var a = 1;                                                             
+        function f() {                                                          
+		var b = 2;                                                          
+		console.log(a);                                                     
+		console.log(b);                                                     
         }                                                                       
                                                                                 
-        const numbers = [1, 2, 3];                                              
+        f();                                                                    
                                                                                 
-        sum(...numbers);                                                        
+        console.log(a);                                                         
+        console.log(b);                                                         
