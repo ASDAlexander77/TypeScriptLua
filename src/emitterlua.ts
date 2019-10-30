@@ -253,11 +253,12 @@ export class EmitterLua {
         };                                                          \
     };                                                              \
                                                                     \
-    __call = __call || function(method: object, _this: object, ...params: any[]) { \
+    __call = __call || function(method: object, _this: object, ...params1: any[]) { \
         if (!method || typeof(method) !== "function") {             \
             return _this.call(...params);                           \
         }                                                           \
                                                                     \
+        const params = {...params1};                                \
         if (params && params[0]) {                                  \
             return method(_this, ...params);                        \
         }                                                           \
@@ -537,6 +538,40 @@ export class EmitterLua {
         return hasContinueStatement;
     }
 
+    private hasUsedIdentifier(identifierName: string, location: ts.Node): boolean {
+        let hasUsedIdent = false;
+        let root = true;
+        function checkUsedIdentifier(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
+            if (node.kind === ts.SyntaxKind.Identifier
+                && identifierName === (<ts.Identifier>node).text
+                && node.parent.kind !== ts.SyntaxKind.Parameter
+                && node.parent.kind !== ts.SyntaxKind.SpreadElement
+                && node.parent.kind !== ts.SyntaxKind.SpreadAssignment) {
+                hasUsedIdent = true;
+                return true;
+            }
+
+            ts.forEachChild(node, checkUsedIdentifier);
+        }
+
+        ts.forEachChild(location, checkUsedIdentifier);
+        return hasUsedIdent;
+    }
+
     private getAllVar(location: ts.Node): string[] {
         const vars = <string[]>[];
         let root = true;
@@ -784,27 +819,12 @@ export class EmitterLua {
                 });
 
             // we need to load all '...<>' into arrays
-            parameters.filter(p => p.dotDotDotToken).forEach(p => {
-                const localVar = this.functionContext.findLocal((<ts.Identifier>p.name).text);
-                // TODO: disabled as ...<TABLE> does not work for Array<T>. (finish implementation)
-                if (false && this.jsLib) {
-                    const initializeNewArg = (arrayRef: ResolvedInfo) => {
-                        this.functionContext.code.push([Ops.VARARG, arrayRef.getRegister() + 1, 0, 0]);
-                        this.functionContext.code.push([Ops.SETLIST, arrayRef.getRegister(), 0, 1]);
-                    };
-
-                    const newArray = ts.createNew(ts.createIdentifier('Array'), undefined, []);
-                    this.processNewExpression(
-                        this.fixupParentReferences(newArray, location),
-                        initializeNewArg);
-                    const resultInfo = this.functionContext.stack.pop();
-
-                    this.functionContext.code.push([
-                        Ops.MOVE,
-                        localVar,
-                        resultInfo.getRegister()
-                    ]);
-                }
+            parameters
+                .filter(p => p.dotDotDotToken)
+                .filter(p => this.hasUsedIdentifier((<ts.Identifier>p.name).text, effectiveLocation))
+                .forEach(p => {
+                const name = (<ts.Identifier>p.name).text;
+                this.functionContext.textCode.pushNewLine("local " + name + " = {...}; " + name + ".length = #" + name + "; " + name + "[0] = " + name + "[1]; table.remove(" + name + ", 1);");
             });
         }
 
@@ -3288,7 +3308,23 @@ export class EmitterLua {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        this.functionContext.textCode.push('...');
+        var typeNode = this.typeInfo.getTypeObject(node.expression);
+        var isVar = typeNode
+                    && typeNode.symbol
+                    && typeNode.symbol.valueDeclaration
+                    && typeNode.symbol.valueDeclaration.kind == ts.SyntaxKind.VariableDeclaration;
+        if (isVar)
+        {
+            this.processExpression(node.expression);
+            this.functionContext.textCode.push('[0], ');
+            this.functionContext.textCode.push('table.unpack(');
+            this.processExpression(node.expression);
+            this.functionContext.textCode.push(')');
+        }
+        else
+        {
+            this.functionContext.textCode.push('...');
+        }
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
