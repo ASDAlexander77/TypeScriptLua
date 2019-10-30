@@ -710,7 +710,7 @@ export class EmitterLua {
                 this.functionContext.textCode.push("this");
             }
 
-            if (parameters.length > 0) {
+            if (parameters && parameters.length > 0) {
 
                 if (addThisAsParameter) {
                     this.functionContext.textCode.push(", ");
@@ -1108,43 +1108,10 @@ export class EmitterLua {
 
     private processTryStatement(node: ts.TryStatement): void {
 
-        // 1) get method pcall
-        // prepare call for _ENV "pcall"
-        // prepare consts
-        let envInfo = this.resolver.returnResolvedEnv(this.functionContext);
-        let pcallMethodInfo = this.resolver.returnConst('pcall', this.functionContext);
-
-        const pcallResultInfo = this.functionContext.useRegisterAndPush();
-
-        envInfo = this.preprocessConstAndUpvalues(envInfo);
-        pcallMethodInfo = this.preprocessConstAndUpvalues(pcallMethodInfo);
-        // getting method referene
-        this.functionContext.code.push(
-            [Ops.GETTABUP, pcallResultInfo.getRegister(), envInfo.getRegisterOrIndex(), pcallMethodInfo.getRegisterOrIndex()]);
-
-        this.stackCleanup(pcallMethodInfo);
-        this.stackCleanup(envInfo);
-
-        // 2) get closure
-        // prepare Closure
+        this.functionContext.textCode.push("local _status, _err = pcall(")
         const protoIndex = this.functionContext.createProto(
             this.processFunction(node, node.tryBlock.statements, undefined));
-        const closureResultInfo = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([Ops.CLOSURE, closureResultInfo.getRegister(), protoIndex]);
-
-        // 3) calling closure
-        // calling PCall
-        this.functionContext.code.push([Ops.CALL, pcallResultInfo.getRegister(), 2, 3]);
-
-        // 4) cleanup
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
-
-        // creating 2 results
-        let statusResultInfo = this.functionContext.useRegisterAndPush();
-        statusResultInfo.identifierName = 'status';
-        const errorResultInfo = this.functionContext.useRegisterAndPush();
-        errorResultInfo.identifierName = 'error';
+        this.functionContext.textCode.pushNewLine(")")
 
         // process "finally" block
         if (node.finallyBlock) {
@@ -1153,44 +1120,18 @@ export class EmitterLua {
 
         // process 'catch'
         if (node.catchClause) {
-            // if status == true, jump over 'catch'-es.
-            // create 'true' boolean
-            let resolvedInfo = this.resolver.returnConst(true, this.functionContext);
+            this.functionContext.textCode.pushNewLineIncrement('if not(_status) then')
 
-            statusResultInfo = this.preprocessConstAndUpvalues(statusResultInfo);
-            resolvedInfo = this.preprocessConstAndUpvalues(resolvedInfo);
-
-            const equalsTo = 1;
-            this.functionContext.code.push([
-                Ops.EQ, equalsTo, statusResultInfo.getRegisterOrIndex(), resolvedInfo.getRegisterOrIndex()]);
-
-            this.stackCleanup(resolvedInfo);
-            this.stackCleanup(statusResultInfo);
-
-            const jmpOp = [Ops.JMP, 0, 0];
-            this.functionContext.code.push(jmpOp);
-            const casesBlockBegin = this.functionContext.code.length;
-
-            // scope - begin
-            this.functionContext.newLocalScope(node.catchClause);
-
-            const variableDeclaration = node.catchClause.variableDeclaration;
-            this.functionContext.createLocal((<ts.Identifier>variableDeclaration.name).text, errorResultInfo);
-
+            var variableDeclaration = node.catchClause.variableDeclaration;
+            this.processVariableDeclarationOne(<ts.Identifier>variableDeclaration.name, ts.createIdentifier('_err'), true);
+            this.functionContext.textCode.pushNewLine();
             node.catchClause.block.statements.forEach(s => {
                 this.processStatement(s);
             });
 
-            // scope - end
-            this.functionContext.restoreLocalScope();
-
-            // end of cases block
-            jmpOp[2] = this.functionContext.code.length - casesBlockBegin;
+            this.functionContext.textCode.decrement();
+            this.functionContext.textCode.push("end");
         }
-
-        // final cleanup error & status
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
@@ -1908,7 +1849,7 @@ export class EmitterLua {
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
 
-        const ignoreDeclVar =  declarationList.parent && declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
+        const ignoreDeclVar =  declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
 
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
