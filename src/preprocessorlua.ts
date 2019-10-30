@@ -234,7 +234,7 @@ export class PreprocessorLua {
         const methodBindCall = ts.createCall(
             ts.createIdentifier('__' + propertyAccessExpression.name.text),
             undefined,
-            [propertyAccessExpression.expression, (<any>propertyAccessExpression.expression).expression, ...callExpression.arguments]);
+            [propertyAccessExpression.expression, ...callExpression.arguments]);
         // do not use METHOD as parent, otherwise processCallExpression will mess up with return pareneters
         methodBindCall.parent = propertyAccessExpression.parent.parent;
         (<any>methodBindCall).__bind_call = true;

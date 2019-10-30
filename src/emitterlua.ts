@@ -236,14 +236,15 @@ export class EmitterLua {
         };                                                          \
     };                                                              \
                                                                     \
-    __bind = __bind || function(method: object, _this: object, ...prependParams: any[]) { \
+    __bind = __bind || function(method: object, _this: object, ...prependParams1: any[]) { \
         if (!method || typeof(method) !== "function") {             \
             return method;                                          \
         }                                                           \
                                                                     \
+        const prependParams = {...prependParams1};                  \
         if (prependParams && prependParams[0]) {                    \
             return function (...params: any[]) {                    \
-                return method(_this, ...prependParams, ...params);  \
+                return method(_this, table.unpack(prependParams), ...params); \
             };                                                      \
         }                                                           \
                                                                     \
@@ -269,11 +270,7 @@ export class EmitterLua {
             return _this.apply(_this, ...params);                   \
         }                                                           \
                                                                     \
-        if (params && params[0]) {                                  \
-            return method(_this, ...params);                        \
-        }                                                           \
-                                                                    \
-        return method(_this);                                       \
+        return method(_this, ...params);                            \
     };                                                              \
                                                                     \
     __new = __new || function(proto: any, ...params: any[]): any {  \
@@ -1911,7 +1908,7 @@ export class EmitterLua {
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
 
-        const ignoreDeclVar =  declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
+        const ignoreDeclVar =  declarationList.parent && declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
 
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
@@ -2649,22 +2646,8 @@ export class EmitterLua {
         props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
             // creating foreach loop for each spread object
             const spreadAssignment = <ts.SpreadAssignment>e;
-
-            const objLocal = ts.createIdentifier('obj_');
-            objLocal.flags = ts.NodeFlags.Const;
-            const indexLocal = ts.createIdentifier('i_');
-            const forInSetStatement = ts.createForIn(
-                ts.createVariableDeclarationList([ts.createVariableDeclaration(indexLocal)], ts.NodeFlags.Const),
-                spreadAssignment.expression,
-                ts.createStatement(ts.createAssignment(
-                    ts.createElementAccess(objLocal, indexLocal),
-                    ts.createElementAccess(spreadAssignment.expression, indexLocal))));
-            forInSetStatement.parent = node;
-            // this is important call to allow to resolve local variables
-            // TODO: but it does not work here, why?
-            // this.bind(forInSetStatement);
-
-            this.processForInStatementNoScope(forInSetStatement);
+            this.processSpreadElement(ts.createSpread(spreadAssignment.expression));
+            this.functionContext.textCode.pushNewLine();
         });
 
         if (callSetMetatable) {
