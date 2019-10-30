@@ -121,7 +121,7 @@ export class PreprocessorLua {
                 && !(<any>propertyAccessExpression).__self_call_required) {
                 // wrap it into method
                 (<any>propertyAccessExpression).__self_call_required = true;
-                const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [propertyAccessExpression]);
+                const methodWrapCall = ts.createCall(ts.createIdentifier('__wrapper'), undefined, [propertyAccessExpression, propertyAccessExpression.expression]);
                 methodWrapCall.parent = propertyAccessExpression.parent;
                 return methodWrapCall;
             } else if (this.typeInfo.isResultFunctioinType(propertyAccessExpression)) {
@@ -234,7 +234,7 @@ export class PreprocessorLua {
         const methodBindCall = ts.createCall(
             ts.createIdentifier('__' + propertyAccessExpression.name.text),
             undefined,
-            [propertyAccessExpression.expression, ...callExpression.arguments]);
+            [propertyAccessExpression.expression, (<any>propertyAccessExpression.expression).expression, ...callExpression.arguments]);
         // do not use METHOD as parent, otherwise processCallExpression will mess up with return pareneters
         methodBindCall.parent = propertyAccessExpression.parent.parent;
         (<any>methodBindCall).__bind_call = true;
