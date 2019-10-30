@@ -253,17 +253,12 @@ export class EmitterLua {
         };                                                          \
     };                                                              \
                                                                     \
-    __call = __call || function(method: object, _this: object, ...params1: any[]) { \
+    __call = __call || function(method: object, _this: object, ...params: any[]) { \
         if (!method || typeof(method) !== "function") {             \
             return _this.call(...params);                           \
         }                                                           \
                                                                     \
-        const params = {...params1};                                \
-        if (params && params[0]) {                                  \
-            return method(_this, ...params);                        \
-        }                                                           \
-                                                                    \
-        return method(_this);                                       \
+        return method(_this, ...params);                            \
     };                                                              \
                                                                     \
     __apply = __apply || function(method: object, _this: object, ...params: any[]): any { \
@@ -3308,11 +3303,11 @@ export class EmitterLua {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        var typeNode = this.typeInfo.getTypeObject(node.expression);
-        var isVar = typeNode
-                    && typeNode.symbol
-                    && typeNode.symbol.valueDeclaration
-                    && typeNode.symbol.valueDeclaration.kind == ts.SyntaxKind.VariableDeclaration;
+
+        var symbol = this.resolver.getSymbolAtLocation(node.expression);
+        var isVar = symbol
+                    && symbol.valueDeclaration
+                    && symbol.valueDeclaration.kind == ts.SyntaxKind.VariableDeclaration;
         if (isVar)
         {
             this.processExpression(node.expression);
