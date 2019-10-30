@@ -2000,6 +2000,8 @@ export class EmitterLua {
                     this.functionContext.textCode.push(nameText);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(initializer);
+                } else if (ignoreDeclVar) {
+                    this.functionContext.textCode.push(nameText);
                 }
             }
         } else {

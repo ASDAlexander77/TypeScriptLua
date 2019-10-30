@@ -1,11 +1,5 @@
-	var a = 1;                                                             
-        function f() {                                                          
-		var b = 2;                                                          
-		console.log(a);                                                     
-		console.log(b);                                                     
-        }                                                                       
-                                                                                
-        f();                                                                    
-                                                                                
-        console.log(a);                                                         
-        console.log(b);                                                         
+        var person = {fname:"John", lname:"Doe", age:25};      
+                                                                
+        for (var x in person) {                                 
+            console.log(person[x]);                             
+        }                                                       
