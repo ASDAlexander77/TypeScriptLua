@@ -1,4 +1,4 @@
-	var grade:string = "A";                                
+var grade:string = "A";                                
         switch(grade) {                                         
            case "A": {                                          
               console.log("Excellent");                         
@@ -20,4 +20,4 @@
               console.log("Invalid choice");                    
               break;                                            
            }                                                    
-        }
+        }                                                       
