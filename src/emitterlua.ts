@@ -2514,9 +2514,11 @@ export class EmitterLua {
 
         let c = node;
         let statements: any = c.statements;
-        const lastStatement = c.statements[c.statements.length - 1];
-        if (lastStatement.kind === ts.SyntaxKind.BreakStatement) {
-            statements = c.statements.slice(0, c.statements.length - 1);
+        if (node.parent.kind === ts.SyntaxKind.CaseClause) {
+            const lastStatement = c.statements[c.statements.length - 1];
+            if (lastStatement.kind === ts.SyntaxKind.BreakStatement) {
+                statements = c.statements.slice(0, c.statements.length - 1);
+            }
         }
 
         statements.forEach(s => {
