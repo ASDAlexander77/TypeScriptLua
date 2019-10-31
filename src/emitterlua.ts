@@ -780,7 +780,7 @@ export class EmitterLua {
             this.functionContext.textCode.pushNewLineIncrement(")");
         }
 
-        this.emitBeginningOfFunctionScopeForVar(location);
+        //this.emitBeginningOfFunctionScopeForVar(location);
 
         // select all parameters with default values
         let firstUndefinedParam: ts.IfStatement;
@@ -842,14 +842,14 @@ export class EmitterLua {
             this.processStatement(s);
         });
 
+        if (!noReturn) {
+            //this.emitRestoreFunctionEnvironment(location);
+        }
+
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
             this.functionContext.textCode.decrement();
 
             this.functionContext.textCode.pushNewLine("end");
-        }
-
-        if (!noReturn) {
-            this.emitRestoreFunctionEnvironment(location);
         }
 
         this.functionContext.restoreLocalScope();
@@ -1934,6 +1934,7 @@ export class EmitterLua {
             ts.createIdentifier('_ENV'));
 
         this.processExpression(this.fixupParentReferences(storeCurrentEnv, location));
+        this.functionContext.textCode.pushNewLine();
 
         // creating new function env.
         const newEnv = ts.createAssignment(
@@ -1945,6 +1946,7 @@ export class EmitterLua {
                 ])]));
 
         this.processExpression(this.fixupParentReferences(newEnv, location));
+        this.functionContext.textCode.pushNewLine();
     }
 
     private emitRestoreFunctionEnvironment(node: ts.Node) {
@@ -3261,7 +3263,10 @@ export class EmitterLua {
             || parent.kind === ts.SyntaxKind.ImportDeclaration
             || parent.kind === ts.SyntaxKind.ForStatement
             || parent.kind === ts.SyntaxKind.ForInStatement
-            || parent.kind === ts.SyntaxKind.ForOfStatement;
+            || parent.kind === ts.SyntaxKind.ForOfStatement
+            || parent.kind === ts.SyntaxKind.FunctionDeclaration
+            || parent.kind === ts.SyntaxKind.MethodDeclaration
+            || parent.kind === ts.SyntaxKind.PropertyDeclaration;
     }
 
     private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
