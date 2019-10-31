@@ -841,10 +841,6 @@ export class EmitterLua {
         if (effectiveLocation.kind !== ts.SyntaxKind.SourceFile) {
             this.functionContext.restoreScope();
         }
-
-        if (this.functionContext.availableRegister !== 0) {
-            //throw new Error('stack is not cleaned up');
-        }
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
@@ -2065,7 +2061,7 @@ export class EmitterLua {
 
         //this.emitStoreToEnvObjectProperty(this.resolver.returnIdentifier(node.name.text, this.functionContext));
 
-        //this.emitExport(node.name, node);
+        this.emitExport(node.name, node);
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
@@ -2868,11 +2864,22 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.PlusEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" + ");
-                this.processExpression(node.right);
+
+                if (this.typeInfo.isTypeOfNode(node.left, 'string')
+                || this.typeInfo.isTypeOfNode(node.right, 'string')) {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" = ");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" .. ");
+                    this.processExpression(node.right);
+                } else {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" = ");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" + ");
+                    this.processExpression(node.right);
+                }
+
                 break;
             case ts.SyntaxKind.MinusEqualsToken:
                 this.processExpression(node.left);
