@@ -403,7 +403,7 @@ export class Preprocessor {
         for (let i = 0; i < length; i++) {
             let currentOrNewArgument = args[i];
             const parameter = parameters[i];
-            if (!parameter) {
+            if (!parameter || parameter.dotDotDotToken) {
                 continue;
             }
 
