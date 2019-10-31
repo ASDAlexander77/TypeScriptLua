@@ -2727,7 +2727,6 @@ export class EmitterLua {
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
-        let opCode;
         switch (node.operator) {
             case ts.SyntaxKind.MinusToken:
                 this.functionContext.textCode.push("-");
@@ -3500,6 +3499,13 @@ export class EmitterLua {
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
+
+        if ((<any>node.name).__len) {
+            this.functionContext.textCode.push("#");
+            this.processExpression(node.expression);
+            return;
+        }
+
         this.processExpression(node.expression);
 
         let thisCall = false;
@@ -3508,15 +3514,6 @@ export class EmitterLua {
             && node.parent.kind === ts.SyntaxKind.CallExpression
             && (<ts.CallExpression>node.parent).expression == node) {
             thisCall = true;
-
-            /*
-            const typeName = this.typeInfo.getTypeNameOfNode(node.expression);
-            const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
-            if (typeInfo)
-            {
-
-            }
-            */
         }
 
         // support __wrapper calls

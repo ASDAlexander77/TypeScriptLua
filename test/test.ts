@@ -1,6 +1,4 @@
-	function push(...objs: any[]) {                        
-            for (const obj of objs) {                           
-                console.log(obj);                               
-            }                                                   
-        }                                                       
-        push(1, 2, 3);                                          
+	var hello = "is";                                      
+        for (var _char of hello) {                              
+            console.log(<any>_char);                            
+        }
