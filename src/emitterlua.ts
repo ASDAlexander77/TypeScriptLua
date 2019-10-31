@@ -742,7 +742,9 @@ export class EmitterLua {
             this.functionContext.textCode.push("function ");
             if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration
                 && effectiveLocation.kind !== ts.SyntaxKind.GetAccessor
-                && effectiveLocation.kind !== ts.SyntaxKind.SetAccessor)
+                && effectiveLocation.kind !== ts.SyntaxKind.SetAccessor
+                && (effectiveLocation.parent.kind === ts.SyntaxKind.SourceFile
+                || effectiveLocation.parent.kind === ts.SyntaxKind.NamespaceKeyword))
             {
                 this.functionContext.textCode.push(name);
             }
