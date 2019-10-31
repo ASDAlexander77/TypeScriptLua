@@ -2830,7 +2830,7 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.CaretToken:
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" ^ ");
+                this.functionContext.textCode.push(" ~ ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.SlashToken:
@@ -2913,7 +2913,7 @@ export class EmitterLua {
                 this.processExpression(node.left);
                 this.functionContext.textCode.push(" = ");
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" ^ ");
+                this.functionContext.textCode.push(" ~ ");
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.SlashEqualsToken:
