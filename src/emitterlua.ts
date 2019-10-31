@@ -2292,12 +2292,21 @@ export class EmitterLua {
         this.processExpression(node.expression);
         this.functionContext.textCode.pushNewLineIncrement(") do")
 
+        this.functionContext.textCode.push("if not(string.char(string.byte(");
+        this.processExpression(<ts.Expression>node.initializer);
+        this.functionContext.textCode.push(", 1)) == '_' and string.char(string.byte(");
+        this.processExpression(<ts.Expression>node.initializer);
+        this.functionContext.textCode.pushNewLineIncrement(", 2)) == '_') then");
+
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
 
         if (this.hasContinue(node)) {
             this.functionContext.textCode.pushNewLine("::continue::")
         }
+
+        this.functionContext.textCode.push("end")
+        this.functionContext.textCode.decrement();
 
         this.functionContext.textCode.pushNewLine()
 

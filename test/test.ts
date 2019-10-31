@@ -1,13 +1,8 @@
-	let x;                                     
-        x = 5 & 1;                                  
-        console.log(x);                             
-        x = 5 | 1;                                  
-        console.log(x);                             
-        x = ~ 5;                                    
-        console.log(x);                             
-        x = 5 ^ 1;                                  
-        console.log(x);                             
-        x = 5 << 1;                                 
-        console.log(x);                             
-        x = 5 >> 1;                                 
-        console.log(x);                             
+	let person = {};                                       
+                                                                
+        let text = "";                                          
+        let x;                                                  
+        for (x in person) {                                     
+            text += person[x] + " ";                            
+        }                                                       
+        console.log(text);                                      
