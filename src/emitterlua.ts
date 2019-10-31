@@ -157,6 +157,19 @@ export class EmitterLua {
         return tostring(v);                                         \
     }                                                               \
                                                                     \
+    __equals = __equals || function (l, r) {                        \
+        if (l === r) {                                              \
+            return true;                                            \
+        }                                                           \
+                                                                    \
+        if (l === null && r === undefined                           \
+            || r === null && l === undefined) {                     \
+            return true;                                            \
+        }                                                           \
+                                                                    \
+        return false;                                               \
+    }                                                               \
+                                                                    \
     __get_call_undefined__ = __get_call_undefined__ || function (t, k) { \
         let get_: object = rawget(t, "__get__");                    \
         let getmethod: object = get_ && rawget(get_, k);            \
@@ -2977,9 +2990,11 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
+                this.functionContext.textCode.push("__equals(");
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" == ");
+                this.functionContext.textCode.push(", ");
                 this.processExpression(node.right);
+                this.functionContext.textCode.push(")");
                 break;
             case ts.SyntaxKind.EqualsEqualsEqualsToken:
                 this.processExpression(node.left);
@@ -2997,11 +3012,11 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.ExclamationEqualsToken:
-                this.functionContext.textCode.push("not(");
+                this.functionContext.textCode.push("not(__equals(");
                 this.processExpression(node.left);
-                this.functionContext.textCode.push(" == ");
+                this.functionContext.textCode.push(", ");
                 this.processExpression(node.right);
-                this.functionContext.textCode.push(")");
+                this.functionContext.textCode.push("))");
                 break;
             case ts.SyntaxKind.ExclamationEqualsEqualsToken:
                 this.functionContext.textCode.push("not(");
