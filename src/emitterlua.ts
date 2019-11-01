@@ -16,12 +16,6 @@ export class EmitterLua {
     private preprocessor: PreprocessorLua;
     private typeInfo: TypeInfo;
     private sourceFileName: string;
-    private opsMap = [];
-    private extraDebugEmbed = false;
-    private generateSourceMap = false;
-    private allowConstBigger255 = false;
-    // can be used for testing to load const separately
-    private splitConstFromOpCode = false;
     private jsLib: boolean;
     private varAsLet: boolean;
     private ignoreExtraLogic: boolean;
@@ -37,46 +31,9 @@ export class EmitterLua {
         this.preprocessor = new PreprocessorLua(this.resolver, this.typeInfo);
         this.functionContext = new FunctionContext();
 
-        this.opsMap[ts.SyntaxKind.PlusToken] = Ops.ADD;
-        this.opsMap[ts.SyntaxKind.MinusToken] = Ops.SUB;
-        this.opsMap[ts.SyntaxKind.AsteriskToken] = Ops.MUL;
-        this.opsMap[ts.SyntaxKind.PercentToken] = Ops.MOD;
-        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = Ops.POW;
-        this.opsMap[ts.SyntaxKind.SlashToken] = Ops.DIV;
-        this.opsMap[ts.SyntaxKind.AmpersandToken] = Ops.BAND;
-        this.opsMap[ts.SyntaxKind.BarToken] = Ops.BOR;
-        this.opsMap[ts.SyntaxKind.CaretToken] = Ops.BXOR;
-        this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = Ops.SHL;
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = Ops.SHR;
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = Ops.SHR;
-        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = Ops.EQ;
-        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = Ops.EQ;
-        this.opsMap[ts.SyntaxKind.LessThanToken] = Ops.LT;
-        this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = Ops.LE;
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = Ops.EQ;
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = Ops.EQ;
-        this.opsMap[ts.SyntaxKind.GreaterThanToken] = Ops.LE;
-        this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = Ops.LT;
-
-        this.opsMap[ts.SyntaxKind.PlusEqualsToken] = Ops.ADD;
-        this.opsMap[ts.SyntaxKind.MinusEqualsToken] = Ops.SUB;
-        this.opsMap[ts.SyntaxKind.AsteriskEqualsToken] = Ops.MUL;
-        this.opsMap[ts.SyntaxKind.PercentEqualsToken] = Ops.MOD;
-        this.opsMap[ts.SyntaxKind.AsteriskAsteriskEqualsToken] = Ops.POW;
-        this.opsMap[ts.SyntaxKind.SlashEqualsToken] = Ops.DIV;
-        this.opsMap[ts.SyntaxKind.AmpersandEqualsToken] = Ops.BAND;
-        this.opsMap[ts.SyntaxKind.BarEqualsToken] = Ops.BOR;
-        this.opsMap[ts.SyntaxKind.CaretEqualsToken] = Ops.BXOR;
-        this.opsMap[ts.SyntaxKind.LessThanLessThanEqualsToken] = Ops.SHL;
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = Ops.SHR;
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = Ops.SHR;
-
-        this.extraDebugEmbed = cmdLineOptions.extradebug ? true : false;
         if (options && options.outFile && singleModule) {
             this.fileModuleName = options.outFile;
         }
-
-        this.generateSourceMap = ((options && options.sourceMap) || false);
 
         this.jsLib = (
             options
@@ -861,17 +818,6 @@ export class EmitterLua {
 
         this.functionContext.newFileScope(sourceFile.fileName);
 
-        if (this.generateSourceMap) {
-            const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
-
-            // check if we have module declaration
-            if (this.singleModule) {
-                if (!this.fileModuleName) {
-                    this.fileModuleName = this.discoverModuleNode(sourceFile);
-                }
-            }
-        }
-
         this.functionContext.function_or_file_location_node = sourceFile;
 
         this.sourceFileName = sourceFile.fileName;
@@ -894,25 +840,6 @@ export class EmitterLua {
         const stackSize = this.markStack();
         this.processStatementInternal(node);
         this.rollbackUnused(stackSize);
-    }
-
-    private extraDebugTracePrint(node: ts.Node) {
-        let txt = '<no code> ' + ts.SyntaxKind[node.kind];
-
-        try {
-            const origin = <ts.Node>(<any>node).__origin;
-            if (origin && origin.pos >= 0) {
-                txt = origin.getText();
-            } else if (node.pos >= 0) {
-                txt = node.getText();
-            }
-        } catch (e) {
-        }
-
-        this.extraDebug([
-            ts.createStringLiteral(this.functionContext.code.getDebugLine()),
-            ts.createStringLiteral(' => '),
-            ts.createStringLiteral(txt.substring(0, 140))]);
     }
 
     private processStatementInternal(nodeIn: ts.Statement): void {
@@ -1383,14 +1310,6 @@ export class EmitterLua {
 
         // save into module
         this.emitSaveToNamespace(name, fullNamespace);
-    }
-
-    private extraDebug(args: ReadonlyArray<ts.Expression>) {
-        const extraPrint = ts.createCall(ts.createPropertyAccess(ts.createIdentifier('console'), 'log'), undefined, args);
-        const state = this.extraDebugEmbed;
-        this.extraDebugEmbed = false;
-        this.processExpression(extraPrint);
-        this.extraDebugEmbed = state;
     }
 
     private emitSaveToNamespace(name: ts.Identifier, fullNamespace?: boolean) {
@@ -2033,19 +1952,6 @@ export class EmitterLua {
     private processVariableStatement(node: ts.VariableStatement): void {
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
         this.processVariableDeclarationList(node.declarationList, isExport);
-    }
-
-    private emitStoreToEnvObjectProperty(nameConstIndex: ResolvedInfo) {
-        nameConstIndex = this.preprocessConstAndUpvalues(nameConstIndex);
-        this.stackCleanup(nameConstIndex);
-
-        const resolvedInfo = this.functionContext.stack.pop().optimize();
-
-        this.functionContext.code.push([
-            Ops.SETTABUP,
-            this.resolver.returnResolvedEnv(this.functionContext).getRegisterOrIndex(),
-            nameConstIndex.getRegisterOrIndex(),
-            resolvedInfo.getRegisterOrIndex()]);
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
@@ -3429,27 +3335,6 @@ export class EmitterLua {
         getSecondValue.parent = node.parent;
 
         this.processExpression(getSecondValue);
-    }
-
-    private preprocessConstAndUpvalues(resolvedInfo: ResolvedInfo): ResolvedInfo {
-        if (this.allowConstBigger255 && !this.splitConstFromOpCode) {
-            return resolvedInfo;
-        }
-
-        const can1 = resolvedInfo.canUseIndex();
-        if (can1 && !(this.splitConstFromOpCode && resolvedInfo.kind === ResolvedKind.Const)) {
-            return resolvedInfo;
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.Const) {
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            resultInfo.originalInfo = resolvedInfo.originalInfo;
-            resultInfo.popRequired = true;
-            this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            return resultInfo;
-        }
-
-        throw new Error('Not Implemented');
     }
 
     private stackCleanup(resolvedInfo: ResolvedInfo) {
