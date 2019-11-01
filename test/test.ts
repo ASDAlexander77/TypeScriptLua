@@ -1,22 +1,11 @@
-function f() {                             
-        const up3 = 3;                          
-        function ff() {                         
-            const up2 = 2;                      
-            function fff() {                    
-                const up1 = 1;                  
-                function ffff() {               
-                    const l = up1;              
-                    const m = up2;              
-                    const n = up3;              
-                    console.log(l);             
-                    console.log(m);             
-                    console.log(n);             
-                }                               
-                ffff();                         
-            }                                   
-            fff();                              
-        }                                       
-        ff();                                   
-    }                                           
-                                                
-    f();                                        
+         console.log(null || null);                     
+         console.log(0 || null);                        
+         console.log(1 || null);                        
+                                                        
+         console.log(null || 0);                        
+         console.log(0 || 0);                           
+         console.log(1 || 0);                           
+                                                        
+         console.log(null || 1);                        
+         console.log(0 || 1);                           
+         console.log(1 || 1);                           

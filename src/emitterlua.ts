@@ -49,7 +49,7 @@ export class EmitterLua {
     __type = __type || type;                                        \
                                                                     \
     __is_true = __is_true || function(inst:object) {                \
-        if (inst == false || inst == null || inst == 0 || inst == undefined) {   \
+        if (inst == false || inst == null || inst == 0 || inst == undefined) { \
             return false;                                           \
         }                                                           \
                                                                     \
@@ -67,6 +67,18 @@ export class EmitterLua {
     __assign = __assign || function(left:object, right:object) {    \
         left = right;                                               \
         return right;                                               \
+    };                                                              \
+                                                                    \
+    __or = __or || function(left:object, right:object) {            \
+        return __cond(left, left, right);                           \
+    };                                                              \
+                                                                    \
+    __and = __and || function(left:object, right:object) {          \
+        return __cond(left, right, left);                           \
+    };                                                              \
+                                                                    \
+    __not = __not || function(left:object) {                        \
+        return __is_true(left) ? false : true;                      \
     };                                                              \
                                                                     \
     ___type = ___type || function(inst:object) {                    \
@@ -700,8 +712,7 @@ export class EmitterLua {
             if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration
                 && effectiveLocation.kind !== ts.SyntaxKind.GetAccessor
                 && effectiveLocation.kind !== ts.SyntaxKind.SetAccessor
-                && this.isValueNotRequired(effectiveLocation.parent))
-            {
+                && this.isValueNotRequired(effectiveLocation.parent)) {
                 this.functionContext.textCode.push(name);
             }
 
@@ -789,9 +800,9 @@ export class EmitterLua {
                 .filter(p => p.dotDotDotToken)
                 .filter(p => this.hasUsedIdentifier((<ts.Identifier>p.name).text, effectiveLocation))
                 .forEach(p => {
-                const name = (<ts.Identifier>p.name).text;
-                this.functionContext.textCode.pushNewLine("local " + name + " = {...}; " + name + ".length = #" + name + "; " + name + "[0] = " + name + "[1]; table.remove(" + name + ", 1);");
-            });
+                    const name = (<ts.Identifier>p.name).text;
+                    this.functionContext.textCode.pushNewLine("local " + name + " = {...}; " + name + ".length = #" + name + "; " + name + "[0] = " + name + "[1]; table.remove(" + name + ", 1);");
+                });
         }
 
         statements.forEach(s => {
@@ -1793,7 +1804,7 @@ export class EmitterLua {
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
 
-        const ignoreDeclVar =  declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
+        const ignoreDeclVar = declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
 
         const varAsLet = this.varAsLet
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
@@ -2546,8 +2557,7 @@ export class EmitterLua {
         this.functionContext.textCode.decrement();
         this.functionContext.textCode.pushNewLine("}");
 
-        if (props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).length > 0)
-        {
+        if (props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).length > 0) {
             props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
                 // creating foreach loop for each spread object
                 const spreadAssignment = <ts.SpreadAssignment>e;
@@ -2806,7 +2816,7 @@ export class EmitterLua {
             case ts.SyntaxKind.PlusEqualsToken:
 
                 if (this.typeInfo.isTypeOfNode(node.left, 'string')
-                || this.typeInfo.isTypeOfNode(node.right, 'string')) {
+                    || this.typeInfo.isTypeOfNode(node.right, 'string')) {
                     this.processExpression(node.left);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(node.left);
@@ -2899,11 +2909,17 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
-                this.functionContext.textCode.push("__equals(");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(", ");
-                this.processExpression(node.right);
-                this.functionContext.textCode.push(")");
+                if (this.ignoreExtraLogic) {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" == ");
+                    this.processExpression(node.right);
+                } else {
+                    this.functionContext.textCode.push("__equals(");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(", ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(")");
+                }
                 break;
             case ts.SyntaxKind.EqualsEqualsEqualsToken:
                 this.processExpression(node.left);
@@ -2921,11 +2937,21 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.ExclamationEqualsToken:
-                this.functionContext.textCode.push("not(__equals(");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(", ");
-                this.processExpression(node.right);
-                this.functionContext.textCode.push("))");
+                if (this.ignoreExtraLogic) {
+                    this.functionContext.textCode.push("not(");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" == ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(")");
+                }
+                else
+                {
+                    this.functionContext.textCode.push("not(__equals(");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(", ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push("))");
+                }
                 break;
             case ts.SyntaxKind.ExclamationEqualsEqualsToken:
                 this.functionContext.textCode.push("not(");
@@ -2945,14 +2971,31 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.AmpersandAmpersandToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" and ");
-                this.processExpression(node.right);
+                if (this.ignoreExtraLogic) {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" and ");
+                    this.processExpression(node.right);
+                } else {
+                    this.functionContext.textCode.push("__and(");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(", ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(")");
+                }
+
                 break;
             case ts.SyntaxKind.BarBarToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" or ");
-                this.processExpression(node.right);
+                if (this.ignoreExtraLogic) {
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" or ");
+                    this.processExpression(node.right);
+                } else {
+                    this.functionContext.textCode.push("__or(");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(", ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(")");
+                }
                 break;
             case ts.SyntaxKind.InKeyword:
                 this.processExpression(node.left);
@@ -3289,18 +3332,16 @@ export class EmitterLua {
 
         var symbol = this.resolver.getSymbolAtLocation(node.expression);
         var isVar = symbol
-                    && symbol.valueDeclaration
-                    && symbol.valueDeclaration.kind == ts.SyntaxKind.VariableDeclaration;
-        if (isVar)
-        {
+            && symbol.valueDeclaration
+            && symbol.valueDeclaration.kind == ts.SyntaxKind.VariableDeclaration;
+        if (isVar) {
             this.processExpression(node.expression);
             this.functionContext.textCode.push('[0], ');
             this.functionContext.textCode.push('table.unpack(');
             this.processExpression(node.expression);
             this.functionContext.textCode.push(')');
         }
-        else
-        {
+        else {
             this.functionContext.textCode.push('...');
         }
     }
@@ -3347,64 +3388,6 @@ export class EmitterLua {
         this.functionContext.textCode.push((<ts.Identifier>node).text);
     }
 
-    private emitLoadValue(resolvedInfo: ResolvedInfo) {
-        if (resolvedInfo.kind === ResolvedKind.Register) {
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            resultInfo.originalInfo = resolvedInfo;
-            this.functionContext.code.push([Ops.MOVE, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            return;
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.Upvalue) {
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            resultInfo.originalInfo = resolvedInfo;
-            this.functionContext.code.push([Ops.GETUPVAL, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            return;
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.Const) {
-            if (resolvedInfo.value === null) {
-                const resultInfoNull = this.functionContext.useRegisterAndPush();
-                resultInfoNull.originalInfo = resolvedInfo;
-                this.functionContext.code.push([Ops.LOADNIL, resultInfoNull.getRegister(), 1]);
-                return;
-            }
-
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            resultInfo.originalInfo = resolvedInfo;
-            this.functionContext.code.push([Ops.LOADK, resultInfo.getRegister(), resolvedInfo.getRegisterOrIndex()]);
-            return;
-        }
-
-        if (resolvedInfo.kind === ResolvedKind.LoadGlobalMember) {
-            let objectIdentifierInfo = resolvedInfo.objectInfo;
-            let memberIdentifierInfo = resolvedInfo.memberInfo;
-            memberIdentifierInfo.isTypeReference = resolvedInfo.isTypeReference;
-            memberIdentifierInfo.isDeclareVar = resolvedInfo.isDeclareVar;
-            memberIdentifierInfo.isGlobalReference = resolvedInfo.isGlobalReference;
-            memberIdentifierInfo.declarationInfo = resolvedInfo.declarationInfo;
-
-            const resultInfo = this.functionContext.useRegisterAndPush();
-            resultInfo.originalInfo = memberIdentifierInfo;
-
-            objectIdentifierInfo = this.preprocessConstAndUpvalues(objectIdentifierInfo);
-            memberIdentifierInfo = this.preprocessConstAndUpvalues(memberIdentifierInfo);
-
-            this.functionContext.code.push(
-                [Ops.GETTABUP,
-                resultInfo.getRegister(),
-                objectIdentifierInfo.getRegisterOrIndex(),
-                memberIdentifierInfo.getRegisterOrIndex()]);
-
-            this.stackCleanup(memberIdentifierInfo);
-            this.stackCleanup(objectIdentifierInfo);
-
-            return;
-        }
-
-        throw new Error('Not Implemeneted');
-    }
-
     private popDependancy(target: ResolvedInfo, dependancy: ResolvedInfo) {
         dependancy.chainPop = target;
         target.hasPopChain = true;
@@ -3428,8 +3411,7 @@ export class EmitterLua {
             thisCall = true;
 
             const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
-            if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration)
-            {
+            if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration) {
                 thisCall = false;
             }
         }
