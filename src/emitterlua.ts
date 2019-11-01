@@ -64,11 +64,6 @@ export class EmitterLua {
         return falseValue;                                          \
     };                                                              \
                                                                     \
-    __assign = __assign || function(left:object, right:object) {    \
-        left = right;                                               \
-        return right;                                               \
-    };                                                              \
-                                                                    \
     __or = __or || function(left:object, right:object) {            \
         return __cond(left, left, right);                           \
     };                                                              \
