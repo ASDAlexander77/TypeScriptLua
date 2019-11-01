@@ -3267,6 +3267,7 @@ export class EmitterLua {
             || parent.kind === ts.SyntaxKind.MethodDeclaration
             || parent.kind === ts.SyntaxKind.PropertyDeclaration
             || parent.kind === ts.SyntaxKind.ModuleBlock
+            || parent.kind === ts.SyntaxKind.Block
             || parent.kind === ts.SyntaxKind.SourceFile;
     }
 
