@@ -99,8 +99,8 @@ describe('Variable Declarations', () => {
         'const numLivesForCat = 9;              \
         const kitty = {                         \
             name: "Aurora",                     \
-            numLives: numLivesForCat,           \
-        }                                       \
+            numLives: numLivesForCat            \
+        };                                      \
                                                 \
         kitty.name = "Rory";                    \
         kitty.name = "Kitty";                   \

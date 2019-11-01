@@ -743,8 +743,7 @@ export class EmitterLua {
             if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration
                 && effectiveLocation.kind !== ts.SyntaxKind.GetAccessor
                 && effectiveLocation.kind !== ts.SyntaxKind.SetAccessor
-                && (effectiveLocation.parent.kind === ts.SyntaxKind.SourceFile
-                || effectiveLocation.parent.kind === ts.SyntaxKind.NamespaceKeyword))
+                && !this.isValueNotRequired(effectiveLocation.parent))
             {
                 this.functionContext.textCode.push(name);
             }
@@ -3539,6 +3538,12 @@ export class EmitterLua {
             && node.parent.kind === ts.SyntaxKind.CallExpression
             && (<ts.CallExpression>node.parent).expression == node) {
             thisCall = true;
+
+            const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
+            if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration)
+            {
+                thisCall = false;
+            }
         }
 
         // support __wrapper calls

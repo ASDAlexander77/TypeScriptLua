@@ -1,5 +1,10 @@
-	function f() {                         
-            var message = "Hello, world!";      
-            return message;                     
+function f() {                         
+            var a = 10;                         
+            return function g() {               
+                var b = a + 1;                  
+                return b;                       
+            }                                   
         }                                       
-        console.log(f());                       
+                                                
+        var g = f();                            
+        console.log(g());                       
