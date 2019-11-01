@@ -2743,11 +2743,16 @@ export class EmitterLua {
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(node.right);
                 } else {
-                    this.functionContext.textCode.push("__assign(");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(", ");
+
+                    this.functionContext.textCode.push("(function () ");
+                    const opIndex = node.pos.toFixed();
+                    this.functionContext.textCode.push("local op" + opIndex + " = (");
                     this.processExpression(node.right);
-                    this.functionContext.textCode.push(")");
+                    this.functionContext.textCode.push(') ');
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" = op" + opIndex + " ");
+                    this.functionContext.textCode.push("return op" + opIndex + " ");
+                    this.functionContext.textCode.push("end)()");
                 }
 
                 break;

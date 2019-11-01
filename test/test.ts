@@ -1,12 +1,7 @@
 	let a;                                 
-        let b = 1;                              
+        let b;                                  
                                                 
-        function f() {                          
-            let s = null;                       
-            s();                                
-            return 2;                           
-        }                                       
-                                                
-        a = b || f();                           
+        a = b = 1;                              
                                                 
         console.log(a);                         
+        console.log(b);                         
