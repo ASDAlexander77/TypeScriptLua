@@ -743,7 +743,7 @@ export class EmitterLua {
             if (effectiveLocation.kind !== ts.SyntaxKind.MethodDeclaration
                 && effectiveLocation.kind !== ts.SyntaxKind.GetAccessor
                 && effectiveLocation.kind !== ts.SyntaxKind.SetAccessor
-                && !this.isValueNotRequired(effectiveLocation.parent))
+                && this.isValueNotRequired(effectiveLocation.parent))
             {
                 this.functionContext.textCode.push(name);
             }
@@ -3265,7 +3265,9 @@ export class EmitterLua {
             || parent.kind === ts.SyntaxKind.ForOfStatement
             || parent.kind === ts.SyntaxKind.FunctionDeclaration
             || parent.kind === ts.SyntaxKind.MethodDeclaration
-            || parent.kind === ts.SyntaxKind.PropertyDeclaration;
+            || parent.kind === ts.SyntaxKind.PropertyDeclaration
+            || parent.kind === ts.SyntaxKind.ModuleBlock
+            || parent.kind === ts.SyntaxKind.SourceFile;
     }
 
     private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
