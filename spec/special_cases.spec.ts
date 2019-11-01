@@ -4,23 +4,25 @@ import { describe, it } from 'mocha';
 
 describe('Special cases', () => {
 
-    it('Multiple assignments(local)', () => expect('1\r\n').to.equals(new Run().test([
+    it('Multiple assignments(local)', () => expect(new Run().test([
         'let a;                                 \
         let b;                                  \
                                                 \
         a = b = 1;                              \
                                                 \
         console.log(a);                         \
-    '])));
+        console.log(b);                         \
+    '])).to.equals('1\r\n1\r\n'));
 
-    it('Multiple assignments(global)', () => expect('1\r\n').to.equals(new Run().test([
+    it('Multiple assignments(global)', () => expect(new Run().test([
         'var a;                                 \
         var b;                                  \
                                                 \
         a = b = 1;                              \
                                                 \
         console.log(a);                         \
-    '])));
+        console.log(b);                         \
+    '])).to.equals('1\r\n1\r\n'));
 
     it('Or in assignments(local)', () => expect('1\r\n').to.equals(new Run().test([
         'let a;                                 \
