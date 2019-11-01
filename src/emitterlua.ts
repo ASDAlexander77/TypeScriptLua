@@ -2672,11 +2672,19 @@ export class EmitterLua {
                 this.processExpression(node.operand);
                 break;
             case ts.SyntaxKind.ExclamationToken:
-                this.functionContext.textCode.push("not(");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(")");
+                if (this.ignoreExtraLogic)
+                {
+                    this.functionContext.textCode.push("not(");
+                    this.processExpression(node.operand);
+                    this.functionContext.textCode.push(")");
+                }
+                else
+                {
+                    this.functionContext.textCode.push("__not(");
+                    this.processExpression(node.operand);
+                    this.functionContext.textCode.push(")");
+                }
                 break;
-
             case ts.SyntaxKind.PlusPlusToken:
                 this.processExpression(node.operand);
                 this.functionContext.textCode.push(" = ");
