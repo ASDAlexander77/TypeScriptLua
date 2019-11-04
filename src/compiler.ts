@@ -247,7 +247,7 @@ export class Run {
                     + s.fileName
                     + resetEscapeSequence);
                 const emitter = !binOutput
-                    ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory())
+                    ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, false)
                     : new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
 
                 emitter.processNode(s);
@@ -268,7 +268,7 @@ export class Run {
             });
         } else {
             const emitter = !binOutput
-                ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory())
+                ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, true)
                 : new Emitter(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
                 const paths = sources.filter(sf => s.fileName.endsWith(sf));
