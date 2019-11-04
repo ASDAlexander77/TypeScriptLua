@@ -2683,17 +2683,24 @@ export class EmitterLua {
     }
 
     private processParenthesizedExpression(node: ts.ParenthesizedExpression) {
-        this.functionContext.textCode.push("(");
+        const skip =
+            node.expression.kind !== ts.SyntaxKind.TypeAssertionExpression
+            && node.expression.kind !== ts.SyntaxKind.PropertyAccessExpression;
+        if (skip)
+        {
+            this.functionContext.textCode.push("(");
+        }
+
         this.processExpression(node.expression);
-        this.functionContext.textCode.push(")");
+
+        if (skip)
+        {
+            this.functionContext.textCode.push(")");
+        }
     }
 
     private processTypeAssertionExpression(node: ts.TypeAssertion) {
         this.processExpression(node.expression);
-
-        if (node.type.kind === ts.SyntaxKind.InterfaceDeclaration) {
-            //
-        }
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {

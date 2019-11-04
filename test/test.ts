@@ -1,7 +1,5 @@
-	let a = 1;                                             
-        let count = 0;                                          
-        while (a) {                                             
-            a--;                                                
-            count++;                                            
-        }                                                       
-        console.log(count);                                     
+        var a = { value: 1 };                         
+        console.log(<any>(++((<any>a).value)));        
+        console.log(<any>(--((<any>a).value)));        
+        console.log(<any>(((<any>a).value)++));        
+        console.log(<any>(((<any>a).value)--));        
