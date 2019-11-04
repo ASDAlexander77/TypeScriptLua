@@ -2902,7 +2902,6 @@ export class EmitterLua {
                 this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
-            case ts.SyntaxKind.AmpersandAmpersandToken:
                 if (this.ignoreExtraLogic) {
                     this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 } else {
@@ -2911,6 +2910,7 @@ export class EmitterLua {
 
                 break;
             case ts.SyntaxKind.BarBarToken:
+            case ts.SyntaxKind.AmpersandAmpersandToken:
                 if (this.ignoreExtraLogic) {
                     this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 } else {
@@ -2922,8 +2922,18 @@ export class EmitterLua {
 
                     this.functionContext.textCode.push("local op" + opIndex + " = ");
                     this.processExpression(node.left);
-                    this.functionContext.textCode.push(" if __is_true(op" + opIndex + ") then return op" + opIndex + " else return ");
-                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(" if __is_true(op" + opIndex + ") then");
+                    if (node.operatorToken.kind === ts.SyntaxKind.BarBarToken)
+                    {
+                        this.functionContext.textCode.push(" return op" + opIndex);
+                        this.functionContext.textCode.push(" else return ");
+                        this.processExpression(node.right);
+                    } else {
+                        this.functionContext.textCode.push(" return ");
+                        this.processExpression(node.right);
+                        this.functionContext.textCode.push(" else return op" + opIndex);
+                    }
+
                     this.functionContext.textCode.push(" end end)()");
                 }
 
