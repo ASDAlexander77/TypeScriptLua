@@ -73,6 +73,16 @@ export class PreprocessorLua {
 
     private preprocessCallExpression(callExpression: ts.CallExpression): ts.Expression {
 
+        // String -> tostring, Number -> tonumber
+        if (callExpression.expression.kind === ts.SyntaxKind.Identifier && callExpression.arguments.length === 1) {
+            const name = callExpression.expression.kind === ts.SyntaxKind.Identifier ? (<ts.Identifier>callExpression.expression).text : '';
+            if (name === 'String' || name === 'Number') {
+                const identExpr = ts.createIdentifier('to' + name.toLowerCase());
+                identExpr.parent = callExpression.expression.parent;
+                callExpression.expression = identExpr;
+            }
+        }
+
         // preprocess method paremeters when const string cast to String object required
         this.preprocessMethodCallParameters(callExpression);
 
