@@ -1,7 +1,3 @@
-	let a;                                 
-        let b;                                  
-                                                
-        a = b = 1;                              
-                                                
-        console.log(a);                         
-        console.log(b);                         
+	let a = { obj: "asd" };                    
+        delete a.obj;                               
+        console.log(a.obj || "none");               

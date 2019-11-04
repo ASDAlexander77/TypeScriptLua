@@ -3035,7 +3035,9 @@ export class EmitterLua {
         // we need to set it do undefined first
         const assignUndefined = ts.createAssignment(node.expression, ts.createIdentifier('undefined'));
         this.fixupParentReferences(assignUndefined, node);
+        assignUndefined.parent = node.parent;
         this.processExpression(assignUndefined);
+        this.functionContext.textCode.pushNewLine();
 
         // then delete using lua
         let obj;
