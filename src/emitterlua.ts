@@ -2737,6 +2737,7 @@ export class EmitterLua {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
+        const op = node.operator == ts.SyntaxKind.PlusPlusToken ? '+' : '-';
         switch (node.operator) {
             case ts.SyntaxKind.PlusPlusToken:
             case ts.SyntaxKind.MinusMinusToken:
@@ -2745,15 +2746,13 @@ export class EmitterLua {
                     this.processExpression(node.operand);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(node.operand);
-                    this.functionContext.textCode.push(" + 1");
+                    this.functionContext.textCode.push(" " + op + " 1");
                 } else {
                     this.functionContext.textCode.push("(function () ");
                     let opIndex = parseInt(node.pos.toFixed());
                     if (opIndex < 0) {
                         opIndex = 0;
                     }
-
-                    const op = node.operator == ts.SyntaxKind.PlusPlusToken ? '+' : '-';
 
                     this.functionContext.textCode.push("local op" + opIndex + " = (");
                     this.processExpression(node.operand);
