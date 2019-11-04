@@ -10,6 +10,8 @@ import { TypeInfo } from './typeInfo';
 export class EmitterLua {
     public writer: TextWriter = new TextWriter();
     public fileModuleName: string;
+    private ops: Map<ts.SyntaxKind, string> = [];
+    private funcOps: Map<ts.SyntaxKind, string> = [];
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
@@ -43,6 +45,47 @@ export class EmitterLua {
             || cmdLineOptions.jslib)
             ? true
             : false;
+
+            this.ops = new Map<ts.SyntaxKind, string>();
+            this.ops[ts.SyntaxKind.MinusToken] = '-';
+            this.ops[ts.SyntaxKind.AsteriskToken] = '*';
+            this.ops[ts.SyntaxKind.AsteriskAsteriskToken] = '**';
+            this.ops[ts.SyntaxKind.PercentToken] = '%';
+            this.ops[ts.SyntaxKind.CaretToken] = '~';
+            this.ops[ts.SyntaxKind.SlashToken] = '/';
+            this.ops[ts.SyntaxKind.AmpersandToken] = '&';
+            this.ops[ts.SyntaxKind.BarToken] = '|';
+            this.ops[ts.SyntaxKind.LessThanLessThanToken] = '<<';
+            this.ops[ts.SyntaxKind.GreaterThanGreaterThanToken] = '>>';
+            this.ops[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '>>';
+            this.ops[ts.SyntaxKind.GreaterThanToken] = '>';
+            this.ops[ts.SyntaxKind.GreaterThanEqualsToken] = '>=';
+            this.ops[ts.SyntaxKind.EqualsEqualsEqualsToken] = '==';
+            this.ops[ts.SyntaxKind.LessThanToken] = '<';
+            this.ops[ts.SyntaxKind.LessThanEqualsToken] = '<=';
+
+            this.ops[ts.SyntaxKind.InKeyword] = '~=';
+
+            this.ops[ts.SyntaxKind.MinusEqualsToken] = '-';
+            this.ops[ts.SyntaxKind.AsteriskEqualsToken] = '*';
+            this.ops[ts.SyntaxKind.AsteriskAsteriskEqualsToken] = '**';
+            this.ops[ts.SyntaxKind.PercentEqualsToken] = '%';
+            this.ops[ts.SyntaxKind.CaretEqualsToken] = '~';
+            this.ops[ts.SyntaxKind.SlashEqualsToken] = '/';
+            this.ops[ts.SyntaxKind.AmpersandEqualsToken] = '&';
+            this.ops[ts.SyntaxKind.BarEqualsToken] = '|';
+            this.ops[ts.SyntaxKind.LessThanLessThanEqualsToken] = '<<';
+            this.ops[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = '>>';
+            this.ops[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '>>';
+
+            this.ops[ts.SyntaxKind.EqualsEqualsToken] = '==';
+            this.ops[ts.SyntaxKind.AmpersandAmpersandToken] = 'and';
+            this.ops[ts.SyntaxKind.BarBarToken] = 'or';
+
+            this.funcOps = new Map<ts.SyntaxKind, string>();
+            this.funcOps[ts.SyntaxKind.EqualsEqualsToken] = 'equals';
+            this.funcOps[ts.SyntaxKind.AmpersandAmpersandToken] = 'and';
+            this.funcOps[ts.SyntaxKind.BarBarToken] = 'or';
     }
 
     private libCommon = '                                           \
@@ -56,20 +99,12 @@ export class EmitterLua {
         return true;                                                \
     };                                                              \
                                                                     \
-    __cond = __cond || function(cond:boolean, trueValue:object, falseValue:object) { \
-        if (__is_true(cond)) {                                      \
-            return trueValue;                                       \
-        }                                                           \
-                                                                    \
-        return falseValue;                                          \
-    };                                                              \
-                                                                    \
     __or = __or || function(left:object, right:object) {            \
-        return __cond(left, left, right);                           \
+        return __is_true(left) ? left : right;                      \
     };                                                              \
                                                                     \
     __and = __and || function(left:object, right:object) {          \
-        return __cond(left, right, left);                           \
+        return __is_true(left) ? right : left;                      \
     };                                                              \
                                                                     \
     __not = __not || function(left:object) {                        \
@@ -2667,14 +2702,12 @@ export class EmitterLua {
                 this.processExpression(node.operand);
                 break;
             case ts.SyntaxKind.ExclamationToken:
-                if (this.ignoreExtraLogic)
-                {
+                if (this.ignoreExtraLogic) {
                     this.functionContext.textCode.push("not(");
                     this.processExpression(node.operand);
                     this.functionContext.textCode.push(")");
                 }
-                else
-                {
+                else {
                     this.functionContext.textCode.push("__not(");
                     this.processExpression(node.operand);
                     this.functionContext.textCode.push(")");
@@ -2720,295 +2753,140 @@ export class EmitterLua {
     }
 
     private processConditionalExpression(node: ts.ConditionalExpression): void {
-        this.functionContext.textCode.push("__cond(");
+        this.functionContext.textCode.push("(function () if __is_true(");
         this.processExpression(node.condition);
-        this.functionContext.textCode.push(", ");
+        this.functionContext.textCode.push(") then return ");
         this.processExpression(node.whenTrue);
-        this.functionContext.textCode.push(", ");
+        this.functionContext.textCode.push(" else return ");
         this.processExpression(node.whenFalse);
+        this.functionContext.textCode.push(" end end)()");
+    }
+
+    private processBinaryExpressionEqual(node: ts.BinaryExpression): void {
+        if (this.isValueNotRequired(node.parent)) {
+            this.processExpression(node.left);
+            this.functionContext.textCode.push(" = ");
+            this.processExpression(node.right);
+        } else {
+
+            this.functionContext.textCode.push("(function () ");
+            const opIndex = node.pos.toFixed();
+            this.functionContext.textCode.push("local op" + opIndex + " = (");
+            this.processExpression(node.right);
+            this.functionContext.textCode.push(') ');
+            this.processExpression(node.left);
+            this.functionContext.textCode.push(" = ");
+            this.functionContext.textCode.push("op" + opIndex + " ");
+            this.functionContext.textCode.push("return op" + opIndex + " ");
+            this.functionContext.textCode.push("end)()");
+        }
+    }
+
+    private processBinaryExpressionSingleOp(node: ts.BinaryExpression, op: string): void {
+        this.processExpression(node.left);
+        this.functionContext.textCode.push(" " + op + " ");
+        this.processExpression(node.right);
+    }
+
+    private processBinaryExpressionEqualOp(node: ts.BinaryExpression, op: string): void {
+        this.processExpression(node.left);
+        this.functionContext.textCode.push(" = ");
+        this.processExpression(node.left);
+        this.functionContext.textCode.push(" " + op + " ");
+        this.processExpression(node.right);
+    }
+
+    private processBinaryExpressionFuncOp(node: ts.BinaryExpression, op: string): void {
+        this.functionContext.textCode.push("__" + op + "(");
+        this.processExpression(node.left);
+        this.functionContext.textCode.push(", ");
+        this.processExpression(node.right);
         this.functionContext.textCode.push(")");
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
         switch (node.operatorToken.kind) {
             case ts.SyntaxKind.EqualsToken:
-
-                if (this.isValueNotRequired(node.parent)) {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" = ");
-                    this.processExpression(node.right);
-                } else {
-
-                    this.functionContext.textCode.push("(function () ");
-                    const opIndex = node.pos.toFixed();
-                    this.functionContext.textCode.push("local op" + opIndex + " = (");
-                    this.processExpression(node.right);
-                    this.functionContext.textCode.push(') ');
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" = op" + opIndex + " ");
-                    this.functionContext.textCode.push("return op" + opIndex + " ");
-                    this.functionContext.textCode.push("end)()");
-                }
-
+                this.processBinaryExpressionEqual(node);
                 break;
             case ts.SyntaxKind.PlusToken:
-
                 if (this.typeInfo.isTypeOfNode(node.left, 'string')
                     || this.typeInfo.isTypeOfNode(node.right, 'string')) {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" .. ");
-                    this.processExpression(node.right);
+                    this.processBinaryExpressionSingleOp(node, '..');
                 }
                 else {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" + ");
-                    this.processExpression(node.right);
+                    this.processBinaryExpressionSingleOp(node, '+');
                 }
 
                 break;
             case ts.SyntaxKind.MinusToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" - ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.AsteriskToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" * ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.AsteriskAsteriskToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" ** ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.PercentToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" % ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.CaretToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" ~ ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.SlashToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" / ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.AmpersandToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" & ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.BarToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" | ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.LessThanLessThanToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" << ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.GreaterThanGreaterThanToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" >> ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" >> ");
-                this.processExpression(node.right);
+            case ts.SyntaxKind.GreaterThanToken:
+            case ts.SyntaxKind.GreaterThanEqualsToken:
+            case ts.SyntaxKind.EqualsEqualsEqualsToken:
+            case ts.SyntaxKind.LessThanToken:
+            case ts.SyntaxKind.LessThanEqualsToken:
+            case ts.SyntaxKind.InKeyword:
+                this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind]);
                 break;
-            case ts.SyntaxKind.PlusEqualsToken:
 
+            case ts.SyntaxKind.PlusEqualsToken:
                 if (this.typeInfo.isTypeOfNode(node.left, 'string')
                     || this.typeInfo.isTypeOfNode(node.right, 'string')) {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" = ");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" .. ");
-                    this.processExpression(node.right);
+                    this.processBinaryExpressionEqualOp(node, '..');
                 } else {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" = ");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" + ");
-                    this.processExpression(node.right);
+                    this.processBinaryExpressionEqualOp(node, '+');
                 }
 
                 break;
             case ts.SyntaxKind.MinusEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" - ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.AsteriskEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" * ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" ** ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.PercentEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" % ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.CaretEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" ~ ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.SlashEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" / ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.AmpersandEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" & ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.BarEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" | ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" << ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" >> ");
-                this.processExpression(node.right);
-                break;
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" >> ");
-                this.processExpression(node.right);
+                this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind]);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
+            case ts.SyntaxKind.AmpersandAmpersandToken:
+            case ts.SyntaxKind.BarBarToken:
                 if (this.ignoreExtraLogic) {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" == ");
-                    this.processExpression(node.right);
+                    this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind]);
                 } else {
-                    this.functionContext.textCode.push("__equals(");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(", ");
-                    this.processExpression(node.right);
-                    this.functionContext.textCode.push(")");
+                    this.processBinaryExpressionFuncOp(node, this.funcOps[node.operatorToken.kind]);
                 }
-                break;
-            case ts.SyntaxKind.EqualsEqualsEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" == ");
-                this.processExpression(node.right);
-                break;
-            case ts.SyntaxKind.LessThanToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" < ");
-                this.processExpression(node.right);
-                break;
-            case ts.SyntaxKind.LessThanEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" <= ");
-                this.processExpression(node.right);
+
                 break;
             case ts.SyntaxKind.ExclamationEqualsToken:
                 if (this.ignoreExtraLogic) {
                     this.functionContext.textCode.push("not(");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" == ");
-                    this.processExpression(node.right);
+                    this.processBinaryExpressionSingleOp(node, '==');
                     this.functionContext.textCode.push(")");
-                }
-                else
-                {
-                    this.functionContext.textCode.push("not(__equals(");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(", ");
-                    this.processExpression(node.right);
-                    this.functionContext.textCode.push("))");
-                }
-                break;
-            case ts.SyntaxKind.ExclamationEqualsEqualsToken:
-                this.functionContext.textCode.push("not(");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" == ");
-                this.processExpression(node.right);
-                this.functionContext.textCode.push(")");
-                break;
-            case ts.SyntaxKind.GreaterThanToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" > ");
-                this.processExpression(node.right);
-                break;
-            case ts.SyntaxKind.GreaterThanEqualsToken:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" >= ");
-                this.processExpression(node.right);
-                break;
-            case ts.SyntaxKind.AmpersandAmpersandToken:
-                if (this.ignoreExtraLogic) {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" and ");
-                    this.processExpression(node.right);
                 } else {
-                    this.functionContext.textCode.push("__and(");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(", ");
-                    this.processExpression(node.right);
+                    this.functionContext.textCode.push("not(");
+                    this.processBinaryExpressionFuncOp(node, "equals");
                     this.functionContext.textCode.push(")");
                 }
 
                 break;
-            case ts.SyntaxKind.BarBarToken:
-                if (this.ignoreExtraLogic) {
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(" or ");
-                    this.processExpression(node.right);
-                } else {
-                    this.functionContext.textCode.push("__or(");
-                    this.processExpression(node.left);
-                    this.functionContext.textCode.push(", ");
-                    this.processExpression(node.right);
-                    this.functionContext.textCode.push(")");
-                }
-                break;
-            case ts.SyntaxKind.InKeyword:
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(" ~= ");
-                this.processExpression(node.right);
+            case ts.SyntaxKind.ExclamationEqualsEqualsToken:
+                this.functionContext.textCode.push("not(");
+                this.processBinaryExpressionSingleOp(node, '==');
+                this.functionContext.textCode.push(")");
                 break;
             case ts.SyntaxKind.CommaToken:
                 this.processExpression(node.left);
@@ -3016,11 +2894,7 @@ export class EmitterLua {
                 this.processExpression(node.right);
                 break;
             case ts.SyntaxKind.InstanceOfKeyword:
-                this.functionContext.textCode.push("__instanceof(");
-                this.processExpression(node.left);
-                this.functionContext.textCode.push(", ");
-                this.processExpression(node.right);
-                this.functionContext.textCode.push(")");
+                this.processBinaryExpressionFuncOp(node, "instanceof");
                 break;
         }
     }
