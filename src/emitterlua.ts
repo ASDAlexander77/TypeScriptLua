@@ -24,8 +24,8 @@ export class EmitterLua {
     private ignoreExtraLogic: boolean;
 
     public constructor(
-        typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
-        private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
+        typeChecker: ts.TypeChecker, options: ts.CompilerOptions,
+        cmdLineOptions: any, private singleModule: boolean) {
 
         this.varAsLet = cmdLineOptions.varAsLet;
 
