@@ -712,17 +712,14 @@ export class EmitterLua {
         }
 
         if (parameters) {
-            let dotDotDotAny = false;
             parameters.forEach(p => {
                 const paramName = (<ts.Identifier>p.name).text;
                 if (addThisAsParameter && paramName === 'this') {
+                    addThisAsParameter = false;
                     return;
                 }
 
                 this.functionContext.createParam(paramName);
-                if (p.dotDotDotToken) {
-                    dotDotDotAny = true;
-                }
             });
         }
 
