@@ -10,8 +10,9 @@ import { TypeInfo } from './typeInfo';
 export class EmitterLua {
     public writer: TextWriter = new TextWriter();
     public fileModuleName: string;
-    private ops: Map<ts.SyntaxKind, string> = [];
-    private funcOps: Map<ts.SyntaxKind, string> = [];
+    private ops: Map<ts.SyntaxKind, string> = new Map<ts.SyntaxKind, string>();
+    private funcOps: Map<ts.SyntaxKind, string> = new Map<ts.SyntaxKind, string>();
+    private strOps: Map<ts.SyntaxKind, string> = new Map<ts.SyntaxKind, string>();
     private functionContextStack: Array<FunctionContext> = [];
     private functionContext: FunctionContext;
     private resolver: IdentifierResolver;
@@ -46,7 +47,7 @@ export class EmitterLua {
             ? true
             : false;
 
-            this.ops = new Map<ts.SyntaxKind, string>();
+            this.ops[ts.SyntaxKind.PlusToken] = '+';
             this.ops[ts.SyntaxKind.MinusToken] = '-';
             this.ops[ts.SyntaxKind.AsteriskToken] = '*';
             this.ops[ts.SyntaxKind.AsteriskAsteriskToken] = '**';
@@ -66,6 +67,7 @@ export class EmitterLua {
 
             this.ops[ts.SyntaxKind.InKeyword] = '~=';
 
+            this.ops[ts.SyntaxKind.PlusEqualsToken] = '+';
             this.ops[ts.SyntaxKind.MinusEqualsToken] = '-';
             this.ops[ts.SyntaxKind.AsteriskEqualsToken] = '*';
             this.ops[ts.SyntaxKind.AsteriskAsteriskEqualsToken] = '**';
@@ -82,10 +84,13 @@ export class EmitterLua {
             this.ops[ts.SyntaxKind.AmpersandAmpersandToken] = 'and';
             this.ops[ts.SyntaxKind.BarBarToken] = 'or';
 
-            this.funcOps = new Map<ts.SyntaxKind, string>();
             this.funcOps[ts.SyntaxKind.EqualsEqualsToken] = 'equals';
             this.funcOps[ts.SyntaxKind.AmpersandAmpersandToken] = 'and';
             this.funcOps[ts.SyntaxKind.BarBarToken] = 'or';
+            this.funcOps[ts.SyntaxKind.InstanceOfKeyword] = 'instanceof';
+
+            this.strOps[ts.SyntaxKind.PlusToken] = '..';
+            this.strOps[ts.SyntaxKind.PlusEqualsToken] = '..';
     }
 
     private libCommon = '                                           \
@@ -2768,7 +2773,6 @@ export class EmitterLua {
             this.functionContext.textCode.push(" = ");
             this.processExpression(node.right);
         } else {
-
             this.functionContext.textCode.push("(function () ");
             const opIndex = node.pos.toFixed();
             this.functionContext.textCode.push("local op" + opIndex + " = (");
@@ -2782,18 +2786,45 @@ export class EmitterLua {
         }
     }
 
-    private processBinaryExpressionSingleOp(node: ts.BinaryExpression, op: string): void {
+    private processBinaryExpressionSingleOp(node: ts.BinaryExpression, op: string, opForStringTypes?: string): void {
+        if (opForStringTypes
+            && (this.typeInfo.isTypeOfNode(node.left, 'string')
+                || this.typeInfo.isTypeOfNode(node.right, 'string'))) {
+            op = opForStringTypes;
+        }
+
         this.processExpression(node.left);
         this.functionContext.textCode.push(" " + op + " ");
         this.processExpression(node.right);
     }
 
-    private processBinaryExpressionEqualOp(node: ts.BinaryExpression, op: string): void {
-        this.processExpression(node.left);
-        this.functionContext.textCode.push(" = ");
-        this.processExpression(node.left);
-        this.functionContext.textCode.push(" " + op + " ");
-        this.processExpression(node.right);
+    private processBinaryExpressionEqualOp(node: ts.BinaryExpression, op: string, opForStringTypes?: string): void {
+        if (opForStringTypes
+            && (this.typeInfo.isTypeOfNode(node.left, 'string')
+                || this.typeInfo.isTypeOfNode(node.right, 'string'))) {
+            op = opForStringTypes;
+        }
+
+        if (this.isValueNotRequired(node.parent)) {
+            this.processExpression(node.left);
+            this.functionContext.textCode.push(" = ");
+            this.processExpression(node.left);
+            this.functionContext.textCode.push(" " + op + " ");
+            this.processExpression(node.right);
+        } else {
+            this.functionContext.textCode.push("(function () ");
+            const opIndex = node.pos.toFixed();
+            this.functionContext.textCode.push("local op" + opIndex + " = (");
+            this.processExpression(node.left);
+            this.functionContext.textCode.push(" " + op + " ");
+            this.processExpression(node.right);
+            this.functionContext.textCode.push(') ');
+            this.processExpression(node.left);
+            this.functionContext.textCode.push(" = ");
+            this.functionContext.textCode.push("op" + opIndex + " ");
+            this.functionContext.textCode.push("return op" + opIndex + " ");
+            this.functionContext.textCode.push("end)()");
+        }
     }
 
     private processBinaryExpressionFuncOp(node: ts.BinaryExpression, op: string): void {
@@ -2810,15 +2841,6 @@ export class EmitterLua {
                 this.processBinaryExpressionEqual(node);
                 break;
             case ts.SyntaxKind.PlusToken:
-                if (this.typeInfo.isTypeOfNode(node.left, 'string')
-                    || this.typeInfo.isTypeOfNode(node.right, 'string')) {
-                    this.processBinaryExpressionSingleOp(node, '..');
-                }
-                else {
-                    this.processBinaryExpressionSingleOp(node, '+');
-                }
-
-                break;
             case ts.SyntaxKind.MinusToken:
             case ts.SyntaxKind.AsteriskToken:
             case ts.SyntaxKind.AsteriskAsteriskToken:
@@ -2836,18 +2858,10 @@ export class EmitterLua {
             case ts.SyntaxKind.LessThanToken:
             case ts.SyntaxKind.LessThanEqualsToken:
             case ts.SyntaxKind.InKeyword:
-                this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind]);
+                this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 break;
 
             case ts.SyntaxKind.PlusEqualsToken:
-                if (this.typeInfo.isTypeOfNode(node.left, 'string')
-                    || this.typeInfo.isTypeOfNode(node.right, 'string')) {
-                    this.processBinaryExpressionEqualOp(node, '..');
-                } else {
-                    this.processBinaryExpressionEqualOp(node, '+');
-                }
-
-                break;
             case ts.SyntaxKind.MinusEqualsToken:
             case ts.SyntaxKind.AsteriskEqualsToken:
             case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
@@ -2859,17 +2873,20 @@ export class EmitterLua {
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-                this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind]);
+                this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
             case ts.SyntaxKind.AmpersandAmpersandToken:
             case ts.SyntaxKind.BarBarToken:
                 if (this.ignoreExtraLogic) {
-                    this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind]);
+                    this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 } else {
                     this.processBinaryExpressionFuncOp(node, this.funcOps[node.operatorToken.kind]);
                 }
 
+                break;
+            case ts.SyntaxKind.InstanceOfKeyword:
+                this.processBinaryExpressionFuncOp(node, this.funcOps[node.operatorToken.kind]);
                 break;
             case ts.SyntaxKind.ExclamationEqualsToken:
                 if (this.ignoreExtraLogic) {
@@ -2892,9 +2909,6 @@ export class EmitterLua {
                 this.processExpression(node.left);
                 this.functionContext.textCode.pushNewLine();
                 this.processExpression(node.right);
-                break;
-            case ts.SyntaxKind.InstanceOfKeyword:
-                this.processBinaryExpressionFuncOp(node, "instanceof");
                 break;
         }
     }
@@ -2940,27 +2954,6 @@ export class EmitterLua {
     }
 
     private processNewExpression(node: ts.NewExpression, extraCodeBeforeConstructor?: (arrayRef: ResolvedInfo) => void): void {
-
-        /*
-        // special cases: new Array and new Object
-        if (!this.jsLib) {
-            if (node.expression.kind === ts.SyntaxKind.Identifier && (!node.arguments || node.arguments.length === 0)) {
-                const name = node.expression.getText();
-                if (name === 'Object') {
-                    return this.processObjectLiteralExpression(ts.createObjectLiteral());
-                }
-
-                if (name === 'Array') {
-                    return this.processArrayLiteralExpression(ts.createArrayLiteral());
-                }
-
-                if (name === 'String') {
-                    return this.processStringLiteral(ts.createStringLiteral(''));
-                }
-            }
-        }
-        */
-
         this.functionContext.textCode.push("__new(");
         this.processExpression(node.expression);
 
@@ -2970,98 +2963,6 @@ export class EmitterLua {
         });
 
         this.functionContext.textCode.push(")");
-
-        /*
-        // throw exception if class is not defined
-        const condExpr = ts.createPrefix(ts.SyntaxKind.ExclamationToken, node.expression);
-        const throwExpr = ts.createThrow(ts.createStringLiteral('Class is not defined: ' + (<ts.Identifier>node.expression).text));
-
-        const throwIfClassIsNotDefined = ts.createIf(
-            condExpr,
-            throwExpr);
-
-        this.processStatement(this.fixupParentReferences(throwIfClassIsNotDefined, node));
-
-        this.processExpression(
-            ts.createObjectLiteral([
-                ts.createPropertyAssignment('__proto', node.expression),
-                ts.createPropertyAssignment('__index', node.expression)
-            ]));
-        const resultInfo = this.functionContext.stack.peek();
-
-        this.emitSetMetatableCall(resultInfo);
-
-        if (extraCodeBeforeConstructor) {
-            extraCodeBeforeConstructor(resultInfo);
-        }
-
-        // call constructor
-        const methodInfo = this.functionContext.useRegisterAndPush();
-        let constructorInfo = this.resolver.returnConst('constructor', this.functionContext);
-
-        const reserveSpace = this.functionContext.useRegisterAndPush();
-        constructorInfo = this.preprocessConstAndUpvalues(constructorInfo);
-
-        this.functionContext.code.push([
-            Ops.SELF,
-            methodInfo.getRegister(),
-            resultInfo.getRegister(),
-            constructorInfo.getRegisterOrIndex()]);
-
-        this.stackCleanup(constructorInfo);
-        // cleanup of reserve
-        this.functionContext.stack.pop();
-
-        // to reserve 'this' register
-        this.functionContext.useRegisterAndPush();
-
-        // in case of empty constructor we need to skip call
-        // test for null
-        this.functionContext.code.push([Ops.TEST, methodInfo.getRegister(), 0]);
-        const jmpOp = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(jmpOp);
-        const beforeBlock = this.functionContext.code.length;
-
-        // test for undefined
-        this.processIndentifier(this.fixupParentReferences(ts.createIdentifier('undefined'), node));
-        const undefInfo = this.functionContext.stack.pop();
-
-        this.functionContext.code.push([Ops.EQ, 1, methodInfo.getRegister(), undefInfo.getRegister()]);
-        const jmpOp2 = [Ops.JMP, 0, 0];
-        this.functionContext.code.push(jmpOp2);
-        const beforeBlock2 = this.functionContext.code.length;
-
-        this.emitCallOfLoadedMethod(
-            <ts.CallExpression><any>{ parent: node, 'arguments': node.arguments || [] },
-            resultInfo,
-            true);
-
-        jmpOp2[2] = this.functionContext.code.length - beforeBlock2;
-        jmpOp[2] = this.functionContext.code.length - beforeBlock;
-        */
-    }
-
-    private emitSetMetatableCall(resultInfo: ResolvedInfo) {
-        this.processExpression(ts.createIdentifier('setmetatable'));
-        const setmetatableInfo = this.functionContext.stack.peek();
-        // call setmetatable(obj, obj)
-        const param1Info = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.MOVE, param1Info.getRegister(), resultInfo.getRegisterOrIndex()
-        ]);
-        const param2Info = this.functionContext.useRegisterAndPush();
-        this.functionContext.code.push([
-            Ops.MOVE, param2Info.getRegister(), resultInfo.getRegisterOrIndex()
-        ]);
-        // call setmetatable
-        this.functionContext.code.push([
-            Ops.CALL, setmetatableInfo.getRegister(), 3, 1
-        ]);
-
-        // call cleanup
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
-        this.functionContext.stack.pop();
     }
 
     private processCallExpression(node: ts.CallExpression): void {
@@ -3102,81 +3003,6 @@ export class EmitterLua {
             || parent.kind === ts.SyntaxKind.ModuleBlock
             || parent.kind === ts.SyntaxKind.Block
             || parent.kind === ts.SyntaxKind.SourceFile;
-    }
-
-    private emitCallOfLoadedMethod(node: ts.CallExpression, _thisForNew?: ResolvedInfo, constructorCall?: boolean) {
-        let wrapCallMethod = false;
-        node.arguments.forEach(a => {
-            // pop method arguments
-            this.processExpression(a);
-            if ((<any>a).__self_call_required) {
-                wrapCallMethod = true;
-            }
-        });
-        node.arguments.forEach(a => {
-            this.functionContext.stack.pop();
-        });
-        if (_thisForNew) {
-            this.functionContext.stack.pop();
-        }
-
-        const methodResolvedInfo = this.functionContext.stack.pop();
-        // TODO: temporary solution: if method called in Statement then it is not returning value
-        const parent = node.parent;
-        const noReturnCall = constructorCall || this.isValueNotRequired(parent);
-        let isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = parent && parent.kind === ts.SyntaxKind.SpreadElement;
-        if (!isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral
-            && parent
-            && (parent.kind === ts.SyntaxKind.CallExpression
-                || parent.kind === ts.SyntaxKind.NewExpression)) {
-            // check if it last call method argument
-            const callMethod = <ts.CallExpression>parent;
-            if (callMethod.arguments.length > 0 && callMethod.arguments[callMethod.arguments.length - 1] === node) {
-                isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
-            }
-        }
-
-        if (!isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral
-            && parent
-            && (parent.kind === ts.SyntaxKind.ArrayLiteralExpression)) {
-            // check if it last element
-            const callMethod = <ts.ArrayLiteralExpression>parent;
-            if (callMethod.elements.length > 0 && callMethod.elements[callMethod.elements.length - 1] === node) {
-                isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
-            }
-        }
-
-        if (!isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral
-            && parent
-            && parent.kind === ts.SyntaxKind.ReturnStatement) {
-            // support variable return
-            const ret = this.GetVariableReturn();
-            if (ret) {
-                isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral = true;
-            }
-        }
-
-        const returnCount = noReturnCall ? 1 : isLastMethodArgumentCallOrSpreadElementOrLastOfArrayLiteral ? 0 : 2;
-        if (returnCount !== 1) {
-            this.functionContext.useRegisterAndPush();
-        }
-
-        // parameters number
-        let parametersNumber = node.arguments.length + 1 + (_thisForNew || wrapCallMethod ? 1 : 0);
-        if (node.arguments.some(a => a.kind === ts.SyntaxKind.SpreadElement)) {
-            parametersNumber = 0;
-        } else if (node.arguments.length === 1 && node.arguments.some(a => a.kind === ts.SyntaxKind.CallExpression)) {
-            // there is only 1 parameter and it is method call
-            parametersNumber = 0;
-        }
-
-        this.functionContext.code.push(
-            [
-                Ops.CALL,
-                methodResolvedInfo.getRegister(),
-                parametersNumber,
-                returnCount
-            ]);
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
