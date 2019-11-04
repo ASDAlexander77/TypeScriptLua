@@ -846,6 +846,13 @@ export class EmitterLua {
 
     private processFile(sourceFile: ts.SourceFile): void {
 
+        // check if we have module declaration
+        if (this.singleModule) {
+            if (!this.fileModuleName) {
+                this.fileModuleName = this.discoverModuleNode(sourceFile);
+            }
+        }
+
         this.functionContext.newFileScope(sourceFile.fileName);
 
         this.functionContext.function_or_file_location_node = sourceFile;

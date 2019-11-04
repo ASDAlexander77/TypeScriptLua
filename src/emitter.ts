@@ -860,8 +860,19 @@ export class Emitter {
 
         this.functionContext.newFileScope(sourceFile.fileName);
 
+        // check if we have module declaration
+        const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
+        if (this.singleModule) {
+            if (!this.fileModuleName) {
+                this.fileModuleName = this.discoverModuleNode(sourceFile);
+            }
+
+            if (this.fileModuleName) {
+                this.filePathLua = path.join(path.dirname(filePath), this.fileModuleName + '.lua');
+            }
+        }
+
         if (this.generateSourceMap) {
-            const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
             this.filePathLua = filePath.replace(/\.ts$/, '.lua');
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
@@ -888,7 +899,6 @@ export class Emitter {
                 (<any>this.sourceMapGenerator).__lastDebugLine = 0;
             }
         }
-
 
         this.functionContext.function_or_file_location_node = sourceFile;
 
