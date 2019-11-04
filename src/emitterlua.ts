@@ -108,6 +108,10 @@ export class EmitterLua {
         return __is_true(left) ? false : true;                      \
     };                                                              \
                                                                     \
+    __void = __void || function(left:object) {                      \
+        return undefined;                                           \
+    };                                                              \
+                                                                    \
     ___type = ___type || function(inst:object) {                    \
         const tp = __type(inst);                                    \
         return tp === "table" ? "object" : tp;                      \
@@ -720,9 +724,6 @@ export class EmitterLua {
                     dotDotDotAny = true;
                 }
             });
-
-            this.functionContext.numparams = parameters.length + (addThisAsParameter ? 1 : 0) /*- (dotDotDotAny ? 1 : 0)*/;
-            this.functionContext.is_vararg = dotDotDotAny;
         }
 
         // functino begin
@@ -874,9 +875,7 @@ export class EmitterLua {
     }
 
     private processStatement(node: ts.Statement): void {
-        const stackSize = this.markStack();
         this.processStatementInternal(node);
-        this.rollbackUnused(stackSize);
     }
 
     private processStatementInternal(nodeIn: ts.Statement): void {
@@ -921,9 +920,6 @@ export class EmitterLua {
 
     private processExpression(nodeIn: ts.Expression): void {
         const node = this.preprocessor.preprocessExpression(nodeIn);
-
-        // we need to process it for statements only
-        //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
 
         switch (node.kind) {
             case ts.SyntaxKind.NewExpression: this.processNewExpression(<ts.NewExpression>node); return;
@@ -1461,7 +1457,6 @@ export class EmitterLua {
                         statements: [
                             // super(xxx) call first
                             ...(firstStatements > 0 ? statements.slice(0, firstStatements) : []),
-                            ...this.getClassInitStepsToSupportGetSetAccessor(),
                             // initialized members
                             ...((<ts.ClassDeclaration>constructorDeclaration.parent).members
                                 .filter(cm => !this.isStaticProperty(cm)
@@ -1664,57 +1659,6 @@ export class EmitterLua {
             default:
                 throw new Error('Not Implemented');
         }
-    }
-
-    private getClassInitStepsToSupportGetSetAccessor_Old(memberDeclaration: ts.ClassElement): any {
-        const statements = [];
-        const node = <ts.ClassDeclaration>memberDeclaration.parent;
-        const anyGet = node.members.some(m => m.kind === ts.SyntaxKind.GetAccessor && !this.isStatic(m));
-        const anySet = node.members.some(m => m.kind === ts.SyntaxKind.SetAccessor && !this.isStatic(m));
-        if (!anyGet && !anySet) {
-            return statements;
-        }
-
-        if (anyGet) {
-            statements.push(ts.createStatement(
-                ts.createAssignment(
-                    ts.createPropertyAccess(ts.createThis(), '__index'),
-                    ts.createIdentifier('__get_call__'))));
-        }
-
-        if (anySet) {
-            statements.push(ts.createStatement(
-                ts.createAssignment(
-                    ts.createPropertyAccess(ts.createThis(), '__newindex'),
-                    ts.createIdentifier('__set_call__'))));
-        }
-
-        return statements;
-    }
-
-    private getClassInitStepsToSupportGetSetAccessor(): any {
-        const statements = [];
-        /*
-        statements.push(ts.createStatement(
-            ts.createAssignment(
-                ts.createPropertyAccess(ts.createThis(), '__index'),
-                ts.createConditional(
-                    ts.createBinary(
-                        ts.createTypeOf(ts.createPropertyAccess(ts.createThis(), '__index')),
-                        ts.SyntaxKind.EqualsEqualsEqualsToken,
-                        ts.createStringLiteral('function')),
-                    ts.createPropertyAccess(ts.createThis(), '__index'),
-                    ts.createIdentifier('__get_call_undefined__')))));
-        statements.push(ts.createStatement(
-            ts.createAssignment(
-                ts.createPropertyAccess(ts.createThis(), '__newindex'),
-                ts.createBinary(
-                    ts.createPropertyAccess(ts.createThis(), '__newindex'),
-                    ts.SyntaxKind.BarBarToken,
-                    ts.createIdentifier('__set_call_undefined__')))));
-        */
-
-        return statements;
     }
 
     private getInheritanceFirst(node: ts.ClassDeclaration): ts.Identifier {
@@ -2230,17 +2174,6 @@ export class EmitterLua {
         this.functionContext.restoreLocalScope();
     }
 
-    private markStack(): number {
-        return this.functionContext.stack.getLength();
-    }
-
-    private rollbackUnused(stack: number) {
-        if (stack < this.functionContext.stack.getLength()) {
-            // we need to remove unused value
-            this.functionContext.stack.pop();
-        }
-    }
-
     private processForInStatement(node: ts.ForInStatement): void {
         this.functionContext.newLocalScope(node);
         this.processForInStatementNoScope(node);
@@ -2394,24 +2327,8 @@ export class EmitterLua {
         this.functionContext.textCode.push("break");
     }
 
-    private resolveBreakJumps(jump?: number) {
-        this.functionContext.breaks.forEach(b => {
-            this.functionContext.code.codeAt(b)[2] = (jump ? jump : this.functionContext.code.length) - b - 1;
-        });
-
-        this.functionContext.breaks = [];
-    }
-
     private processContinueStatement(node: ts.ContinueStatement) {
         this.functionContext.textCode.push("goto continue");
-    }
-
-    private resolveContinueJumps(jump?: number) {
-        this.functionContext.continues.forEach(c => {
-            this.functionContext.code.codeAt(c)[2] = (jump ? jump : this.functionContext.code.length) - c - 1;
-        });
-
-        this.functionContext.continues = [];
     }
 
     private processSwitchStatement(node: ts.SwitchStatement) {
@@ -3072,11 +2989,9 @@ export class EmitterLua {
 
     private processVoidExpression(node: ts.VoidExpression): void {
         // call expression
+        this.functionContext.textCode.push("__void(");
         this.processExpression(node.expression);
-        this.functionContext.stack.pop();
-
-        // convert it into null
-        this.processExpression(ts.createIdentifier('undefined'));
+        this.functionContext.textCode.push(")");
     }
 
     private processNonNullExpression(node: ts.NonNullExpression): void {
@@ -3137,19 +3052,8 @@ export class EmitterLua {
         this.processExpression(getSecondValue);
     }
 
-    private stackCleanup(resolvedInfo: ResolvedInfo) {
-        if (resolvedInfo.popRequired) {
-            this.functionContext.stack.pop();
-        }
-    }
-
     private processIndentifier(node: ts.Identifier): void {
         this.functionContext.textCode.push((<ts.Identifier>node).text);
-    }
-
-    private popDependancy(target: ResolvedInfo, dependancy: ResolvedInfo) {
-        dependancy.chainPop = target;
-        target.hasPopChain = true;
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
