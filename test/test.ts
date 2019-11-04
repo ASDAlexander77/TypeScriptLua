@@ -1,5 +1,12 @@
-        var a = { value: 1 };                         
-        console.log(<any>(++((<any>a).value)));        
-        console.log(<any>(--((<any>a).value)));        
-        console.log(<any>(((<any>a).value)++));        
-        console.log(<any>(((<any>a).value)--));        
+	function _x() {                      
+            console.log(1);                   
+            return 1;                         
+        }                                     
+
+        function _y() {                       
+            console.log(2);                   
+            return 2;                         
+        }                                     
+                                              
+        console.log(_x() || _x() == 0 ? _x() : _y());     
+        console.log(!_x() && _x() != 0 ? _x() : _y());

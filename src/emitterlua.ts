@@ -2903,11 +2903,28 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
             case ts.SyntaxKind.AmpersandAmpersandToken:
-            case ts.SyntaxKind.BarBarToken:
                 if (this.ignoreExtraLogic) {
                     this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 } else {
                     this.processBinaryExpressionFuncOp(node, this.funcOps[node.operatorToken.kind]);
+                }
+
+                break;
+            case ts.SyntaxKind.BarBarToken:
+                if (this.ignoreExtraLogic) {
+                    this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
+                } else {
+                    this.functionContext.textCode.push("(function () ");
+                    let opIndex = parseInt(node.pos.toFixed());
+                    if (opIndex < 0) {
+                        opIndex = 0;
+                    }
+
+                    this.functionContext.textCode.push("local op" + opIndex + " = ");
+                    this.processExpression(node.left);
+                    this.functionContext.textCode.push(" if __is_true(op" + opIndex + ") then return op" + opIndex + " else return ");
+                    this.processExpression(node.right);
+                    this.functionContext.textCode.push(" end end)()");
                 }
 
                 break;
