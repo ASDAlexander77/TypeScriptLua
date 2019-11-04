@@ -2719,16 +2719,12 @@ export class EmitterLua {
                 }
                 break;
             case ts.SyntaxKind.PlusPlusToken:
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" + 1");
-                break;
             case ts.SyntaxKind.MinusMinusToken:
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" - 1");
+                const binOp = ts.createBinary(
+                    node.operand,
+                    node.operator == ts.SyntaxKind.PlusPlusToken ? ts.SyntaxKind.PlusEqualsToken : ts.SyntaxKind.MinusEqualsToken,
+                    ts.createNumericLiteral('1'));
+                this.processExpression(this.fixupParentReferences(binOp, node.parent));
                 break;
 
             case ts.SyntaxKind.PlusToken:
@@ -2743,16 +2739,24 @@ export class EmitterLua {
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
         switch (node.operator) {
             case ts.SyntaxKind.PlusPlusToken:
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" = ");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" + 1");
-                break;
             case ts.SyntaxKind.MinusMinusToken:
+                this.functionContext.textCode.push("(function () ");
+                let opIndex = parseInt(node.pos.toFixed());
+                if (opIndex < 0) {
+                    opIndex = 0;
+                }
+
+                const op = node.operator == ts.SyntaxKind.PlusPlusToken ? '+' : '-';
+
+                this.functionContext.textCode.push("local op" + opIndex + " = (");
+                this.processExpression(node.operand);
+                this.functionContext.textCode.push(") ");
                 this.processExpression(node.operand);
                 this.functionContext.textCode.push(" = ");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" - 1");
+                this.functionContext.textCode.push("op" + opIndex + " + 1 ");
+                this.functionContext.textCode.push("return op" + opIndex + " ");
+                this.functionContext.textCode.push("end)()");
+
                 break;
         }
     }
@@ -2774,7 +2778,11 @@ export class EmitterLua {
             this.processExpression(node.right);
         } else {
             this.functionContext.textCode.push("(function () ");
-            const opIndex = node.pos.toFixed();
+            let opIndex = parseInt(node.pos.toFixed());
+            if (opIndex < 0) {
+                opIndex = 0;
+            }
+
             this.functionContext.textCode.push("local op" + opIndex + " = (");
             this.processExpression(node.right);
             this.functionContext.textCode.push(') ');
@@ -2813,7 +2821,11 @@ export class EmitterLua {
             this.processExpression(node.right);
         } else {
             this.functionContext.textCode.push("(function () ");
-            const opIndex = node.pos.toFixed();
+            let opIndex = parseInt(node.pos.toFixed());
+            if (opIndex < 0) {
+                opIndex = 0;
+            }
+
             this.functionContext.textCode.push("local op" + opIndex + " = (");
             this.processExpression(node.left);
             this.functionContext.textCode.push(" " + op + " ");
