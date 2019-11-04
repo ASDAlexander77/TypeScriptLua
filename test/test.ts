@@ -1,5 +1,4 @@
-	let a = 1;                             
-        console.log(++a);                       
-        console.log(--a);                       
-        console.log(a++);                       
-        console.log(a--);                       
+	var someArray = [9, 2, 5];                             
+        for (var item of someArray) {                           
+            console.log(item);                                  
+        }

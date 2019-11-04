@@ -2740,22 +2740,30 @@ export class EmitterLua {
         switch (node.operator) {
             case ts.SyntaxKind.PlusPlusToken:
             case ts.SyntaxKind.MinusMinusToken:
-                this.functionContext.textCode.push("(function () ");
-                let opIndex = parseInt(node.pos.toFixed());
-                if (opIndex < 0) {
-                    opIndex = 0;
+                if (this.isValueNotRequired(node.parent))
+                {
+                    this.processExpression(node.operand);
+                    this.functionContext.textCode.push(" = ");
+                    this.processExpression(node.operand);
+                    this.functionContext.textCode.push(" + 1");
+                } else {
+                    this.functionContext.textCode.push("(function () ");
+                    let opIndex = parseInt(node.pos.toFixed());
+                    if (opIndex < 0) {
+                        opIndex = 0;
+                    }
+
+                    const op = node.operator == ts.SyntaxKind.PlusPlusToken ? '+' : '-';
+
+                    this.functionContext.textCode.push("local op" + opIndex + " = (");
+                    this.processExpression(node.operand);
+                    this.functionContext.textCode.push(") ");
+                    this.processExpression(node.operand);
+                    this.functionContext.textCode.push(" = ");
+                    this.functionContext.textCode.push("op" + opIndex + " " + op + " 1 ");
+                    this.functionContext.textCode.push("return op" + opIndex + " ");
+                    this.functionContext.textCode.push("end)()");
                 }
-
-                const op = node.operator == ts.SyntaxKind.PlusPlusToken ? '+' : '-';
-
-                this.functionContext.textCode.push("local op" + opIndex + " = (");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(") ");
-                this.processExpression(node.operand);
-                this.functionContext.textCode.push(" = ");
-                this.functionContext.textCode.push("op" + opIndex + " + 1 ");
-                this.functionContext.textCode.push("return op" + opIndex + " ");
-                this.functionContext.textCode.push("end)()");
 
                 break;
         }
