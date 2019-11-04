@@ -24,7 +24,7 @@ function print() {
     Options:
      -jslib                                             Use JS library.
      -singleModule                                      Output single file.
-     -text                                              text output instead of byte codes
+     -bin                                               binary output instead of text
      -varAsLet                                          Use all 'var' variables as 'let'.
      `);
 }

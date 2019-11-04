@@ -205,11 +205,11 @@ export class Run {
     private generateBinary(
         program: ts.Program, sources: string[], outputExtention: string, options: ts.CompilerOptions, cmdLineOptions: any) {
 
-        console.log(ForegroundColorEscapeSequences.Pink + 'Generating binary files...' + resetEscapeSequence);
+        const binOutput = cmdLineOptions && cmdLineOptions.bin;
+        console.log(ForegroundColorEscapeSequences.Pink + 'Generating ' + (binOutput ? 'Binary' : 'Text') + ' files...' + resetEscapeSequence);
 
         const sourceFiles = program.getSourceFiles();
 
-        const textOutput = cmdLineOptions && cmdLineOptions.text;
         const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
         if (!isSingleModule) {
             sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
@@ -246,7 +246,7 @@ export class Run {
                     + ForegroundColorEscapeSequences.White
                     + s.fileName
                     + resetEscapeSequence);
-                const emitter = textOutput
+                const emitter = !binOutput
                     ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory())
                     : new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
 
@@ -267,7 +267,7 @@ export class Run {
                 fs.writeFileSync(fileName, emitter.writer.getBytes());
             });
         } else {
-            const emitter = textOutput
+            const emitter = !binOutput
                 ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory())
                 : new Emitter(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory());
             sourceFiles.forEach(s => {
@@ -293,7 +293,7 @@ export class Run {
             fs.writeFileSync(fileName, emitter.writer.getBytes());
         }
 
-        console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
+        console.log(ForegroundColorEscapeSequences.Pink + (binOutput ? 'Binary' : 'Text') + ' files have been generated...' + resetEscapeSequence);
     }
 
     public test(sources: string[], cmdLineOptions?: any): string {
@@ -302,7 +302,7 @@ export class Run {
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
         const tempLuaFiles = sources.map((s: string, index: number) => 'test' + index + '.lua');
 
-        const textOutput = true;//cmdLineOptions && cmdLineOptions.text;
+        const binOutput = cmdLineOptions && cmdLineOptions.bin;
 
         // clean up
         tempSourceFiles.forEach(f => {
@@ -334,7 +334,7 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = textOutput
+                    const emitter = !binOutput
                         ? new EmitterLua(program.getTypeChecker(), undefined, cmdLineOptions || {}, false)
                         : new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
                     emitter.processNode(s);
