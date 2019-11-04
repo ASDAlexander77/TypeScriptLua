@@ -170,7 +170,7 @@ describe('Functions', () => {
             throw new Error(`Expected string or number, got \'${padding}\'.`);  \
         }                                                                       \
                                                                                 \
-        console.log(padLeft("Hello world", 4));                                 \
+        console.log(padLeft("Hello world", "4"));                               \
     '])));
 
     it('test function - method call by reference',  () => expect(new Run().test([
