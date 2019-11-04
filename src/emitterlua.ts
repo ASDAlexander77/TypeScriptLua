@@ -104,14 +104,6 @@ export class EmitterLua {
         return true;                                                \
     };                                                              \
                                                                     \
-    __or = __or || function(left:object, right:object) {            \
-        return __is_true(left) ? left : right;                      \
-    };                                                              \
-                                                                    \
-    __and = __and || function(left:object, right:object) {          \
-        return __is_true(left) ? right : left;                      \
-    };                                                              \
-                                                                    \
     __not = __not || function(left:object) {                        \
         return __is_true(left) ? false : true;                      \
     };                                                              \
@@ -152,14 +144,6 @@ export class EmitterLua {
                                                                     \
         return false;                                               \
     };                                                              \
-                                                                    \
-    __tostring = __tostring || function (v) {                       \
-        if (v === null || v === undefined) {                        \
-            return v;                                               \
-        }                                                           \
-                                                                    \
-        return tostring(v);                                         \
-    }                                                               \
                                                                     \
     __equals = __equals || function (l, r) {                        \
         if (l === r) {                                              \
@@ -2210,7 +2194,9 @@ export class EmitterLua {
             this.functionContext.textCode.push("while __is_true(")
         }
 
-        this.processExpression(node.condition);
+        if (node.condition) {
+            this.processExpression(node.condition);
+        }
 
         if (this.ignoreExtraLogic) {
             this.functionContext.textCode.pushNewLineIncrement(" do")
@@ -2226,7 +2212,10 @@ export class EmitterLua {
             this.functionContext.textCode.pushNewLine("::continue::")
         }
 
-        this.processExpression(node.incrementor);
+        if (node.incrementor) {
+            this.processExpression(node.incrementor);
+        }
+
         this.functionContext.textCode.pushNewLine()
 
         this.functionContext.textCode.push("end")
