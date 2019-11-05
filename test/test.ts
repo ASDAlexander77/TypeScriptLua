@@ -1,1 +1,3 @@
-a = "\t";
+declare var os: any;
+
+os.time();

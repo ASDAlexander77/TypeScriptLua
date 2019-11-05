@@ -3108,7 +3108,8 @@ export class EmitterLua {
             thisCall = true;
 
             const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
-            if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration) {
+            if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration
+                || this.typeInfo.isTypeOfNode(node.expression, 'any')) {
                 thisCall = false;
             }
         }
