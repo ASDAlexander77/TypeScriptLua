@@ -337,6 +337,7 @@ export class Run {
                     const emitter = !binOutput
                         ? new EmitterLua(program.getTypeChecker(), undefined, cmdLineOptions || {}, false)
                         : new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                    (<any>s).__path = currentFile;
                     emitter.processNode(s);
                     emitter.save();
 
