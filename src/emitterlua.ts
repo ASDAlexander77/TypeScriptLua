@@ -3150,7 +3150,12 @@ export class EmitterLua {
 
         this.fixupParentReferences(getOrCreateObjectExpr)
 
+        var logic = this.ignoreExtraLogic;
+        this.ignoreExtraLogic = true;
         this.processExpression(getOrCreateObjectExpr);
+        this.ignoreExtraLogic = logic;
+
+        this.functionContext.textCode.pushNewLine();
     }
 
     private emitFunction(functionContext: FunctionContext): void {
