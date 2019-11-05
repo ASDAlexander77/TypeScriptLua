@@ -2504,7 +2504,18 @@ export class EmitterLua {
         props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
             // set 0 element
             this.resolver.Scope.push(node);
-            this.processExpression(<ts.Expression><any>e.name);
+
+            if (e.name.kind === ts.SyntaxKind.NumericLiteral)
+            {
+                const calcProp = ts.createComputedPropertyName(e.name);
+                calcProp.parent = <any>e.name.parent;
+                this.processExpression(<ts.Expression><any>calcProp);
+            }
+            else
+            {
+                this.processExpression(<ts.Expression><any>e.name);
+            }
+
             this.resolver.Scope.pop();
 
             this.functionContext.textCode.push(" = ");
