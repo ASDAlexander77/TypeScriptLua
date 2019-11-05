@@ -288,7 +288,7 @@ export class EmitterLua {
             throw new Error("Prototype can\'t be undefined or null");\
         }                                                           \
                                                                     \
-        const obj = <any>{                                          \
+        const obj = {                                               \
             __index: __get_call_undefined__,                        \
             __proto: proto,                                         \
             __newindex: __set_call_undefined__,                     \

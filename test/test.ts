@@ -1,3 +1,3 @@
-declare var os: any;
+declare var os;
 
 os.time();
