@@ -6,6 +6,7 @@ import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
 import { Helpers } from './helpers';
 import { PreprocessorLua } from './preprocessorlua';
 import { TypeInfo } from './typeInfo';
+import { stringify } from 'querystring';
 
 export class EmitterLua {
     public writer: TextWriter = new TextWriter();
@@ -2440,7 +2441,24 @@ export class EmitterLua {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.functionContext.textCode.push("\"" + node.text.replace(/\\/g, "\\\\").replace(/(\r?\n)/g, "\\$1") + "\"");
+        const textVal = node.text;//.replace(/\\/g, "\\\\").replace(/(\r?\n)/g, "\\$1");
+        const chars = [];
+        for (let i = 0; i < textVal.length; i++) {
+            let n = textVal.charCodeAt(i);
+            if (n < 31) {
+                chars.push("\\" + n);
+            } else if (n == 92) {
+                chars.push("\\\\");
+            } else if (n == 34) {
+                chars.push("\\\"");
+            } else {
+                chars.push(textVal.charAt(i));
+            }
+        }
+
+        const textValFinal = chars.join('');
+
+        this.functionContext.textCode.push("\"" + textValFinal + "\"");
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
