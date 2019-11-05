@@ -65,16 +65,16 @@ module JS {
             return string.sub(this, (begin || 0) + 1, (begin || 0) + (len || string.len(this)));
         }
 
-        public static substring(this: string, begin?: number, end?: number): string {
-            if (begin == end && end == null || begin === end) {
+        public static substring(this: string, begin?: number, _end?: number): string {
+            if (begin == _end && _end == null || begin === _end) {
                 return '';
             }
 
-            return string.sub(this, (begin || 0) + 1, end != undefined ? end : null);
+            return string.sub(this, (begin || 0) + 1, _end != undefined ? _end : null);
         }
 
-        public static slice(this: string, start?: number, end?: number): string {
-            return string.sub(this, (start || 0) + 1, end != undefined ? end : null);
+        public static slice(this: string, start?: number, _end?: number): string {
+            return string.sub(this, (start || 0) + 1, _end != undefined ? _end : null);
         }
 
         public static indexOf(this: string, pattern: string, begin?: number): number {
@@ -175,9 +175,9 @@ module JS {
             return new String(this.constString.substr(begin, len));
         }
 
-        public substring(begin?: number, end?: number): String {
+        public substring(begin?: number, _end?: number): String {
             // tslint:disable-next-line:no-construct
-            return new String(this.constString.substring(begin, end));
+            return new String(this.constString.substring(begin, _end));
         }
 
         public indexOf(pattern: string, begin?: number): number {
@@ -188,9 +188,9 @@ module JS {
             return this.constString.split(separator);
         }
 
-        public slice(start?: number, end?: number): String {
+        public slice(start?: number, _end?: number): String {
             // tslint:disable-next-line:no-construct
-            return new String(this.constString.substring(start, end));
+            return new String(this.constString.substring(start, _end));
         }
 
         public toLowerCase(): String {

@@ -50,7 +50,7 @@ export class EmitterLua {
             this.ops[ts.SyntaxKind.PlusToken] = '+';
             this.ops[ts.SyntaxKind.MinusToken] = '-';
             this.ops[ts.SyntaxKind.AsteriskToken] = '*';
-            this.ops[ts.SyntaxKind.AsteriskAsteriskToken] = '**';
+            this.ops[ts.SyntaxKind.AsteriskAsteriskToken] = '^';
             this.ops[ts.SyntaxKind.PercentToken] = '%';
             this.ops[ts.SyntaxKind.CaretToken] = '~';
             this.ops[ts.SyntaxKind.SlashToken] = '/';
@@ -2440,7 +2440,7 @@ export class EmitterLua {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.functionContext.textCode.push("\"" + node.text.replace(/(\r?\n)/g, "\\$1") + "\"");
+        this.functionContext.textCode.push("\"" + node.text.replace(/\\/g, "\\\\").replace(/(\r?\n)/g, "\\$1") + "\"");
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {

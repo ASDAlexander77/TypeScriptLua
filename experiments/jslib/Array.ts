@@ -329,7 +329,7 @@ module JS {
             return retArr;
         }
 
-        public slice(begin?: number, end?: number): T[] {
+        public slice(begin?: number, _end?: number): T[] {
             const retArr = new Array<T>();
 
             const from = begin || 0;
@@ -337,7 +337,7 @@ module JS {
                 throw new Error(`Index out of bounds: ${from}`);
             }
 
-            let to = end || this.length;
+            let to = _end || this.length;
             if (to > this.length) {
                 to = this.length;
             }
