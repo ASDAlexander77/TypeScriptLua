@@ -1,3 +1,6 @@
 [submodule "thirdparty/Babylon.js"]
 	path = thirdparty/Babylon.js
 	url = https://github.com/BabylonJS/Babylon.js.git
+[submodule "thirdparty/pcre2"]
+	path = thirdparty/pcre2
+	url = https://github.com/PCRE2Project/pcre2
