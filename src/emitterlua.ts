@@ -2506,10 +2506,10 @@ export class EmitterLua {
             const e: ts.ObjectLiteralElementLike = <ts.ObjectLiteralElementLike><any>node;
             this.resolver.Scope.push(node);
 
-            if (e.name.kind === ts.SyntaxKind.NumericLiteral)
+            if ((<any>e.name).kind === ts.SyntaxKind.NumericLiteral)
             {
-                const calcProp = ts.createComputedPropertyName(e.name);
-                calcProp.parent = <any>e.name.parent;
+                const calcProp = ts.createComputedPropertyName(<any>e.name);
+                calcProp.parent = (<any>e.name).parent;
                 this.processExpression(<ts.Expression><any>calcProp);
             }
             else
@@ -2547,7 +2547,15 @@ export class EmitterLua {
                 const spreadAssignment = <ts.SpreadAssignment>e;
 
                 this.functionContext.textCode.push('local obj_ = ');
-                this.processExpression((<any>node.parent).name);
+                let parent = node.parent;
+                while (parent) {
+                    if ((<any>parent).name) {
+                        break;
+                    }
+
+                    parent = parent.parent;
+                }
+                this.processExpression((<any>parent).name);
                 this.functionContext.textCode.pushNewLine();
 
                 const objLocal = ts.createIdentifier('obj_');
