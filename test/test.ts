@@ -1,2 +1,3 @@
-import glut from 'glut';
-glut.init();
+module BABYLON {
+    export const ToGammaSpace = 1 / 2.2;
+}

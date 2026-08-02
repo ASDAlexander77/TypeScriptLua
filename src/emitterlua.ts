@@ -1930,6 +1930,7 @@ export class EmitterLua {
                 this.processExpression(initializer);
 
                 if (isExport) {
+                    this.functionContext.textCode.pushNewLine();
                     this.emitExportInternal(name);
                 }
             }
