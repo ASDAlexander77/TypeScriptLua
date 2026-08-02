@@ -167,14 +167,14 @@ end
 
 __call = __call or function (method, _this, ...)
     if not(method) or not(___type((method)) == "function") then 
-        return _this:call(...)
+        return _this.call(...)
     end
     return method(_this, ...)
 end
 
 __apply = __apply or function (method, _this, ...)
     if not(method) or not(___type((method)) == "function") then 
-        return _this:apply(_this, ...)
+        return _this.apply(_this, ...)
     end
     return method(_this, ...)
 end
@@ -202,7 +202,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
 
     local isMethodDecoratorOrParameterDecorator = not(descriptorOrParameterIndex == undefined)
 
-    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op15142 = (Object:getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op15142 return op15142 end)() else return descriptorOrParameterIndex end end)() end end)()
+    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op15142 = (Object.getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op15142 return op15142 end)() else return descriptorOrParameterIndex end end)() end end)()
 
     local l = decors.length - 1
 
@@ -215,7 +215,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
     l = l - 1
     end
     if isMethodDecoratorOrParameterDecorator and protoOrDescriptorOrParameterIndex then 
-        Object:defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex)
+        Object.defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex)
     end
     return protoOrDescriptorOrParameterIndex
 end
@@ -1351,7 +1351,7 @@ ArrayBuffer = {
         if __is_true(__not(array_buffer)) then 
             error(__new(Error, "array_buffer module is not available"))
         end
-        local bufferNativeInstance = (function () local op450 = (array_buffer:new(sizeBytes)) this.bufferNativeInstance = op450 return op450 end)()
+        local bufferNativeInstance = (function () local op450 = (array_buffer.new(sizeBytes)) this.bufferNativeInstance = op450 return op450 end)()
 
     end
     ,
@@ -1748,7 +1748,7 @@ RegExp = {
                 end
                 
             end
-            this.nativeHandle = pcre2adapter:regcomp(pattern, flagsEnum)
+            this.nativeHandle = pcre2adapter.regcomp(pattern, flagsEnum)
         end
     end
     ,
@@ -1757,7 +1757,7 @@ RegExp = {
             return false
         end
         if __is_true(this.nativeHandle) then 
-            return pcre2adapter:regtest(this.nativeHandle, t)
+            return pcre2adapter.regtest(this.nativeHandle, t)
         end
         return __not(string.match(t, this:__getLuaPattern()))
     end
@@ -1767,7 +1767,7 @@ RegExp = {
             return false
         end
         if __is_true(this.nativeHandle) then 
-            local matchResult = pcre2adapter:regexec(this.nativeHandle, t, (function () if __is_true(not(this.lastIndex == undefined)) then return this.lastIndex + 1 else return nil end end)())
+            local matchResult = pcre2adapter.regexec(this.nativeHandle, t, (function () if __is_true(not(this.lastIndex == undefined)) then return this.lastIndex + 1 else return nil end end)())
 
             if __is_true(matchResult) then 
                 this.lastIndex = matchResult.index

@@ -12,6 +12,7 @@
       "alwaysStrict": true,
       "noImplicitAny": false, // turns off the rule, but reduces type safety
       "strictNullChecks": false,
+      "skipLibCheck": true,
       "typeRoots": [
         "node_modules/@types"
       ],

@@ -88,7 +88,7 @@ How to use JavaScript Library
 
 ```
 cd experiments\jslib
-node ../../__out/main.js -singleModule
+node ../../__out/src/main.js -singleModule
 ```
 
 2) Copy JS.lua into your folder where you run the compiled app.
@@ -121,7 +121,7 @@ console.log(howard.ElevatorPitch);
 ```
 
 ```
-node __out/main.js test.ts
+node __out/src/main.js test.ts
 ```
 
 4) Run it.
