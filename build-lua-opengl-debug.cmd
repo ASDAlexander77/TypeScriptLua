@@ -1,11 +1,11 @@
 IF NOT EXIST __dist MKDIR __dist
 
-IF "%VS150COMNTOOLS%" EQU "" set VS150COMNTOOLS=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\
+IF "%VS150COMNTOOLS%" EQU "" set VS150COMNTOOLS=C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\Tools\
 
 echo on
 
 rem Building Lua
-cd thirdparty\lua-build\
+cd thirdparty\lua-5.5.0-build\
 @call build.cmd win64 Debug
 cd ..\..\..\..
 
@@ -39,9 +39,9 @@ cd experiments\WebGLAdapter
 @call build.cmd win64 Debug
 cd ..\..\..\..
 
-rem Building FreeImage
-cd thirdparty\freeimage-build\
-@call build.cmd win64 Debug
+rem Building FreeImagr
+cd thirdparty\freeimage-3.19.11-build\
+@call build.cmd win64 Release
 cd ..\..\..\..
 
 rem Building FreeImage Adapter

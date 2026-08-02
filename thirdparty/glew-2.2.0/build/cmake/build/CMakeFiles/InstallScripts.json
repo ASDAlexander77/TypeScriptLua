@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

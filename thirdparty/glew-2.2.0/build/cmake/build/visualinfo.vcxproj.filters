@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="I:\TypeScriptLua\thirdparty\glew-2.2.0\src\visualinfo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="I:\TypeScriptLua\thirdparty\glew-2.2.0\build\cmake\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="I:\TypeScriptLua\thirdparty\glew-2.2.0\build\visualinfo.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E63F062A-9F91-327E-8802-1F0AF90B0E2F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -4,7 +4,7 @@ declare var process: any;
 
 try {
     new Run().run(Run.processFiles(process.argv), 'lua', Run.processOptions(process.argv));
-} catch (e) {
+} catch (e:any) {
     if (e.message.indexOf(`Could not find a valid 'tsconfig.json'`) !== -1) {
         print();
     } else {

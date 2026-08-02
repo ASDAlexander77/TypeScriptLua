@@ -6,7 +6,7 @@ echo =
 echo =
 
 cd ..\jslib
-node ../../__out/main.js -singleModule
+node ../../__out/src/main.js -singleModule
 cd ../BABYLON
 
 xcopy /Y ..\jslib\JS.lua .\

@@ -12,7 +12,7 @@ if (MSVC)
     SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${MYCFLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4049 /ignore:4217")
 
-    set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/win64/${CMAKE_BUILD_TYPE}/lua53.lib")
+    set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-5.5.0-build/__build/win64/${CMAKE_BUILD_TYPE}/lua55.lib")
 
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set (CMAKE_DEBUG_POSTFIX d)	
@@ -29,7 +29,7 @@ else()
 
         SET(BUILD_ARCH "mingw32")
 
-	set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/mingw32/lua53.a")
+	set(LUA_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/lua-build/__build/mingw32/lua55.a")
 	
     else()
     	#SET(MYCFLAGS "-DLUA_USE_LINUX -DLUA_USE_READLINE")
@@ -57,15 +57,15 @@ file(GLOB FREEIMAGEADAPTER_SRC
     "${PROJECT_SOURCE_DIR}/freeimageadapter.c"
 )
 
-include_directories("${PROJECT_SOURCE_DIR}/../../thirdparty/lua/src/")
+include_directories("${PROJECT_SOURCE_DIR}/../../thirdparty/lua-5.5.0/src/")
 
 #-----------------------------------------------------------------------------
 # Configure FREEIMAGE
 
 if(WIN32)
-	set(FREEIMAGE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-3.18.0/Dist/x64")
+	set(FREEIMAGE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-3.19.11/Source")
 	if (MSVC)                                                       
-		set(FREEIMAGE_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-3.18.0/Dist/x64/Freeimage${CMAKE_DEBUG_POSTFIX}.lib")
+		set(FREEIMAGE_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-3.19.11/Build/${CMAKE_BUILD_TYPE}/Freeimage${CMAKE_DEBUG_POSTFIX}.lib")
 	else()
  		set(FREEIMAGE_LIBRARY "${CMAKE_SOURCE_DIR}/../../thirdparty/freeimage-build/__build/mingw32/freeimage.a")
 		set(CMAKE_SHARED_LIBRARY_PREFIX "")

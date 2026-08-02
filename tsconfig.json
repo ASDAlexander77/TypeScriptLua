@@ -1,15 +1,17 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
+      "rootDir": "./",
       "module": "commonjs",
       "target": "es2018",
       "outDir": "./__out",
       "sourceMap": true,
       "declaration": false,
-      "moduleResolution": "node",
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "alwaysStrict": true,
+      "noImplicitAny": false, // turns off the rule, but reduces type safety
+      "strictNullChecks": false,
       "typeRoots": [
         "node_modules/@types"
       ],

@@ -7,12 +7,12 @@
     "compiler"
   ],
   "license": "MIT",
-  "main": "__out/main.js",
+  "main": "__out/src/main.js",
   "name": "typescript_lua",
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "run": "node __out/main.js",
+    "run": "node __out/src/main.js",
     "test": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/**/*.spec.ts",
     "watch": "tsc -w -p ./",
     "lint": "tslint src/**/*.ts -t verbose",
@@ -21,7 +21,7 @@
     "prepublish": "prepublish_npm.cmd"
   },
   "bin": {
-    "tsc-lua": "./__out/main.js"
+    "tsc-lua": "./__out/src/main.js"
   },
   "bugs": {
     "url": "https://github.com/ASDAlexander77/TypeScriptLUA/issues"

@@ -63,7 +63,7 @@ print(howard.ElevatorPitch);
 ```
 
 ```
-node __out/main.js test.ts
+node __out/src/main.js test.ts
 ```
 
 Now you have test.lua

@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch Node.js (Test)",
             "preLaunchTask": "npm",
-            "program": "${workspaceFolder}/../__out/main.js",
+            "program": "${workspaceFolder}/../__out/src/main.js",
             "cwd": "${workspaceFolder}/../test",
             "args": [
                 "-varAsLet__",
@@ -22,7 +22,7 @@
             "request": "launch",
             "name": "Launch Node.js (JSLib)",
             "preLaunchTask": "npm",
-            "program": "${workspaceFolder}/../__out/main.js",
+            "program": "${workspaceFolder}/../__out/src/main.js",
             "cwd": "${workspaceFolder}/../experiments/jslib",
             "args": [
                 "-singleModule",
@@ -34,7 +34,7 @@
             "request": "launch",
             "name": "Launch Node.js (Babylon)",
             "preLaunchTask": "npm",
-            "program": "${workspaceFolder}/../__out/main.js",
+            "program": "${workspaceFolder}/../__out/src/main.js",
             "cwd": "${workspaceFolder}/../thirdparty/Babylon.js/src",
             "args": [
                 "-jslib",
@@ -47,7 +47,7 @@
             "request": "launch",
             "name": "Launch Node.js (Babylon Client)",
             "preLaunchTask": "npm",
-            "program": "${workspaceFolder}/../__out/main.js",
+            "program": "${workspaceFolder}/../__out/src/main.js",
             "cwd": "${workspaceFolder}/../experiments/BABYLON",
             "args": [
                 "-jslib",
@@ -60,7 +60,7 @@
             "request": "launch",
             "name": "Launch Node.js(Watch) (Babylon Client)",
             "preLaunchTask": "npm",
-            "program": "${workspaceFolder}/../__out/main.js",
+            "program": "${workspaceFolder}/../__out/src/main.js",
             "cwd": "${workspaceFolder}/../experiments/BABYLON",
             "args": [
                 "-watch",

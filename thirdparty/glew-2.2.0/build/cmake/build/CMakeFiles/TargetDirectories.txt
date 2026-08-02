@@ -1,0 +1,8 @@
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/glew.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/glew_s.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/glewinfo.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/visualinfo.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/uninstall.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/INSTALL.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/ALL_BUILD.dir
+I:/TypeScriptLua/thirdparty/glew-2.2.0/build/cmake/build/CMakeFiles/ZERO_CHECK.dir
