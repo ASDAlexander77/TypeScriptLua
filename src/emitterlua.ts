@@ -2391,6 +2391,12 @@ export class EmitterLua {
             count++;
         });
 
+        if (ignoreElse) // no last statement
+        {
+            this.functionContext.textCode.pop(); // rollback last 'or'
+            this.functionContext.textCode.pushNewLineIncrement(" then");
+        }
+
         this.functionContext.textCode.decrement();
         this.functionContext.textCode.push('end');
     }

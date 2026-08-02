@@ -184,6 +184,10 @@ export class TextCodeStorage {
 
     public decrement() {
         this.spaces -= 4;
+        if (this.spaces < 0) {
+            throw new Error('Indentation is negative');
+        }
+
         this.indent = " ".repeat(this.spaces);
 
         const v = this.code[this.code.length - 1];
