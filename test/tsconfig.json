@@ -24,7 +24,6 @@
     },
     "files": [
       "test.ts",
-      "test2.ts"
     ],
     "exclude": [
       "node_modules"

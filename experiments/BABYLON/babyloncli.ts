@@ -1,5 +1,3 @@
-debugger;
-
 import './JS';
 
 declare var arg: any;

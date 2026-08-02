@@ -1,3 +1,2 @@
-declare var os;
-
-os.time();
+import glut from 'glut';
+glut.init();
