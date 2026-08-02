@@ -13,9 +13,7 @@ package-lock.json
 /experiments/BABYLON/*.map
 /experiments/jslib/*.map
 __build
-/thirdparty/glew-2.2.0/build/vc15/tmp
-/thirdparty/glew-2.2.0/bin
-/thirdparty/glew-2.2.0/lib
+/thirdparty/glew-2.2.0
 /thirdparty/freeimage-3.18.0/Dist
 /thirdparty/freeimage-3.18.0/Wrapper/FreeImagePlus/dist 
 /thirdparty/freeimage-3.18.0/Wrapper/FreeImagePlus/x64

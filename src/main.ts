@@ -1,3 +1,4 @@
+import { exit } from 'process';
 import { Run } from './compiler';
 
 declare var process: any;
@@ -11,6 +12,8 @@ try {
         console.error(e.stack);
     }
 }
+
+exit(0);
 
 function print() {
     console.log(`Version 1.0.11

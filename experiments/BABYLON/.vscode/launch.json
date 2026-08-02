@@ -4,6 +4,14 @@
         {
             "type": "lua",
             "request": "launch",
+            "name": "Debug Babyloncli (Without PreLaunchTask)",
+            "cwd": "${workspaceFolder}",
+            //"program": "${workspaceFolder}/${command:AskForProgramName}",
+            "program": "${workspaceFolder}/babyloncli.lua",
+        },
+        {
+            "type": "lua",
+            "request": "launch",
             "name": "Debug Babyloncli",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "npm",
