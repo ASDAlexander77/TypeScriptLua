@@ -2792,8 +2792,9 @@ export class Emitter {
             callSetMetatable = true;
         }
 
-        props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+        props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((value: ts.Node, index: number) => {
             // set 0 element
+            const e: ts.ObjectLiteralElementLike = <ts.ObjectLiteralElementLike><any>node;
             this.resolver.Scope.push(node);
             this.processExpression(<ts.Expression><any>e.name);
             this.resolver.Scope.pop();
@@ -2817,7 +2818,8 @@ export class Emitter {
                 propertyValueInfo.getRegisterOrIndex()]);
         });
 
-        props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+        props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((value: ts.Node, index: number) => {
+            const e: ts.ObjectLiteralElementLike = <ts.ObjectLiteralElementLike><any>node;
             // creating foreach loop for each spread object
             const spreadAssignment = <ts.SpreadAssignment>e;
 
@@ -4220,7 +4222,7 @@ export class Emitter {
         }
 
         this.resolver.Scope.push(this.functionContext.stack.peek());
-        this.processExpression(node.name);
+        this.processExpression(<any>node.name);
         this.resolver.Scope.pop();
 
         let prefixPostfix = this.resolver.prefixPostfix;

@@ -2501,8 +2501,9 @@ export class EmitterLua {
             callSetMetatable = true;
         }
 
-        props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+        props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((node: ts.Node, index: number) => {
             // set 0 element
+            const e: ts.ObjectLiteralElementLike = <ts.ObjectLiteralElementLike><any>node;
             this.resolver.Scope.push(node);
 
             if (e.name.kind === ts.SyntaxKind.NumericLiteral)
@@ -2540,7 +2541,8 @@ export class EmitterLua {
         this.functionContext.textCode.pushNewLine("}");
 
         if (props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).length > 0) {
-            props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((e: ts.ObjectLiteralElementLike, index: number) => {
+            props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((node: ts.Node, index: number) => {
+                const e: ts.ObjectLiteralElementLike = <ts.ObjectLiteralElementLike><any>node;
                 // creating foreach loop for each spread object
                 const spreadAssignment = <ts.SpreadAssignment>e;
 
@@ -3132,7 +3134,7 @@ export class EmitterLua {
             this.functionContext.textCode.push(".");
         }
 
-        this.processExpression(node.name);
+        this.processExpression(<any>node.name);
     }
 
     private emitGetOrCreateObjectExpression(node: ts.Node, globalVariableName: string) {
