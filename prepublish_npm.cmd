@@ -20,8 +20,8 @@ del "packages\tsc-lua\*.lua"
 del "packages\tsc-lua\*.lua.map"
 
 @call tsc -p ./
-copy __out\*.js "packages\tsc-lua\lib"
-copy __out\*.js.map "packages\tsc-lua\lib"
+copy __out\src\*.js "packages\tsc-lua\lib"
+copy __out\src\*.js.map "packages\tsc-lua\lib"
 
 cd experiments\jslib
 node ../../__out/src/main.js -singleModule

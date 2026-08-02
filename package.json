@@ -16,7 +16,7 @@
     "test": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/**/*.spec.ts",
     "watch": "tsc -w -p ./",
     "lint": "tslint src/**/*.ts -t verbose",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc",
     "exec": "ts-node src/main.ts",
     "prepublish": "prepublish_npm.cmd"
   },
@@ -43,6 +43,6 @@
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.12.1",
-    "typescript": "^3.3.3333-dev"
+    "typescript": "^3.0.0"
   }
 }
