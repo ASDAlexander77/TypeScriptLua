@@ -1910,17 +1910,16 @@ export class EmitterLua {
     }
 
     private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, isLetOrConst: boolean, isExport?: boolean, ignoreDeclVar?: boolean) {
-        const nameText: string = name.text;
         const isModuleScope = this.functionContext.scope.isModule;
         if (!isModuleScope) {
-            const localVar = this.functionContext.findScopedLocal(nameText, true);
+            const localVar = this.functionContext.findScopedLocal(name.text, true);
             if (isLetOrConst && localVar === -1) {
 
                 if (!ignoreDeclVar) {
                     this.functionContext.textCode.push("local ");
                 }
 
-                this.functionContext.textCode.push(nameText);
+                this.processIndentifier(name);
 
                 if (!ignoreDeclVar || initializer) {
                     this.functionContext.textCode.push(" = ");
@@ -1935,7 +1934,7 @@ export class EmitterLua {
 
             } else if (localVar !== -1) {
                 if (initializer) {
-                    this.functionContext.textCode.push(nameText);
+                    this.processIndentifier(name);
                     this.functionContext.textCode.push(" = ");
 
                     this.processExpression(initializer);
@@ -1943,17 +1942,17 @@ export class EmitterLua {
             } else {
                 // var declaration
                 if (initializer) {
-                    this.functionContext.textCode.push(nameText);
+                    this.processIndentifier(name);
                     this.functionContext.textCode.push(" = ");
                     this.processExpression(initializer);
                 } else if (ignoreDeclVar) {
-                    this.functionContext.textCode.push(nameText);
+                    this.processIndentifier(name);
                 }
             }
         } else {
             // initialize module variable
             if (initializer) {
-                this.functionContext.textCode.push(nameText);
+                this.processIndentifier(name);
                 this.functionContext.textCode.push(" = ");
                 this.processExpression(initializer);
 
