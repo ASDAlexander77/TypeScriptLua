@@ -89,6 +89,7 @@ module JS {
         }
 
         public static defineProperty(obj: any, name: string, opts: any) {
+            if (opts == null) return;
             if (opts.get !== null) {
                 if (!obj.__get__) {
                     obj.__get__ = {};
