@@ -1,0 +1,6 @@
+// VSCode opens `src` as the workspace root, so tsserver never sees ../tsconfig.json
+// and falls back to an inferred project with default options. This makes the editor
+// use the real build settings. Paths inherited from the base resolve relative to it.
+{
+  "extends": "../tsconfig.json"
+}

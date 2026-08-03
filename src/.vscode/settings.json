@@ -1,4 +1,7 @@
 {
+    // use the project's TypeScript 3.9, not VSCode's bundled 5.x, so the editor
+    // and `npm run build` agree on what is an error
+    "typescript.tsdk": "../node_modules/typescript/lib",
     "files.exclude": {
         "**/node_modules/*/**": true,
         "**/*.lua": {

@@ -1,23 +1,23 @@
 {
 	"folders": [
 		{
-			"name": "TypeScript LUA Source"
+			"name": "TypeScript LUA Source",
 			"path": "./src"
 		},
 		{
-			"name": "TypeScript LUA Specs"
+			"name": "TypeScript LUA Specs",
 			"path": "./spec"
 		},
 		{
-			"name": "TypeScript LUA Tests"
+			"name": "TypeScript LUA Tests",
 			"path": "./test"
 		},
 		{
-			"name": "Experiments"
+			"name": "Experiments",
 			"path": "./experiments"
 		},
 		{
-			"name": "VSCode Lua Debugger"
+			"name": "VSCode Lua Debugger",
 			"path": "./vscode-lua-debug"
 		}
 	],
