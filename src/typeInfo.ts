@@ -55,6 +55,8 @@ export class TypeInfo {
         }
 
         this.getTypeNameOfNode(node);
+
+        // if __return_type present but __return_variable_type_declaration is not, it means that declaration is class and thus 'this' call is going to be static method
         return (<any>node).__return_variable_type_declaration;
     }
 
@@ -75,13 +77,21 @@ export class TypeInfo {
             // fallback scenario
             const symbol = this.resolver.getSymbolAtLocation(node);
             if (symbol && symbol.valueDeclaration) {
-                let nodeTypeHolder = (symbol.valueDeclaration.initializer) ? symbol.valueDeclaration.initializer : symbol.valueDeclaration;
-                if (nodeTypeHolder)
-                {
-                    detectType = this.resolver.getTypeAtLocation(nodeTypeHolder) || nodeTypeHolder;
-                    this.UnwrapUnionType(detectType);
-                    return detectType;
+                if (symbol.valueDeclaration.type) {
+                    detectType = symbol.valueDeclaration;
                 }
+                else for (const nodeTypeHolder of [symbol.valueDeclaration, symbol.valueDeclaration.initializer]) {
+                    if (nodeTypeHolder)
+                    {
+                        detectType = this.resolver.getTypeAtLocation(nodeTypeHolder) || nodeTypeHolder;
+                        detectType = this.UnwrapUnionType(detectType);
+                        if (detectType && detectType.intrinsicName !== 'error') {
+                            break;
+                        }
+                    }
+                }
+
+                return detectType;
             }
         }
 
@@ -126,7 +136,7 @@ export class TypeInfo {
                 }
             }
 
-            if (typeName) {
+            if (typeName && typeName != 'error') {
                 (<any>node).__return_type = typeName;
             }
 

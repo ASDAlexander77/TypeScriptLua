@@ -3209,6 +3209,9 @@ export class EmitterLua {
                 || typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration
                 || this.typeInfo.isTypeOfNode(node.expression, 'any')) {
                 thisCall = false;
+                if (!typeInfo && !(<any>node.expression).__return_type && (<any>node.expression).escapedText !== 'table') {
+                    console.warn("Warning: unable to determine type of expression for self call, disabling self call for " + node.getText());
+                }
             }
         }
 
