@@ -185,6 +185,7 @@ export class TextCodeStorage {
     public decrement() {
         this.spaces -= 4;
         if (this.spaces < 0) {
+            this.spaces = 0;
             throw new Error('Indentation is negative');
         }
 

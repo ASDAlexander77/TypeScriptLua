@@ -24,6 +24,30 @@ export class EmitterLua {
     private varAsLet: boolean;
     private ignoreExtraLogic: boolean;
 
+    private keywords: { [key: string]: boolean } = {
+        "and": true,
+        "break": true,
+        "do": true,
+        "else": true,
+        "elseif": true,
+        "end": true,
+        "false": true,
+        "for": true,
+        "function": true,
+        "if": true,
+        "in": true,
+        "local": true,
+        "nil": true,
+        "not": true,
+        "or": true,
+        "repeat": true,
+        "return": true,
+        "then": true,
+        "true": true,
+        "until": true,
+        "while": true
+    };
+
     public constructor(
         typeChecker: ts.TypeChecker, options: ts.CompilerOptions,
         cmdLineOptions: any, private singleModule: boolean) {
@@ -759,7 +783,7 @@ export class EmitterLua {
                         this.functionContext.textCode.push("...");
                     }
                     else if (p.name.kind === ts.SyntaxKind.Identifier) {
-                        this.functionContext.textCode.push(p.name.text);
+                        this.processIndentifier(<ts.Identifier>p.name);
                     }
 
                     this.functionContext.textCode.push(", ");
@@ -2338,6 +2362,7 @@ export class EmitterLua {
         this.functionContext.textCode.push("goto continue");
     }
 
+    // TOOD: fully rewrite it, to use labels as default case can be at any place
     private processSwitchStatement(node: ts.SwitchStatement) {
 
         var switchIndex = node.pos.toFixed();
@@ -2347,19 +2372,27 @@ export class EmitterLua {
         this.functionContext.textCode.pushNewLine();
 
         let count = 0;
-        let ignoreElse = false;
+        let ifSet = false;
+        let orSet = false;
+        let elseSet = false;
         node.caseBlock.clauses.forEach(c => {
-            if (count && !ignoreElse) {
+            if (count && !orSet) {
                 this.functionContext.textCode.decrement();
                 this.functionContext.textCode.push("else");
+                elseSet = true;
+            }
+
+            if (!orSet) {
+                this.functionContext.textCode.push("if ");
+                elseSet = false;
+                ifSet = true;
             }
 
             if (c.kind !== ts.SyntaxKind.DefaultClause) {
-                if (!ignoreElse) {
-                    this.functionContext.textCode.push("if ");
-                }
-
                 this.functionContext.textCode.push("op" + switchIndex + " == ");
+            }
+            else {
+                this.functionContext.textCode.push("True");
             }
 
             if (c.kind === ts.SyntaxKind.CaseClause) {
@@ -2369,10 +2402,9 @@ export class EmitterLua {
             }
 
             if (c.statements.length > 0) {
-                if (c.kind !== ts.SyntaxKind.DefaultClause) {
+                if (ifSet) {
                     this.functionContext.textCode.pushNewLineIncrement(" then");
-                } else {
-                    this.functionContext.textCode.pushNewLineIncrement();
+                    ifSet = false;
                 }
 
                 // case or default body
@@ -2383,22 +2415,29 @@ export class EmitterLua {
                 }
 
                 statements.forEach(s => this.processStatement(s));
-                ignoreElse = false;
+                orSet = false;
             } else {
                 this.functionContext.textCode.push(" or ");
-                ignoreElse = true;
+                orSet = true;
             }
 
             count++;
         });
 
-        if (ignoreElse) // no last statement
+        if (orSet) // no last statement
         {
             this.functionContext.textCode.pop(); // rollback last 'or'
             this.functionContext.textCode.pushNewLineIncrement(" then");
         }
 
-        this.functionContext.textCode.decrement();
+        if (elseSet) {
+            this.functionContext.textCode.pushNewLine();
+            elseSet = false;
+        }
+        else {
+            this.functionContext.textCode.decrement();
+        }
+
         this.functionContext.textCode.push('end');
     }
 
@@ -2699,7 +2738,7 @@ export class EmitterLua {
                 break;
 
             case ts.SyntaxKind.PlusToken:
-                this.functionContext.textCode.push("+");
+                //this.functionContext.textCode.push("+");
                 this.processExpression(node.operand);
                 break;
             default:
@@ -3104,7 +3143,10 @@ export class EmitterLua {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        this.functionContext.textCode.push((<ts.Identifier>node).text);
+        const text = (<ts.Identifier>node).text;
+        this.functionContext.textCode.push(text);
+        if (text in this.keywords)
+            this.functionContext.textCode.push("_");
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
