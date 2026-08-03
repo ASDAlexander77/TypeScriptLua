@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import { spawn } from 'cross-spawn';
 import { Emitter } from './emitter';
 import { EmitterLua } from './emitterlua';
@@ -60,6 +61,26 @@ export class Run {
             getCurrentDirectory: ts.sys.getCurrentDirectory,
             getNewLine: () => ts.sys.newLine
         };
+    }
+
+    // prefer the interpreter bundled in __dist, fall back to 'lua' on PATH.
+    // __dirname is src/ under ts-node but __out/src/ in a build, so walk up to find __dist.
+    public static getLuaInterpreter(): string {
+        const exe = 'lua' + (process.platform === 'win32' ? '.exe' : '');
+        let dir = __dirname;
+        while (true) {
+            const candidate = path.join(dir, '__dist', exe);
+            if (fs.existsSync(candidate)) {
+                return candidate;
+            }
+
+            const parent = path.dirname(dir);
+            if (parent === dir) {
+                return 'lua';
+            }
+
+            dir = parent;
+        }
     }
 
     public static processOptions(cmdLineArgs: string[]): any {
@@ -350,7 +371,7 @@ export class Run {
             });
 
             // start program and test it to
-            const result: any = spawn.sync('lua', [lastLuaFile]);
+            const result: any = spawn.sync(Run.getLuaInterpreter(), [lastLuaFile]);
             if (result.error) {
                 actualOutput = result.error.stack;
             } else {

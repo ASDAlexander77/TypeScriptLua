@@ -1,12 +1,10 @@
 import * as ts from 'typescript';
 import { TextWriter } from './textwriter';
-import { FunctionContext, UpvalueInfo } from './contexts';
-import { IdentifierResolver, ResolvedInfo, ResolvedKind } from './resolvers';
-import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
+import { FunctionContext } from './contexts';
+import { IdentifierResolver, ResolvedInfo } from './resolvers';
 import { Helpers } from './helpers';
 import { PreprocessorLua } from './preprocessorlua';
 import { TypeInfo } from './typeInfo';
-import { stringify } from 'querystring';
 
 export class EmitterLua {
     public writer: TextWriter = new TextWriter();
