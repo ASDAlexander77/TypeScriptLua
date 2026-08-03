@@ -187,6 +187,10 @@ export class EmitterLua {
         return false;                                               \
     }                                                               \
                                                                     \
+    __comma = __comma || function (l, r) {                          \
+        return r;                                                   \
+    }                                                               \
+                                                                    \
     __tostring = __tostring || function (v) {                       \
         if (v === null || v === undefined) {                        \
             return v;                                               \
@@ -2139,9 +2143,9 @@ export class EmitterLua {
 
     private processForStatement(node: ts.ForStatement): void {
 
+        /*
         this.functionContext.newLocalScope(node);
 
-        /*
         this.functionContext.textCode.push("for ")
 
         this.processExpression(<ts.Expression>node.initializer);
@@ -2161,6 +2165,8 @@ export class EmitterLua {
 
         this.functionContext.textCode.push("end")
         */
+
+        const hasContinue = this.hasContinue(node);
 
         this.functionContext.newLocalScope(node);
 
@@ -2187,19 +2193,30 @@ export class EmitterLua {
             this.functionContext.textCode.pushNewLineIncrement(") do")
         }
 
+        if (hasContinue) {
+            this.functionContext.textCode.pushNewLineIncrement("do")
+        }
+
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
 
-        if (this.hasContinue(node)) {
-            this.functionContext.textCode.pushNewLine("::continue::")
+        if (hasContinue) {
+            this.functionContext.textCode.pushNewLine()
+            this.functionContext.textCode.push("end")
+            this.functionContext.textCode.pushNewLine()
+            this.functionContext.textCode.decrement();
+            this.functionContext.textCode.pushNewLineIncrement("::continue::")
         }
 
         if (node.incrementor) {
             this.processExpression(node.incrementor);
         }
 
-        this.functionContext.textCode.pushNewLine()
+        if (hasContinue) {
+            this.functionContext.textCode.decrement();
+        }
 
+        this.functionContext.textCode.pushNewLine()
         this.functionContext.textCode.push("end")
 
         this.functionContext.restoreLocalScope();
@@ -2962,9 +2979,11 @@ export class EmitterLua {
                 this.functionContext.textCode.push(")");
                 break;
             case ts.SyntaxKind.CommaToken:
+                this.functionContext.textCode.push("__comma(");
                 this.processExpression(node.left);
-                this.functionContext.textCode.pushNewLine();
+                this.functionContext.textCode.push(",");
                 this.processExpression(node.right);
+                this.functionContext.textCode.push(")");
                 break;
         }
     }
