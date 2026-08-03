@@ -6,10 +6,11 @@ declare var process: any;
 try {
     new Run().run(Run.processFiles(process.argv), 'lua', Run.processOptions(process.argv));
 } catch (e) {
-    if (e.message.indexOf(`Could not find a valid 'tsconfig.json'`) !== -1) {
+    const error = e as Error;
+    if (error.message.indexOf(`Could not find a valid 'tsconfig.json'`) !== -1) {
         print();
     } else {
-        console.error(e.stack);
+        console.error(error.stack);
     }
 }
 
