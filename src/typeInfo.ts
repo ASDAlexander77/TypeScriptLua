@@ -76,22 +76,29 @@ export class TypeInfo {
         if (!detectType || detectType && detectType.intrinsicName === 'error') {
             // fallback scenario
             const symbol = this.resolver.getSymbolAtLocation(node);
-            if (symbol && symbol.valueDeclaration) {
-                if (symbol.valueDeclaration.type) {
-                    detectType = symbol.valueDeclaration;
-                }
-                else for (const nodeTypeHolder of [symbol.valueDeclaration, symbol.valueDeclaration.initializer]) {
-                    if (nodeTypeHolder)
-                    {
-                        detectType = this.resolver.getTypeAtLocation(nodeTypeHolder) || nodeTypeHolder;
-                        detectType = this.UnwrapUnionType(detectType);
-                        if (detectType && detectType.intrinsicName !== 'error') {
-                            break;
+            if (symbol) {
+                if (symbol.valueDeclaration)
+                {
+                    if (symbol.valueDeclaration.type) {
+                        detectType = symbol.valueDeclaration;
+                    }
+                    else for (const nodeTypeHolder of [symbol.valueDeclaration, symbol.valueDeclaration.initializer]) {
+                        if (nodeTypeHolder)
+                        {
+                            detectType = this.resolver.getTypeAtLocation(nodeTypeHolder) || nodeTypeHolder;
+                            detectType = this.UnwrapUnionType(detectType);
+                            if (detectType && detectType.intrinsicName !== 'error') {
+                                break;
+                            }
                         }
                     }
-                }
 
-                return detectType;
+                    return detectType;
+                }
+                else
+                {
+                    return symbol.declarations && symbol.declarations[0] ? symbol.declarations[0] : undefined;
+                }
             }
         }
 
@@ -162,6 +169,17 @@ export class TypeInfo {
             && (type.symbol.declarations[0].kind === ts.SyntaxKind.FunctionType);
 
         return functionType;
+    }
+
+    public isImportType(expression: ts.Expression) {
+        const type = this.getTypeObject(expression);
+        const importType = type
+            && type.symbol
+            && type.symbol.declarations
+            && type.symbol.declarations[0]
+            && (type.symbol.declarations[0].kind === ts.SyntaxKind.ImportClause);
+
+        return importType;
     }
 
     public isResultMethodReference(expression: ts.Expression) {

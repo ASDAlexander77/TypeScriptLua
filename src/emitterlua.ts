@@ -3207,9 +3207,14 @@ export class EmitterLua {
             const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
             if (!typeInfo
                 || typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration
-                || this.typeInfo.isTypeOfNode(node.expression, 'any')) {
+                || this.typeInfo.isTypeOfNode(node.expression, 'any')
+                || this.typeInfo.isImportType(node.expression)
+            ) {
                 thisCall = false;
-                if (!typeInfo && !(<any>node.expression).__return_type && (<any>node.expression).escapedText !== 'table') {
+                if (!typeInfo
+                    && !(<any>node.expression).__return_type
+                    && (<any>node.expression).escapedText !== 'table'
+                    && !this.typeInfo.isImportType(node.expression)) {
                     console.warn("Warning: unable to determine type of expression for self call, disabling self call for " + node.getText());
                 }
             }
