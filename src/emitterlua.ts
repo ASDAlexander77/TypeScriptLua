@@ -3106,7 +3106,17 @@ export class EmitterLua {
             this.functionContext.textCode.push(')');
         }
         else {
-            this.functionContext.textCode.push('...');
+            var isParameter = symbol
+                && symbol.valueDeclaration
+                && symbol.valueDeclaration.kind == ts.SyntaxKind.Parameter;
+            if (isParameter) {
+                this.functionContext.textCode.push('...');
+            }
+            else {
+                this.functionContext.textCode.push('table.unpack(');
+                this.processExpression(node.expression);
+                this.functionContext.textCode.push(')');
+            }
         }
     }
 
