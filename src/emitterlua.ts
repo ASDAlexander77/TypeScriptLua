@@ -356,7 +356,7 @@ export class EmitterLua {
             }                                                                                           \
         }                                                                                               \
                                                                                                         \
-        if (isMethodDecoratorOrParameterDecorator && !!protoOrDescriptorOrParameterIndex)               \
+        if (isMethodDecoratorOrParameterDecorator && protoOrDescriptorOrParameterIndex!==null)          \
         {                                                                                               \
             Object.defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex);              \
         }                                                                                               \
@@ -2809,6 +2809,16 @@ export class EmitterLua {
             this.processExpression(node.left);
             this.functionContext.textCode.push(" = ");
             this.processExpression(node.right);
+
+            // save type info out of assignment, as it is not available in type checker
+            const valueDecl = this.typeInfo.getSymbolValueDeclaration(node.left);
+            if (valueDecl && valueDecl.type === undefined)
+            {
+                const typeValue = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.right);
+                if (typeValue && typeValue.type !== undefined) {
+                    valueDecl.type = typeValue.type;
+                }
+            }
         } else {
             this.functionContext.textCode.push("(function () ");
             let opIndex = parseInt(node.pos.toFixed());

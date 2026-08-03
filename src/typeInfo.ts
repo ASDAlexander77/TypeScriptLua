@@ -58,6 +58,15 @@ export class TypeInfo {
         return (<any>node).__return_variable_type_declaration;
     }
 
+    public getSymbolValueDeclaration(node: ts.Node) {
+        const symbol = this.resolver.getSymbolAtLocation(node);
+        if (symbol && symbol.valueDeclaration) {
+            return symbol.valueDeclaration;
+        }
+
+        return undefined;
+    }
+
     public getTypeObject(node: ts.Node) {
         let detectType = this.resolver.getTypeAtLocation(node);
         detectType = this.UnwrapUnionType(detectType);
@@ -65,12 +74,14 @@ export class TypeInfo {
         if (!detectType || detectType && detectType.intrinsicName === 'error') {
             // fallback scenario
             const symbol = this.resolver.getSymbolAtLocation(node);
-            if (symbol && symbol.valueDeclaration && symbol.valueDeclaration.initializer) {
-                detectType = this.resolver.getTypeAtLocation(symbol.valueDeclaration.initializer)
-                    || symbol.valueDeclaration.initializer;
-                this.UnwrapUnionType(detectType);
-
-                return detectType;
+            if (symbol && symbol.valueDeclaration) {
+                let nodeTypeHolder = (symbol.valueDeclaration.initializer) ? symbol.valueDeclaration.initializer : symbol.valueDeclaration;
+                if (nodeTypeHolder)
+                {
+                    detectType = this.resolver.getTypeAtLocation(nodeTypeHolder) || nodeTypeHolder;
+                    this.UnwrapUnionType(detectType);
+                    return detectType;
+                }
             }
         }
 
@@ -110,7 +121,7 @@ export class TypeInfo {
             if (!typeName) {
                 const detectType = this.getTypeObject(node);
                 typeName = this.getNameFromTypeNode(detectType);
-                if (typeName && detectType.symbol) {
+                if (typeName && detectType.symbol && detectType.symbol.valueDeclaration) {
                     (<any>node).__return_variable_type_declaration = detectType.symbol.valueDeclaration;
                 }
             }
