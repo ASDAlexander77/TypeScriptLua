@@ -36,6 +36,9 @@ echo =
 
 xcopy /S /Y ..\..\thirdparty\Babylon.js\src\Shaders .\Shaders\
 
+rem echo ==================================
+rem echo Copying JSLib
+rem echo ==================================
 @call copy_js.bat
 
 echo =

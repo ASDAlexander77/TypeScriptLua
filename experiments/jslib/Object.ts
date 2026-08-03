@@ -50,6 +50,8 @@ module JS {
         }
 
         public static freeze(obj: any) {
+            if (obj === null) return;
+
             obj.__newindex = function (table: any) {
                 throw new Error('Object is read-only');
             };
