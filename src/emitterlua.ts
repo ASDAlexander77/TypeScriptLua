@@ -356,7 +356,7 @@ export class EmitterLua {
             }                                                                                           \
         }                                                                                               \
                                                                                                         \
-        if (isMethodDecoratorOrParameterDecorator && protoOrDescriptorOrParameterIndex)                 \
+        if (isMethodDecoratorOrParameterDecorator && !!protoOrDescriptorOrParameterIndex)               \
         {                                                                                               \
             Object.defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex);              \
         }                                                                                               \
@@ -2568,7 +2568,7 @@ export class EmitterLua {
             const e: ts.ObjectLiteralElementLike = <ts.ObjectLiteralElementLike><any>node;
             this.resolver.Scope.push(node);
 
-            if ((<any>e.name).kind === ts.SyntaxKind.NumericLiteral)
+            if ((<any>e.name).kind === ts.SyntaxKind.NumericLiteral || (<any>e.name).kind === ts.SyntaxKind.StringLiteral)
             {
                 const calcProp = ts.createComputedPropertyName(<any>e.name);
                 calcProp.parent = (<any>e.name).parent;
