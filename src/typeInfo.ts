@@ -15,7 +15,10 @@ export class TypeInfo {
         return typeNames.some(t => t === res);
     }
 
-    public getNameFromTypeNode(detectType: any): string {
+    public getNameFromTypeNode(detectType: any): string | undefined {
+        if (!detectType)
+            return undefined;
+
         const val =
             detectType.intrinsicName && detectType.intrinsicName !== 'unknown'
             ? detectType.intrinsicName
