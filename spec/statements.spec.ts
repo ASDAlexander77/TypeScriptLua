@@ -301,4 +301,73 @@ describe('Statements', () => {
     }                                                           \
     console.log("done");                                        \
     '])).to.equals('done\r\n'));
+
+    it('switch - default in the middle', () => expect(new Run().test(['   \
+    function test(a: number) {                                  \
+        switch (a) {                                            \
+            case 1:                                             \
+                console.log("one");                             \
+                break;                                          \
+            default:                                            \
+                console.log("other");                           \
+                break;                                          \
+            case 2:                                             \
+                console.log("two");                             \
+                break;                                          \
+            case 3:                                             \
+            case 4:                                             \
+                console.log("three or four");                   \
+                break;                                          \
+        }                                                       \
+    }                                                           \
+    test(1);                                                    \
+    test(2);                                                    \
+    test(3);                                                    \
+    test(4);                                                    \
+    test(5);                                                    \
+    '])).to.equals('one\r\ntwo\r\nthree or four\r\nthree or four\r\nother\r\n'));
+
+    it('switch - default only', () => expect(new Run().test(['     \
+    const a = 5;                                                \
+    switch (a) {                                                \
+        default:                                                \
+            console.log("only default");                        \
+            break;                                              \
+    }                                                           \
+    '])).to.equals('only default\r\n'));
+
+    it('switch - default grouped with cases', () => expect(new Run().test([' \
+    function test(a: number) {                                  \
+        switch (a) {                                            \
+            case 1:                                             \
+            default:                                            \
+            case 2:                                             \
+                console.log("1, 2 or default");                 \
+                break;                                          \
+            case 3:                                             \
+                console.log("three");                           \
+                break;                                          \
+        }                                                       \
+    }                                                           \
+    test(1);                                                    \
+    test(3);                                                    \
+    test(7);                                                    \
+    '])).to.equals('1, 2 or default\r\nthree\r\n1, 2 or default\r\n'));
+
+    it('switch - empty and body-less clauses', () => expect(new Run().test([' \
+    function test(a: number) {                                  \
+        switch (a) {                                            \
+            case 1:                                             \
+                console.log("one");                             \
+                break;                                          \
+            case 2:                                             \
+        }                                                       \
+    }                                                           \
+    const b = 1;                                                \
+    switch (b) {                                                \
+    }                                                           \
+    test(1);                                                    \
+    test(2);                                                    \
+    console.log("done");                                        \
+    '])).to.equals('one\r\ndone\r\n'));
 });

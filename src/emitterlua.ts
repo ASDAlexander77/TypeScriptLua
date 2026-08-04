@@ -2392,83 +2392,95 @@ export class EmitterLua {
         this.functionContext.textCode.push("goto continue");
     }
 
-    // TOOD: fully rewrite it, to use labels as default case can be at any place
+    // TOOD: fall-through from a clause with a body into the next clause is not supported yet
     private processSwitchStatement(node: ts.SwitchStatement) {
 
-        var switchIndex = node.pos.toFixed();
+        const switchIndex = node.pos.toFixed();
 
         this.functionContext.textCode.push("local op" + switchIndex + " = ");
         this.processExpression(node.expression);
         this.functionContext.textCode.pushNewLine();
 
-        let count = 0;
-        let ifSet = false;
-        let orSet = false;
-        let elseSet = false;
+        // clauses without a body fall through into the next one, so they are grouped
+        // together and share the same body with 'or'-ed conditions
+        const groups: Array<{ tests: ts.Expression[], statements: ts.Statement[], isDefault: boolean }> = [];
+        let group: { tests: ts.Expression[], statements: ts.Statement[], isDefault: boolean };
         node.caseBlock.clauses.forEach(c => {
-            if (count && !orSet) {
-                this.functionContext.textCode.decrement();
-                this.functionContext.textCode.push("else");
-                elseSet = true;
+            if (!group) {
+                group = { tests: [], statements: [], isDefault: false };
+                groups.push(group);
             }
 
-            if (!orSet) {
-                this.functionContext.textCode.push("if ");
-                elseSet = false;
-                ifSet = true;
-            }
-
-            if (c.kind !== ts.SyntaxKind.DefaultClause) {
-                this.functionContext.textCode.push("op" + switchIndex + " == ");
-            }
-            else {
-                this.functionContext.textCode.push("True");
-            }
-
-            if (c.kind === ts.SyntaxKind.CaseClause) {
-                // process 'case'
-                const caseClause = <ts.CaseClause>c;
-                this.processExpression(caseClause.expression);
+            if (c.kind === ts.SyntaxKind.DefaultClause) {
+                group.isDefault = true;
+            } else {
+                group.tests.push((<ts.CaseClause>c).expression);
             }
 
             if (c.statements.length > 0) {
-                if (ifSet) {
-                    this.functionContext.textCode.pushNewLineIncrement(" then");
-                    ifSet = false;
-                }
-
-                // case or default body
-                let statements: any = c.statements;
-                const lastStatement = c.statements[c.statements.length - 1];
-                if (lastStatement.kind === ts.SyntaxKind.BreakStatement) {
-                    statements = c.statements.slice(0, c.statements.length - 1);
-                }
-
-                statements.forEach(s => this.processStatement(s));
-                orSet = false;
-            } else {
-                this.functionContext.textCode.push(" or ");
-                orSet = true;
+                group.statements = c.statements.slice(0);
+                group = undefined;
             }
-
-            count++;
         });
 
-        if (orSet) // no last statement
-        {
-            this.functionContext.textCode.pop(); // rollback last 'or'
+        if (groups.length === 0) {
+            return;
+        }
+
+        // 'default' can be located anywhere in the body but it is executed only when
+        // none of the 'case' clauses matched, so it is always emitted as the last 'else'
+        const defaultIndex = groups.findIndex(g => g.isDefault);
+        const defaultGroup = defaultIndex >= 0 ? groups.splice(defaultIndex, 1)[0] : undefined;
+
+        let first = true;
+        groups.forEach(g => {
+            if (!first) {
+                this.functionContext.textCode.decrement();
+                this.functionContext.textCode.push("else");
+            }
+
+            this.functionContext.textCode.push("if ");
+            g.tests.forEach((test, index) => {
+                if (index > 0) {
+                    this.functionContext.textCode.push(" or ");
+                }
+
+                this.functionContext.textCode.push("op" + switchIndex + " == ");
+                this.processExpression(test);
+            });
+
             this.functionContext.textCode.pushNewLineIncrement(" then");
+            this.processCaseStatements(g.statements);
+
+            first = false;
+        });
+
+        if (defaultGroup) {
+            if (first) {
+                // 'default' is the only clause
+                this.functionContext.textCode.push("if true");
+                this.functionContext.textCode.pushNewLineIncrement(" then");
+            } else {
+                this.functionContext.textCode.decrement();
+                this.functionContext.textCode.push("else");
+                this.functionContext.textCode.pushNewLineIncrement();
+            }
+
+            this.processCaseStatements(defaultGroup.statements);
         }
 
-        if (elseSet) {
-            this.functionContext.textCode.pushNewLine();
-            elseSet = false;
-        }
-        else {
-            this.functionContext.textCode.decrement();
-        }
-
+        this.functionContext.textCode.decrement();
         this.functionContext.textCode.push('end');
+    }
+
+    private processCaseStatements(statements: ts.Statement[]) {
+        // 'break' at the end of a clause is implicit in the generated 'if' chain
+        const lastStatement = statements[statements.length - 1];
+        const body = lastStatement && lastStatement.kind === ts.SyntaxKind.BreakStatement
+            ? statements.slice(0, statements.length - 1)
+            : statements;
+
+        body.forEach(s => this.processStatement(s));
     }
 
     private processBlock(node: ts.Block): void {
@@ -3150,14 +3162,28 @@ export class EmitterLua {
         else {
             var isParameter = symbol
                 && symbol.valueDeclaration
-                && symbol.valueDeclaration.kind == ts.SyntaxKind.Parameter;
+                && (symbol.valueDeclaration.kind == ts.SyntaxKind.Parameter);
             if (isParameter) {
                 this.functionContext.textCode.push('...');
             }
             else {
-                this.functionContext.textCode.push('table.unpack(');
-                this.processExpression(node.expression);
-                this.functionContext.textCode.push(')');
+                if (!symbol && (<any>node.expression).escapedText === 'params') {
+                    let text = "synthetic code";
+                    try
+                    {
+                        text = node.getText();
+                    }
+                    catch (e) {
+                    }
+
+                    console.warn("Warning: unable to determine type of expression for spread element, using table.unpack for " + text);
+                    this.functionContext.textCode.push('...');
+                }
+                else {
+                    this.functionContext.textCode.push('table.unpack(');
+                    this.processExpression(node.expression);
+                    this.functionContext.textCode.push(')');
+                }
             }
         }
     }

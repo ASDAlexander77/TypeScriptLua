@@ -1,1 +1,1 @@
-..\..\__dist\lua.exe babyloncli.lua
+..\..\__dist\lua.exe babyloncli.lua -i 1
