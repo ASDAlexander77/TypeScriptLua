@@ -3259,9 +3259,8 @@ export class EmitterLua {
             thisCall = true;
 
             const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
-            if (!typeInfo
-                || typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration
-                || this.typeInfo.isTypeOfNode(node.expression, 'any')
+            if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration
+                || this.typeInfo.isTypeOfNode(node.expression, 'any') // many native objects are referenced as any, so we cannot determine type of them, so we need to use self call for them
                 || this.typeInfo.isImportType(node.expression)
             ) {
                 thisCall = false;
@@ -3274,7 +3273,7 @@ export class EmitterLua {
                         + Helpers.getNodeText(node));
                 }
             }
-            else if (this.isStaticMethodCallWithoutSelf(node.name)) {
+            else if (this.isStaticMethodCallWithoutSelf(node.name) || (<any>node.expression).__return_type === 'Math') { // Math is special case, we need to include correct .d.ts file which declare correct methods
                 thisCall = false;
             }
         }

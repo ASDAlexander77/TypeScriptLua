@@ -43,7 +43,7 @@ module JS {
             setmetatable(obj, obj);
 
             if (obj.constructor) {
-                obj.constructor();
+                (<object>obj).constructor(); // as obj is any here we need to force object reference to call with 'this' param.
             }
 
             return obj;
