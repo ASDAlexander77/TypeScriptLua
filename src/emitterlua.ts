@@ -723,7 +723,7 @@ export class EmitterLua {
         }
 
         // add this to object
-        let addThisAsParameter = !isAccessor &&
+        let addThisAsParameter = !isAccessor && !this.functionContext.isStatic &&
             ((location && location.parent && location.parent.kind === ts.SyntaxKind.PropertyAssignment)
                 || (location && location.parent && location.parent.parent
                     && location.parent.parent.kind === ts.SyntaxKind.ObjectLiteralExpression));
@@ -1648,6 +1648,17 @@ export class EmitterLua {
     private isStaticProperty(memberDeclaration: ts.ClassElement): any {
         // we do not need - abstract elements
         if (memberDeclaration.kind === ts.SyntaxKind.PropertyDeclaration &&
+            memberDeclaration.modifiers &&
+            memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isStaticMethod(memberDeclaration: ts.ClassElement): any {
+        // we do not need - abstract elements
+        if (memberDeclaration.kind === ts.SyntaxKind.MethodDeclaration &&
             memberDeclaration.modifiers &&
             memberDeclaration.modifiers.some(modifer => modifer.kind === ts.SyntaxKind.StaticKeyword)) {
             return true;
