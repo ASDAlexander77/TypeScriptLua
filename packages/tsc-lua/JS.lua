@@ -55,6 +55,10 @@ __equals = __equals or function (l, r)
     return false
 end
 
+__comma = __comma or function (l, r)
+    return r
+end
+
 __tostring = __tostring or function (v)
     if v == nil or v == undefined then 
         return v
@@ -191,8 +195,8 @@ __new = __new or function (proto, ...)
     
 
     setmetatable(__new(Object, obj), __new(Object, obj))
-    if obj.constructor then 
-        obj:constructor(...)
+    if obj.constructor_ then 
+        obj:constructor_(...)
     end
     return obj
 end
@@ -202,7 +206,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
 
     local isMethodDecoratorOrParameterDecorator = not(descriptorOrParameterIndex == undefined)
 
-    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op15142 = (Object.getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op15142 return op15142 end)() else return descriptorOrParameterIndex end end)() end end)()
+    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op15414 = (Object.getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op15414 return op15414 end)() else return descriptorOrParameterIndex end end)() end end)()
 
     local l = decors.length - 1
 
@@ -214,7 +218,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
         end
     l = l - 1
     end
-    if isMethodDecoratorOrParameterDecorator and protoOrDescriptorOrParameterIndex then 
+    if isMethodDecoratorOrParameterDecorator and not(protoOrDescriptorOrParameterIndex == nil) then 
         Object.defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex)
     end
     return protoOrDescriptorOrParameterIndex
@@ -313,7 +317,7 @@ JS = JS or {
 }
 
 Object = {
-    constructor = function (this, obj)
+    constructor_ = function (this, obj)
         if __is_true(__equals(obj, nil)) then 
             obj = {
                 __index = __get_call_undefined__,
@@ -356,13 +360,16 @@ Object = {
         obj.__proto = proto
         obj.__newindex = __set_call_undefined__
         setmetatable(obj, obj)
-        if __is_true(obj.constructor) then 
-            obj.constructor()
+        if __is_true(obj.constructor_) then 
+            obj.constructor_()
         end
         return obj
     end
     ,
     freeze = function (this, obj)
+        if __is_true(obj == nil) then 
+            return
+        end
         obj.__newindex = function (table)
             error(__new(Error, "Object is read-only"))
         end
@@ -408,6 +415,9 @@ Object = {
     end
     ,
     defineProperty = function (this, obj, name, opts)
+        if __is_true(__equals(opts, nil)) then 
+            return
+        end
         if __is_true(not(opts.get == nil)) then 
             if __is_true(__not(obj.__get__)) then 
                 obj.__get__ = {
@@ -423,7 +433,7 @@ Object = {
                 obj.__index = __get_call_undefined__
             end
         end
-        local setMethod = (function () local op3212 = opts.set if __is_true(op3212) then return op3212 else return ((function () if __is_true(((function () local op3227 = opts.value if __is_true(op3227) then return ___type(opts.value) == "function" else return op3227 end end)())) then return opts.value else return nil end end)()) end end)()
+        local setMethod = (function () local op3292 = opts.set if __is_true(op3292) then return op3292 else return ((function () if __is_true(((function () local op3307 = opts.value if __is_true(op3307) then return ___type(opts.value) == "function" else return op3307 end end)())) then return opts.value else return nil end end)()) end end)()
 
         if __is_true(setMethod) then 
             if __is_true(__not(obj.__set__)) then 
@@ -440,7 +450,7 @@ Object = {
                 obj.__newindex = __set_call_undefined__
             end
         end
-        if __is_true((function () local op3703 = opts.value if __is_true(op3703) then return not(___type(opts.value) == "function") else return op3703 end end)()) then 
+        if __is_true((function () local op3783 = opts.value if __is_true(op3783) then return not(___type(opts.value) == "function") else return op3783 end end)()) then 
             obj[name] = opts.value
         end
     end
@@ -675,7 +685,7 @@ setmetatable(StringHelper, StringHelper)
 JS.StringHelper = StringHelper
 
 String = {
-    constructor = function (this, constString)
+    constructor_ = function (this, constString)
         this.constString = constString
         this.__tostring = function (this)
             return this.constString
@@ -751,7 +761,7 @@ String = {
         return __new(String, StringHelper.toUpperCase(this.constString))
     end
     ,
-    toString = function (this)
+    toString_ = function (this)
         return this
     end
     ,
@@ -779,7 +789,7 @@ JS = JS or {
 }
 
 Error = {
-    constructor = function (this, message)
+    constructor_ = function (this, message)
         this.message = message
         this.__tostring = function (this)
             return this.message .. "\10" .. this.stack
@@ -788,7 +798,7 @@ Error = {
         this.stack = debug.traceback()
     end
     ,
-    toString = function (this)
+    toString_ = function (this)
         return __new(String, this.message)
     end
     ,
@@ -867,7 +877,7 @@ setmetatable(ArrayUndefinedElement, ArrayUndefinedElement)
 JS.ArrayUndefinedElement = ArrayUndefinedElement
 
 Array = {
-    constructor = function (this, size)
+    constructor_ = function (this, size)
         if __is_true(size == nil) then 
             size = undefined
         end
@@ -1244,7 +1254,7 @@ JS = JS or {
 }
 
 TypedArrayBase = {
-    constructor = function (this, sizeOrData, sizePerElement, type)
+    constructor_ = function (this, sizeOrData, sizePerElement, type)
         this.sizePerElement = sizePerElement
         this.type = type
         if __is_true(__not(array_buffer)) then 
@@ -1273,7 +1283,7 @@ TypedArrayBase = {
         elseif op681 == "double" then
             getFunc = array_buffer.getDouble
             setFunc = array_buffer.setDouble
-        else
+        elseif True then
             getFunc = array_buffer.get
             setFunc = array_buffer.set
         end
@@ -1344,7 +1354,7 @@ JS = JS or {
 }
 
 ArrayBuffer = {
-    constructor = function (this, sizeBytes)
+    constructor_ = function (this, sizeBytes)
         if __is_true(__not(array_buffer)) then 
             array_buffer = require("array_buffer")
         end
@@ -1375,8 +1385,8 @@ end
 Float32Array = {
     TYPE = "float",
     BYTES_PER_ELEMENT = 4,
-    constructor = function (this, sizeOrData)
-        TypedArrayBase.constructor(this, sizeOrData, Float32Array.BYTES_PER_ELEMENT, Float32Array.TYPE)
+    constructor_ = function (this, sizeOrData)
+        TypedArrayBase.constructor_(this, sizeOrData, Float32Array.BYTES_PER_ELEMENT, Float32Array.TYPE)
     end
     ,
     __proto = TypedArrayBase,
@@ -1400,8 +1410,8 @@ end
 Float64Array = {
     TYPE = "double",
     BYTES_PER_ELEMENT = 8,
-    constructor = function (this, sizeOrData)
-        TypedArrayBase.constructor(this, sizeOrData, Float64Array.BYTES_PER_ELEMENT, Float64Array.TYPE)
+    constructor_ = function (this, sizeOrData)
+        TypedArrayBase.constructor_(this, sizeOrData, Float64Array.BYTES_PER_ELEMENT, Float64Array.TYPE)
     end
     ,
     __proto = TypedArrayBase,
@@ -1425,8 +1435,8 @@ end
 Uint8Array = {
     TYPE = "int8",
     BYTES_PER_ELEMENT = 1,
-    constructor = function (this, sizeOrData)
-        TypedArrayBase.constructor(this, sizeOrData, Uint8Array.BYTES_PER_ELEMENT, Uint8Array.TYPE)
+    constructor_ = function (this, sizeOrData)
+        TypedArrayBase.constructor_(this, sizeOrData, Uint8Array.BYTES_PER_ELEMENT, Uint8Array.TYPE)
     end
     ,
     __proto = TypedArrayBase,
@@ -1450,8 +1460,8 @@ end
 Uint16Array = {
     TYPE = "int16",
     BYTES_PER_ELEMENT = 2,
-    constructor = function (this, sizeOrData)
-        TypedArrayBase.constructor(this, sizeOrData, Uint16Array.BYTES_PER_ELEMENT, Uint16Array.TYPE)
+    constructor_ = function (this, sizeOrData)
+        TypedArrayBase.constructor_(this, sizeOrData, Uint16Array.BYTES_PER_ELEMENT, Uint16Array.TYPE)
     end
     ,
     __proto = TypedArrayBase,
@@ -1475,8 +1485,8 @@ end
 Uint32Array = {
     TYPE = "int32",
     BYTES_PER_ELEMENT = 4,
-    constructor = function (this, sizeOrData)
-        TypedArrayBase.constructor(this, sizeOrData, Uint32Array.BYTES_PER_ELEMENT, Uint32Array.TYPE)
+    constructor_ = function (this, sizeOrData)
+        TypedArrayBase.constructor_(this, sizeOrData, Uint32Array.BYTES_PER_ELEMENT, Uint32Array.TYPE)
     end
     ,
     __proto = TypedArrayBase,
@@ -1500,8 +1510,8 @@ end
 Uint64Array = {
     TYPE = "int64",
     BYTES_PER_ELEMENT = 8,
-    constructor = function (this, sizeOrData)
-        TypedArrayBase.constructor(this, sizeOrData, Uint64Array.BYTES_PER_ELEMENT, Uint64Array.TYPE)
+    constructor_ = function (this, sizeOrData)
+        TypedArrayBase.constructor_(this, sizeOrData, Uint64Array.BYTES_PER_ELEMENT, Uint64Array.TYPE)
     end
     ,
     __proto = TypedArrayBase,
@@ -1522,7 +1532,7 @@ TS = TS or {
 }
 
 NumberHelper = {
-    toString = function (this, ...)
+    toString_ = function (this, ...)
         return tostring(this)
     end
     ,
@@ -1536,7 +1546,7 @@ TS.NumberHelper = NumberHelper
 Number = {
     MAX_VALUE = 1.7976931348623157e+308,
     MIN_VALUE = 5e-324,
-    constructor = function (this, constNumber)
+    constructor_ = function (this, constNumber)
         this.constNumber = constNumber
         this.__tostring = function (this)
             return tostring(this.constNumber)
@@ -1572,7 +1582,7 @@ Number = {
         
     end
     ,
-    toString = function (this)
+    toString_ = function (this)
         return __new(String, tostring(this.constNumber))
     end
     ,
@@ -1716,7 +1726,7 @@ JS.Date = Date
 
 RegExp = {
     loaded = false,
-    constructor = function (this, pattern, flags)
+    constructor_ = function (this, pattern, flags)
         if __is_true(flags == nil) then 
             flags = undefined
         end
@@ -1800,8 +1810,8 @@ if __is_true(__not(Error)) then
     error("Base class is not defined: Error")
 end
 SyntaxError = {
-    constructor = function (this)
-        Error.constructor(this, "JSON Syntax Error")
+    constructor_ = function (this)
+        Error.constructor_(this, "JSON Syntax Error")
     end
     ,
     __proto = Error,
@@ -1813,7 +1823,7 @@ setmetatable(SyntaxError, SyntaxError)
 JS.SyntaxError = SyntaxError
 
 JSONParse = {
-    constructor = function (this)
+    constructor_ = function (this)
         this.Unescapes = {
             [92] = "\\",
             [34] = "\"",
@@ -1852,8 +1862,7 @@ JSONParse = {
                 this.Index = this.Index + 1
                 return value
             elseif op1405 == 34 then
-                (function () local op2448 = ("@") value = op2448 return op2448 end)()
-                (function () local op2460 = (this.Index) this.Index = op2460 + 1 return op2460 end)()
+                __comma((function () local op2448 = ("@") value = op2448 return op2448 end)(),(function () local op2460 = (this.Index) this.Index = op2460 + 1 return op2460 end)())
                 while __is_true(this.Index < length) do
                     charCode = StringHelper.charCodeAt(source, this.Index)
                     if __is_true(charCode < 32) then 
@@ -1876,7 +1885,7 @@ JSONParse = {
                                 this.Index = this.Index + 1
                                 end
                                 value = value .. StringHelper:fromCharCode("0x" .. StringHelper.slice(source, begin, this.Index))
-                            else
+                            elseif True then
                                 this:abort()
                             end
                          else 
@@ -1898,26 +1907,23 @@ JSONParse = {
                     return value
                 end
                 this:abort()
-            else
+            elseif True then
                 begin = this.Index
                 if __is_true(charCode == 45) then 
                     isSigned = true
                     charCode = StringHelper.charCodeAt(source, (function () local op0 = (this.Index + 1) this.Index = op0 return op0 end)())
                 end
                 if __is_true((function () local op7200 = charCode >= 48 if __is_true(op7200) then return charCode <= 57 else return op7200 end end)()) then 
-                    if __is_true((function () local op7351 = charCode == 48 if __is_true(op7351) then return (((function () local op7372 = (StringHelper.charCodeAt(source, this.Index + 1)) charCode = op7372 return op7372 end)())
-                    (function () local op7418 = charCode >= 48 if __is_true(op7418) then return charCode <= 57 else return op7418 end end)()) else return op7351 end end)()) then 
+                    if __is_true((function () local op7351 = charCode == 48 if __is_true(op7351) then return (__comma(((function () local op7372 = (StringHelper.charCodeAt(source, this.Index + 1)) charCode = op7372 return op7372 end)()),(function () local op7418 = charCode >= 48 if __is_true(op7418) then return charCode <= 57 else return op7418 end end)())) else return op7351 end end)()) then 
                         this:abort()
                     end
                     isSigned = false
-                    while __is_true((function () local op7738 = this.Index < length if __is_true(op7738) then return (((function () local op7797 = (StringHelper.charCodeAt(source, this.Index)) charCode = op7797 return op7797 end)())
-                    (function () local op7839 = charCode >= 48 if __is_true(op7839) then return charCode <= 57 else return op7839 end end)()) else return op7738 end end)()) do
+                    while __is_true((function () local op7738 = this.Index < length if __is_true(op7738) then return (__comma(((function () local op7797 = (StringHelper.charCodeAt(source, this.Index)) charCode = op7797 return op7797 end)()),(function () local op7839 = charCode >= 48 if __is_true(op7839) then return charCode <= 57 else return op7839 end end)())) else return op7738 end end)()) do
                     this.Index = this.Index + 1
                     end
                     if __is_true(StringHelper.charCodeAt(source, this.Index) == 46) then 
                         position = (function () local op0 = (this.Index + 1) this.Index = op0 return op0 end)()
-                        while __is_true((function () local op8360 = position < length if __is_true(op8360) then return (((function () local op8421 = (StringHelper.charCodeAt(source, position)) charCode = op8421 return op8421 end)())
-                        (function () local op8461 = charCode >= 48 if __is_true(op8461) then return charCode <= 57 else return op8461 end end)()) else return op8360 end end)()) do
+                        while __is_true((function () local op8360 = position < length if __is_true(op8360) then return (__comma(((function () local op8421 = (StringHelper.charCodeAt(source, position)) charCode = op8421 return op8421 end)()),(function () local op8461 = charCode >= 48 if __is_true(op8461) then return charCode <= 57 else return op8461 end end)())) else return op8360 end end)()) do
                         position = position + 1
                         end
                         if __is_true(position == this.Index) then 
@@ -1932,8 +1938,7 @@ JSONParse = {
                             this.Index = this.Index + 1
                         end
                         position = this.Index
-                        while __is_true((function () local op9635 = position < length if __is_true(op9635) then return (((function () local op9696 = (StringHelper.charCodeAt(source, position)) charCode = op9696 return op9696 end)())
-                        (function () local op9736 = charCode >= 48 if __is_true(op9736) then return charCode <= 57 else return op9736 end end)()) else return op9635 end end)()) do
+                        while __is_true((function () local op9635 = position < length if __is_true(op9635) then return (__comma(((function () local op9696 = (StringHelper.charCodeAt(source, position)) charCode = op9696 return op9696 end)()),(function () local op9736 = charCode >= 48 if __is_true(op9736) then return charCode <= 57 else return op9736 end end)())) else return op9635 end end)()) do
                         position = position + 1
                         end
                         if __is_true(position == this.Index) then 
@@ -2082,7 +2087,7 @@ JS = JS or {
 }
 
 XMLHttpRequest = {
-    constructor = function (this)
+    constructor_ = function (this)
     end
     ,
     UNSENT = 0,

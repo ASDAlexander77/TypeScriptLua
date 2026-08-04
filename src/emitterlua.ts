@@ -1994,6 +1994,9 @@ export class EmitterLua {
         if (node.body.kind !== ts.SyntaxKind.Block) {
             // create body
             node.body = ts.createBlock([ts.createReturn(<ts.Expression>node.body)]);
+            // new block and return statement have no parent, which detaches the body of the arrow function
+            // from the type checker and makes any identifier in it unresolvable
+            this.fixupParentReferences(node.body, node);
         }
 
         this.processFunctionExpression(<any>node);
