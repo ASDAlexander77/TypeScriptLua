@@ -86,6 +86,19 @@ export class TypeInfo {
         }
     }
 
+    // the declaration the name of a property access resolves to, so its modifiers can be inspected.
+    // the type of '<class>.<member>' is the same for a static member and for a member of an instance,
+    // the 'static' modifier can only be read from the declaration itself
+    public getMemberDeclaration(node: ts.Node) {
+        const declaration = this.getSymbolValueDeclaration(node);
+        if (declaration) {
+            return declaration;
+        }
+
+        const type = this.getTypeObject(node);
+        return type && type.symbol && type.symbol.valueDeclaration;
+    }
+
     public getSymbolValueDeclaration(node: ts.Node) {
         const symbol = this.resolver.getSymbolAtLocation(node);
         if (symbol && symbol.valueDeclaration) {

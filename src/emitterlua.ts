@@ -1667,6 +1667,15 @@ export class EmitterLua {
         return false;
     }
 
+    // '<class>.<static method>()' must not be a self call, as a static method is emitted without 'self'.
+    // the exception is a static method using 'this', which keeps 'this' as its first parameter (see 'createThis')
+    private isStaticMethodCallWithoutSelf(name: ts.Node): boolean {
+        const memberDeclaration = this.typeInfo.getMemberDeclaration(name);
+        return memberDeclaration
+            && this.isStaticMethod(<ts.ClassElement>memberDeclaration)
+            && !this.hasNodeUsedThis(memberDeclaration);
+    }
+
     private isConstExpression(expression: ts.Expression): any {
         // we do not need - abstract elements
         switch (expression.kind) {
@@ -3264,6 +3273,9 @@ export class EmitterLua {
                         + ': warning: unable to determine type of expression for self call, disabling self call for '
                         + Helpers.getNodeText(node));
                 }
+            }
+            else if (this.isStaticMethodCallWithoutSelf(node.name)) {
+                thisCall = false;
             }
         }
 
