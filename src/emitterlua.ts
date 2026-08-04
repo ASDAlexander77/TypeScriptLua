@@ -3168,15 +3168,9 @@ export class EmitterLua {
             }
             else {
                 if (!symbol && (<any>node.expression).escapedText === 'params') {
-                    let text = "synthetic code";
-                    try
-                    {
-                        text = node.getText();
-                    }
-                    catch (e) {
-                    }
-
-                    console.warn("Warning: unable to determine type of expression for spread element, using table.unpack for " + text);
+                    console.warn(Helpers.getNodeLocation(node)
+                        + ': warning: unable to determine type of expression for spread element, using table.unpack for '
+                        + Helpers.getNodeText(node));
                     this.functionContext.textCode.push('...');
                 }
                 else {
@@ -3255,7 +3249,9 @@ export class EmitterLua {
                     && !(<any>node.expression).__return_type
                     && (<any>node.expression).escapedText !== 'table'
                     && !this.typeInfo.isImportType(node.expression)) {
-                    console.warn("Warning: unable to determine type of expression for self call, disabling self call for " + node.getText());
+                    console.warn(Helpers.getNodeLocation(node)
+                        + ': warning: unable to determine type of expression for self call, disabling self call for '
+                        + Helpers.getNodeText(node));
                 }
             }
         }

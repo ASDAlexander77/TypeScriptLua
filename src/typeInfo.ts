@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { IdentifierResolver } from './resolvers';
+import { Helpers } from './helpers';
 
 export class TypeInfo {
 
@@ -175,11 +176,8 @@ export class TypeInfo {
             return typeName;
         } catch (e) {
             (<any>node).__return_type = 'error';
-            try {
-                console.warn('Can\'t get type of "' + node.getText() + '"');
-            } catch (e2) {
-                console.warn('Can\'t get type of autogen. <node>');
-            }
+            console.warn(Helpers.getNodeLocation(node)
+                + ': warning: can\'t get type of "' + Helpers.getNodeText(node, 'autogen. <node>') + '"');
         }
 
         return undefined;

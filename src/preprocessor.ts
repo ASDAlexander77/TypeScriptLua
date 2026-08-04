@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 import { IdentifierResolver } from './resolvers';
 import { TypeInfo } from './typeInfo';
+import { Helpers } from './helpers';
 
 export class Preprocessor {
 
@@ -334,7 +335,8 @@ export class Preprocessor {
                     isConstNumber = (typeResult.intrinsicName || typeof (typeResult.value)) === 'number';
                 }
             } catch (e) {
-                console.warn('Can\'t get type of "' + callExpression.getText() + '"');
+                console.warn(Helpers.getNodeLocation(callExpression)
+                    + ': warning: can\'t get type of "' + Helpers.getNodeText(callExpression) + '"');
             }
         }
 

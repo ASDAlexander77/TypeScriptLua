@@ -4458,7 +4458,8 @@ export class Emitter {
             this.writer.writeInt(functionContext.debug_locals.filter(f => !f.fake).length);
             const firstLocalVarRegister = Math.min(...functionContext.debug_locals.filter(f => !f.fake).map(l => l.register));
             if (firstLocalVarRegister !== Infinity && firstLocalVarRegister > 0) {
-                console.error('Local variable does not start from 0');
+                console.error(Helpers.getNodeLocation(functionContext.function_or_file_location_node)
+                    + ': error: local variable does not start from 0');
             }
         } else {
             this.writer.writeInt(0);

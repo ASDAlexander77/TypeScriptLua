@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 import { FunctionContext } from './contexts';
 import { Ops, OpMode, OpCodes, LuaTypes } from './opcodes';
+import { Helpers } from './helpers';
 
 export enum ResolvedKind {
     // up values
@@ -418,7 +419,7 @@ export class IdentifierResolver {
                         ((1 << 27) - 1)/*mask for all types*/);
                 }
             } catch (e) {
-                console.warn('Can\'t resolve "' + identifier.text + '"');
+                console.warn(Helpers.getNodeLocation(identifier) + ': warning: can\'t resolve "' + identifier.text + '"');
             }
 
             if (!resolved
@@ -567,7 +568,7 @@ export class IdentifierResolver {
                 throw new Error('Could not resolve technical variable to support function var scope');
             }
 
-            console.warn('Could not resolve: ' + identifier.text);
+            console.warn(Helpers.getNodeLocation(identifier) + ': warning: could not resolve: ' + identifier.text);
         }
 
         // default

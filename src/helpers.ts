@@ -13,6 +13,50 @@ export class Helpers {
         return (node.flags & ts.NodeFlags.Let) === ts.NodeFlags.Let;
     }
 
+    // 'file.ts(line,char)' of the node, so warnings can point at the source of the issue.
+    // synthetic nodes have no position of their own, so the original/parent node is used instead
+    public static getNodeLocation(node: ts.Node): string {
+        let current: any = node;
+        let level = 0;
+        while (current && level++ < 100) {
+            const location = Helpers.tryGetNodeLocation(current);
+            if (location) {
+                return location;
+            }
+
+            current = current.__origin || current.parent;
+        }
+
+        return '<synthetic code>';
+    }
+
+    public static getNodeText(node: ts.Node, defaultText?: string): string {
+        try {
+            return node.getText();
+        } catch (e) {
+            return defaultText || '<synthetic code>';
+        }
+    }
+
+    // location of a node which can be reported, or undefined when the node has no source position
+    private static tryGetNodeLocation(node: ts.Node): string {
+        try {
+            if (!node || !(node.pos >= 0) || !(node.end >= 0)) {
+                return undefined;
+            }
+
+            const sourceFile = node.getSourceFile();
+            if (!sourceFile) {
+                return undefined;
+            }
+
+            const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+            return sourceFile.fileName + '(' + (position.line + 1) + ',' + (position.character + 1) + ')';
+        } catch (e) {
+            return undefined;
+        }
+    }
+
     public static correctFileNameForLua(filePath: string): string {
         // fix filename
         let fileNameIndex = filePath.lastIndexOf('\\');
