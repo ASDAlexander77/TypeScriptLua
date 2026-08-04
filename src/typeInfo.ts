@@ -63,6 +63,28 @@ export class TypeInfo {
         return (<any>node).__return_variable_type_declaration;
     }
 
+    // '<container>[<key>] = <value>' is the only place where the type of an element of an untyped container can be
+    // seen, as the type checker returns 'error' type for an index access without an index signature.
+    // remember it on the declaration of the container, so a later 'const v = <container>[<key>]' can pick it up
+    public saveElementTypeOfContainer(elementAccess: ts.ElementAccessExpression, elementType: ts.TypeNode) {
+        const containerDeclaration = this.getSymbolValueDeclaration(elementAccess.expression);
+        if (!containerDeclaration || (<any>containerDeclaration).__element_type !== undefined) {
+            return;
+        }
+
+        (<any>containerDeclaration).__element_type = elementType;
+    }
+
+    // counterpart of 'saveElementTypeOfContainer', marks the declaration with the type saved by an earlier assignment.
+    // the type is kept in '__element_type' and not in 'declaration.type', as setting a real type annotation on a node
+    // makes the type checker resolve it and return the type of the constructor ('ArrayConstructor' instead of 'Array')
+    public restoreElementTypeOfContainer(declaration: ts.VariableDeclaration, elementAccess: ts.ElementAccessExpression) {
+        const containerDeclaration = this.getSymbolValueDeclaration(elementAccess.expression);
+        if (containerDeclaration && (<any>containerDeclaration).__element_type !== undefined) {
+            (<any>declaration).__element_type = (<any>containerDeclaration).__element_type;
+        }
+    }
+
     public getSymbolValueDeclaration(node: ts.Node) {
         const symbol = this.resolver.getSymbolAtLocation(node);
         if (symbol && symbol.valueDeclaration) {
@@ -82,7 +104,7 @@ export class TypeInfo {
             if (symbol) {
                 if (symbol.valueDeclaration)
                 {
-                    if (symbol.valueDeclaration.type) {
+                    if (symbol.valueDeclaration.type || symbol.valueDeclaration.__element_type) {
                         detectType = symbol.valueDeclaration;
                     }
                     else for (const nodeTypeHolder of [symbol.valueDeclaration, symbol.valueDeclaration.initializer]) {

@@ -15,6 +15,54 @@ export class PreprocessorLua {
         return node;
     }
 
+    // the type of an element of an untyped container ('static events = {}') can be seen only at
+    // '<container>[<key>] = <value>' assignment, as the type checker returns 'error' type for an index access
+    // when container has no index signature. collect all of them in one pass before emitting anything,
+    // so that the order of declarations does not matter and any '<container>[<key>]' read can be resolved
+    public preprocessSourceFile(sourceFile: ts.SourceFile): void {
+        this.collectElementTypesOfContainers(sourceFile, new Map<any, ts.Declaration>());
+    }
+
+    private collectElementTypesOfContainers(node: ts.Node, assignedTypes: Map<any, ts.Declaration>): void {
+        if (node.kind === ts.SyntaxKind.BinaryExpression
+            && (<ts.BinaryExpression>node).operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            const assignment = <ts.BinaryExpression>node;
+            this.rememberTypeOfValue(assignment.left, assignment.right, assignedTypes);
+        }
+
+        if (node.kind === ts.SyntaxKind.VariableDeclaration && (<ts.VariableDeclaration>node).initializer) {
+            const declaration = <ts.VariableDeclaration>node;
+            this.rememberTypeOfValue(declaration.name, declaration.initializer, assignedTypes);
+        }
+
+        ts.forEachChild(node, child => this.collectElementTypesOfContainers(child, assignedTypes));
+    }
+
+    private rememberTypeOfValue(target: ts.Node, value: ts.Expression, assignedTypes: Map<any, ts.Declaration>): void {
+        const typeDeclaration = this.getTypeDeclarationOfValue(value, assignedTypes);
+        if (!typeDeclaration || (<any>typeDeclaration).type === undefined) {
+            return;
+        }
+
+        if (target.kind === ts.SyntaxKind.ElementAccessExpression) {
+            this.typeInfo.saveElementTypeOfContainer(<ts.ElementAccessExpression>target, (<any>typeDeclaration).type);
+            return;
+        }
+
+        const symbol = this.resolver.getSymbolAtLocation(target);
+        if (symbol) {
+            assignedTypes.set(symbol, typeDeclaration);
+        }
+    }
+
+    // type checker can't type a variable initialized from an untyped index access, so the types collected
+    // from the assignments seen so far are used first, and only then the type checker
+    private getTypeDeclarationOfValue(value: ts.Expression, assignedTypes: Map<any, ts.Declaration>): ts.Declaration {
+        const symbol = this.resolver.getSymbolAtLocation(value);
+        const assignedType = symbol && assignedTypes.get(symbol);
+        return assignedType || this.typeInfo.getVariableDeclarationOfTypeOfNode(value);
+    }
+
     public preprocessExpression(node: ts.Expression): ts.Expression {
         if (!node) {
             throw new Error('node is null or undefined');

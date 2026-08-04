@@ -891,6 +891,11 @@ export class EmitterLua {
         this.functionContext.function_or_file_location_node = sourceFile;
 
         this.sourceFileName = sourceFile.fileName;
+
+        // collect the types which are not available in type checker before emitting anything,
+        // otherwise they can be resolved only if they happen to be assigned earlier in the file
+        this.preprocessor.preprocessSourceFile(sourceFile);
+
         this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[], !this.functionContext.environmentCreated, true);
         this.functionContext.environmentCreated = true;
         this.functionContext.is_vararg = true;
@@ -1813,6 +1818,14 @@ export class EmitterLua {
             && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.ModuleDeclaration;
         declarationList.declarations.forEach(
             d => {
+                // 'const <var> = <container>[<key>]' has 'error' type in type checker when container has no index
+                // signature, use the element type saved from an earlier '<container>[<key>] = <value>' assignment
+                if (d.type === undefined
+                    && d.initializer
+                    && d.initializer.kind === ts.SyntaxKind.ElementAccessExpression) {
+                    this.typeInfo.restoreElementTypeOfContainer(d, <ts.ElementAccessExpression>d.initializer);
+                }
+
                 this.processVariableDeclarationOne(
                     <ts.Identifier>d.name, d.initializer,
                     (Helpers.isConstOrLet(declarationList) || varAsLet),
