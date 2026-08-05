@@ -499,33 +499,33 @@ export class EmitterLua {
     }
 
     private hasNodeUsedThis(location: ts.Node): boolean {
-        let createThis = false;
-        let root = true;
-        function checkThisKeyward(node: ts.Node): any {
-            if (root) {
-                root = false;
-            } else {
-                if (node.kind === ts.SyntaxKind.FunctionDeclaration
-                    || node.kind === ts.SyntaxKind.ArrowFunction
-                    || node.kind === ts.SyntaxKind.MethodDeclaration
-                    || node.kind === ts.SyntaxKind.FunctionExpression
-                    || node.kind === ts.SyntaxKind.FunctionType
-                    || node.kind === ts.SyntaxKind.ClassDeclaration
-                    || node.kind === ts.SyntaxKind.ClassExpression) {
-                    return;
-                }
+        return Helpers.hasNodeUsedThis(location);
+    }
+
+    // the text emitter keeps one function context for the whole file, so the enclosing scope of a
+    // node can only be told from the syntax tree
+    private isInsideFunctionScope(node: ts.Node): boolean {
+        let parent = node.parent;
+        while (parent) {
+            switch (parent.kind) {
+                case ts.SyntaxKind.FunctionDeclaration:
+                case ts.SyntaxKind.FunctionExpression:
+                case ts.SyntaxKind.ArrowFunction:
+                case ts.SyntaxKind.MethodDeclaration:
+                case ts.SyntaxKind.Constructor:
+                case ts.SyntaxKind.GetAccessor:
+                case ts.SyntaxKind.SetAccessor:
+                    return true;
+
+                case ts.SyntaxKind.SourceFile:
+                case ts.SyntaxKind.ModuleDeclaration:
+                    return false;
             }
 
-            if (node.kind === ts.SyntaxKind.ThisKeyword) {
-                createThis = true;
-                return true;
-            }
-
-            ts.forEachChild(node, checkThisKeyward);
+            parent = parent.parent;
         }
 
-        ts.forEachChild(location, checkThisKeyward);
-        return createThis;
+        return false;
     }
 
     private hasNodeUsedVar(location: ts.Node): boolean {
@@ -1851,9 +1851,11 @@ export class EmitterLua {
 
         const ignoreDeclVar = declarationList.parent.kind == ts.SyntaxKind.ForInStatement;
 
-        const varAsLet = this.varAsLet
-            && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.SourceFile
-            && this.functionContext.function_or_file_location_node.kind !== ts.SyntaxKind.ModuleDeclaration;
+        // 'var' is function scoped in JS, so inside a function it has to become a local of that
+        // function - a plain assignment would leak it into globals. at file and module level 'var'
+        // is global, the same as in JS. the '_ENV' based alternative can not be used here: Lua
+        // allows no statement after 'return', so the environment could never be restored again
+        const varAsLocal = this.isInsideFunctionScope(declarationList);
         declarationList.declarations.forEach(
             d => {
                 // 'const <var> = <container>[<key>]' has 'error' type in type checker when container has no index
@@ -1866,7 +1868,7 @@ export class EmitterLua {
 
                 this.processVariableDeclarationOne(
                     <ts.Identifier>d.name, d.initializer,
-                    (Helpers.isConstOrLet(declarationList) || varAsLet),
+                    (Helpers.isConstOrLet(declarationList) || varAsLocal),
                     isExport,
                     ignoreDeclVar);
                 this.functionContext.textCode.pushNewLine();

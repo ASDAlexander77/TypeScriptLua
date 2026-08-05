@@ -229,6 +229,20 @@ export class TypeInfo {
         return nonStaticMethod;
     }
 
+    // a static method is emitted without 'this' as its first parameter, so a reference to it must
+    // not be wrapped into '__wrapper' - the wrapper prepends the object and shifts every argument.
+    // the exception is a static method using 'this', which does keep 'this' as its first parameter
+    public isResultStaticMethodReferenceWithoutThis(expression: ts.Expression) {
+        const type = this.getTypeObject(expression);
+        const declaration = type && type.symbol && type.symbol.valueDeclaration;
+
+        return declaration
+            && declaration.kind === ts.SyntaxKind.MethodDeclaration
+            && declaration.modifiers
+            && declaration.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword)
+            && !Helpers.hasNodeUsedThis(declaration);
+    }
+
     public isResultNonStaticMethodReference(expression: ts.Expression) {
         const type = this.getTypeObject(expression);
         const nonStaticMethod = type

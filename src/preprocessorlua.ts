@@ -180,6 +180,7 @@ export class PreprocessorLua {
             if ((isRightOfBinaryExpression || isCallParameter || declar)
                 /*&& this.typeInfo.isResultNonStaticMethodReference(propertyAccessExpression)*/
                 && this.typeInfo.isResultMethodReference(propertyAccessExpression)
+                && !this.typeInfo.isResultStaticMethodReferenceWithoutThis(propertyAccessExpression)
                 && !(<any>propertyAccessExpression).__self_call_required) {
                 // wrap it into method
                 (<any>propertyAccessExpression).__self_call_required = true;

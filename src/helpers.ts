@@ -1,6 +1,36 @@
 import * as ts from 'typescript';
 
 export class Helpers {
+    public static hasNodeUsedThis(location: ts.Node): boolean {
+        let createThis = false;
+        let root = true;
+        function checkThisKeyward(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
+            if (node.kind === ts.SyntaxKind.ThisKeyword) {
+                createThis = true;
+                return true;
+            }
+
+            ts.forEachChild(node, checkThisKeyward);
+        }
+
+        ts.forEachChild(location, checkThisKeyward);
+        return createThis;
+    }
+
     public static isConstOrLet(node: ts.Node): boolean {
         return (node.flags & ts.NodeFlags.Let) === ts.NodeFlags.Let || (node.flags & ts.NodeFlags.Const) === ts.NodeFlags.Const;
     }
