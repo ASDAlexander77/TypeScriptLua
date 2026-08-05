@@ -328,6 +328,23 @@ export class EmitterLua {
         return obj;                                                 \
     }                                                               \
                                                                     \
+    __new_init = __new_init || function(proto: any, obj: object, ...params: any[]): any { \
+        if (!proto) {                                               \
+            throw new Error("Prototype can\'t be undefined or null");\
+        }                                                           \
+                                                                    \
+        obj.__index = __get_call_undefined__;                       \
+        obj.__proto = proto;                                        \
+        obj.__newindex = __set_call_undefined__;                    \
+        setmetatable(obj, obj);                                     \
+                                                                    \
+        if (obj.constructor) {                                      \
+            obj.constructor(...params);                             \
+        }                                                           \
+                                                                    \
+        return obj;                                                 \
+    }                                                               \
+                                                                    \
     __decorate = __decorate || function (                           \
         decors: any[], proto: any, propertyName: string, descriptorOrParameterIndex: any | undefined | null) \
     {                                                                                                   \
@@ -2728,7 +2745,7 @@ export class EmitterLua {
             const newArray = ts.createNew(ident, undefined, []);
             ident.parent = ident;
             newArray.parent = node;
-            this.processNewExpression(newArray, initializeArrayFunction);
+            this.processNewExpression(newArray, node.elements.length > 0 ? initializeArrayFunction : undefined);
         } else {
             initializeArrayFunction(resultInfo);
         }
@@ -3154,8 +3171,15 @@ export class EmitterLua {
     }
 
     private processNewExpression(node: ts.NewExpression, extraCodeBeforeConstructor?: (arrayRef: ResolvedInfo) => void): void {
-        this.functionContext.textCode.push("__new(");
+        // when initial values are provided, the object table is built first and
+        // handed over to '__new_init' which sets the metatable and then calls the constructor
+        this.functionContext.textCode.push(extraCodeBeforeConstructor ? "__new_init(" : "__new(");
         this.processExpression(node.expression);
+
+        if (extraCodeBeforeConstructor) {
+            this.functionContext.textCode.push(", ");
+            extraCodeBeforeConstructor(undefined);
+        }
 
         node.arguments.forEach(argument => {
             this.functionContext.textCode.push(", ");
