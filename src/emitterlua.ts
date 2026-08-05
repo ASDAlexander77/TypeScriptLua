@@ -3373,7 +3373,10 @@ export class EmitterLua {
 
             const typeInfo = this.typeInfo.getVariableDeclarationOfTypeOfNode(node.expression);
             if (typeInfo && typeInfo.kind === ts.SyntaxKind.ModuleDeclaration
-                || this.typeInfo.isTypeOfNode(node.expression, 'any') // many native objects are referenced as any, so we cannot determine type of them, so we need to use self call for them
+                // native Lua libraries are referenced as 'declare var <name>: any', they are plain tables and a
+                // call on them must not pass 'self'. an 'any' from anywhere else can still hold a real object,
+                // so it keeps the self call - dropping it there silently shifts every argument by one
+                || this.typeInfo.isTypeOfNode(node.expression, 'any') && this.typeInfo.isAmbientVariable(node.expression)
                 || this.typeInfo.isImportType(node.expression)
             ) {
                 thisCall = false;

@@ -218,6 +218,31 @@ export class TypeInfo {
         return importType;
     }
 
+    // 'declare var os: any' is how a native Lua library is brought into scope. those are plain tables of
+    // functions and a call on them must not pass 'self', while an 'any' coming from anywhere else (a parameter,
+    // a cast, an untyped property) can still hold a real object whose methods do expect 'self'.
+    // only an ambient *variable* qualifies - an ambient property or method typed 'any' says nothing about
+    // the value it holds
+    public isAmbientVariable(expression: ts.Expression) {
+        const declaration = this.getSymbolValueDeclaration(expression);
+        if (!declaration || declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
+            return false;
+        }
+
+        // the 'declare' modifier sits on the variable statement, not on the declaration itself
+        for (let node: ts.Node = declaration; node; node = node.parent) {
+            if (node.kind === ts.SyntaxKind.SourceFile) {
+                return (<ts.SourceFile>node).isDeclarationFile;
+            }
+
+            if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public isResultMethodReference(expression: ts.Expression) {
         const type = this.getTypeObject(expression);
         const nonStaticMethod = type
