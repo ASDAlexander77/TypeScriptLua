@@ -6,6 +6,7 @@ declare var __get_call_undefined__: any;
 declare var __set_call_undefined__: any;
 declare var rawget: any;
 declare var rawset: any;
+declare var tostring: any;
 
 module JS {
 
@@ -203,8 +204,29 @@ module JS {
             return -1;
         }
 
-        public join(): string {
-            return table.concat(this._values);
+        public join(separator?: string): string {
+            const sep = separator === undefined ? ',' : separator;
+
+            // 'table.concat' can't be used on '_values' directly as it holds
+            // null/undefined markers and nested objects which are not strings
+            const vals = this._values;
+            const length_ = ArrayHelper.getLength(vals);
+            const parts = <string[]>{};
+            for (let i = 1; i <= length_; i++) {
+                const v = rawget(vals, i);
+                const isObject = typeof (v) === 'object';
+                table.insert(
+                    parts,
+                    v === null || v === undefined || isObject && ((<any>v).__isNull || (<any>v).__isUndefined)
+                        ? ''
+                        : tostring(v));
+            }
+
+            return table.concat(parts, sep);
+        }
+
+        public toString(): string {
+            return this.join();
         }
 
         public sort() {

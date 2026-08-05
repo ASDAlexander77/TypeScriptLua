@@ -5,6 +5,9 @@ import { Helpers } from './helpers';
 
 export class PreprocessorLua {
 
+    // set while the compiler emits its own injected helper functions
+    public ignoreExtraLogic: boolean;
+
     public constructor(private resolver: IdentifierResolver, private typeInfo: TypeInfo) {
     }
 
@@ -352,6 +355,12 @@ export class PreprocessorLua {
 
     private preprocessMethodCallParameters(callExpression: ts.CallExpression) {
         if (callExpression.arguments.length === 0) {
+            return;
+        }
+
+        // injected helper functions are bootstrap code and must keep raw values,
+        // boxing them into Object/String/Number would call the helpers being defined
+        if (this.ignoreExtraLogic) {
             return;
         }
 

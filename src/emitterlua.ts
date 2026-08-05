@@ -973,6 +973,7 @@ export class EmitterLua {
     }
 
     private processExpression(nodeIn: ts.Expression): void {
+        this.preprocessor.ignoreExtraLogic = this.ignoreExtraLogic;
         const node = this.preprocessor.preprocessExpression(nodeIn);
 
         switch (node.kind) {
