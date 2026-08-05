@@ -49,6 +49,58 @@ describe('Classes', () => {
         (<any>c).show("Hello");                         \
     '])));
 
+    it('Class static property holding a function', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static show = function (s:string) {  \
+                console.log(s);                         \
+            };                                          \
+        }                                               \
+                                                        \
+        Class1.show("Hello");                           \
+    '])));
+
+    it('Class static property holding a function using this', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static val = "Hello";                \
+            public static show = function () {          \
+                console.log((<any>this).val);           \
+            };                                          \
+        }                                               \
+                                                        \
+        Class1.show();                                  \
+    '])));
+
+    it('Class static property holding an arrow function', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static show = (s:string) => {        \
+                console.log(s);                         \
+            };                                          \
+        }                                               \
+                                                        \
+        Class1.show("Hello");                           \
+    '])));
+
+    it('Class property holding a function', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public show = function (s:string) {         \
+                console.log(s);                         \
+            };                                          \
+        }                                               \
+                                                        \
+        new Class1().show("Hello");                     \
+    '])));
+
+    it('Class property holding a function using this', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public val = "Hello";                       \
+            public show = function () {                 \
+                console.log((<any>this).val);           \
+            };                                          \
+        }                                               \
+                                                        \
+        new Class1().show();                            \
+    '])));
+
     it('new instance of Class with parametered member', () => expect('Hello\r\n').to.equals(new Run().test([
         'class Class1 {                                 \
             public show(s:string) {                     \

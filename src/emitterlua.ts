@@ -1685,16 +1685,38 @@ export class EmitterLua {
         return false;
     }
 
-    // '<class>.<static method>()' must not be a self call, as a static method is emitted without 'self'.
-    // the exception is a static method using 'this', which keeps 'this' as its first parameter (see 'createThis')
-    private isStaticMethodCallWithoutSelf(node: ts.PropertyAccessExpression): boolean {
-        // a static method called through an instance of the class reaches the very same function and must not
+    // a member emitted without a 'this' parameter must not be called with ':', which would pass the object as the
+    // first argument and shift every real argument by one
+    private isCallOfMemberWithoutSelf(node: ts.PropertyAccessExpression): boolean {
+        // a static member called through an instance of the class reaches the very same function and must not
         // be a self call either, but the type checker does not resolve it - look it up on the class itself
         const memberDeclaration = this.typeInfo.getMemberDeclaration(node.name)
             || this.typeInfo.getStaticMemberDeclarationOfInstance(node.expression, node.name);
-        return memberDeclaration
-            && this.isStaticMethod(<ts.ClassElement>memberDeclaration)
-            && !this.hasNodeUsedThis(memberDeclaration);
+        if (!memberDeclaration) {
+            return false;
+        }
+
+        // '<class>.<static method>()', a static method is emitted without 'self'. the exception is a static method
+        // using 'this', which keeps 'this' as its first parameter (see 'createThis')
+        if (this.isStaticMethod(<ts.ClassElement>memberDeclaration)) {
+            return !this.hasNodeUsedThis(memberDeclaration);
+        }
+
+        // '<class or instance>.<property holding a function>()', a function expression is emitted as it is written,
+        // so it has no 'this' parameter unless its body uses 'this'. an arrow function always keeps one, as does a
+        // function expression of an object literal, and both stay self calls (see 'createThis')
+        return this.isPropertyHoldingFunctionExpressionWithoutThis(memberDeclaration);
+    }
+
+    private isPropertyHoldingFunctionExpressionWithoutThis(memberDeclaration: ts.Node): boolean {
+        if (memberDeclaration.kind !== ts.SyntaxKind.PropertyDeclaration) {
+            return false;
+        }
+
+        const initializer = (<ts.PropertyDeclaration>memberDeclaration).initializer;
+        return initializer !== undefined
+            && initializer.kind === ts.SyntaxKind.FunctionExpression
+            && !this.hasNodeUsedThis(initializer);
     }
 
     private isConstExpression(expression: ts.Expression): any {
@@ -3392,7 +3414,7 @@ export class EmitterLua {
                         + Helpers.getNodeText(node));
                 }
             }
-            else if (this.isStaticMethodCallWithoutSelf(node) || (<any>node.expression).__return_type === 'Math') { // Math is special case, we need to include correct .d.ts file which declare correct methods
+            else if (this.isCallOfMemberWithoutSelf(node) || (<any>node.expression).__return_type === 'Math') { // Math is special case, we need to include correct .d.ts file which declare correct methods
                 thisCall = false;
             }
         }
