@@ -1687,8 +1687,11 @@ export class EmitterLua {
 
     // '<class>.<static method>()' must not be a self call, as a static method is emitted without 'self'.
     // the exception is a static method using 'this', which keeps 'this' as its first parameter (see 'createThis')
-    private isStaticMethodCallWithoutSelf(name: ts.Node): boolean {
-        const memberDeclaration = this.typeInfo.getMemberDeclaration(name);
+    private isStaticMethodCallWithoutSelf(node: ts.PropertyAccessExpression): boolean {
+        // a static method called through an instance of the class reaches the very same function and must not
+        // be a self call either, but the type checker does not resolve it - look it up on the class itself
+        const memberDeclaration = this.typeInfo.getMemberDeclaration(node.name)
+            || this.typeInfo.getStaticMemberDeclarationOfInstance(node.expression, node.name);
         return memberDeclaration
             && this.isStaticMethod(<ts.ClassElement>memberDeclaration)
             && !this.hasNodeUsedThis(memberDeclaration);
@@ -3389,7 +3392,7 @@ export class EmitterLua {
                         + Helpers.getNodeText(node));
                 }
             }
-            else if (this.isStaticMethodCallWithoutSelf(node.name) || (<any>node.expression).__return_type === 'Math') { // Math is special case, we need to include correct .d.ts file which declare correct methods
+            else if (this.isStaticMethodCallWithoutSelf(node) || (<any>node.expression).__return_type === 'Math') { // Math is special case, we need to include correct .d.ts file which declare correct methods
                 thisCall = false;
             }
         }

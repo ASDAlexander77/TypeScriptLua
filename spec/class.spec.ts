@@ -24,6 +24,31 @@ describe('Classes', () => {
         Class1.show("Hello");                           \
     '])));
 
+    it('Class static member called via instance', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static show(s:string) {              \
+                console.log(s);                         \
+            }                                           \
+        }                                               \
+                                                        \
+        const c = new Class1();                         \
+        (<any>c).show("Hello");                         \
+    '])));
+
+    it('Class inherited static member called via instance', () => expect('Hello\r\n').to.equals(new Run().test([
+        'class Class1 {                                 \
+            public static show(s:string) {              \
+                console.log(s);                         \
+            }                                           \
+        }                                               \
+                                                        \
+        class Class2 extends Class1 {                   \
+        }                                               \
+                                                        \
+        const c = new Class2();                         \
+        (<any>c).show("Hello");                         \
+    '])));
+
     it('new instance of Class with parametered member', () => expect('Hello\r\n').to.equals(new Run().test([
         'class Class1 {                                 \
             public show(s:string) {                     \

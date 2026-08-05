@@ -171,14 +171,14 @@ end
 
 __call = __call or function (method, _this, ...)
     if not(method) or not(___type((method)) == "function") then 
-        return _this.call(...)
+        return _this:call(...)
     end
     return method(_this, ...)
 end
 
 __apply = __apply or function (method, _this, ...)
     if not(method) or not(___type((method)) == "function") then 
-        return _this.apply(_this, ...)
+        return _this:apply(_this, ...)
     end
     return method(_this, ...)
 end
@@ -194,7 +194,21 @@ __new = __new or function (proto, ...)
     }
     
 
-    setmetatable(__new(Object, obj), __new(Object, obj))
+    setmetatable(obj, obj)
+    if obj.constructor_ then 
+        obj:constructor_(...)
+    end
+    return obj
+end
+
+__new_init = __new_init or function (proto, obj, ...)
+    if not(proto) then 
+        error(__new(Error, "Prototype can't be undefined or null"))
+    end
+    obj.__index = __get_call_undefined__
+    obj.__proto = proto
+    obj.__newindex = __set_call_undefined__
+    setmetatable(obj, obj)
     if obj.constructor_ then 
         obj:constructor_(...)
     end
@@ -206,7 +220,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
 
     local isMethodDecoratorOrParameterDecorator = not(descriptorOrParameterIndex == undefined)
 
-    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op15414 = (Object.getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op15414 return op15414 end)() else return descriptorOrParameterIndex end end)() end end)()
+    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op16592 = (Object:getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op16592 return op16592 end)() else return descriptorOrParameterIndex end end)() end end)()
 
     local l = decors.length - 1
 
@@ -219,7 +233,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
     l = l - 1
     end
     if isMethodDecoratorOrParameterDecorator and not(protoOrDescriptorOrParameterIndex == nil) then 
-        Object.defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex)
+        Object:defineProperty(proto, propertyName, protoOrDescriptorOrParameterIndex)
     end
     return protoOrDescriptorOrParameterIndex
 end
@@ -270,31 +284,31 @@ JS = JS or {
 
 undefined = {
     name = "undefined",
-    __tostring = function (this)
+    __tostring = function ()
         error(__new(Error, "Object is possibly 'undefined'"))
     end
     ,
-    __index = function (this, _this, indx)
+    __index = function (_this, indx)
         error(__new(Error, "Object is possibly 'undefined'"))
     end
     ,
-    __newindex = function (this, _this, indx, val)
+    __newindex = function (_this, indx, val)
         error(__new(Error, "Object is possibly 'undefined'"))
     end
     ,
-    __call = function (this, _this, indx)
+    __call = function (_this, indx)
         error(__new(Error, "Object is possibly 'undefined'"))
     end
     ,
-    __len = function (this, _this)
+    __len = function (_this)
         return 0
     end
     ,
-    __lt = function (this, _this, other)
+    __lt = function (_this, other)
         return false
     end
     ,
-    __le = function (this, _this, other)
+    __le = function (_this, other)
         return false
     end
     ,
@@ -346,7 +360,7 @@ Object = {
         
     end
     ,
-    create = function (this, proto)
+    create = function (proto)
         if __is_true(__not(proto)) then 
             error(__new(Error, "Prototype can't be undefined or null"))
         end
@@ -361,12 +375,12 @@ Object = {
         obj.__newindex = __set_call_undefined__
         setmetatable(obj, obj)
         if __is_true(obj.constructor_) then 
-            obj.constructor_()
+            obj:constructor_()
         end
         return obj
     end
     ,
-    freeze = function (this, obj)
+    freeze = function (obj)
         if __is_true(obj == nil) then 
             return
         end
@@ -377,7 +391,7 @@ Object = {
         setmetatable(obj, obj)
     end
     ,
-    keys = function (this, obj)
+    keys = function (obj)
         local a = __new(Array)
 
         local current = obj
@@ -414,7 +428,7 @@ Object = {
         return a
     end
     ,
-    defineProperty = function (this, obj, name, opts)
+    defineProperty = function (obj, name, opts)
         if __is_true(__equals(opts, nil)) then 
             return
         end
@@ -433,7 +447,7 @@ Object = {
                 obj.__index = __get_call_undefined__
             end
         end
-        local setMethod = (function () local op3292 = opts.set if __is_true(op3292) then return op3292 else return ((function () if __is_true(((function () local op3307 = opts.value if __is_true(op3307) then return ___type(opts.value) == "function" else return op3307 end end)())) then return opts.value else return nil end end)()) end end)()
+        local setMethod = (function () local op3385 = opts.set if __is_true(op3385) then return op3385 else return ((function () if __is_true(((function () local op3400 = opts.value if __is_true(op3400) then return ___type(opts.value) == "function" else return op3400 end end)())) then return opts.value else return nil end end)()) end end)()
 
         if __is_true(setMethod) then 
             if __is_true(__not(obj.__set__)) then 
@@ -450,12 +464,12 @@ Object = {
                 obj.__newindex = __set_call_undefined__
             end
         end
-        if __is_true((function () local op3783 = opts.value if __is_true(op3783) then return not(___type(opts.value) == "function") else return op3783 end end)()) then 
+        if __is_true((function () local op3876 = opts.value if __is_true(op3876) then return not(___type(opts.value) == "function") else return op3876 end end)()) then 
             obj[name] = opts.value
         end
     end
     ,
-    getOwnPropertyDescriptor = function (this, obj, name)
+    getOwnPropertyDescriptor = function (obj, name)
         local opts = {
             __index = __get_call_undefined__,
             __newindex = __set_call_undefined__,
@@ -484,7 +498,7 @@ Object = {
         return opts
     end
     ,
-    getPrototypeOf = function (this, obj)
+    getPrototypeOf = function (obj)
         return obj.__proto
     end
     ,
@@ -517,6 +531,9 @@ JS.Map = Map
 
 
 
+
+
+
 JS = JS or {
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
@@ -527,7 +544,20 @@ StringHelper = {
         return string.len(this)
     end
     ,
-    fromCharCode = function (this, code)
+    toConcatString = function (val)
+        if __is_true(val == nil) then 
+            return "null"
+        end
+        if __is_true(val == undefined) then 
+            return "undefined"
+        end
+        if __is_true((function () local op766 = ___type((val)) == "object" if __is_true(op766) then return __not(rawget(val, "__tostring")) else return op766 end end)()) then 
+            return "[object Object]"
+        end
+        return tostring(val)
+    end
+    ,
+    fromCharCode = function (code)
         return string.char(tonumber(code))
     end
     ,
@@ -556,26 +586,26 @@ StringHelper = {
                 if __is_true(position < 0) then 
                     local rest = StringHelper.substring(this, current)
 
-                    ArrayHelper:pushOne(result, rest)
+                    ArrayHelper.pushOne(result, rest)
                     return result:join()
                 end
                 if __is_true(position > current) then 
                     local part = StringHelper.substring(this, current, position)
 
-                    ArrayHelper:pushOne(result, part)
+                    ArrayHelper.pushOne(result, part)
                 end
                 current = position + StringHelper.getLength(matchResult[0])
                 if __is_true(__not(isFunc)) then 
-                    ArrayHelper:pushOne(result, valOrFunc)
+                    ArrayHelper.pushOne(result, valOrFunc)
                  else 
                     local val = valOrFunc(matchResult[0], table.unpack(matchResult))
 
-                    ArrayHelper:pushOne(result, val)
+                    ArrayHelper.pushOne(result, val)
                 end
             end
             return result:join()
         end
-        return string.gsub(this, valOrRegExp.__getLuaPattern(), valOrFunc)
+        return string.gsub(this, valOrRegExp:__getLuaPattern(), valOrFunc)
     end
     ,
     substr = function (this, begin, len)
@@ -585,7 +615,7 @@ StringHelper = {
                 begin = undefined
             end
         end
-        return string.sub(this, ((function () local op2390 = begin if __is_true(op2390) then return op2390 else return 0 end end)()) + 1, ((function () local op2408 = begin if __is_true(op2408) then return op2408 else return 0 end end)()) + ((function () local op2423 = len if __is_true(op2423) then return op2423 else return string.len(this) end end)()))
+        return string.sub(this, ((function () local op3067 = begin if __is_true(op3067) then return op3067 else return 0 end end)()) + 1, ((function () local op3085 = begin if __is_true(op3085) then return op3085 else return 0 end end)()) + ((function () local op3100 = len if __is_true(op3100) then return op3100 else return string.len(this) end end)()))
     end
     ,
     substring = function (this, begin, _end)
@@ -595,10 +625,10 @@ StringHelper = {
                 begin = undefined
             end
         end
-        if __is_true((function () local op2568 = (function () local op2568 = __equals(begin, _end) if __is_true(op2568) then return __equals(_end, nil) else return op2568 end end)() if __is_true(op2568) then return op2568 else return begin == _end end end)()) then 
+        if __is_true((function () local op3245 = (function () local op3245 = __equals(begin, _end) if __is_true(op3245) then return __equals(_end, nil) else return op3245 end end)() if __is_true(op3245) then return op3245 else return begin == _end end end)()) then 
             return ""
         end
-        return string.sub(this, ((function () local op2702 = begin if __is_true(op2702) then return op2702 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
+        return string.sub(this, ((function () local op3379 = begin if __is_true(op3379) then return op3379 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
     end
     ,
     slice = function (this, start, _end)
@@ -608,14 +638,14 @@ StringHelper = {
                 start = undefined
             end
         end
-        return string.sub(this, ((function () local op2888 = start if __is_true(op2888) then return op2888 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
+        return string.sub(this, ((function () local op3565 = start if __is_true(op3565) then return op3565 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
     end
     ,
     indexOf = function (this, pattern, begin)
         if __is_true(begin == nil) then 
             begin = undefined
         end
-        return ((function () local op3061 = table.pack(string.find(this, pattern, ((function () local op3100 = begin if __is_true(op3100) then return op3100 else return 0 end end)()) + 1, true))[1] if __is_true(op3061) then return op3061 else return 0 end end)()) - 1
+        return ((function () local op3738 = table.pack(string.find(this, pattern, ((function () local op3777 = begin if __is_true(op3777) then return op3777 else return 0 end end)()) + 1, true))[1] if __is_true(op3738) then return op3738 else return 0 end end)()) - 1
     end
     ,
     lastIndexOf = function (this, pattern, begin)
@@ -628,7 +658,7 @@ StringHelper = {
 
         repeat
             lastFound = found
-            found = table.pack(string.find(this, pattern, ((function () local op3460 = (function () local op3460 = begin if __is_true(op3460) then return op3460 else return found end end)() if __is_true(op3460) then return op3460 else return 0 end end)()) + 1, true))[1]
+            found = table.pack(string.find(this, pattern, ((function () local op4137 = (function () local op4137 = begin if __is_true(op4137) then return op4137 else return found end end)() if __is_true(op4137) then return op4137 else return 0 end end)()) + 1, true))[1]
         until not(__is_true(found))
         return (function () if __is_true(lastFound) then return lastFound - 1 else return -1 end end)()
     end
@@ -638,9 +668,9 @@ StringHelper = {
             begin = undefined
         end
         if __is_true(___type(pattern) == "string") then 
-            (function () local op3737 = table.pack(string.find(this, pattern, ((function () local op3794 = begin if __is_true(op3794) then return op3794 else return 0 end end)()) + 1, true))[1] if __is_true(op3737) then return op3737 else return -1 end end)()
+            (function () local op4414 = table.pack(string.find(this, pattern, ((function () local op4471 = begin if __is_true(op4471) then return op4471 else return 0 end end)()) + 1, true))[1] if __is_true(op4414) then return op4414 else return -1 end end)()
         end
-        return (function () local op3864 = table.pack(string.find(this, pattern.__getLuaPattern(), ((function () local op3929 = begin if __is_true(op3929) then return op3929 else return 0 end end)()) + 1))[1] if __is_true(op3864) then return op3864 else return -1 end end)()
+        return (function () local op4541 = table.pack(string.find(this, pattern:__getLuaPattern(), ((function () local op4606 = begin if __is_true(op4606) then return op4606 else return 0 end end)()) + 1))[1] if __is_true(op4541) then return op4541 else return -1 end end)()
     end
     ,
     toLowerCase = function (this)
@@ -666,13 +696,13 @@ StringHelper = {
             if __is_true(position < 0) then 
                 local rest = StringHelper.substring(this, current)
 
-                ArrayHelper:pushOne(result, rest)
+                ArrayHelper.pushOne(result, rest)
                 return result
             end
             local part = StringHelper.substring(this, current, position)
 
             current = position + sizeSeparator
-            ArrayHelper:pushOne(result, part)
+            ArrayHelper.pushOne(result, part)
         end
         return result
     end
@@ -692,7 +722,7 @@ String = {
         end
         
         this.__concat = function (left, right)
-            return ((function () local op5388 = left.constString if __is_true(op5388) then return op5388 else return left end end)()) .. ((function () local op5437 = right.constString if __is_true(op5437) then return op5437 else return right end end)())
+            return ((function () local op6065 = left.constString if __is_true(op6065) then return op6065 else return left end end)()) .. ((function () local op6114 = right.constString if __is_true(op6114) then return op6114 else return right end end)())
         end
         
         this.__index = function (_this, indx)
@@ -779,6 +809,12 @@ String = {
 setmetatable(String, String)
 JS.String = String
 
+if __is_true(getmetatable("")) then 
+    getmetatable("").__concat = function (left, right)
+        return StringHelper.toConcatString(left) .. StringHelper.toConcatString(right)
+    end
+    
+end
 
 
 
@@ -792,7 +828,7 @@ Error = {
     constructor_ = function (this, message)
         this.message = message
         this.__tostring = function (this)
-            return this.message .. "\10" .. this.stack
+            return (this.message .. "\10") .. this.stack
         end
         
         this.stack = debug.traceback()
@@ -819,17 +855,18 @@ JS.Error = Error
 
 
 
+
 JS = JS or {
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
 }
 
 ArrayHelper = {
-    getLength = function (this, _this)
+    getLength = function (_this)
         return #_this + ((function () if __is_true(_this[0]) then return 1 else return 0 end end)())
     end
     ,
-    pushOne = function (this, _this, obj)
+    pushOne = function (_this, obj)
         local vals = _this._values
 
         if __is_true(vals) then 
@@ -852,7 +889,7 @@ JS.ArrayHelper = ArrayHelper
 
 ArrayNullElement = {
     __isNull = true,
-    __tostring = function (this)
+    __tostring = function ()
         return "null"
     end
     ,
@@ -865,7 +902,7 @@ JS.ArrayNullElement = ArrayNullElement
 
 ArrayUndefinedElement = {
     __isUndefined = true,
-    __tostring = function (this)
+    __tostring = function ()
         return "undefined"
     end
     ,
@@ -888,12 +925,12 @@ Array = {
         
         local zeroVal = rawget(this, 0)
 
-        if __is_true((function () local op1497 = not(zeroVal == nil) if __is_true(op1497) then return op1497 else return not(rawget(this, 1) == nil) end end)()) then 
+        if __is_true((function () local op1525 = not(zeroVal == nil) if __is_true(op1525) then return op1525 else return not(rawget(this, 1) == nil) end end)()) then 
             if __is_true(not(zeroVal == nil)) then 
                 this[0] = undefined
                 rawset(this, 0, nil)
             end
-            local _len = ArrayHelper:getLength(this)
+            local _len = ArrayHelper.getLength(this)
 
             if __is_true(not(zeroVal == nil)) then 
                 table.insert(this._values, zeroVal)
@@ -926,7 +963,7 @@ Array = {
 
                 local isObject = ___type((v)) == "object"
 
-                return (function () if __is_true((function () local op3005 = isObject if __is_true(op3005) then return v.__isNull else return op3005 end end)()) then return nil else return (function () if __is_true((function () local op3110 = isObject if __is_true(op3110) then return v.__isUndefined else return op3110 end end)()) then return undefined else return (function () if __is_true(v == nil) then return undefined else return v end end)() end end)() end end)()
+                return (function () if __is_true((function () local op3033 = isObject if __is_true(op3033) then return v.__isNull else return op3033 end end)()) then return nil else return (function () if __is_true((function () local op3138 = isObject if __is_true(op3138) then return v.__isUndefined else return op3138 end end)()) then return undefined else return (function () if __is_true(v == nil) then return undefined else return v end end)() end end)() end end)()
             end
             return __get_call_undefined__(_this, indx)
         end
@@ -972,13 +1009,13 @@ Array = {
         end
         local v = table.remove(this._values)
 
-        return (function () if __is_true((function () local op4977 = ___type((v)) == "object" if __is_true(op4977) then return v.isNull else return op4977 end end)()) then return nil else return (function () if __is_true(v == nil) then return undefined else return v end end)() end end)()
+        return (function () if __is_true((function () local op5005 = ___type((v)) == "object" if __is_true(op5005) then return v.isNull else return op5005 end end)()) then return nil else return (function () if __is_true(v == nil) then return undefined else return v end end)() end end)()
     end
     ,
     indexOf = function (this, val)
         local vals = this._values
 
-        local length_ = ArrayHelper:getLength(vals)
+        local length_ = ArrayHelper.getLength(vals)
 
         local i = 1
 
@@ -991,8 +1028,37 @@ Array = {
         return -1
     end
     ,
-    join = function (this)
-        return table.concat(this._values)
+    join = function (this, separator)
+        if __is_true(separator == nil) then 
+            separator = undefined
+        end
+        local sep = (function () if __is_true(separator == undefined) then return "," else return separator end end)()
+
+        local vals = this._values
+
+        local length_ = ArrayHelper.getLength(vals)
+
+        local parts = {
+            __index = __get_call_undefined__,
+            __newindex = __set_call_undefined__,
+        }
+        
+
+        local i = 1
+
+        while __is_true(i <= length_) do
+            local v = rawget(vals, i)
+
+            local isObject = ___type((v)) == "object"
+
+            table.insert(parts, (function () if __is_true((function () local op6798 = (function () local op6798 = v == nil if __is_true(op6798) then return op6798 else return v == undefined end end)() if __is_true(op6798) then return op6798 else return (function () local op6852 = isObject if __is_true(op6852) then return ((function () local op6866 = v.__isNull if __is_true(op6866) then return op6866 else return v.__isUndefined end end)()) else return op6852 end end)() end end)()) then return "" else return tostring(v) end end)())
+        i = i + 1
+        end
+        return table.concat(parts, sep)
+    end
+    ,
+    toString_ = function (this)
+        return this:join()
     end
     ,
     sort = function (this)
@@ -1002,7 +1068,7 @@ Array = {
     shift = function (this)
         local v = table.remove(this._values, 1)
 
-        return (function () if __is_true((function () local op6440 = ___type((v)) == "object" if __is_true(op6440) then return v.isNull else return op6440 end end)()) then return nil else return (function () if __is_true(__equals(v, nil)) then return undefined else return v end end)() end end)()
+        return (function () if __is_true((function () local op7347 = ___type((v)) == "object" if __is_true(op7347) then return v.isNull else return op7347 end end)()) then return nil else return (function () if __is_true(__equals(v, nil)) then return undefined else return v end end)() end end)()
     end
     ,
     unshift = function (this, ...)
@@ -1026,7 +1092,7 @@ Array = {
 
         local _vals = this._values
 
-        local _len = ArrayHelper:getLength(_vals)
+        local _len = ArrayHelper.getLength(_vals)
 
         local i = 1
 
@@ -1065,14 +1131,14 @@ Array = {
 
         local _vals = this._values
 
-        local _len = ArrayHelper:getLength(_vals)
+        local _len = ArrayHelper.getLength(_vals)
 
         local i = 1
 
         while __is_true(i <= _len) do
-            local obj = func(_vals[i], (function () local op7786 = (index) index = op7786 + 1 return op7786 end)(), this)
+            local obj = func(_vals[i], (function () local op8693 = (index) index = op8693 + 1 return op8693 end)(), this)
 
-            ArrayHelper:pushOne(retArr, obj)
+            ArrayHelper.pushOne(retArr, obj)
         i = i + 1
         end
         return retArr
@@ -1088,17 +1154,17 @@ Array = {
 
         local _vals = this._values
 
-        local _len = ArrayHelper:getLength(_vals)
+        local _len = ArrayHelper.getLength(_vals)
 
         local i = 1
 
         while __is_true(i <= _len) do
             local val = _vals[i]
 
-            local iftrue = func(val, (function () local op8407 = (index) index = op8407 + 1 return op8407 end)(), this)
+            local iftrue = func(val, (function () local op9314 = (index) index = op9314 + 1 return op9314 end)(), this)
 
             if __is_true(iftrue) then 
-                ArrayHelper:pushOne(ret, val)
+                ArrayHelper.pushOne(ret, val)
             end
         i = i + 1
         end
@@ -1113,14 +1179,14 @@ Array = {
 
         local _vals = this._values
 
-        local _len = ArrayHelper:getLength(_vals)
+        local _len = ArrayHelper.getLength(_vals)
 
         local i = 1
 
         while __is_true(i <= _len) do
             local val = _vals[i]
 
-            func(val, (function () local op9024 = (index) index = op9024 + 1 return op9024 end)(), this)
+            func(val, (function () local op9931 = (index) index = op9931 + 1 return op9931 end)(), this)
         i = i + 1
         end
     end
@@ -1139,7 +1205,7 @@ Array = {
         while __is_true(i_ < arr_.length) do
             local val = arr_[i_]
 
-            result = result & func(val, (function () local op9351 = (index) index = op9351 + 1 return op9351 end)(), this)
+            result = math.floor(result) & math.floor(func(val, (function () local op10258 = (index) index = op10258 + 1 return op10258 end)(), this))
         i_ = i_ + 1
         end
         
@@ -1151,19 +1217,19 @@ Array = {
             howmany = undefined
         end
         local items = {...}; items.length = #items; items[0] = items[1]; table.remove(items, 1);
-        local count = (function () local op9557 = howmany if __is_true(op9557) then return op9557 else return 1 end end)()
+        local count = (function () local op10464 = howmany if __is_true(op10464) then return op10464 else return 1 end end)()
 
         local retArr = __new(Array)
 
         local i = index + count
 
         while __is_true(i > index) do
-            ArrayHelper:pushOne(retArr, rawget(this._values, i))
+            ArrayHelper.pushOne(retArr, rawget(this._values, i))
             table.remove(this._values, i)
         i = i - 1
         end
         if __is_true(items) then 
-            local length_ = ArrayHelper:getLength(items)
+            local length_ = ArrayHelper.getLength(items)
 
             local i = 0
 
@@ -1186,13 +1252,13 @@ Array = {
         end
         local retArr = __new(Array)
 
-        local from = (function () local op10331 = begin if __is_true(op10331) then return op10331 else return 0 end end)()
+        local from = (function () local op11238 = begin if __is_true(op11238) then return op11238 else return 0 end end)()
 
         if __is_true(from < 0) then 
             error(__new(Error, "Index out of bounds: " .. from
             ))
         end
-        local to = (function () local op10477 = _end if __is_true(op10477) then return op10477 else return this.length end end)()
+        local to = (function () local op11384 = _end if __is_true(op11384) then return op11384 else return this.length end end)()
 
         if __is_true(to > this.length) then 
             to = this.length
@@ -1208,14 +1274,14 @@ Array = {
     ,
     __get__ = {
         length = function (this)
-            return ArrayHelper:getLength(this._values)
+            return ArrayHelper.getLength(this._values)
         end
         ,
     }
     ,
     __set__ = {
         length = function (this, newSize)
-            local _len = ArrayHelper:getLength(this._values)
+            local _len = ArrayHelper.getLength(this._values)
 
             if __is_true(_len == newSize) then 
                 return
@@ -1283,7 +1349,7 @@ TypedArrayBase = {
         elseif op681 == "double" then
             getFunc = array_buffer.getDouble
             setFunc = array_buffer.setDouble
-        elseif True then
+        else
             getFunc = array_buffer.get
             setFunc = array_buffer.set
         end
@@ -1298,7 +1364,7 @@ TypedArrayBase = {
             this.byteLength = sizeOrData * sizePerElement
          else 
             data = sizeOrData
-            this.size = (function () local op2322 = sizeOrData.length if __is_true(op2322) then return op2322 else return ArrayHelper:getLength(sizeOrData) end end)()
+            this.size = (function () local op2322 = sizeOrData.length if __is_true(op2322) then return op2322 else return ArrayHelper.getLength(sizeOrData) end end)()
             this.byteLength = this.size * sizePerElement
         end
         this.buffer = __new(ArrayBuffer, this.byteLength)
@@ -1610,71 +1676,71 @@ Math = {
     PI = 3.141592653589793,
     SQRT1_2 = 0.7071067811865476,
     SQRT2 = 1.4142135623730951,
-    pow = function (this, op, op2)
+    pow = function (op, op2)
         return op ^ op2
     end
     ,
-    min = function (this, op, op2)
+    min = function (op, op2)
         return math.min(op, op2)
     end
     ,
-    max = function (this, op, op2)
+    max = function (op, op2)
         return math.max(op, op2)
     end
     ,
-    sin = function (this, op)
+    sin = function (op)
         return math.sin(op)
     end
     ,
-    cos = function (this, op)
+    cos = function (op)
         return math.cos(op)
     end
     ,
-    asin = function (this, op)
+    asin = function (op)
         return math.asin(op)
     end
     ,
-    acos = function (this, op)
+    acos = function (op)
         return math.acos(op)
     end
     ,
-    abs = function (this, op)
+    abs = function (op)
         return math.abs(op)
     end
     ,
-    floor = function (this, op)
+    floor = function (op)
         return math.floor(op)
     end
     ,
-    round = function (this, op)
+    round = function (op)
         return math.round(op)
     end
     ,
-    sqrt = function (this, op)
+    sqrt = function (op)
         return math.sqrt(op)
     end
     ,
-    tan = function (this, op)
+    tan = function (op)
         return math.tan(op)
     end
     ,
-    atan = function (this, op)
+    atan = function (op)
         return math.atan(op)
     end
     ,
-    atan2 = function (this, op)
+    atan2 = function (op)
         return math.atan(op)
     end
     ,
-    log = function (this, op)
+    log = function (op)
         return math.log(op)
     end
     ,
-    exp = function (this, op)
+    exp = function (op)
         return math.exp(op)
     end
     ,
-    random = function (this)
+    random = function ()
         return math.random()
     end
     ,
@@ -1724,6 +1790,7 @@ JS.Date = Date
 
 
 
+
 RegExp = {
     loaded = false,
     constructor_ = function (this, pattern, flags)
@@ -1746,13 +1813,13 @@ RegExp = {
                 while __is_true(i_ < #arr_) do
                     local flag = string.char(string.byte(arr_, i_ + 1))
 
-                    local op536 = flag
-                    if op536 == "g" then
+                    local op609 = flag
+                    if op609 == "g" then
                         this.isGlobal = true
-                    elseif op536 == "i" then
-                        flagsEnum = flagsEnum | 1
-                    elseif op536 == "m" then
-                        flagsEnum = flagsEnum | 2
+                    elseif op609 == "i" then
+                        flagsEnum = math.floor(flagsEnum) | 1
+                    elseif op609 == "m" then
+                        flagsEnum = math.floor(flagsEnum) | 2
                     end
                 i_ = i_ + 1
                 end
@@ -1884,8 +1951,8 @@ JSONParse = {
                                     end
                                 this.Index = this.Index + 1
                                 end
-                                value = value .. StringHelper:fromCharCode("0x" .. StringHelper.slice(source, begin, this.Index))
-                            elseif True then
+                                value = value .. StringHelper.fromCharCode("0x" .. StringHelper.slice(source, begin, this.Index))
+                            else
                                 this:abort()
                             end
                          else 
@@ -1907,7 +1974,7 @@ JSONParse = {
                     return value
                 end
                 this:abort()
-            elseif True then
+            else
                 begin = this.Index
                 if __is_true(charCode == 45) then 
                     isSigned = true
@@ -2067,7 +2134,7 @@ setmetatable(JSONParse, JSONParse)
 JS.JSONParse = JSONParse
 
 JSON = {
-    parse = function (this, source)
+    parse = function (source)
         return __new(JSONParse):parse(source)
     end
     ,
@@ -2139,7 +2206,7 @@ XMLHttpRequest = {
         local file = table.pack(io.open(absPath, "r"))
 
         if __is_true(file[1]) then 
-            local data = file[1].read("*all")
+            local data = file[1]:read("*all")
 
             this.responseText = string.gsub(data, "^ï»¿", "")
             this.status = 200
@@ -2177,17 +2244,17 @@ JS = JS or {
 }
 
 Console = {
-    log = function (this, ...)
+    log = function (...)
         print(...)
     end
     ,
-    warn = function (this, ...)
+    warn = function (...)
         print(...)
     end
     ,
-    error = function (this, ...)
+    error = function (...)
         local params = {...}; params.length = #params; params[0] = params[1]; table.remove(params, 1);
-        io.stderr.write(tostring(params[0]))
+        io.stderr:write(tostring(params[0]))
     end
     ,
     __index = __get_call_undefined__,

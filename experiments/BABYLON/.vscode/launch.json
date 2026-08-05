@@ -27,7 +27,15 @@
             "preLaunchTask": "npm",
             //"program": "${workspaceFolder}/${command:AskForProgramName}",
             "program": "${workspaceFolder}/babyloncli.lua",
-            "luaExecutable": "lua",
+            "cpath": "I:/TypeScriptLua/__dist/?.dll",
+            "runtimeExecutable": "I:/TypeScriptLua/__dist/lua.exe",
+            "runtimeArgs": [
+                "-e",
+                "package.path = package.path .. ';I:/TypeScriptLua/__dist/?.lua'",
+                "${workspaceFolder}/babyloncli.lua",
+                "-i",
+                "1"
+            ],
             "stopOnEntry": true
         },
         {
@@ -38,7 +46,15 @@
             "preLaunchTask": "npm",
             //"program": "${workspaceFolder}/${command:AskForProgramName}",
             "program": "${workspaceFolder}/simple_test.lua",
-            "luaExecutable": "lua",
+            "cpath": "I:/TypeScriptLua/__dist/?.dll",
+            "runtimeExecutable": "I:/TypeScriptLua/__dist/lua.exe",
+            "runtimeArgs": [
+                "-e",
+                "package.path = package.path .. ';I:/TypeScriptLua/__dist/?.lua'",
+                "${workspaceFolder}/simple_test.lua",
+                "-i",
+                "1"
+            ],
             "stopOnEntry": true
         },
         {
@@ -49,7 +65,15 @@
             "preLaunchTask": "npm",
             //"program": "${workspaceFolder}/${command:AskForProgramName}",
             "program": "${workspaceFolder}/simple_test2.lua",
-            "luaExecutable": "lua",
+            "cpath": "I:/TypeScriptLua/__dist/?.dll",
+            "runtimeExecutable": "I:/TypeScriptLua/__dist/lua.exe",
+            "runtimeArgs": [
+                "-e",
+                "package.path = package.path .. ';I:/TypeScriptLua/__dist/?.lua'",
+                "${workspaceFolder}/simple_test2.lua",
+                "-i",
+                "1"
+            ],
             "stopOnEntry": true
         }
     ]

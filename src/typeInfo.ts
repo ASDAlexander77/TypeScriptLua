@@ -99,6 +99,64 @@ export class TypeInfo {
         return type && type.symbol && type.symbol.valueDeclaration;
     }
 
+    // '<instance>.<static member>' is not resolved by the type checker, as it is not valid TypeScript, while in Lua
+    // it does reach the member, the class table being the prototype of its instances. the declaration can still be
+    // found by looking the name up among the static members of the class of the instance and of its base classes
+    public getStaticMemberDeclarationOfInstance(expression: ts.Expression, name: ts.Node) {
+        const memberName = (<ts.Identifier>name).text;
+        if (!memberName) {
+            return undefined;
+        }
+
+        // a class extending itself through a type alias would loop forever otherwise
+        const visited = new Set<ts.Node>();
+        let classDeclaration = this.getClassDeclarationOfNode(expression);
+        while (classDeclaration && !visited.has(classDeclaration)) {
+            visited.add(classDeclaration);
+
+            const member = classDeclaration.members.find(m => m.name
+                && (<ts.Identifier>m.name).text === memberName
+                && m.modifiers
+                && m.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.StaticKeyword));
+            if (member) {
+                return member;
+            }
+
+            classDeclaration = this.getBaseClassDeclaration(classDeclaration);
+        }
+
+        return undefined;
+    }
+
+    private getClassDeclarationOfNode(node: ts.Node): ts.ClassLikeDeclaration {
+        const type = this.getTypeObject(this.skipOuterExpressions(node));
+        const declaration = type && type.symbol && type.symbol.valueDeclaration;
+        return declaration
+            && (declaration.kind === ts.SyntaxKind.ClassDeclaration || declaration.kind === ts.SyntaxKind.ClassExpression)
+            ? <ts.ClassLikeDeclaration>declaration
+            : undefined;
+    }
+
+    private getBaseClassDeclaration(classDeclaration: ts.ClassLikeDeclaration): ts.ClassLikeDeclaration {
+        const extendsClause = classDeclaration.heritageClauses
+            && classDeclaration.heritageClauses.find(h => h.token === ts.SyntaxKind.ExtendsKeyword);
+        const baseExpression = extendsClause && extendsClause.types[0] && extendsClause.types[0].expression;
+        return baseExpression ? this.getClassDeclarationOfNode(baseExpression) : undefined;
+    }
+
+    // a cast or a pair of parentheses hides the class of the instance, while the value behind it is the same object
+    private skipOuterExpressions(node: ts.Node): ts.Node {
+        while (node
+            && (node.kind === ts.SyntaxKind.ParenthesizedExpression
+                || node.kind === ts.SyntaxKind.AsExpression
+                || node.kind === ts.SyntaxKind.TypeAssertionExpression
+                || node.kind === ts.SyntaxKind.NonNullExpression)) {
+            node = (<ts.ParenthesizedExpression>node).expression;
+        }
+
+        return node;
+    }
+
     public getSymbolValueDeclaration(node: ts.Node) {
         const symbol = this.resolver.getSymbolAtLocation(node);
         if (symbol && symbol.valueDeclaration) {
