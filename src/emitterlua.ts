@@ -2946,7 +2946,23 @@ export class EmitterLua {
             return;
         }
 
+        // '+' is left associative in JS while '..' is right associative in Lua, so a chain
+        // has to be parenthesized to keep 'a + b + c' from turning into 'a .. (b .. c)'.
+        // it makes no difference for strings, but 'b .. c' of two objects has no meaning
+        const keepLeftAssociative = op === '..'
+            && node.left.kind === ts.SyntaxKind.BinaryExpression
+            && (<ts.BinaryExpression>node.left).operatorToken.kind === ts.SyntaxKind.PlusToken;
+
+        if (keepLeftAssociative) {
+            this.functionContext.textCode.push("(");
+        }
+
         this.processExpression(node.left);
+
+        if (keepLeftAssociative) {
+            this.functionContext.textCode.push(")");
+        }
+
         this.functionContext.textCode.push(" " + op + " ");
         this.processExpression(node.right);
     }

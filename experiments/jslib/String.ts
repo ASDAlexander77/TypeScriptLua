@@ -1,5 +1,8 @@
 declare var string: any;
 declare var table: any;
+declare var getmetatable: any;
+declare var rawget: any;
+declare var tostring: any;
 
 module JS {
 
@@ -8,6 +11,24 @@ module JS {
     export class StringHelper {
         public static getLength(this: string): number {
             return string.len(this);
+        }
+
+        // an object takes part in '..' as the result of its '__tostring', classes which do not
+        // provide one are stringified the way JS does it for a plain object
+        public static toConcatString(val: any): string {
+            if (val === null) {
+                return 'null';
+            }
+
+            if (val === undefined) {
+                return 'undefined';
+            }
+
+            if (typeof (val) === 'object' && !rawget(val, '__tostring')) {
+                return '[object Object]';
+            }
+
+            return tostring(val);
         }
 
         public static fromCharCode(code: string | number): string {
@@ -212,4 +233,13 @@ module JS {
         }
     }
 
+    // Lua goes for the '__concat' of the string metatable whenever the other side of '..'
+    // is neither a string nor a number, no matter which side it is on. Objects are not
+    // metatables of each other, so this is the only place where 'string + <any object>'
+    // can be handled for every class at once
+    if (getmetatable('')) {
+        getmetatable('').__concat = function (left: any, right: any): string {
+            return StringHelper.toConcatString(left) + StringHelper.toConcatString(right);
+        };
+    }
 }
