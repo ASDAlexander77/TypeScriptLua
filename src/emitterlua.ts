@@ -2776,7 +2776,7 @@ export class EmitterLua {
                 break;
             case ts.SyntaxKind.TildeToken:
                 this.functionContext.textCode.push("~");
-                this.processExpression(node.operand);
+                this.processFloatToInt(node.operand);
                 break;
             case ts.SyntaxKind.ExclamationToken:
                 if (this.ignoreExtraLogic) {
@@ -2890,12 +2890,10 @@ export class EmitterLua {
             op = opForStringTypes;
         }
 
-        this.processExpression(node.left);
-        this.functionContext.textCode.push(" " + op + " ");
-        this.processExpression(node.right);
+        this.processBinaryExpressionValue(node, op);
     }
 
-    private processBinaryExpressionEqualOp(node: ts.BinaryExpression, op: string, opForStringTypes?: string): void {
+    private processBinaryExpressionEqualOp(node: ts.BinaryExpression, op: string, opForStringTypes?: string, bitwise?: boolean): void {
         if (opForStringTypes
             && (this.typeInfo.isTypeOfNode(node.left, 'string')
                 || this.typeInfo.isTypeOfNode(node.right, 'string'))) {
@@ -2905,9 +2903,7 @@ export class EmitterLua {
         if (this.isValueNotRequired(node.parent)) {
             this.processExpression(node.left);
             this.functionContext.textCode.push(" = ");
-            this.processExpression(node.left);
-            this.functionContext.textCode.push(" " + op + " ");
-            this.processExpression(node.right);
+            this.processBinaryExpressionValue(node, op, bitwise);
         } else {
             this.functionContext.textCode.push("(function () ");
             let opIndex = parseInt(node.pos.toFixed());
@@ -2916,9 +2912,7 @@ export class EmitterLua {
             }
 
             this.functionContext.textCode.push("local op" + opIndex + " = (");
-            this.processExpression(node.left);
-            this.functionContext.textCode.push(" " + op + " ");
-            this.processExpression(node.right);
+            this.processBinaryExpressionValue(node, op, bitwise);
             this.functionContext.textCode.push(') ');
             this.processExpression(node.left);
             this.functionContext.textCode.push(" = ");
@@ -2928,17 +2922,71 @@ export class EmitterLua {
         }
     }
 
-    private isZeroNumericLiteral(node: ts.Expression): boolean {
+    private processBinaryExpressionValue(node: ts.BinaryExpression, op: string, bitwise?: boolean): void {
+        if (bitwise) {
+            this.processBinaryExpressionBitwiseOp(node, op);
+            return;
+        }
+
+        this.processExpression(node.left);
+        this.functionContext.textCode.push(" " + op + " ");
+        this.processExpression(node.right);
+    }
+
+    // Lua's bitwise operators reject any operand without an integer representation, so both sides
+    // need FLOAT -> INT first. "<expr> | 0" is the JS truncation idiom, where that conversion is
+    // the whole point of the operation, so there is no bitwise or left to emit
+    private processBinaryExpressionBitwiseOp(node: ts.BinaryExpression, op: string): void {
+        if (op === '|' && this.isNumericLiteralOf(node.right, 0)) {
+            this.processFloatToInt(node.left);
+            return;
+        }
+
+        if (op === '|' && this.isNumericLiteralOf(node.left, 0)) {
+            this.processFloatToInt(node.right);
+            return;
+        }
+
+        this.processFloatToInt(node.left);
+        this.functionContext.textCode.push(" " + op + " ");
+        this.processFloatToInt(node.right);
+    }
+
+    private getNumericLiteralValue(node: ts.Expression): number {
         let expression = node;
         while (expression.kind === ts.SyntaxKind.ParenthesizedExpression) {
             expression = (<ts.ParenthesizedExpression>expression).expression;
         }
 
+        if (expression.kind === ts.SyntaxKind.PrefixUnaryExpression) {
+            const prefixUnaryExpression = <ts.PrefixUnaryExpression>expression;
+            if (prefixUnaryExpression.operator === ts.SyntaxKind.MinusToken) {
+                return -this.getNumericLiteralValue(prefixUnaryExpression.operand);
+            }
+
+            if (prefixUnaryExpression.operator === ts.SyntaxKind.PlusToken) {
+                return this.getNumericLiteralValue(prefixUnaryExpression.operand);
+            }
+
+            return NaN;
+        }
+
         return expression.kind === ts.SyntaxKind.NumericLiteral
-            && parseFloat((<ts.NumericLiteral>expression).text) === 0;
+            ? Number((<ts.NumericLiteral>expression).text)
+            : NaN;
+    }
+
+    private isNumericLiteralOf(node: ts.Expression, value: number): boolean {
+        return this.getNumericLiteralValue(node) === value;
     }
 
     private processFloatToInt(node: ts.Expression): void {
+        // an integer literal is already in integer form, no need to spell out the conversion
+        if (Number.isInteger(this.getNumericLiteralValue(node))) {
+            this.processExpression(node);
+            return;
+        }
+
         this.functionContext.textCode.push("math.floor(");
         this.processExpression(node);
         this.functionContext.textCode.push(")");
@@ -2962,12 +3010,7 @@ export class EmitterLua {
             case ts.SyntaxKind.AsteriskToken:
             case ts.SyntaxKind.AsteriskAsteriskToken:
             case ts.SyntaxKind.PercentToken:
-            case ts.SyntaxKind.CaretToken:
             case ts.SyntaxKind.SlashToken:
-            case ts.SyntaxKind.AmpersandToken:
-            case ts.SyntaxKind.LessThanLessThanToken:
-            case ts.SyntaxKind.GreaterThanGreaterThanToken:
-            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
             case ts.SyntaxKind.GreaterThanToken:
             case ts.SyntaxKind.GreaterThanEqualsToken:
             case ts.SyntaxKind.EqualsEqualsEqualsToken:
@@ -2977,17 +3020,13 @@ export class EmitterLua {
                 this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
                 break;
 
+            case ts.SyntaxKind.AmpersandToken:
             case ts.SyntaxKind.BarToken:
-                // "<expr> | 0" is the JS float -> int idiom, and Lua's '|' can't take a float
-                // operand at all, so emit the truncation instead of a bitwise or
-                if (this.isZeroNumericLiteral(node.right)) {
-                    this.processFloatToInt(node.left);
-                } else if (this.isZeroNumericLiteral(node.left)) {
-                    this.processFloatToInt(node.right);
-                } else {
-                    this.processBinaryExpressionSingleOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
-                }
-
+            case ts.SyntaxKind.CaretToken:
+            case ts.SyntaxKind.LessThanLessThanToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanToken:
+            case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                this.processBinaryExpressionBitwiseOp(node, this.ops[node.operatorToken.kind]);
                 break;
 
             case ts.SyntaxKind.PlusEqualsToken:
@@ -2995,14 +3034,17 @@ export class EmitterLua {
             case ts.SyntaxKind.AsteriskEqualsToken:
             case ts.SyntaxKind.AsteriskAsteriskEqualsToken:
             case ts.SyntaxKind.PercentEqualsToken:
-            case ts.SyntaxKind.CaretEqualsToken:
             case ts.SyntaxKind.SlashEqualsToken:
+                this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
+                break;
+
             case ts.SyntaxKind.AmpersandEqualsToken:
             case ts.SyntaxKind.BarEqualsToken:
+            case ts.SyntaxKind.CaretEqualsToken:
             case ts.SyntaxKind.LessThanLessThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanEqualsToken:
             case ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-                this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind], this.strOps[node.operatorToken.kind]);
+                this.processBinaryExpressionEqualOp(node, this.ops[node.operatorToken.kind], undefined, true);
                 break;
             case ts.SyntaxKind.EqualsEqualsToken:
                 if (this.ignoreExtraLogic) {
