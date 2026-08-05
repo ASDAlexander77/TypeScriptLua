@@ -1,4 +1,5 @@
 declare var string: any;
+declare var pcre2adapter: any; // to make it visible to the whole class
 class RegExp {
 
     private static loaded = false;
