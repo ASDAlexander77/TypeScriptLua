@@ -74,18 +74,17 @@ __get_call_undefined__ = __get_call_undefined__ or function (t, k)
     if not(getmethod == nil) then 
         return getmethod(t)
     end
+    local nullsHolder = rawget(t, "__nulls")
+
+    if nullsHolder and rawget(nullsHolder, k) then 
+        return nil
+    end
     local proto = rawget(t, "__proto")
 
     while not(proto == nil) do
         local v = rawget(proto, k)
 
-        if v == nil then 
-            local nullsHolder = rawget(t, "__nulls")
-
-            if nullsHolder and rawget(nullsHolder, k) then 
-                return nil
-            end
-         else 
+        if not(v == nil) then 
             return v
         end
         get_ = rawget(proto, "__get__")
@@ -116,10 +115,10 @@ __set_call_undefined__ = __set_call_undefined__ or function (t, k, v)
         local nullsHolder = rawget(t, "__nulls")
 
         if nullsHolder == nil then 
-            nullsHolder = {
+            nullsHolder = __obj({
                 __index = __get_call_undefined__,
                 __newindex = __set_call_undefined__,
-            }
+            })
             
             rawset(t, "__nulls", nullsHolder)
         end
@@ -137,6 +136,11 @@ __set_call_undefined__ = __set_call_undefined__ or function (t, k, v)
         v0 = nil
     end
     rawset(t, k, v0)
+end
+
+__obj = __obj or function (t)
+    setmetatable(t, t)
+    return t
 end
 
 __wrapper = __wrapper or function (method, _this)
@@ -185,7 +189,7 @@ end
 
 __new = __new or function (proto, ...)
     if not(proto) then 
-        error(__new(Error, "Prototype can't be undefined or null"))
+        error("Prototype can't be undefined or null")
     end
     local obj = {
         __index = __get_call_undefined__,
@@ -203,7 +207,7 @@ end
 
 __new_init = __new_init or function (proto, obj, ...)
     if not(proto) then 
-        error(__new(Error, "Prototype can't be undefined or null"))
+        error("Prototype can't be undefined or null")
     end
     obj.__index = __get_call_undefined__
     obj.__proto = proto
@@ -220,7 +224,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
 
     local isMethodDecoratorOrParameterDecorator = not(descriptorOrParameterIndex == undefined)
 
-    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op16592 = (Object:getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op16592 return op16592 end)() else return descriptorOrParameterIndex end end)() end end)()
+    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op16930 = (Object:getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op16930 return op16930 end)() else return descriptorOrParameterIndex end end)() end end)()
 
     local l = decors.length - 1
 
@@ -277,10 +281,10 @@ function isFinite(v)
     return __equals(tostring(v), tostring(1 / 0))
 end
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 undefined = {
     name = "undefined",
@@ -325,18 +329,18 @@ setmetatable(undefined, undefined)
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 Object = {
     constructor_ = function (this, obj)
         if __is_true(__equals(obj, nil)) then 
-            obj = {
+            obj = __obj({
                 __index = __get_call_undefined__,
                 __newindex = __set_call_undefined__,
-            }
+            })
             
         end
         this.obj = obj
@@ -364,10 +368,10 @@ Object = {
         if __is_true(__not(proto)) then 
             error(__new(Error, "Prototype can't be undefined or null"))
         end
-        local obj = {
+        local obj = __obj({
             __index = __get_call_undefined__,
             __newindex = __set_call_undefined__,
-        }
+        })
         
 
         obj.__index = __get_call_undefined__
@@ -397,22 +401,24 @@ Object = {
         local current = obj
 
         if __is_true(current) then 
-            for k
- in pairs(current) do
-                if not(string.char(string.byte(k
-, 1)) == '_' and string.char(string.byte(k
-, 2)) == '_') then
+            local __c = current
+            local __v = __type(__c) == "table" and rawget(__c, "_values")
+            for __k in pairs(__v or __c) do
+                if (__v and __type(__k) == "number") or (not(__v) and not(string.char(string.byte(__k, 1)) == '_' and string.char(string.byte(__k, 2)) == '_')) then
+                    local k
+ = __v and __k - 1 or __k
                     a:push(k)
                 end
             end
             current = current.__proto
         end
         while __is_true(current) do
-            for k
- in pairs(current) do
-                if not(string.char(string.byte(k
-, 1)) == '_' and string.char(string.byte(k
-, 2)) == '_') then
+            local __c = current
+            local __v = __type(__c) == "table" and rawget(__c, "_values")
+            for __k in pairs(__v or __c) do
+                if (__v and __type(__k) == "number") or (not(__v) and not(string.char(string.byte(__k, 1)) == '_' and string.char(string.byte(__k, 2)) == '_')) then
+                    local k
+ = __v and __k - 1 or __k
                     local val = current[k]
 
                     if __is_true(___type(val) == "function") then 
@@ -434,10 +440,10 @@ Object = {
         end
         if __is_true(not(opts.get == nil)) then 
             if __is_true(__not(obj.__get__)) then 
-                obj.__get__ = {
+                obj.__get__ = __obj({
                     __index = __get_call_undefined__,
                     __newindex = __set_call_undefined__,
-                }
+                })
                 
                 obj.__get__.__index = undefined
                 rawset(obj.__get__, "__index", nil)
@@ -451,10 +457,10 @@ Object = {
 
         if __is_true(setMethod) then 
             if __is_true(__not(obj.__set__)) then 
-                obj.__set__ = {
+                obj.__set__ = __obj({
                     __index = __get_call_undefined__,
                     __newindex = __set_call_undefined__,
-                }
+                })
                 
                 obj.__set__.__newindex = undefined
                 rawset(obj.__set__, "__newindex", nil)
@@ -470,10 +476,10 @@ Object = {
     end
     ,
     getOwnPropertyDescriptor = function (obj, name)
-        local opts = {
+        local opts = __obj({
             __index = __get_call_undefined__,
             __newindex = __set_call_undefined__,
-        }
+        })
         
 
         if __is_true(obj.__get__) then 
@@ -514,10 +520,10 @@ JS.Object = Object
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 Map = {
     __index = __get_call_undefined__,
@@ -534,10 +540,10 @@ JS.Map = Map
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 StringHelper = {
     getLength = function (this)
@@ -819,10 +825,10 @@ end
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 Error = {
     constructor_ = function (this, message)
@@ -856,10 +862,10 @@ JS.Error = Error
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 ArrayHelper = {
     getLength = function (_this)
@@ -918,10 +924,10 @@ Array = {
         if __is_true(size == nil) then 
             size = undefined
         end
-        this._values = {
+        this._values = __obj({
             __index = __get_call_undefined__,
             __newindex = __set_call_undefined__,
-        }
+        })
         
         local zeroVal = rawget(this, 0)
 
@@ -1038,10 +1044,10 @@ Array = {
 
         local length_ = ArrayHelper.getLength(vals)
 
-        local parts = {
+        local parts = __obj({
             __index = __get_call_undefined__,
             __newindex = __set_call_undefined__,
-        }
+        })
         
 
         local i = 1
@@ -1314,10 +1320,10 @@ JS.Array = Array
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 TypedArrayBase = {
     constructor_ = function (this, sizeOrData, sizePerElement, type)
@@ -1414,10 +1420,10 @@ JS.TypedArrayBase = TypedArrayBase
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 ArrayBuffer = {
     constructor_ = function (this, sizeBytes)
@@ -1440,10 +1446,10 @@ JS.ArrayBuffer = ArrayBuffer
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(TypedArrayBase)) then 
     error("Base class is not defined: TypedArrayBase")
@@ -1465,10 +1471,10 @@ JS.Float32Array = Float32Array
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(TypedArrayBase)) then 
     error("Base class is not defined: TypedArrayBase")
@@ -1490,10 +1496,10 @@ JS.Float64Array = Float64Array
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(TypedArrayBase)) then 
     error("Base class is not defined: TypedArrayBase")
@@ -1515,10 +1521,10 @@ JS.Uint8Array = Uint8Array
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(TypedArrayBase)) then 
     error("Base class is not defined: TypedArrayBase")
@@ -1540,10 +1546,10 @@ JS.Uint16Array = Uint16Array
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(TypedArrayBase)) then 
     error("Base class is not defined: TypedArrayBase")
@@ -1565,10 +1571,10 @@ JS.Uint32Array = Uint32Array
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(TypedArrayBase)) then 
     error("Base class is not defined: TypedArrayBase")
@@ -1592,10 +1598,10 @@ JS.Uint64Array = Uint64Array
 
 
 
-TS = TS or {
+TS = TS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 NumberHelper = {
     toString_ = function (this, ...)
@@ -1662,10 +1668,10 @@ TS.Number = Number
 
 
 
-TS = TS or {
+TS = TS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 Math = {
     E = 2.718281828459045,
@@ -1754,10 +1760,10 @@ TS.Math = Math
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 Date = {
     getHours = function (this)
@@ -1868,10 +1874,10 @@ RegExp = {
 
 setmetatable(RegExp, RegExp)
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 if __is_true(__not(Error)) then 
     error("Base class is not defined: Error")
@@ -2078,10 +2084,10 @@ JSONParse = {
                 return results
              else 
                 if __is_true(value == "{") then 
-                    results = {
+                    results = __obj({
                         __index = __get_call_undefined__,
                         __newindex = __set_call_undefined__,
-                    }
+                    })
                     
                     while __is_true() do
                         value = this:lex()
@@ -2148,10 +2154,10 @@ JS.JSON = JSON
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 XMLHttpRequest = {
     constructor_ = function (this)
@@ -2172,10 +2178,10 @@ XMLHttpRequest = {
             flag = undefined
         end
         if __is_true(__not(this.callbacks)) then 
-            this.callbacks = {
+            this.callbacks = __obj({
                 __index = __get_call_undefined__,
                 __newindex = __set_call_undefined__,
-            }
+            })
             
         end
         this.callbacks[eventName] = cb
@@ -2238,10 +2244,10 @@ JS.XMLHttpRequest = XMLHttpRequest
 
 
 
-JS = JS or {
+JS = JS or __obj({
     __index = __get_call_undefined__,
     __newindex = __set_call_undefined__,
-}
+})
 
 Console = {
     log = function (...)

@@ -203,16 +203,16 @@ export class EmitterLua {
             return getmethod(t);                                    \
         }                                                           \
                                                                     \
+        const nullsHolder: object = rawget(t, "__nulls");           \
+        if (nullsHolder && rawget(nullsHolder, k)) {                \
+            return null;                                            \
+        }                                                           \
+                                                                    \
         let proto: object = rawget(t, "__proto");                   \
                                                                     \
         while (proto !== null) {                                    \
             let v = rawget(proto, k);                               \
-            if (v === null) {                                       \
-                const nullsHolder: object = rawget(t, "__nulls");   \
-                if (nullsHolder && rawget(nullsHolder, k)) {        \
-                    return null;                                    \
-                }                                                   \
-            } else {                                                \
+            if (v !== null) {                                       \
                 return v;                                           \
             }                                                       \
                                                                     \
@@ -263,6 +263,11 @@ export class EmitterLua {
         }                                                           \
                                                                     \
         rawset(t, k, v0);                                           \
+    };                                                              \
+                                                                    \
+    __obj = __obj || function (t: object) {                         \
+        setmetatable(t, t);                                         \
+        return t;                                                   \
     };                                                              \
                                                                     \
     __wrapper = __wrapper || function(method: object, _this: object) { \
@@ -2666,8 +2671,6 @@ export class EmitterLua {
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         const resultInfo = this.functionContext.useRegisterAndPush();
 
-        this.functionContext.textCode.pushNewLineIncrement("{");
-
         let callSetMetatable = false;
         let props: Array<ts.Node> = node.properties.slice(0);
         // set default get/set methods
@@ -2677,6 +2680,14 @@ export class EmitterLua {
             props.push(ts.createPropertyAssignment('__newindex', ts.createIdentifier('__set_call_undefined__')));
             callSetMetatable = true;
         }
+
+        // the metamethods above are inert until the table is its own metatable - without the
+        // 'setmetatable' a missing key reads back as lua 'nil' instead of 'undefined'
+        if (callSetMetatable) {
+            this.functionContext.textCode.push("__obj(");
+        }
+
+        this.functionContext.textCode.pushNewLineIncrement("{");
 
         props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).forEach((node: ts.Node, index: number) => {
             // set 0 element
@@ -2710,12 +2721,13 @@ export class EmitterLua {
             this.functionContext.textCode.pushNewLine(",");
         });
 
+        this.functionContext.textCode.decrement();
+        this.functionContext.textCode.push("}");
         if (callSetMetatable) {
-            //this.emitSetMetatableCall(resultInfo);
+            this.functionContext.textCode.push(")");
         }
 
-        this.functionContext.textCode.decrement();
-        this.functionContext.textCode.pushNewLine("}");
+        this.functionContext.textCode.pushNewLine();
 
         if (props.filter(e => e.kind !== ts.SyntaxKind.SpreadAssignment).length > 0) {
             props.filter(e => e.kind === ts.SyntaxKind.SpreadAssignment).forEach((node: ts.Node, index: number) => {
