@@ -202,13 +202,13 @@ class Runner {
 
         const vsSource = `
       #version 440
-      attribute vec4 aVertexPosition;
-      attribute vec2 aTextureCoord;
+      in vec4 aVertexPosition;
+      in vec2 aTextureCoord;
 
       uniform mat4 uModelViewMatrix;
       uniform mat4 uProjectionMatrix;
 
-      varying highp vec2 vTextureCoord;
+      out highp vec2 vTextureCoord;
 
       void main(void) {
         gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
@@ -220,12 +220,14 @@ class Runner {
 
         const fsSource = `
       #version 440
-      varying highp vec2 vTextureCoord;
+      in highp vec2 vTextureCoord;
 
       uniform sampler2D uSampler;
 
+      out vec4 FragColor;
+
       void main(void) {
-        gl_FragColor = texture2D(uSampler, vTextureCoord);
+        FragColor = texture2D(uSampler, vTextureCoord);
       }
     `;
 
@@ -254,7 +256,7 @@ class Runner {
         // objects we'll be drawing.
         this.buffers = this.initBuffers();
 
-        this.texture = this.loadTexture('cubetexture.png');
+        this.texture = this.loadTexture('./Textures/cubetexture.png');
 
         // Draw the scene repeatedly
         // @ts-ignore

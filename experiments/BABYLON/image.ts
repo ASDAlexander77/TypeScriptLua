@@ -1,3 +1,5 @@
+declare var free_image: any;
+
 export default class Image {
     private _src: string;
     private _imageData: object;
