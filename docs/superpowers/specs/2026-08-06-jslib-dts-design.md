@@ -120,11 +120,20 @@ top-level `declare class C`. This mirrors the emitter, which lowers such a class
 **R2 — Merge Helpers, by an explicit map.** The map is `{ StringHelper → String,
 NumberHelper → Number }` — two entries, no name-based magic. For each static on the helper:
 
-- first parameter literally named `this` (`static charAt(this: string, index: number)`)
+- first parameter literally named `this` (`static charCodeAt(this: string, index: number)`)
   → emitted as an **instance** member of the target, with the `this` parameter dropped.
-  This is what makes `"abc".charAt(0)` type-check, which in turn is what fires the existing
-  `StringHelper` rewrite in `src/preprocessorlua.ts:327-336`.
+  This is what makes `"abc".charCodeAt(0)` type-check, which in turn is what fires the
+  existing `StringHelper` rewrite in `src/preprocessorlua.ts:327-336`.
 - otherwise (`static fromCharCode(code)`) → a **static** member of the target.
+
+On a name collision the **helper wins**. Nine members overlap (`replace`, `charCodeAt`,
+`substr`, `substring`, `indexOf`, `split`, `slice`, `toLowerCase`, `toUpperCase`, plus
+`Number.toString`), and they differ in return type: the boxed class returns `String`, the
+helper returns `string`. The merged type is above all the apparent type of the *primitive*,
+and primitive calls are rewritten to the helper at emit time, so the helper's `string` is
+the accurate answer — and `string` rather than `String` is what keeps
+`TypeInfo.isTypeOfNode(…, 'string')` firing on the result. Static and instance names live in
+separate namespaces, so `fromCharCode` never collides with anything.
 
 Helper classes are also still emitted as their own globals, because that is what they are
 at runtime — subject to R3 and R4 like every other emitted class, and keeping their `this`
@@ -202,13 +211,21 @@ rather than emitting a half-populated `String`.
 1. `Run.test`'s emit half is extracted into `Run.testEmit(sources, cmdLineOptions): string`,
    which returns the generated Lua text; `Run.test` then calls it. No duplication, and it
    makes emit-shape assertions possible.
-2. `spec/jslib.spec.ts` — the regression guard. `Math.floor(1.5)` under `{ jslib: true }`
-   must emit `Math.floor(` and must not emit `Math:floor(`. This is asserted at emit level
-   rather than behaviourally, because `Run.test` spawns Lua without `JS.lua` on the path —
-   which is why `spec/instanceof.spec.ts` declares its own `class Number {}` locally.
+2. `spec/jslib.spec.ts` — two emit-level assertions under `{ jslib: true }`:
+   - `Math.floor(1.5)` must emit `Math.floor(`, never `Math:floor(`. This is the guard that
+     lets the special case be deleted; it passes today only *because* of the special case.
+   - `String.fromCharCode(65)` must emit `String.fromCharCode(`, never
+     `String:fromCharCode(`. This one is **broken today**: the special case only ever
+     covered `Math`, so `lib.es5.d.ts`'s `declare var String: StringConstructor` resolves
+     `fromCharCode` to a `MethodSignature`, `isStaticMethod` rejects it, and a self call is
+     emitted. It is the honest failing test that JSLib.d.ts fixes.
+
+   Both are asserted at emit level rather than behaviourally, because `Run.test` spawns Lua
+   without `JS.lua` on the path — which is why `spec/instanceof.spec.ts` declares its own
+   `class Number {}` locally.
 3. `spec/jslibdts.spec.ts` — generator unit test. The output contains `declare class Math`
-   with `static floor`; `String` has an instance `charAt` **and** a static `fromCharCode`;
-   `class undefined` and `declare var math` are absent.
+   with `static floor`; `String` has an instance `charCodeAt` **and** a static
+   `fromCharCode`; `class undefined` and `declare var math` are absent.
 4. The existing 20 spec files stay green. The non-jslib path is untouched by design.
 5. Manual check: rebuild `experiments/BABYLON` (a real `-jslib` consumer, via
    `build_bs.bat`) and diff the emitted `.lua` for unintended self-call changes.
