@@ -304,7 +304,7 @@ export class EmitterLua {
                                                                     \
     __new = __new || function(proto: any, ...params: any[]): any {  \
         if (!proto) {                                               \
-            throw new Error("Prototype can\'t be undefined or null");\
+            throw "Prototype can\'t be undefined or null";          \
         }                                                           \
                                                                     \
         const obj = {                                               \
@@ -323,7 +323,7 @@ export class EmitterLua {
                                                                     \
     __new_init = __new_init || function(proto: any, obj: object, ...params: any[]): any { \
         if (!proto) {                                               \
-            throw new Error("Prototype can\'t be undefined or null");\
+            throw "Prototype can\'t be undefined or null";          \
         }                                                           \
                                                                     \
         obj.__index = __get_call_undefined__;                       \
