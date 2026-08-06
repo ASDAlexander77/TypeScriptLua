@@ -61,14 +61,7 @@ export class EmitterLua {
             this.fileModuleName = options.outFile;
         }
 
-        this.jsLib = (
-            options
-            && options.lib
-            && options.lib.some(l => /lib.es\d+.d.ts/.test(l))
-            && !options.lib.some(l => /lib.es5.d.ts/.test(l))
-            || cmdLineOptions.jslib)
-            ? true
-            : false;
+        this.jsLib = Helpers.isJsLib(options, cmdLineOptions);
 
             this.ops[ts.SyntaxKind.PlusToken] = '+';
             this.ops[ts.SyntaxKind.MinusToken] = '-';

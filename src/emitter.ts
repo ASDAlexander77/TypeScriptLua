@@ -83,14 +83,7 @@ export class Emitter {
 
         this.generateSourceMap = ((options && options.sourceMap) || false);
 
-        this.jsLib = (
-            options
-            && options.lib
-            && options.lib.some(l => /lib.es\d+.d.ts/.test(l))
-            && !options.lib.some(l => /lib.es5.d.ts/.test(l))
-            || cmdLineOptions.jslib)
-            ? true
-            : false;
+        this.jsLib = Helpers.isJsLib(options, cmdLineOptions);
     }
 
     private libCommon = '                                           \

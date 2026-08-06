@@ -1,4 +1,6 @@
 import * as ts from 'typescript';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 export class Helpers {
     public static hasNodeUsedThis(location: ts.Node): boolean {
@@ -41,6 +43,43 @@ export class Helpers {
 
     public static isLet(node: ts.Node): boolean {
         return (node.flags & ts.NodeFlags.Let) === ts.NodeFlags.Let;
+    }
+
+    // '-jslib' on the command line, or a 'lib' setting asking for a modern es library without es5:
+    // either way the code is compiled against the jslib runtime rather than against a JS engine
+    public static isJsLib(options: ts.CompilerOptions, cmdLineOptions: any): boolean {
+        if (cmdLineOptions && cmdLineOptions.jslib) {
+            return true;
+        }
+
+        return !!(options
+            && options.lib
+            && options.lib.some(l => /lib.es\d+.d.ts/.test(l))
+            && !options.lib.some(l => /lib.es5.d.ts/.test(l)));
+    }
+
+    // JSLib.d.ts sits beside JS.lua in the published package and in 'lib/' in the repository.
+    // __dirname is src/ under ts-node but __out/src/ in a build, so walk up to find it,
+    // the same way 'Run.getLuaInterpreter' finds __dist
+    public static findJsLibDts(): string {
+        let dir = __dirname;
+        while (true) {
+            const candidates = [path.join(dir, 'JSLib.d.ts'), path.join(dir, 'lib', 'JSLib.d.ts')];
+            for (const candidate of candidates) {
+                if (fs.existsSync(candidate)) {
+                    return candidate;
+                }
+            }
+
+            const parent = path.dirname(dir);
+            if (parent === dir) {
+                // falling back to lib.es5.d.ts would silently reintroduce the very mismatch
+                // this file exists to remove, so fail loudly instead
+                throw new Error('-jslib requires JSLib.d.ts; run \'npm run build-jslib-dts\'');
+            }
+
+            dir = parent;
+        }
     }
 
     // 'file.ts(line,char)' of the node, so warnings can point at the source of the issue.
