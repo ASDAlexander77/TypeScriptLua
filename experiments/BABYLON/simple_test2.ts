@@ -589,12 +589,6 @@ class Runner {
         // Update the rotation for the next draw
 
         this.cubeRotation += deltaTime;
-
-        // next draw
-        // @ts-ignore
-        window.setInterval(() => {
-            this.drawScene(deltaTime);
-        }, 16);
     }
 
     //
