@@ -136,7 +136,9 @@ export class Run {
     }
 
     public compileSources(sources: string[], outputExtention: string, cmdLineOptions: any): void {
-        this.generateBinary(ts.createProgram(sources, {}), sources, outputExtention, undefined, cmdLineOptions);
+        const options: ts.CompilerOptions = {};
+        const rootNames = this.applyJsLib(sources, options, cmdLineOptions);
+        this.generateBinary(ts.createProgram(rootNames, options), sources, outputExtention, options, cmdLineOptions);
     }
 
     public compileWithConfig(configPath: string, outputExtention: string, cmdLineOptions: any): void {
@@ -153,36 +155,49 @@ export class Run {
 
         const watch = cmdLineOptions && 'watch' in cmdLineOptions;
 
+        const options = parsedCommandLine.options;
+        const rootNames = this.applyJsLib(parsedCommandLine.fileNames, options, cmdLineOptions);
+
         if (!watch) {
             // simple case, just compile
-            const program = ts.createProgram({
-                rootNames: parsedCommandLine.fileNames,
-                options: parsedCommandLine.options
-            });
-            this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, parsedCommandLine.options, cmdLineOptions);
+            const program = ts.createProgram({ rootNames, options });
+            this.generateBinary(program, parsedCommandLine.fileNames, outputExtention, options, cmdLineOptions);
         } else {
             const createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
 
-            const watchCompilingHost = ts.createWatchCompilerHost(
-                configPath,
-                {},
-                ts.sys,
-                createProgram,
-                (d) => this.reportDiagnostic(d),
-                (d) => this.reportWatchStatusChanged(d)
-            );
+            // 'createWatchCompilerHost' offers no way to add a root file to a tsconfig, so a jslib
+            // build watches the file list instead of the config: source watching is unaffected,
+            // tsconfig.json itself stops being re-read
+            const watchCompilingHost = Helpers.isJsLib(options, cmdLineOptions)
+                ? ts.createWatchCompilerHost(
+                    rootNames,
+                    options,
+                    ts.sys,
+                    createProgram,
+                    (d) => this.reportDiagnostic(d),
+                    (d) => this.reportWatchStatusChanged(d))
+                : ts.createWatchCompilerHost(
+                    configPath,
+                    {},
+                    ts.sys,
+                    createProgram,
+                    (d) => this.reportDiagnostic(d),
+                    (d) => this.reportWatchStatusChanged(d));
 
             watchCompilingHost.afterProgramCreate = program => {
               this.generateBinary(
                   program.getProgram(),
                   parsedCommandLine.fileNames,
                   outputExtention,
-                  parsedCommandLine.options,
+                  options,
                   cmdLineOptions);
             };
 
             console.log(ForegroundColorEscapeSequences.Cyan + 'Watching...' + resetEscapeSequence);
-            ts.createWatchProgram(watchCompilingHost);
+            // the ternary above makes watchCompilingHost a union of the two host types; ts 3.9 can't
+            // match a union argument against either overload of createWatchProgram, though at runtime
+            // it is always exactly one concrete host shape
+            ts.createWatchProgram(<any>watchCompilingHost);
         }
     }
 
@@ -221,6 +236,19 @@ export class Run {
 
     private reportWatchStatusChanged(diagnostic: ts.Diagnostic) {
         console.log(ts.formatDiagnostic(diagnostic, this.formatHost));
+    }
+
+    // JSLib.d.ts describes the jslib runtime as it really is, so it replaces the standard library
+    // rather than adding to it: 'declare class Math' and lib.es5's 'declare var Math: Math' cannot
+    // coexist. it goes into the root names only - 'sources' is what drives emission, and JSLib.d.ts
+    // must not be emitted as JSLib.lua
+    private applyJsLib(rootNames: string[], options: ts.CompilerOptions, cmdLineOptions: any): string[] {
+        if (!Helpers.isJsLib(options, cmdLineOptions)) {
+            return rootNames;
+        }
+
+        options.noLib = true;
+        return [Helpers.findJsLibDts(), ...rootNames];
     }
 
     private generateBinary(
@@ -320,25 +348,55 @@ export class Run {
     public test(sources: string[], cmdLineOptions?: any): string {
         let actualOutput = '';
 
+        this.withTestSources(sources, cmdLineOptions, (luaFile: string) => {
+            const result: any = spawn.sync(Run.getLuaInterpreter(), [luaFile]);
+            actualOutput = result.error
+                ? result.error.stack
+                : (<Uint8Array>result.stdout).toString();
+        });
+
+        return actualOutput;
+    }
+
+    // the generated lua of the last source, for tests asserting on the shape of the output
+    // rather than on what it prints - running it would need JS.lua on the interpreter's path
+    public testEmit(sources: string[], cmdLineOptions?: any): string {
+        let luaText = '';
+
+        this.withTestSources(sources, cmdLineOptions, (luaFile: string, text: string) => {
+            luaText = text;
+        });
+
+        return luaText;
+    }
+
+    private withTestSources(
+        sources: string[], cmdLineOptions: any, use: (luaFile: string, luaText: string) => void): void {
+
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
         const tempLuaFiles = sources.map((s: string, index: number) => 'test' + index + '.lua');
 
         const binOutput = cmdLineOptions && cmdLineOptions.bin;
 
-        // clean up
-        tempSourceFiles.forEach(f => {
-            if (fs.existsSync(f)) { fs.unlinkSync(f); }
-        });
-        tempLuaFiles.forEach(f => {
-            if (fs.existsSync(f)) { fs.unlinkSync(f); }
-        });
+        const cleanUp = () => {
+            tempSourceFiles.forEach(f => {
+                if (fs.existsSync(f)) { fs.unlinkSync(f); }
+            });
+            tempLuaFiles.forEach(f => {
+                if (fs.existsSync(f)) { fs.unlinkSync(f); }
+            });
+        };
+
+        cleanUp();
 
         try {
             sources.forEach((s: string, index: number) => {
                 fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
             });
 
-            const program = ts.createProgram(tempSourceFiles, {});
+            const options: ts.CompilerOptions = {};
+            const rootNames = this.applyJsLib(tempSourceFiles, options, cmdLineOptions);
+            const program = ts.createProgram(rootNames, options);
             const emitResult = program.emit(undefined, (f, data, writeByteOrderMark) => {
                 // ts.sys.writeFile(f, data, writeByteOrderMark);
             });
@@ -351,52 +409,33 @@ export class Run {
             });
 
             let lastLuaFile;
+            let lastLuaText = '';
             const sourceFiles = program.getSourceFiles();
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
                     const emitter = !binOutput
-                        ? new EmitterLua(program.getTypeChecker(), undefined, cmdLineOptions || {}, false)
-                        : new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                        ? new EmitterLua(program.getTypeChecker(), options, cmdLineOptions || {}, false)
+                        : new Emitter(program.getTypeChecker(), options, cmdLineOptions || {}, false);
                     (<any>s).__path = currentFile;
                     emitter.processNode(s);
                     emitter.save();
 
                     const luaFile = currentFile.replace(/\.ts$/, '.lua');
-                    fs.writeFileSync(luaFile, emitter.writer.getBytes());
+                    const bytes = emitter.writer.getBytes();
+                    fs.writeFileSync(luaFile, bytes);
 
                     lastLuaFile = luaFile;
-
+                    lastLuaText = bytes.toString();
                 }
             });
 
-            // start program and test it to
-            const result: any = spawn.sync(Run.getLuaInterpreter(), [lastLuaFile]);
-            if (result.error) {
-                actualOutput = result.error.stack;
-            } else {
-                actualOutput = (<Uint8Array>result.stdout).toString();
-            }
+            use(lastLuaFile, lastLuaText);
         } catch (e) {
-            // clean up
-            tempSourceFiles.forEach(f => {
-                if (fs.existsSync(f)) { fs.unlinkSync(f); }
-            });
-            tempLuaFiles.forEach(f => {
-                if (fs.existsSync(f)) { fs.unlinkSync(f); }
-            });
-
+            cleanUp();
             throw e;
         }
 
-        // clean up
-        tempSourceFiles.forEach(f => {
-            if (fs.existsSync(f)) { fs.unlinkSync(f); }
-        });
-        tempLuaFiles.forEach(f => {
-            if (fs.existsSync(f)) { fs.unlinkSync(f); }
-        });
-
-        return actualOutput;
+        cleanUp();
     }
 }
