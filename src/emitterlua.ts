@@ -109,6 +109,9 @@ export class EmitterLua {
             this.strOps[ts.SyntaxKind.PlusEqualsToken] = '..';
     }
 
+    // the raw lua key a 'for in' over an array iterates, before it is shifted to a 0 based index
+    private static forInKeyName = '__k';
+
     private libCommon = '                                           \
     __type = __type || type;                                        \
                                                                     \
@@ -2305,17 +2308,42 @@ export class EmitterLua {
     private processForInStatementNoScope(node: ts.ForInStatement): void {
         this.functionContext.newLocalScope(node);
 
-        this.functionContext.textCode.push("for ")
-        this.processExpression(<ts.Expression>node.initializer);
-        this.functionContext.textCode.push(" in pairs(")
-        this.processExpression(node.expression);
-        this.functionContext.textCode.pushNewLineIncrement(") do")
+        // under jslib an array is an object keeping its elements in '_values', so 'pairs' on the
+        // array itself only ever sees that one field and never an element. iterate the storage
+        // instead, then shift the lua 1 based key back to the 0 based index JS hands out, so 'a[i]'
+        // in the body still resolves. without jslib an array is a plain 0 based table - leave it be
+        const expressionTypeName = this.typeInfo.getNameFromTypeNode(this.typeInfo.getTypeObject(node.expression));
+        const isArray = this.jsLib && (expressionTypeName === 'Array' || expressionTypeName === 'tuple');
 
-        this.functionContext.textCode.push("if not(string.char(string.byte(");
-        this.processExpression(<ts.Expression>node.initializer);
-        this.functionContext.textCode.push(", 1)) == '_' and string.char(string.byte(");
-        this.processExpression(<ts.Expression>node.initializer);
-        this.functionContext.textCode.pushNewLineIncrement(", 2)) == '_') then");
+        if (isArray) {
+            this.functionContext.textCode.push("for " + EmitterLua.forInKeyName + " in pairs(")
+            this.processExpression(node.expression);
+            this.functionContext.textCode.push("._values");
+            this.functionContext.textCode.pushNewLineIncrement(") do")
+
+            // '_values' carries the '__index'/'__newindex' hooks too, so only its numeric keys are
+            // elements. the control variable of a lua 'for in' is const, hence a body local rather
+            // than shifting the key in place
+            this.functionContext.textCode.push(
+                "if __type(" + EmitterLua.forInKeyName + ') == "number" then');
+            this.functionContext.textCode.pushNewLineIncrement();
+
+            this.functionContext.textCode.push("local ");
+            this.processExpression(<ts.Expression>node.initializer);
+            this.functionContext.textCode.pushNewLine(" = " + EmitterLua.forInKeyName + " - 1");
+        } else {
+            this.functionContext.textCode.push("for ")
+            this.processExpression(<ts.Expression>node.initializer);
+            this.functionContext.textCode.push(" in pairs(")
+            this.processExpression(node.expression);
+            this.functionContext.textCode.pushNewLineIncrement(") do")
+
+            this.functionContext.textCode.push("if not(string.char(string.byte(");
+            this.processExpression(<ts.Expression>node.initializer);
+            this.functionContext.textCode.push(", 1)) == '_' and string.char(string.byte(");
+            this.processExpression(<ts.Expression>node.initializer);
+            this.functionContext.textCode.pushNewLineIncrement(", 2)) == '_') then");
+        }
 
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
