@@ -152,6 +152,13 @@ belongs in `Error.ts` — make the field public — not in the generator.
 type annotation gets the checker's inferred type printed (`static E = 2.718…` becomes
 `static E: number`). Optionality is preserved; parameter defaults are dropped.
 
+**R4a — Accessors become properties.** `get length()` / `set length()` are emitted as a
+single property per *name*: a get/set pair or a lone setter is writable, a lone getter is
+`readonly`. The dot-versus-self decision never involves properties, so nothing is lost, and
+a property is the honest shape for a value that is read and written. Without this rule
+`Array.length` (`Array.ts:173-177`) and `String.length` (`String.ts:227`) disappear
+entirely, and `.length` stops type-checking.
+
 **R5 — Top-level declarations.** A top-level `function` in a jslib file becomes a
 `declare function` — this is how `Common.ts` contributes `parseInt`, `parseFloat`, `isNaN`,
 `isFinite`, and `decodeURIComponent`. A top-level `declare var X` that the same file
@@ -162,6 +169,13 @@ ambient `declare var` that is never assigned (`math`, `table`, `tostring`, `os`,
 **R6 — Exclusions.** `module JS`'s `export class undefined` is skipped, because
 `declare class undefined` collides with the intrinsic. Non-exported module members
 (`String.ts`'s `type FuncString`) are skipped.
+
+**R6a — Type aliases come along.** An alias declared in a jslib file is collected and
+flattened exactly like a class and emitted as `declare type X = …;`, ahead of that file's
+classes. Annotated member types are kept verbatim from the source, so `String.replace`
+carries `string | FuncString` — and without the alias the generated file does not type-check
+on its own. Unlike classes, an alias need not be exported to be collected: `FuncString` in
+`String.ts` is not.
 
 **R7 — Deterministic output.** Emission follows the `include` order in
 `experiments/jslib/tsconfig.json`, with classes in source order, so regeneration is

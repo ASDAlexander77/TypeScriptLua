@@ -7,9 +7,11 @@ describe('JSLib.d.ts generator', () => {
 
     const output = generateJsLibDts(path.join(__dirname, '..', 'experiments', 'jslib'));
 
-    // the printer indents members, so a class body runs to the first '}' in column 0
+    // the printer indents members, so a class body runs to the first '}' in column 0.
+    // the lookahead anchors on the end of the class name so 'String' does not also match
+    // 'StringHelper'
     function classText(name: string): string {
-        const match = output.match(new RegExp('declare class ' + name + '[^{]*\\{[\\s\\S]*?\\n\\}'));
+        const match = output.match(new RegExp('declare class ' + name + '(?=[\\s<{])[^{]*\\{[\\s\\S]*?\\n\\}'));
         expect(match, 'no declare class ' + name + ' in the output').to.not.equals(null);
         return match[0];
     }
@@ -30,6 +32,17 @@ describe('JSLib.d.ts generator', () => {
 
     it('drops the this parameter of a folded member', () =>
         expect(classText('String')).to.not.match(/charCodeAt\(this:/));
+
+    // StringHelper is a global in JS.lua in its own right, and the preprocessor emits calls to it
+    it('emits a helper class as a global of its own', () =>
+        expect(classText('StringHelper')).to.match(/static charCodeAt\(this: string/));
+
+    // 'get length()' in Array.ts and String.ts - dropping accessors would lose '.length' entirely
+    it('emits an accessor pair as a single writable property', () =>
+        expect(classText('Array')).to.match(/\n {4}length: number;/));
+
+    it('emits a get only accessor as a readonly property', () =>
+        expect(classText('String')).to.match(/\n {4}readonly length: number;/));
 
     it('emits a plain top level function as declare function', () =>
         expect(output).to.match(/declare function parseInt\(/));
@@ -60,5 +73,9 @@ describe('JSLib.d.ts generator', () => {
         expect(output).to.not.match(/\bJS\.\w/);
         expect(output).to.not.match(/\bTS\.\w/);
     });
+
+    // 'String.replace' keeps 'string | FuncString' from the source, so the alias has to come too
+    it('emits a type alias referenced by a kept member', () =>
+        expect(output).to.match(/declare type FuncString = /));
 
 });

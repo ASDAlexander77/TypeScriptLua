@@ -26,6 +26,11 @@ interface CollectedClass {
     declaration: ts.ClassDeclaration;
 }
 
+interface CollectedAlias {
+    name: string;
+    declaration: ts.TypeAliasDeclaration;
+}
+
 export function generateJsLibDts(jslibDir: string): string {
     const fileNames = readIncludeList(jslibDir);
     const program = ts.createProgram(fileNames, {
@@ -83,14 +88,15 @@ function emitSourceFile(sourceFile: ts.SourceFile, checker: ts.TypeChecker, prin
 
     const texts: string[] = [];
 
-    for (const collected of classes) {
-        // a helper (e.g. 'StringHelper') is only ever a source of members folded into its
-        // primitive class; it is never itself part of the public surface, so it is not
-        // emitted as a 'declare class' of its own
-        if (HELPER_MERGE_MAP[collected.name]) {
-            continue;
-        }
+    // a type alias referenced by a kept member (e.g. 'FuncString' in String.replace) has to be
+    // declared too, or the generated file does not resolve on its own - emitted ahead of the
+    // classes so a member referencing it reads top-down
+    texts.push(...emitTypeAliases(sourceFile, printer));
 
+    for (const collected of classes) {
+        // a helper (e.g. 'StringHelper') is also a global in its own right at runtime
+        // ('StringHelper = { ... }' in JS.lua), so it is emitted as its own 'declare class'
+        // in addition to being folded into its primitive
         const helperName = Object.keys(HELPER_MERGE_MAP).filter(h => HELPER_MERGE_MAP[h] === collected.name)[0];
         let foldedIn: ts.ClassElement[] = [];
         if (helperName) {
@@ -152,6 +158,46 @@ function collectClasses(sourceFile: ts.SourceFile): CollectedClass[] {
     return classes;
 }
 
+// a type alias in 'module JS' / 'module TS' is dropped along with the module wrapper, same as a
+// class - unlike a class it need not be exported to be collected, since a member can keep a
+// reference to a non-exported alias (e.g. 'FuncString' in String.ts) verbatim from the source
+function collectTypeAliases(sourceFile: ts.SourceFile): CollectedAlias[] {
+    const aliases: CollectedAlias[] = [];
+
+    const visit = (node: ts.Node, insideModule: boolean) => {
+        if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
+            const body = (<ts.ModuleDeclaration>node).body;
+            if (body && body.kind === ts.SyntaxKind.ModuleBlock) {
+                (<ts.ModuleBlock>body).statements.forEach(s => visit(s, true));
+            }
+
+            return;
+        }
+
+        if (node.kind !== ts.SyntaxKind.TypeAliasDeclaration) {
+            return;
+        }
+
+        const declaration = <ts.TypeAliasDeclaration>node;
+        aliases.push({ name: declaration.name.text, declaration });
+    };
+
+    sourceFile.statements.forEach(s => visit(s, false));
+    return aliases;
+}
+
+function emitTypeAliases(sourceFile: ts.SourceFile, printer: ts.Printer): string[] {
+    return collectTypeAliases(sourceFile).map(alias => printer.printNode(
+        ts.EmitHint.Unspecified,
+        ts.createTypeAliasDeclaration(
+            undefined,
+            [ts.createModifier(ts.SyntaxKind.DeclareKeyword)],
+            alias.declaration.name,
+            alias.declaration.typeParameters,
+            alias.declaration.type),
+        sourceFile));
+}
+
 function transformClass(
     declaration: ts.ClassDeclaration, foldedIn: ts.ClassElement[], checker: ts.TypeChecker): ts.ClassDeclaration {
 
@@ -202,9 +248,24 @@ function transformMembers(
     declaration: ts.ClassDeclaration, checker: ts.TypeChecker, folding: boolean): ts.ClassElement[] {
 
     const members: ts.ClassElement[] = [];
+    const accessorGroups = collectAccessorGroups(declaration.members);
+    const emittedAccessors: { [key: string]: boolean } = Object.create(null);
+
     for (const member of declaration.members) {
         // when folding a helper into its class only the members are wanted, not its constructor
         if (folding && member.kind === ts.SyntaxKind.Constructor) {
+            continue;
+        }
+
+        if (member.kind === ts.SyntaxKind.GetAccessor || member.kind === ts.SyntaxKind.SetAccessor) {
+            // a get/set pair collapses to one property, emitted once, at the position of
+            // whichever accessor of the pair is encountered first
+            const key = accessorKey(member);
+            if (!emittedAccessors[key] && accessorGroups[key]) {
+                emittedAccessors[key] = true;
+                members.push(transformAccessorGroup(accessorGroups[key], checker));
+            }
+
             continue;
         }
 
@@ -215,6 +276,75 @@ function transformMembers(
     }
 
     return members;
+}
+
+interface AccessorGroup {
+    getter?: ts.GetAccessorDeclaration;
+    setter?: ts.SetAccessorDeclaration;
+}
+
+// static and instance accessors live in separate namespaces, same as any other member
+function accessorKey(member: ts.ClassElement): string {
+    return (hasStaticModifier(member) ? 'static ' : '') + (<ts.Identifier>member.name).text;
+}
+
+function hasStaticModifier(member: ts.ClassElement): boolean {
+    return !!(member.modifiers && member.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword));
+}
+
+// hidden accessors (R3: private/protected, metamethods) are left out of the groups entirely, so a
+// pair with one private side loses only that side rather than the whole property
+function collectAccessorGroups(members: ts.NodeArray<ts.ClassElement>): { [key: string]: AccessorGroup } {
+    const groups: { [key: string]: AccessorGroup } = Object.create(null);
+
+    for (const member of members) {
+        if (member.kind !== ts.SyntaxKind.GetAccessor && member.kind !== ts.SyntaxKind.SetAccessor) {
+            continue;
+        }
+
+        if (isHidden(member)) {
+            continue;
+        }
+
+        const key = accessorKey(member);
+        const group = groups[key] || (groups[key] = {});
+        if (member.kind === ts.SyntaxKind.GetAccessor) {
+            group.getter = <ts.GetAccessorDeclaration>member;
+        } else {
+            group.setter = <ts.SetAccessorDeclaration>member;
+        }
+    }
+
+    return groups;
+}
+
+// the emitter's dot/colon decision does not involve properties, and a property is the honest
+// shape for something read and written like 'array.length' - a getter alone makes it readonly,
+// a setter (with or without a getter) makes it writable
+function transformAccessorGroup(group: AccessorGroup, checker: ts.TypeChecker): ts.PropertyDeclaration {
+    const representative = group.getter || group.setter;
+
+    const modifiers: ts.Modifier[] = [];
+    if (hasStaticModifier(representative)) {
+        modifiers.push(ts.createModifier(ts.SyntaxKind.StaticKeyword));
+    }
+
+    if (group.getter && !group.setter) {
+        modifiers.push(ts.createModifier(ts.SyntaxKind.ReadonlyKeyword));
+    }
+
+    const type = group.getter
+        ? (group.getter.type || inferReturnType(group.getter, checker))
+        : (group.setter.parameters[0].type
+            || typeToNode(checker.getTypeAtLocation(group.setter.parameters[0]), checker, group.setter.parameters[0]));
+
+    return ts.createProperty(
+        undefined,
+        modifiers.length > 0 ? modifiers : undefined,
+        representative.name,
+        undefined,
+        type,
+        undefined);
 }
 
 // 'folding' means this member is being moved from a helper onto the class of its primitive:
