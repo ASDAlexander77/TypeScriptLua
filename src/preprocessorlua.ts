@@ -388,13 +388,19 @@ export class PreprocessorLua {
             return null;
         }
 
+        // TypeScript's 'this' parameter only types the receiver, it is not an argument of the call -
+        // pairing the arguments with it would shift every one of them by one position
+        const effectiveParameters = (<ts.Identifier>parameters[0].name).text === 'this'
+            ? parameters.slice(1)
+            : parameters;
+
         const newArguments = new Array<ts.Expression>();
 
         const length = args.length;
         let anyNewArgument = false;
         for (let i = 0; i < length; i++) {
             let currentOrNewArgument = args[i];
-            const parameter = parameters[i];
+            const parameter = effectiveParameters[i];
             if (!parameter || parameter.dotDotDotToken) {
                 continue;
             }

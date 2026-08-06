@@ -70,6 +70,27 @@ describe('Classes', () => {
         Class1.show();                                  \
     '])));
 
+    it('Class method with explicit this parameter', () => expect('Hello number\r\n').to.equals(new Run().test([
+        'class Class1 {                                         \
+            public show(this: any, s: string, n: number) {      \
+                console.log(s + " " + typeof n);                \
+            }                                                   \
+        }                                                       \
+                                                                \
+        new Class1().show("Hello", 1);                          \
+    '])));
+
+    it('Class static property holding a function with explicit this parameter',
+        () => expect('Hello number\r\n').to.equals(new Run().test([
+        'class Class1 {                                                     \
+            public static show = function (this: any, s: string, n: number) {\
+                console.log(s + " " + typeof n);                            \
+            };                                                              \
+        }                                                                   \
+                                                                            \
+        Class1.show("Hello", 1);                                            \
+    '])));
+
     it('Class static property holding an arrow function', () => expect('Hello\r\n').to.equals(new Run().test([
         'class Class1 {                                 \
             public static show = (s:string) => {        \

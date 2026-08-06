@@ -1696,19 +1696,14 @@ export class EmitterLua {
             return false;
         }
 
-        // '<class>.<static method>()', a static method is emitted without 'self'. the exception is a static method
-        // using 'this', which keeps 'this' as its first parameter (see 'createThis')
+        // '<class>.<static method>()', a static method is emitted without 'self'
         if (this.isStaticMethod(<ts.ClassElement>memberDeclaration)) {
-            return !this.hasNodeUsedThis(memberDeclaration);
+            return this.isEmittedWithoutThisParameter(<ts.MethodDeclaration>memberDeclaration);
         }
 
-        // '<class or instance>.<property holding a function>()', a function expression is emitted as it is written,
-        // so it has no 'this' parameter unless its body uses 'this'. an arrow function always keeps one, as does a
-        // function expression of an object literal, and both stay self calls (see 'createThis')
-        return this.isPropertyHoldingFunctionExpressionWithoutThis(memberDeclaration);
-    }
-
-    private isPropertyHoldingFunctionExpressionWithoutThis(memberDeclaration: ts.Node): boolean {
+        // '<class or instance>.<property holding a function>()', a function expression is emitted as it is written.
+        // an arrow function always keeps a 'this' parameter, as does a function expression of an object literal,
+        // and both stay self calls (see 'createThis')
         if (memberDeclaration.kind !== ts.SyntaxKind.PropertyDeclaration) {
             return false;
         }
@@ -1716,7 +1711,15 @@ export class EmitterLua {
         const initializer = (<ts.PropertyDeclaration>memberDeclaration).initializer;
         return initializer !== undefined
             && initializer.kind === ts.SyntaxKind.FunctionExpression
-            && !this.hasNodeUsedThis(initializer);
+            && this.isEmittedWithoutThisParameter(<ts.FunctionExpression>initializer);
+    }
+
+    // 'this' becomes the first parameter of a function using it (see 'createThis'), and a declared 'this' parameter
+    // is emitted as any other one, so either of them makes the function expect the object of the call
+    private isEmittedWithoutThisParameter(location: ts.SignatureDeclaration): boolean {
+        const thisIsInParams = location.parameters
+            && location.parameters.some(p => (<ts.Identifier>p.name).text === 'this');
+        return !thisIsInParams && !this.hasNodeUsedThis(location);
     }
 
     private isConstExpression(expression: ts.Expression): any {
