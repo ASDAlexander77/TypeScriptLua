@@ -2,17 +2,17 @@ declare class WindowEx {
     public innerWidth;
     public innerHeight;
 
-    public focus();
+    public static focus();
 
-    public addEventListener(eventName: string, cb: any, flag: boolean): void;
+    public static addEventListener(eventName: string, cb: any, flag: boolean): void;
 
-    public removeEventListener(eventName: string, cb: any): void;
+    public static removeEventListener(eventName: string, cb: any): void;
 
-    public setTimeout(funct: any, millisec: number);
+    public static setTimeout(funct: any, millisec: number);
 
-    public setImmediate(funct: any);
+    public static setImmediate(funct: any);
 
-    public setInterval(funct: any, millisec: number);
+    public static setInterval(funct: any, millisec: number);
 
-    public loop();
+    public static loop();
 }
