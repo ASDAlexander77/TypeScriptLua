@@ -166,8 +166,8 @@ export class Run {
             const createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
 
             // 'createWatchCompilerHost' offers no way to add a root file to a tsconfig, so a jslib
-            // build watches the file list instead of the config: source watching is unaffected,
-            // tsconfig.json itself stops being re-read
+            // build watches the file list instead of the config: tsconfig.json stops being re-read,
+            // and a newly added file matching 'include' is not picked up until the watcher restarts
             const watchCompilingHost = Helpers.isJsLib(options, cmdLineOptions)
                 ? ts.createWatchCompilerHost(
                     rootNames,

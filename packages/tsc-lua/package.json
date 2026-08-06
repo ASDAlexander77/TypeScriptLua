@@ -31,6 +31,7 @@
     "lib/",
     "JS.lua",
     "JS.lua.map",
+    "JSLib.d.ts",
     "README.md"
   ],
   "author": "Alexander Duzhar",

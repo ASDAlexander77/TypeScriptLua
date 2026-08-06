@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { generateJsLibDts } from '../src/jslibdts';
 import { expect } from 'chai';
@@ -85,5 +86,13 @@ describe('JSLib.d.ts generator', () => {
     // 'String.replace' keeps 'string | FuncString' from the source, so the alias has to come too
     it('emits a type alias referenced by a kept member', () =>
         expect(output).to.match(/declare type FuncString = /));
+
+    // the committed 'lib/JSLib.d.ts' is a generated artifact, not a source of truth: if this
+    // fails, the jslib sources or the generator changed without 'npm run build-jslib-dts'
+    it('matches the committed lib/JSLib.d.ts byte-for-byte', () => {
+        const committed = fs.readFileSync(path.join(__dirname, '..', 'lib', 'JSLib.d.ts'), 'utf8');
+        expect(output, "lib/JSLib.d.ts is stale; run 'npm run build-jslib-dts' and commit the result")
+            .to.equal(committed);
+    });
 
 });
