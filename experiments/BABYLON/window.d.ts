@@ -1,6 +1,6 @@
 declare class WindowEx {
-    public innerWidth;
-    public innerHeight;
+    public static innerWidth;
+    public static innerHeight;
 
     public static focus();
 
