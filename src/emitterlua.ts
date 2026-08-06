@@ -3410,7 +3410,10 @@ export class EmitterLua {
                         + Helpers.getNodeText(node));
                 }
             }
-            else if (this.isCallOfMemberWithoutSelf(node)) {
+            else if (this.isCallOfMemberWithoutSelf(node)
+                // without JSLib.d.ts, lib.es5 declares Math as an interface, so the
+                // check above cannot see its statics
+                || (!this.jsLib && (<any>node.expression).__return_type === 'Math')) {
                 thisCall = false;
             }
         }

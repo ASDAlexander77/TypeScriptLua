@@ -21,4 +21,13 @@ describe('JSLib', () => {
         expect(lua).to.not.contain('String:fromCharCode(');
     });
 
+    // without -jslib, lib.es5.d.ts declares 'Math' as a variable of an interface type, so
+    // 'floor' resolves to a MethodSignature and the fallback in processPropertyAccessExpression
+    // is the only thing keeping this a dot call - JS.lua's Math table takes no self
+    it('Math: a static call is emitted with a dot, without jslib', () => {
+        const lua = new Run().testEmit(['console.log(Math.floor(1.5));']);
+        expect(lua).to.contain('Math.floor(');
+        expect(lua).to.not.contain('Math:floor(');
+    });
+
 });
