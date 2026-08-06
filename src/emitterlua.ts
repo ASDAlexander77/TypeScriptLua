@@ -3410,7 +3410,7 @@ export class EmitterLua {
                         + Helpers.getNodeText(node));
                 }
             }
-            else if (this.isCallOfMemberWithoutSelf(node) || (<any>node.expression).__return_type === 'Math') { // Math is special case, we need to include correct .d.ts file which declare correct methods
+            else if (this.isCallOfMemberWithoutSelf(node)) {
                 thisCall = false;
             }
         }
