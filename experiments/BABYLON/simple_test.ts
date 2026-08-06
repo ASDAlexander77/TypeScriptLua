@@ -157,7 +157,7 @@ class Runner {
 
         // init drawing
         // @ts-ignore
-        window.setTimeout(() => {
+        window.setInterval(() => {
             this.drawScene();
         }, 16);
     }
@@ -297,12 +297,6 @@ class Runner {
             const vertexCount = 4;
             _gl.drawArrays(_gl.TRIANGLE_STRIP, offset, vertexCount);
         }
-
-        // next draw
-        // @ts-ignore
-        window.setInterval(() => {
-            this.drawScene();
-        }, 16);
     }
 
     //
