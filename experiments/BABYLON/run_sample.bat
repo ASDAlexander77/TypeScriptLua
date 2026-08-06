@@ -1,0 +1,1 @@
+..\..\__dist\lua.exe simple_test2.lua

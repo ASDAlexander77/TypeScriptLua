@@ -300,7 +300,7 @@ class Runner {
 
         // next draw
         // @ts-ignore
-        window.setTimeout(() => {
+        window.setInterval(() => {
             this.drawScene();
         }, 16);
     }

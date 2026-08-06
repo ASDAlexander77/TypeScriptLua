@@ -260,7 +260,7 @@ class Runner {
 
         // Draw the scene repeatedly
         // @ts-ignore
-        window.setTimeout(() => {
+        window.setInterval(() => {
             this.drawScene(0.01);
         }, 16);
     }
@@ -592,7 +592,7 @@ class Runner {
 
         // next draw
         // @ts-ignore
-        window.setTimeout(() => {
+        window.setInterval(() => {
             this.drawScene(deltaTime);
         }, 16);
     }

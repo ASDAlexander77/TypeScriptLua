@@ -12,5 +12,7 @@ declare class WindowEx {
 
     public setImmediate(funct: any);
 
+    public setInterval(funct: any, millisec: number);
+
     public loop();
 }
