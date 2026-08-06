@@ -109,8 +109,11 @@ export class EmitterLua {
             this.strOps[ts.SyntaxKind.PlusEqualsToken] = '..';
     }
 
-    // the raw lua key a 'for in' over an array iterates, before it is shifted to a 0 based index
+    // locals a 'for in' needs: the raw lua key, the container, and its '_values' storage when it has
+    // one. they carry the emitter's '__' prefix so the loop's own key filter never sees them
     private static forInKeyName = '__k';
+    private static forInContainerName = '__c';
+    private static forInValuesName = '__v';
 
     private libCommon = '                                           \
     __type = __type || type;                                        \
@@ -2308,42 +2311,39 @@ export class EmitterLua {
     private processForInStatementNoScope(node: ts.ForInStatement): void {
         this.functionContext.newLocalScope(node);
 
-        // under jslib an array is an object keeping its elements in '_values', so 'pairs' on the
-        // array itself only ever sees that one field and never an element. iterate the storage
-        // instead, then shift the lua 1 based key back to the 0 based index JS hands out, so 'a[i]'
-        // in the body still resolves. without jslib an array is a plain 0 based table - leave it be
-        const expressionTypeName = this.typeInfo.getNameFromTypeNode(this.typeInfo.getTypeObject(node.expression));
-        const isArray = this.jsLib && (expressionTypeName === 'Array' || expressionTypeName === 'tuple');
+        // an array holds its elements in '_values', so 'pairs' on the array itself sees that one
+        // field and never an element. which shape the expression has can not be settled from its
+        // static type - 'let a: any = [1, 2]' is still an array at runtime - so pick the source at
+        // runtime: '_values' when it is there, the container itself otherwise. a plain object with
+        // a '_values' field of its own would be read as an array, which is the price of the guess
+        const key = EmitterLua.forInKeyName;
+        const container = EmitterLua.forInContainerName;
+        const values = EmitterLua.forInValuesName;
 
-        if (isArray) {
-            this.functionContext.textCode.push("for " + EmitterLua.forInKeyName + " in pairs(")
-            this.processExpression(node.expression);
-            this.functionContext.textCode.push("._values");
-            this.functionContext.textCode.pushNewLineIncrement(") do")
+        this.functionContext.textCode.push("local " + container + " = ");
+        this.processExpression(node.expression);
+        this.functionContext.textCode.pushNewLine();
+        this.functionContext.textCode.pushNewLine(
+            "local " + values + " = __type(" + container + ') == "table" and rawget('
+            + container + ', "_values")');
 
-            // '_values' carries the '__index'/'__newindex' hooks too, so only its numeric keys are
-            // elements. the control variable of a lua 'for in' is const, hence a body local rather
-            // than shifting the key in place
-            this.functionContext.textCode.push(
-                "if __type(" + EmitterLua.forInKeyName + ') == "number" then');
-            this.functionContext.textCode.pushNewLineIncrement();
+        this.functionContext.textCode.push("for " + key + " in pairs(" + values + " or " + container);
+        this.functionContext.textCode.pushNewLineIncrement(") do")
 
-            this.functionContext.textCode.push("local ");
-            this.processExpression(<ts.Expression>node.initializer);
-            this.functionContext.textCode.pushNewLine(" = " + EmitterLua.forInKeyName + " - 1");
-        } else {
-            this.functionContext.textCode.push("for ")
-            this.processExpression(<ts.Expression>node.initializer);
-            this.functionContext.textCode.push(" in pairs(")
-            this.processExpression(node.expression);
-            this.functionContext.textCode.pushNewLineIncrement(") do")
+        // '_values' carries the '__index'/'__newindex' hooks too, so only its numeric keys are
+        // elements; a plain container keeps the original filter on the emitter's own '__' fields
+        this.functionContext.textCode.push(
+            "if (" + values + " and __type(" + key + ') == "number") or (not(' + values
+            + ") and not(string.char(string.byte(" + key + ", 1)) == '_' and string.char(string.byte("
+            + key + ", 2)) == '_'))");
+        this.functionContext.textCode.pushNewLineIncrement(" then");
 
-            this.functionContext.textCode.push("if not(string.char(string.byte(");
-            this.processExpression(<ts.Expression>node.initializer);
-            this.functionContext.textCode.push(", 1)) == '_' and string.char(string.byte(");
-            this.processExpression(<ts.Expression>node.initializer);
-            this.functionContext.textCode.pushNewLineIncrement(", 2)) == '_') then");
-        }
+        // the control variable of a lua 'for in' is const, so the index JS hands out - 0 based over
+        // an array, the raw key otherwise - has to be a local of the body
+        this.functionContext.textCode.push("local ");
+        this.processExpression(<ts.Expression>node.initializer);
+        this.functionContext.textCode.pushNewLine(
+            " = " + values + " and " + key + " - 1 or " + key);
 
         this.processStatement(node.statement);
         this.functionContext.textCode.decrement();
