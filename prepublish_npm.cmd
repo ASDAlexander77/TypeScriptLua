@@ -30,3 +30,6 @@ copy *.lua "..\..\packages\tsc-lua\"
 copy *.lua.map "..\..\packages\tsc-lua\"
 
 cd ..\..
+
+@call npm run build-jslib-dts
+copy "lib\JSLib.d.ts" "packages\tsc-lua\"

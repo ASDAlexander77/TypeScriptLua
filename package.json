@@ -17,6 +17,7 @@
     "watch": "tsc -w -p ./",
     "lint": "tslint src/**/*.ts -t verbose",
     "build": "tsc",
+    "build-jslib-dts": "ts-node scripts/build-jslib-dts.ts",
     "exec": "ts-node src/main.ts",
     "prepublish": "prepublish_npm.cmd"
   },
