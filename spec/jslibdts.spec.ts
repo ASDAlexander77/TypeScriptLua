@@ -44,6 +44,14 @@ describe('JSLib.d.ts generator', () => {
     it('emits a get only accessor as a readonly property', () =>
         expect(classText('String')).to.match(/\n {4}readonly length: number;/));
 
+    // 'Object.create(null)' in transformClass is load-bearing: a plain '{}' inherits
+    // 'constructor' and 'toString', which silently drops both from every class
+    it('keeps a constructor, which a prototype-bearing dedup set would drop', () =>
+        expect(classText('String')).to.match(/\n {4}constructor\(/));
+
+    it('keeps a member named toString, for the same reason', () =>
+        expect(classText('Error')).to.match(/\n {4}toString\(/));
+
     it('emits a plain top level function as declare function', () =>
         expect(output).to.match(/declare function parseInt\(/));
 

@@ -18,8 +18,10 @@ const METAMETHODS: { [name: string]: boolean } = {
     '__unm': true, '__concat': true, '__eq': true
 };
 
-// 'declare class undefined' collides with the intrinsic 'undefined'
-const EXCLUDED_CLASSES: { [name: string]: boolean } = { 'undefined': true };
+// 'declare class undefined' collides with the intrinsic 'undefined'. 'Object.create(null)' so a
+// class literally named 'constructor' or 'toString' can't read back as excluded by inheriting
+// from Object.prototype - see the 'taken' dedup set in transformClass for the same bug, live
+const EXCLUDED_CLASSES: { [name: string]: boolean } = Object.assign(Object.create(null), { 'undefined': true });
 
 interface CollectedClass {
     name: string;
@@ -32,12 +34,16 @@ interface CollectedAlias {
 }
 
 export function generateJsLibDts(jslibDir: string): string {
-    const fileNames = readIncludeList(jslibDir);
-    const program = ts.createProgram(fileNames, {
-        target: ts.ScriptTarget.ES2018,
-        experimentalDecorators: true,
-        skipLibCheck: true
-    });
+    const config = loadJsLibConfig(jslibDir);
+    const fileNames = config.fileNames;
+    const program = ts.createProgram(fileNames, config.options);
+
+    // jslib is not written against a clean type environment - it has pre-existing errors
+    // (module resolution, strictness) that predate this generator. Failing loudly here would
+    // make the generator unusable until every one of them is fixed, so they are surfaced as
+    // warnings and inference proceeds on a best-effort basis, same as the rest of the compiler
+    // does when 'skipLibCheck'/'noResolve' let a build limp past a diagnostic
+    reportDiagnostics(program);
 
     const checker = program.getTypeChecker();
     const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
@@ -64,26 +70,55 @@ export function generateJsLibDts(jslibDir: string): string {
     return parts.join('\n');
 }
 
-// the include list of the jslib tsconfig is the authority on which files make up the library,
-// and its order is what makes regeneration byte for byte identical
-function readIncludeList(jslibDir: string): string[] {
+// jslib's own tsconfig is the authority on which files make up the library, in what order, and
+// under which compiler options - inference has to happen in the environment jslib is actually
+// written for ('target: es5', 'noResolve', 'types: []', ...), not a hardcoded guess at one.
+// 'parseJsonConfigFileContent' also resolves 'include' against the filesystem, so there is no
+// need to assume every entry is a literal filename the way a hand-rolled join over 'include' would
+function loadJsLibConfig(jslibDir: string): ts.ParsedCommandLine {
     const configPath = path.join(jslibDir, 'tsconfig.json');
-    const config = ts.parseConfigFileTextToJson(configPath, fs.readFileSync(configPath, 'utf8'));
-    if (config.error) {
-        throw new Error('can\'t read ' + configPath + ': ' + config.error.messageText);
+    const configFile = ts.readConfigFile(configPath, p => fs.readFileSync(p, 'utf8'));
+    if (configFile.error) {
+        throw new Error('can\'t read ' + configPath + ': '
+            + ts.flattenDiagnosticMessageText(configFile.error.messageText, '\n'));
     }
 
-    const include: string[] = config.config && config.config.include;
-    if (!include || include.length === 0) {
+    const parsed = ts.parseJsonConfigFileContent(configFile.config, ts.sys, jslibDir);
+    if (parsed.fileNames.length === 0) {
         throw new Error('no \'include\' list in ' + configPath);
     }
 
-    return include.map(f => path.join(jslibDir, f));
+    return parsed;
+}
+
+// surfaced as warnings rather than thrown: jslib has pre-existing errors today (see the fix
+// report for task 2), and a throw here would make the generator unusable until every one of
+// them is cleaned up. lib files (the 'es5'/'dom' declarations pulled in by jslib's own 'lib'
+// setting) are not jslib's problem to fix, so they are left out
+function reportDiagnostics(program: ts.Program): void {
+    const diagnostics = ts.getPreEmitDiagnostics(program)
+        .filter(d => d.category === ts.DiagnosticCategory.Error && d.file && !program.isSourceFileDefaultLibrary(d.file));
+
+    for (const diagnostic of diagnostics) {
+        console.warn('jslibdts: ' + formatDiagnosticLocation(diagnostic) + ': '
+            + ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+    }
+}
+
+function formatDiagnosticLocation(diagnostic: ts.Diagnostic): string {
+    if (!diagnostic.file || diagnostic.start === undefined) {
+        return '<unknown>';
+    }
+
+    const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+    return diagnostic.file.fileName + '(' + (position.line + 1) + ',' + (position.character + 1) + ')';
 }
 
 function emitSourceFile(sourceFile: ts.SourceFile, checker: ts.TypeChecker, printer: ts.Printer): string[] {
     const classes = collectClasses(sourceFile);
-    const byName: { [name: string]: CollectedClass } = {};
+    // 'Object.create(null)': a class named 'constructor' would otherwise read back truthy from
+    // Object.prototype before ever being added
+    const byName: { [name: string]: CollectedClass } = Object.create(null);
     classes.forEach(c => byName[c.name] = c);
 
     const texts: string[] = [];
@@ -120,22 +155,34 @@ function emitSourceFile(sourceFile: ts.SourceFile, checker: ts.TypeChecker, prin
     return texts;
 }
 
-// a class in 'module JS' / 'module TS' is emitted by the compiler as a global of its own name
-// (see 'TS.Math = Math' in JS.lua), so the module wrapper is dropped here.
-// a class at the top level of a file, like RegExp, is already a global
-function collectClasses(sourceFile: ts.SourceFile): CollectedClass[] {
-    const classes: CollectedClass[] = [];
+// a class or alias in 'module JS' / 'module TS' is emitted by the compiler as a global of its own
+// name (see 'TS.Math = Math' in JS.lua), so the module wrapper is dropped here - a top level
+// statement, like the 'RegExp' class, is already a global and is visited the same way.
+// shared by 'collectClasses' and 'collectTypeAliases' so a future correction to how the module
+// wrapper is unwrapped is made in one place instead of two that can drift apart
+function forEachModuleScopedStatement(
+    sourceFile: ts.SourceFile, visit: (node: ts.Node, insideModule: boolean) => void): void {
 
-    const visit = (node: ts.Node, insideModule: boolean) => {
+    const walk = (node: ts.Node, insideModule: boolean) => {
         if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
             const body = (<ts.ModuleDeclaration>node).body;
             if (body && body.kind === ts.SyntaxKind.ModuleBlock) {
-                (<ts.ModuleBlock>body).statements.forEach(s => visit(s, true));
+                (<ts.ModuleBlock>body).statements.forEach(s => walk(s, true));
             }
 
             return;
         }
 
+        visit(node, insideModule);
+    };
+
+    sourceFile.statements.forEach(s => walk(s, false));
+}
+
+function collectClasses(sourceFile: ts.SourceFile): CollectedClass[] {
+    const classes: CollectedClass[] = [];
+
+    forEachModuleScopedStatement(sourceFile, (node, insideModule) => {
         if (node.kind !== ts.SyntaxKind.ClassDeclaration) {
             return;
         }
@@ -152,37 +199,26 @@ function collectClasses(sourceFile: ts.SourceFile): CollectedClass[] {
         }
 
         classes.push({ name: declaration.name.text, declaration });
-    };
+    });
 
-    sourceFile.statements.forEach(s => visit(s, false));
     return classes;
 }
 
-// a type alias in 'module JS' / 'module TS' is dropped along with the module wrapper, same as a
-// class - unlike a class it need not be exported to be collected, since a member can keep a
-// reference to a non-exported alias (e.g. 'FuncString' in String.ts) verbatim from the source
+// unlike a class, an alias need not be exported to be collected: a member can keep a reference to
+// a non-exported alias (e.g. 'FuncString' in String.ts) verbatim from the source, so there is no
+// export filter here and 'insideModule' goes unused
 function collectTypeAliases(sourceFile: ts.SourceFile): CollectedAlias[] {
     const aliases: CollectedAlias[] = [];
 
-    const visit = (node: ts.Node, insideModule: boolean) => {
-        if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
-            const body = (<ts.ModuleDeclaration>node).body;
-            if (body && body.kind === ts.SyntaxKind.ModuleBlock) {
-                (<ts.ModuleBlock>body).statements.forEach(s => visit(s, true));
-            }
-
-            return;
-        }
-
+    forEachModuleScopedStatement(sourceFile, node => {
         if (node.kind !== ts.SyntaxKind.TypeAliasDeclaration) {
             return;
         }
 
         const declaration = <ts.TypeAliasDeclaration>node;
         aliases.push({ name: declaration.name.text, declaration });
-    };
+    });
 
-    sourceFile.statements.forEach(s => visit(s, false));
     return aliases;
 }
 
@@ -520,7 +556,11 @@ function emitFunctions(sourceFile: ts.SourceFile, checker: ts.TypeChecker, print
 // is never assigned is a lua native and stays out
 function emitAssignedGlobals(sourceFile: ts.SourceFile, printer: ts.Printer): string[] {
 
-    const assignedTo: { [name: string]: ts.Expression } = {};
+    // 'Object.create(null)': an ambient 'declare var toString' or 'declare var constructor'
+    // would otherwise read back truthy from Object.prototype and pass the '!value' guard below
+    // before ever being assigned - latent today (no jslib ambient collides), fixed for consistency
+    // with the same bug in transformClass's 'taken' set
+    const assignedTo: { [name: string]: ts.Expression } = Object.create(null);
     for (const statement of sourceFile.statements) {
         if (statement.kind !== ts.SyntaxKind.ExpressionStatement) {
             continue;
