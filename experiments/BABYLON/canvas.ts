@@ -3,7 +3,8 @@
 // @ts-ignore
 import _gl from 'webgl';
 
-declare var window: WindowEx;
+// 'window' comes from window.d.ts above, typed as the static side. redeclaring it here as
+// 'WindowEx' typed it as an instance, whose members are all on the static side instead (TS2576)
 
 // @ts-ignore
 export default class Canvas extends _gl implements WebGLRenderingContext {

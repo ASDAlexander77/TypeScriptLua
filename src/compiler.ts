@@ -151,7 +151,12 @@ export class Run {
             readFile: ts.sys.readFile
         };
 
-        const parsedCommandLine = ts.parseJsonSourceFileConfigFileContent(configFile, parseConfigHost, './');
+        // 'include'/'files' entries are resolved against this base path, and a relative one silently drops every
+        // entry that reaches outside the config's own directory - no error, the file is just missing from the
+        // program. tsc itself passes the directory holding the config, so do the same
+        const basePath = path.dirname(path.resolve(configPath));
+
+        const parsedCommandLine = ts.parseJsonSourceFileConfigFileContent(configFile, parseConfigHost, basePath);
 
         const watch = cmdLineOptions && 'watch' in cmdLineOptions;
 

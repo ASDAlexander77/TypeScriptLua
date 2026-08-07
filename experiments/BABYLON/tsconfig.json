@@ -38,7 +38,10 @@
       "testapp5.ts",
       "testapp6.ts",
       "testloadmesh.ts",
-      "declarations.d.ts"
+      "declarations.d.ts",
+      "window.d.ts",
+      "canvas.d.ts",
+      "image.d.ts"
     ],
     "exclude": [
       "node_modules"

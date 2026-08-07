@@ -1067,6 +1067,43 @@ describe('Classes', () => {
         console.log("Run");                                                             \
     '])));
 
+    // 'this' in a static is the class, so it is emitted as the class name and the static keeps taking no
+    // 'this' parameter. the body used to decide that, which made the calling convention unknowable from a
+    // declaration - a '.d.ts' has no body to read
+    it('Class - this in static is emitted as the class name', () => {
+        const lua = new Run().testEmit([
+            'class C {                                                                  \
+                static data = { a: 1 };                                                 \
+                public static viaThis(k: string) { return this.data[k]; }               \
+            }                                                                           \
+            console.log(C.viaThis("a"));                                                \
+        ']);
+        expect(lua).to.contain('viaThis = function (k)');
+        expect(lua).to.contain('return C.data[k]');
+        expect(lua).to.contain('C.viaThis("a")');
+        expect(lua).to.not.contain('C:viaThis(');
+    });
+
+    it('Class - a static declared in a d.ts is called as it is implemented', () => {
+        const lua = new Run().testEmit([
+            'declare class D { public static act(k: string): number; }                  \
+            console.log(D.act("a"));                                                    \
+        ']);
+        expect(lua).to.contain('D.act("a")');
+        expect(lua).to.not.contain('D:act(');
+    });
+
+    it('Class - this in a static reaches the class through an arrow function', () => expect(new Run().test([
+        'class C {                                                                      \
+            static v = 7;                                                               \
+            public static run() {                                                       \
+                const f = () => this.v;                                                 \
+                return f();                                                             \
+            }                                                                           \
+        }                                                                               \
+        console.log(C.run());                                                           \
+    '])).to.equals('7\r\n'));
+
     it('Class - BUG (count of method return vars)',  () => expect('Run\r\n').to.equals(new Run().test([
         'class Node1 {                                      \
         public _scene: Scene;                               \

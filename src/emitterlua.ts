@@ -756,8 +756,12 @@ export class EmitterLua {
         if (!addThisAsParameter
             && isMethod
             && (origin || !this.functionContext.thisInUpvalue)) {
+            // a static addresses the class by name rather than through a 'this' parameter, so a 'this' in its body
+            // must not add one. 'isClassDeclaration' cannot carry that on its own - the lua emitter keeps a single
+            // function context for the whole file, so the container it reads is not the enclosing class
+            const isStaticMember = this.isStaticClassMember(origin) || this.isStaticClassMember(location);
             const createThis = (this.hasMemberThis(origin) || this.hasNodeUsedThis(location))
-                && !(isClassDeclaration && this.functionContext.isStatic && !isAccessor);
+                && !((isClassDeclaration || isStaticMember) && this.functionContext.isStatic && !isAccessor);
             if (createThis) {
                 const thisIsInParams = parameters && parameters.some(p => (<ts.Identifier>p.name).text === 'this');
                 if (!thisIsInParams) {
@@ -1649,6 +1653,21 @@ export class EmitterLua {
         return false;
     }
 
+    // an explicitly declared 'this' parameter is emitted as any other one and takes over what 'this' means in the
+    // body, so it wins over the class binding a static would otherwise have
+    private hasDeclaredThisParameter(location: ts.SignatureDeclaration): boolean {
+        return !!location.parameters
+            && location.parameters.some(p => (<ts.Identifier>p.name).text === 'this');
+    }
+
+    private isStaticClassMember(memberDeclaration: ts.Node): boolean {
+        return !!memberDeclaration
+            && this.isStatic(memberDeclaration)
+            && !!memberDeclaration.parent
+            && (memberDeclaration.parent.kind === ts.SyntaxKind.ClassDeclaration
+                || memberDeclaration.parent.kind === ts.SyntaxKind.ClassExpression);
+    }
+
     private isAbstract(memberDeclaration: ts.Node): any {
         // we do not need - abstract elements
         if (memberDeclaration.modifiers &&
@@ -1721,9 +1740,17 @@ export class EmitterLua {
     // 'this' becomes the first parameter of a function using it (see 'createThis'), and a declared 'this' parameter
     // is emitted as any other one, so either of them makes the function expect the object of the call
     private isEmittedWithoutThisParameter(location: ts.SignatureDeclaration): boolean {
-        const thisIsInParams = location.parameters
-            && location.parameters.some(p => (<ts.Identifier>p.name).text === 'this');
-        return !thisIsInParams && !this.hasNodeUsedThis(location);
+        if (this.hasDeclaredThisParameter(location)) {
+            return false;
+        }
+
+        // a static resolves 'this' to the class name, so it takes no 'this' parameter whatever its body does.
+        // this is also the only answer available for a member declared in a '.d.ts', which has no body to read
+        if (this.isStaticClassMember(location)) {
+            return true;
+        }
+
+        return !this.hasNodeUsedThis(location);
     }
 
     private isConstExpression(expression: ts.Expression): any {
@@ -3309,7 +3336,46 @@ export class EmitterLua {
             || parent.kind === ts.SyntaxKind.SourceFile;
     }
 
+    // 'this' inside a static member is the class itself, so it is emitted as the class name. a static is a plain
+    // field of the class table and takes no 'this' parameter (see 'createThis'), which is what lets a '.d.ts'
+    // declaring the member static describe how it is really called - a body has no say in the calling convention.
+    // an arrow function takes its 'this' lexically and keeps resolving to the class; a function expression rebinds
+    // it and ends the walk. a member declaring its own 'this' parameter - as jslib's 'static getLength(this: string)'
+    // does to reach the string being operated on - keeps that meaning instead
+    private staticThisClassName(node: ts.Node): ts.Identifier {
+        let current = node.parent;
+        while (current) {
+            switch (current.kind) {
+                case ts.SyntaxKind.FunctionExpression:
+                case ts.SyntaxKind.FunctionDeclaration:
+                case ts.SyntaxKind.ObjectLiteralExpression:
+                case ts.SyntaxKind.Constructor:
+                case ts.SyntaxKind.ClassDeclaration:
+                case ts.SyntaxKind.ClassExpression:
+                    return null;
+                case ts.SyntaxKind.MethodDeclaration:
+                case ts.SyntaxKind.PropertyDeclaration:
+                case ts.SyntaxKind.GetAccessor:
+                case ts.SyntaxKind.SetAccessor:
+                    return this.isStaticClassMember(current)
+                        && !this.hasDeclaredThisParameter(<ts.SignatureDeclaration>current)
+                        ? (<ts.ClassLikeDeclaration>current.parent).name
+                        : null;
+            }
+
+            current = current.parent;
+        }
+
+        return null;
+    }
+
     private processThisExpression(node: ts.ThisExpression): void {
+        const className = this.staticThisClassName(node);
+        if (className) {
+            this.processExpression(className);
+            return;
+        }
+
         this.functionContext.textCode.push("this");
     }
 
