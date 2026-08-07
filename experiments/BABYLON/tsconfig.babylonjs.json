@@ -1,0 +1,36 @@
+// the tsconfig for the Babylon.js library compile. thirdparty/Babylon.js is re-downloaded from
+// scratch, so this config is kept here and build_bs.bat installs it as
+// thirdparty/Babylon.js/src/tsconfig.json - the include paths below are relative to there.
+//
+// those three declaration files are what describe window/Canvas/Image to the library compile:
+// '-jslib' sets noLib, so the "dom" lib below never loads and nothing else declares them
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "noResolve": true,
+    "target": "es5",
+    "declaration": true,
+    "experimentalDecorators": true,
+    "isolatedModules": false,
+    "sourceMap": true,
+    "types": [],
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "skipLibCheck": true,
+    "lib": [
+        "dom",
+        "es2015.promise",
+        "es5"
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "../../../experiments/BABYLON/window.d.ts",
+    "../../../experiments/BABYLON/canvas.d.ts",
+    "../../../experiments/BABYLON/image.d.ts"
+  ]
+}

@@ -8,6 +8,11 @@ echo ==================================
 echo =
 echo =
 
+rem thirdparty\Babylon.js is re-downloaded from scratch, so its tsconfig lives here
+rem and is installed on every build - it is what pulls window.d.ts/canvas.d.ts/image.d.ts
+rem into the library compile
+copy /Y tsconfig.babylonjs.json ..\..\thirdparty\Babylon.js\src\tsconfig.json
+
 cd ..\..\thirdparty\Babylon.js\src
 node ../../../__out/src/main.js -jslib -varAsLet
 
