@@ -9,6 +9,9 @@ import _gl from 'webgl';
 // @ts-ignore
 export default class Canvas extends _gl implements WebGLRenderingContext {
 
+    // GL_INVALID_INDEX, 0xFFFFFFFF
+    static INVALID_INDEX: number = 4294967295;
+
     canvas: HTMLCanvasElement;
 
     // @ts-ignore
@@ -117,11 +120,26 @@ export default class Canvas extends _gl implements WebGLRenderingContext {
         _gl.bindBufferBase(target, index, buffer ? (<any>buffer).value : 0);
     }
 
+    // GL_INVALID_INDEX is the specified result when the program has no block of that name -
+    // not an error. The native adapter (experiments/WebGLAdapter/gl.c) raises on it instead of
+    // returning it, which aborts Effect._prepareEffect midway: the effect never fetches its
+    // uniform locations and never becomes ready, so nothing renders but the clear colour.
+    // BabylonJS asks for 'Light0' on every StandardMaterial, and the driver drops that block
+    // whenever its members are unused, so this fires on an ordinary lit scene.
+    // NOTE: this cannot be guarded with try/catch here - tsc-lua currently drops a 'return'
+    // that sits inside a try block, so the success path would return undefined. The fix
+    // belongs in gl.c, which should return GL_INVALID_INDEX rather than raising on it.
     getUniformBlockIndex(program: WebGLProgram, uniformBlockName: string): number {
         return _gl.getUniformBlockIndex(program ? (<any>program).value : 0, uniformBlockName);
     }
 
     uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: number, uniformBlockBindingValue: number): void {
+        // binding an absent block is a no-op in WebGL; passing INVALID_INDEX through would make
+        // the adapter raise again, on GL_INVALID_VALUE this time
+        if (uniformBlockIndex === Canvas.INVALID_INDEX) {
+            return;
+        }
+
         _gl.uniformBlockBinding(program ? (<any>program).value : 0, uniformBlockIndex, uniformBlockBindingValue);
     }
 

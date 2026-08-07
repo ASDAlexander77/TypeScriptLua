@@ -730,12 +730,15 @@ extern "C"
         const char *uniformBlockName = luaL_checkstring(L, 2);
 
         const GLuint result = glGetUniformBlockIndex(program, uniformBlockName);
-        if (result == GL_INVALID_INDEX)
-        {
-            printf("GL error: glGetUniformBlockIndex: (%s) returns GL_INVALID_INDEX.\n", uniformBlockName);
-            return luaL_error(L, "GL error: glGetUniformBlockIndex (%s) returns GL_INVALID_INDEX", uniformBlockName);
-        }
 
+        /* GL_INVALID_INDEX is the specified result for "this program has no block of that
+           name", not a failure: glGetUniformBlockIndex raises no GL error for an unknown
+           name, and WebGL2 hands the value straight back to the caller. Raising here broke
+           any lit BabylonJS scene - the driver drops a uniform block whose members end up
+           unused, so 'Light0' legitimately comes back invalid, and the error aborted
+           Effect._prepareEffect before it read its uniform locations. The effect then never
+           became ready, no matrices reached the shader, and nothing rendered but the clear
+           colour. Return the value and let the caller decide. */
         int error = errorCheck(L);
         if (error)
         {
@@ -752,6 +755,15 @@ extern "C"
         const GLuint program = (GLuint) luaL_checkinteger(L, 1);
         const GLuint uniformBlockIndex = (GLuint) luaL_checkinteger(L, 2);
         const GLuint uniformBlockBindingValue = (GLuint) luaL_checkinteger(L, 3);
+
+        /* Callers pass whatever getUniformBlockIndex returned, so an absent block arrives
+           here as GL_INVALID_INDEX. Binding it is a no-op rather than a failure - glUniform-
+           BlockBinding would raise GL_INVALID_VALUE, which errorCheck below turns into a lua
+           error, reintroducing the abort that returning GL_INVALID_INDEX above just removed. */
+        if (uniformBlockIndex == GL_INVALID_INDEX)
+        {
+            return 0;
+        }
 
         glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBindingValue);
 
