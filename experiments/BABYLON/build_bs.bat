@@ -1,5 +1,8 @@
-@call clean_bs.bat .\BABYLON
-@call clean_bs.bat ..\..\thirdparty\Babylon.js\src
+rem called by full path - a bare 'call clean_bs.bat' resolves via PATH, which does not
+rem include the current directory on every machine, and a silent clean failure here leaves
+rem stale .lua behind for the xcopy below
+@call "%~dp0clean_bs.bat" .\BABYLON
+@call "%~dp0clean_bs.bat" ..\..\thirdparty\Babylon.js\src
 
 echo =
 echo ==================================
@@ -26,8 +29,10 @@ echo =
 echo =
 
 cd ..\..\..\experiments\BABYLON
-xcopy /S ..\..\thirdparty\Babylon.js\src\*.lua .\BABYLON\
-xcopy /S ..\..\thirdparty\Babylon.js\src\*.lua.map .\BABYLON\
+rem /Y matters: without it xcopy prompts 'Overwrite?' for any file the clean above missed,
+rem and a non-interactive run answers EOF and copies nothing - deploying a stale BABYLON\
+xcopy /S /Y ..\..\thirdparty\Babylon.js\src\*.lua .\BABYLON\
+xcopy /S /Y ..\..\thirdparty\Babylon.js\src\*.lua.map .\BABYLON\
 
 cd
 rmdir /S /Q Shaders
@@ -44,7 +49,7 @@ xcopy /S /Y ..\..\thirdparty\Babylon.js\src\Shaders .\Shaders\
 rem echo ==================================
 rem echo Copying JSLib
 rem echo ==================================
-@call copy_js.bat
+@call "%~dp0copy_js.bat"
 
 echo =
 echo ==================================

@@ -58,7 +58,9 @@ module JS {
                     if (position < 0) {
                         const rest = this.substring(current);
                         ArrayHelper.pushOne(result, rest);
-                        return result.join();
+                        // 'result' holds the pieces of the rebuilt string, so they are glued
+                        // straight back together - a bare 'join()' inserts Array's default ','
+                        return result.join('');
                     }
 
                     if (position > current) {
@@ -76,7 +78,7 @@ module JS {
                     }
                 }
 
-                return result.join();
+                return result.join('');
             }
 
             return string.gsub(this, (<any>valOrRegExp).__getLuaPattern(), valOrFunc);

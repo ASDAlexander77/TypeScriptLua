@@ -325,7 +325,11 @@ export class EmitterLua {
         };                                                          \
         setmetatable(obj, obj);                                     \
                                                                     \
-        if (obj.constructor) {                                      \
+        /* a class with no constructor has none anywhere on its proto chain, so the   \
+           lookup falls through to __get_call_undefined__ and yields the undefined    \
+           sentinel - a table, which passes a bare truthiness test. calling it then   \
+           trips its __call and throws. hence the explicit sentinel check */          \
+        if (obj.constructor && obj.constructor !== undefined) {      \
             obj.constructor(...params);                             \
         }                                                           \
                                                                     \
@@ -342,7 +346,8 @@ export class EmitterLua {
         obj.__newindex = __set_call_undefined__;                    \
         setmetatable(obj, obj);                                     \
                                                                     \
-        if (obj.constructor) {                                      \
+        /* see __new above - guards against the undefined sentinel, not just nil */   \
+        if (obj.constructor && obj.constructor !== undefined) {      \
             obj.constructor(...params);                             \
         }                                                           \
                                                                     \

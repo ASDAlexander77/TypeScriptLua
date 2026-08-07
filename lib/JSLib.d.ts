@@ -266,7 +266,7 @@ declare class Date {
 declare class RegExp {
     constructor(pattern: string, flags?: string);
     test(t: string): any;
-    exec(t: string): any;
+    exec(t: string): RegExpExecArray | null;
     getPattern(): string;
     __getLuaPattern(): string;
 }

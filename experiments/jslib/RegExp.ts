@@ -43,9 +43,13 @@ class RegExp {
         return !string.match(t, this.__getLuaPattern());
     }
 
-    public exec(t: string) {
+    // the return type is what tells a consuming compile that the match elements are strings.
+    // left as 'any' it infects every 'match[n]' with 'any', and the preprocessor then emits a
+    // dynamic 'match[n]:indexOf(...)' instead of 'StringHelper.indexOf(match[n], ...)' - which
+    // fails at runtime, because the elements are raw Lua strings with no JS methods on them
+    public exec(t: string): RegExpExecArray | null {
         if (!t) {
-            return false;
+            return null;
         }
 
         if (this.nativeHandle) {
