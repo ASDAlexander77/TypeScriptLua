@@ -18,6 +18,7 @@
     "lint": "tslint src/**/*.ts -t verbose",
     "build": "tsc",
     "build-jslib-dts": "ts-node scripts/build-jslib-dts.ts",
+    "conformance": "ts-node scripts/conformance-survey.ts",
     "conformance:refresh": "ts-node scripts/refresh-conformance.ts",
     "conformance:selftest": "mocha -u tdd --timeout 180000 --colors -r ts-node/register selftest/**/*.spec.ts",
     "exec": "ts-node src/main.ts",

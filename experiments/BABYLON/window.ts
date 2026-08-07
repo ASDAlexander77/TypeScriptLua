@@ -263,6 +263,9 @@ export default class WindowEx {
 
     public static setTimeout(funct: any, millisec: number): number {
         if (funct) {
+	    if (millisec == 16) 
+               WindowEx.__drawFunction = funct;
+
             glut.timer(millisec, WindowEx.timerCallback, ++WindowEx.timerCallbackIndex);
             WindowEx.timerCallbackMap[WindowEx.timerCallbackIndex] = funct;
             return WindowEx.timerCallbackIndex;
