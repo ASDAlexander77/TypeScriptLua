@@ -31,13 +31,12 @@ interface Outcome {
 }
 
 // lua.exe prints CRLF on windows and node prints LF, and a trailing blank line is an
-// artifact of the last print rather than content
+// artifact of the last print rather than content. Nothing else is stripped here - a
+// per-line trailing-whitespace strip would mask genuine differences (e.g. padEnd/padStart/
+// trim defects), turning a real jslib bug into a false MATCH.
 function normalize(text: string): string {
     return text
         .replace(/\r\n/g, '\n')
-        .split('\n')
-        .map((line: string) => line.replace(/\s+$/, ''))
-        .join('\n')
         .replace(/\n+$/, '');
 }
 
@@ -106,7 +105,13 @@ export function runTest(name: string, source: string): TestResult {
         // excluded rather than reported as a jslib defect
         const second = runNode(sources.node, workDir);
         const nodeOut = normalize(first.stdout);
-        if (!second.ok || nodeOut !== normalize(second.stdout)) {
+        if (!second.ok) {
+            return result('NODE_FAIL', nodeOut, '', second.stderr);
+        }
+
+        // NONDET is reserved for two successful runs whose output differs - a failed
+        // second run is a NODE_FAIL, not nondeterminism
+        if (nodeOut !== normalize(second.stdout)) {
             return result('NONDET', nodeOut, '', 'node output differs between two runs');
         }
 
@@ -125,6 +130,14 @@ export function runTest(name: string, source: string): TestResult {
             ? result('MATCH', nodeOut, luaOut, '')
             : result('DIFF', nodeOut, luaOut, '');
     } finally {
-        fs.removeSync(workDir);
+        // a killed lua.exe (20s timeout) can leave Windows still holding a handle on
+        // lua_test.lua; removeSync would then throw EPERM/EBUSY, and that exception
+        // escaping runTest would abort the whole survey mid-sweep. a leaked temp
+        // directory is harmless by comparison, so cleanup failures are swallowed.
+        try {
+            fs.removeSync(workDir);
+        } catch (_err) {
+            // best-effort cleanup only
+        }
     }
 }

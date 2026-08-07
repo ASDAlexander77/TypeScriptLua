@@ -39,4 +39,12 @@ describe('conformance runner', function () {
         expect(result.nodeStdout).to.equal('ok');
     });
 
+    it('preserves trailing whitespace instead of masking padEnd/padStart/trim defects', () => {
+        // normalize() must only fold CRLF and trim the trailing blank line left by the
+        // last print - stripping trailing whitespace from every line would turn a real
+        // padEnd/padStart/trim defect into a false MATCH
+        const result = runTest('trailing-whitespace', 'console.log("x".padEnd(5) + "|end");');
+        expect(result.nodeStdout).to.equal('x    |end');
+    });
+
 });
