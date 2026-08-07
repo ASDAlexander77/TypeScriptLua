@@ -40,4 +40,48 @@ describe('conformance report', () => {
         expect(renderReport([])).to.contain('console.log');
     });
 
+    it('escapes backticks in detail to preserve fence parity', () => {
+        const testResult: TestResult = {
+            name: 'error_test',
+            category: 'LUA_COMPILE_FAIL',
+            nodeStdout: '',
+            luaStdout: '',
+            detail: 'stack trace:\n```\nsome code'
+        };
+        const text = renderReport([testResult]);
+        // The detail contains ``` so fence should be at least 4 backticks
+        // Find the fence opening after error_test
+        const testIdx = text.indexOf('### error_test');
+        expect(testIdx).to.be.greaterThan(-1);
+        const afterTest = text.substring(testIdx);
+        // Should have a 4-backtick fence to escape the 3-backtick content
+        expect(afterTest).to.contain('````text');
+        // Verify the detail is properly closed with a matching fence
+        expect(afterTest).to.contain('````');
+        // Most importantly, verify the Standing findings section is still accessible
+        // (not corrupted by unclosed fence)
+        expect(text).to.contain('## Standing findings');
+    });
+
+    it('preserves diff block integrity when context line contains backticks', () => {
+        const text = renderReport([
+            result('backtick_test', 'DIFF', 'before\n```\nafter1', 'before\n```\nafter2')
+        ]);
+        // Should contain the diff markers for the differing lines
+        expect(text).to.contain('- after1');
+        expect(text).to.contain('+ after2');
+        // The diff context line contains ``` so fence should be at least 4 backticks
+        const testIdx = text.indexOf('### backtick_test');
+        expect(testIdx).to.be.greaterThan(-1);
+        const afterTest = text.substring(testIdx);
+        // Should have a 4-backtick fence for the diff block
+        expect(afterTest).to.contain('````diff');
+        // The diff markers should be inside the fence, not escaped outside
+        const diffStart = afterTest.indexOf('````diff');
+        const diffEnd = afterTest.indexOf('````', diffStart + 4);
+        const diffBlock = afterTest.substring(diffStart, diffEnd);
+        expect(diffBlock).to.contain('- after1');
+        expect(diffBlock).to.contain('+ after2');
+    });
+
 });

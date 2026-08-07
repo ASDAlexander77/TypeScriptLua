@@ -12,12 +12,26 @@ const MEANING: { [key: string]: string } = {
     NONDET: 'node output not reproducible - excluded'
 };
 
+// Find the longest run of backticks in content and return a fence with at least one more
+function getFence(content: string): string {
+    const matches = content.match(/`+/g) || [];
+    const longest = matches.length > 0 ? Math.max.apply(null, matches.map(m => m.length)) : 0;
+    const fenceLength = Math.max(3, longest + 1);
+    let fence = '';
+    for (let i = 0; i < fenceLength; i++) {
+        fence += '`';
+    }
+    return fence;
+}
+
 // a line-oriented diff is enough here: these outputs are short, and the point is to show
 // what changed rather than to minimise the edit script
 function renderDiff(expected: string, actual: string): string[] {
     const expectedLines = expected.split('\n');
     const actualLines = actual.split('\n');
-    const lines: string[] = ['```diff'];
+    const allContent = expected + '\n' + actual;
+    const fence = getFence(allContent);
+    const lines: string[] = [fence + 'diff'];
 
     for (let i = 0; i < Math.max(expectedLines.length, actualLines.length); i++) {
         const e = expectedLines[i];
@@ -30,7 +44,7 @@ function renderDiff(expected: string, actual: string): string[] {
         }
     }
 
-    lines.push('```');
+    lines.push(fence);
     return lines;
 }
 
@@ -75,7 +89,8 @@ export function renderReport(results: TestResult[]): string {
                 renderDiff(r.nodeStdout, r.luaStdout).forEach((l: string) => lines.push(l));
                 lines.push('');
             } else if (r.detail) {
-                lines.push('```text', r.detail.replace(/\s+$/, ''), '```', '');
+                const fence = getFence(r.detail);
+                lines.push(fence + 'text', r.detail.replace(/\s+$/, ''), fence, '');
             }
         });
     });
