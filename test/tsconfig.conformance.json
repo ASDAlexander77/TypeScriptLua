@@ -23,7 +23,7 @@
       ]
     },
     "include": [
-      "I:/TypeScriptLua/spec/conformance/tests/*"
+      "../spec/conformance/tests/*"
     ],
     "exclude": [
       "node_modules"
