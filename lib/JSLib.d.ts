@@ -65,9 +65,11 @@ declare var Infinity: number;
 
 declare function decodeURIComponent(s: string): string;
 
-declare function parseInt(v: any): any;
+declare function toPrimitiveForParse(v: any): any;
 
-declare function parseFloat(v: any): any;
+declare function parseInt(v: any): number;
+
+declare function parseFloat(v: any): number;
 
 declare function isNaN(v: any): boolean;
 
