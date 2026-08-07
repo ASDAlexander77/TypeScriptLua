@@ -12,6 +12,7 @@ package-lock.json
 /experiments/jslib/*.lua
 /experiments/BABYLON/*.map
 /experiments/jslib/*.map
+/spec/**/*.lua
 __build
 /thirdparty/glew-2.2.0
 /thirdparty/freeimage-3.18.0/Dist

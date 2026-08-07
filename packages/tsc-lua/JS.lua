@@ -199,7 +199,7 @@ __new = __new or function (proto, ...)
     
 
     setmetatable(obj, obj)
-    if obj.constructor_ then 
+    if obj.constructor_ and not(obj.constructor_ == undefined) then 
         obj:constructor_(...)
     end
     return obj
@@ -213,7 +213,7 @@ __new_init = __new_init or function (proto, obj, ...)
     obj.__proto = proto
     obj.__newindex = __set_call_undefined__
     setmetatable(obj, obj)
-    if obj.constructor_ then 
+    if obj.constructor_ and not(obj.constructor_ == undefined) then 
         obj:constructor_(...)
     end
     return obj
@@ -224,7 +224,7 @@ __decorate = __decorate or function (decors, proto, propertyName, descriptorOrPa
 
     local isMethodDecoratorOrParameterDecorator = not(descriptorOrParameterIndex == undefined)
 
-    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op16930 = (Object:getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op16930 return op16930 end)() else return descriptorOrParameterIndex end end)() end end)()
+    local protoOrDescriptorOrParameterIndex = (function () if __is_true(isClassDecorator) then return proto else return (function () if __is_true(nil == descriptorOrParameterIndex) then return (function () local op17362 = (Object:getOwnPropertyDescriptor(proto, propertyName)) descriptorOrParameterIndex = op17362 return op17362 end)() else return descriptorOrParameterIndex end end)() end end)()
 
     local l = decors.length - 1
 
@@ -249,11 +249,15 @@ function decodeURIComponent(s)
     return s
 end
 
+function toPrimitiveForParse(v)
+    return (function () if __is_true(___type(v) == "object") then return tostring(v) else return v end end)()
+end
+
 function parseInt(v)
     if __is_true(__equals(v, undefined)) then 
         return 0 / 0
     end
-    local num = tonumber(v)
+    local num = tonumber(toPrimitiveForParse(v))
 
     if __is_true(num == nil) then 
         return 0 / 0
@@ -265,7 +269,7 @@ function parseFloat(v)
     if __is_true(__equals(v, undefined)) then 
         return 0 / 0
     end
-    local num = tonumber(v)
+    local num = tonumber(toPrimitiveForParse(v))
 
     if __is_true(num == nil) then 
         return 0 / 0
@@ -593,7 +597,7 @@ StringHelper = {
                     local rest = StringHelper.substring(this, current)
 
                     ArrayHelper.pushOne(result, rest)
-                    return result:join()
+                    return result:join("")
                 end
                 if __is_true(position > current) then 
                     local part = StringHelper.substring(this, current, position)
@@ -609,7 +613,7 @@ StringHelper = {
                     ArrayHelper.pushOne(result, val)
                 end
             end
-            return result:join()
+            return result:join("")
         end
         return string.gsub(this, valOrRegExp:__getLuaPattern(), valOrFunc)
     end
@@ -621,7 +625,7 @@ StringHelper = {
                 begin = undefined
             end
         end
-        return string.sub(this, ((function () local op3067 = begin if __is_true(op3067) then return op3067 else return 0 end end)()) + 1, ((function () local op3085 = begin if __is_true(op3085) then return op3085 else return 0 end end)()) + ((function () local op3100 = len if __is_true(op3100) then return op3100 else return string.len(this) end end)()))
+        return string.sub(this, ((function () local op3263 = begin if __is_true(op3263) then return op3263 else return 0 end end)()) + 1, ((function () local op3281 = begin if __is_true(op3281) then return op3281 else return 0 end end)()) + ((function () local op3296 = len if __is_true(op3296) then return op3296 else return string.len(this) end end)()))
     end
     ,
     substring = function (this, begin, _end)
@@ -631,10 +635,10 @@ StringHelper = {
                 begin = undefined
             end
         end
-        if __is_true((function () local op3245 = (function () local op3245 = __equals(begin, _end) if __is_true(op3245) then return __equals(_end, nil) else return op3245 end end)() if __is_true(op3245) then return op3245 else return begin == _end end end)()) then 
+        if __is_true((function () local op3441 = (function () local op3441 = __equals(begin, _end) if __is_true(op3441) then return __equals(_end, nil) else return op3441 end end)() if __is_true(op3441) then return op3441 else return begin == _end end end)()) then 
             return ""
         end
-        return string.sub(this, ((function () local op3379 = begin if __is_true(op3379) then return op3379 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
+        return string.sub(this, ((function () local op3575 = begin if __is_true(op3575) then return op3575 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
     end
     ,
     slice = function (this, start, _end)
@@ -644,14 +648,14 @@ StringHelper = {
                 start = undefined
             end
         end
-        return string.sub(this, ((function () local op3565 = start if __is_true(op3565) then return op3565 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
+        return string.sub(this, ((function () local op3761 = start if __is_true(op3761) then return op3761 else return 0 end end)()) + 1, (function () if __is_true(not(__equals(_end, undefined))) then return _end else return nil end end)())
     end
     ,
     indexOf = function (this, pattern, begin)
         if __is_true(begin == nil) then 
             begin = undefined
         end
-        return ((function () local op3738 = table.pack(string.find(this, pattern, ((function () local op3777 = begin if __is_true(op3777) then return op3777 else return 0 end end)()) + 1, true))[1] if __is_true(op3738) then return op3738 else return 0 end end)()) - 1
+        return ((function () local op3934 = table.pack(string.find(this, pattern, ((function () local op3973 = begin if __is_true(op3973) then return op3973 else return 0 end end)()) + 1, true))[1] if __is_true(op3934) then return op3934 else return 0 end end)()) - 1
     end
     ,
     lastIndexOf = function (this, pattern, begin)
@@ -664,7 +668,7 @@ StringHelper = {
 
         repeat
             lastFound = found
-            found = table.pack(string.find(this, pattern, ((function () local op4137 = (function () local op4137 = begin if __is_true(op4137) then return op4137 else return found end end)() if __is_true(op4137) then return op4137 else return 0 end end)()) + 1, true))[1]
+            found = table.pack(string.find(this, pattern, ((function () local op4333 = (function () local op4333 = begin if __is_true(op4333) then return op4333 else return found end end)() if __is_true(op4333) then return op4333 else return 0 end end)()) + 1, true))[1]
         until not(__is_true(found))
         return (function () if __is_true(lastFound) then return lastFound - 1 else return -1 end end)()
     end
@@ -674,9 +678,9 @@ StringHelper = {
             begin = undefined
         end
         if __is_true(___type(pattern) == "string") then 
-            (function () local op4414 = table.pack(string.find(this, pattern, ((function () local op4471 = begin if __is_true(op4471) then return op4471 else return 0 end end)()) + 1, true))[1] if __is_true(op4414) then return op4414 else return -1 end end)()
+            (function () local op4610 = table.pack(string.find(this, pattern, ((function () local op4667 = begin if __is_true(op4667) then return op4667 else return 0 end end)()) + 1, true))[1] if __is_true(op4610) then return op4610 else return -1 end end)()
         end
-        return (function () local op4541 = table.pack(string.find(this, pattern:__getLuaPattern(), ((function () local op4606 = begin if __is_true(op4606) then return op4606 else return 0 end end)()) + 1))[1] if __is_true(op4541) then return op4541 else return -1 end end)()
+        return (function () local op4737 = table.pack(string.find(this, pattern:__getLuaPattern(), ((function () local op4802 = begin if __is_true(op4802) then return op4802 else return 0 end end)()) + 1))[1] if __is_true(op4737) then return op4737 else return -1 end end)()
     end
     ,
     toLowerCase = function (this)
@@ -728,7 +732,7 @@ String = {
         end
         
         this.__concat = function (left, right)
-            return ((function () local op6065 = left.constString if __is_true(op6065) then return op6065 else return left end end)()) .. ((function () local op6114 = right.constString if __is_true(op6114) then return op6114 else return right end end)())
+            return ((function () local op6261 = left.constString if __is_true(op6261) then return op6261 else return left end end)()) .. ((function () local op6310 = right.constString if __is_true(op6310) then return op6310 else return right end end)())
         end
         
         this.__index = function (_this, indx)
@@ -1781,7 +1785,7 @@ Date = {
     now = function (this)
         local clk = os.clock()
 
-        return (Date.initial_time * 1000) + (math.floor((clk - initial_clock) * 1000))
+        return (Date.initial_time * 1000) + (math.floor((clk - Date.initial_clock) * 1000))
     end
     ,
     __index = __get_call_undefined__,
@@ -1847,7 +1851,7 @@ RegExp = {
     ,
     exec = function (this, t)
         if __is_true(__not(t)) then 
-            return false
+            return nil
         end
         if __is_true(this.nativeHandle) then 
             local matchResult = pcre2adapter.regexec(this.nativeHandle, t, (function () if __is_true(not(this.lastIndex == undefined)) then return this.lastIndex + 1 else return nil end end)())

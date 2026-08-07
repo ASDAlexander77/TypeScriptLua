@@ -22,8 +22,8 @@
         "dom"
       ]
     },
-    "files": [
-      "test.ts",
+    "include": [
+      "I:/TypeScriptLua/spec/conformance/tests/*"
     ],
     "exclude": [
       "node_modules"

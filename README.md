@@ -136,3 +136,8 @@ Hello, my name is Howard and I work in Sales.
 ```
 
 Enjoy it
+
+## Examples
+First working example in folder experiments/BABYLON (from Babylong.js)
+
+![Babylon.js](./imgs/babylon.gif)
